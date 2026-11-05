@@ -2,14 +2,7 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import {
-  Icon,
-  Dash,
-  Top,
-  Cross,
-  Narrow,
-  OpenInFull
-} from '@linagora/twake-icons'
+import { Icon, Dash, Cross, Narrow, OpenInFull } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
@@ -303,13 +296,13 @@ export function DockedWindow({
     </>
   )
 
-  // The Figma's reduced composer: the title, then the buttons in the order
-  // of the open window, show taking the place of minimize
+  // The Figma's reduced composer: the title, then the buttons of the open
+  // window, the same "−" showing it again
   const minimizedControls = (
     <>
       <TitleBarButton
         label={labels.restore}
-        icon={Top}
+        icon={Dash}
         onClick={() => {
           onModeChange('normal')
         }}

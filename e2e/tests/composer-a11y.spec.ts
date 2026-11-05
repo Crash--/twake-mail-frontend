@@ -48,12 +48,11 @@ test.describe('A11Y composer', () => {
 
     // A named, non modal dialog; the title is a level 2 heading; the live regions are there
     // before anything is announced (a region added with its text is often missed)
-    // The Figma: More in the title bar; the footer has "Aa" (the toolbar
-    // opens with it) and the insertions, then delete, save as draft and send
+    // The Figma window: no More; the footer has "Aa" (the toolbar opens
+    // with it) and the insertions, then delete, save as draft and send
     await expect(composer.root).toMatchAriaSnapshot(`
       - dialog "New message":
         - heading "New message" [level=2]
-        - button "More"
         - button "Minimize"
         - button "Fullscreen"
         - button "Close"
@@ -477,16 +476,10 @@ test.describe('A11Y composer', () => {
     await expectNoA11yViolations(page)
   })
 
-  test('A11Y-13 attachments, the "attached" reminder, the close dialog, the toasts and the template picker', async ({
+  test('A11Y-13 attachments, the "attached" reminder, the close dialog and the toasts', async ({
     page,
-    user,
-    jmap
+    user
   }) => {
-    const folder = await jmap.createMailbox({ name: 'Templates' })
-    await jmap.createEmailIn(folder.id, {
-      subject: 'Weekly report',
-      html: '<p>Done this week:</p>'
-    })
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
     await composer.fill({
@@ -534,21 +527,6 @@ test.describe('A11Y composer', () => {
       page.getByRole('status').filter({ hasText: 'Draft saved' }).first()
     ).toBeVisible()
     await expect(page.getByRole('alert')).toHaveCount(1)
-
-    // The picker: a named dialog, the focus in its field, Escape gives it back to "More"
-    await composer.openTemplatePicker()
-    await expect(composer.templatePicker).toMatchAriaSnapshot(`
-      - dialog "Insert a template":
-        - heading "Insert a template" [level=2]
-        - button "Close"
-        - combobox "Search templates"
-        - listbox "Templates":
-          - option "Weekly report"
-        - status
-    `)
-    await expect(composer.templatePickerInput).toBeFocused()
-    await page.keyboard.press('Escape')
-    await expect(composer.moreButton).toBeFocused()
 
     // The close dialog: named, with its message, the focus comes back where it was on Cancel
     await composer.editor.focus()

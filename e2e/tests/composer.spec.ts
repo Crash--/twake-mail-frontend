@@ -81,8 +81,14 @@ test.describe('CMP composer', () => {
       await composer.showField('cc')
       await expect(composer.recipientInput('cc')).toBeFocused()
       await composer.showField('bcc')
-      await composer.showField('reply-to')
-      for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
+      // Reply to: the chevron of a phone only, the Figma window has no
+      // place for it
+      const isPhone = (page.viewportSize()?.width ?? 0) < 600
+      const fields = isPhone
+        ? (['to', 'cc', 'bcc', 'reply-to'] as const)
+        : (['to', 'cc', 'bcc'] as const)
+      if (isPhone) await composer.showField('reply-to')
+      for (const field of fields) {
         await expect(composer.recipientInput(field)).toBeVisible()
       }
       await composer.addRecipient('cc', 'carol@example.com')
@@ -93,13 +99,13 @@ test.describe('CMP composer', () => {
       await expect(composer.recipientsSummary).toContainText(
         'carol@example.com'
       )
-      for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
+      for (const field of fields) {
         await expect(composer.recipientInput(field)).toBeHidden()
       }
 
       await composer.recipientsSummary.click()
       await expect(composer.recipientInput('to')).toBeFocused()
-      for (const field of ['to', 'cc', 'bcc', 'reply-to'] as const) {
+      for (const field of fields) {
         await expect(composer.recipientInput(field)).toBeVisible()
       }
       await expect(

@@ -76,7 +76,8 @@ async function received(
 test.describe('CMP composer: options of a message', () => {
   test(
     'CMP-02 a message marked important is received with its headers, flagged in the list',
-    { tag: '@mobile' },
+    // The Figma window has no "More": its menu is on phones only
+    { tag: '@phone-only' },
     async ({ page, user, jmap }) => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
@@ -113,7 +114,8 @@ test.describe('CMP composer: options of a message', () => {
 
   test(
     'CMP-03 a read receipt asked is received; the reader asks until it is sent',
-    { tag: '@mobile' },
+    // The Figma window has no "More": its menu is on phones only
+    { tag: '@phone-only' },
     async ({ page, user, jmap }) => {
       const subject = 'Receipt asked'
       const mailbox = await new LoginPage(page).loginAs(user)

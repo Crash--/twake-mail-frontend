@@ -102,9 +102,9 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await composer.showFormattingToolbar()
-      // A phone: close and More are in the form's top bar; on a desktop
-      // they are 32 px buttons of the title bar (CMP-84)
-      if (size === 44) {
+      // A phone: close and More are in the form's top bar; elsewhere close
+      // is a 32 px button of the title bar (CMP-84), and there is no More
+      if (testInfo.project.name === 'mobile') {
         for (const button of [composer.closeButton, composer.moreButton]) {
           const box = await boxOf(button)
           expect([box.width, box.height]).toEqual([size, size])

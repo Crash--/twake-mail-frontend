@@ -786,7 +786,6 @@ function ComposerSlot({
   const handleDone = useCallback((): void => {
     close(id)
   }, [id, close])
-  const [moreSlot, setMoreSlot] = useState<HTMLElement | null>(null)
 
   return (
     // Hidden (no room): kept mounted, nothing typed is lost
@@ -809,13 +808,7 @@ function ComposerSlot({
         isTitleBarHidden={tabletCard === undefined}
         card={isModal ? tabletCard : undefined}
         width={width}
-        titleBarActions={
-          <>
-            {titleBarActions}
-            {/* The form puts its "More" button here */}
-            <span ref={setMoreSlot} className="u-flex" />
-          </>
-        }
+        titleBarActions={titleBarActions}
         // Its own layer in the view transitions of the navigations: not
         // frozen nor hidden under the snapshot of the page
         viewTransitionName={`composer-${entry.id}`}
@@ -860,7 +853,6 @@ function ComposerSlot({
             onDone={handleDone}
             onRequestClose={handleRequestClose}
             topBarActions={titleBarActions}
-            moreSlot={moreSlot}
           />
         </Suspense>
       </DockedWindow>

@@ -85,7 +85,7 @@ async function openTemplate(
 }
 
 test.describe('CMP composer: templates and mailto links', () => {
-  test('CMP-19 a message saved as a template is listed in Templates, and saved again as updated', async ({
+  test('CMP-19 a message saved as a template is listed in Templates, and saved again as updated', { tag: '@phone-only' }, async ({
     page,
     user,
     jmap
@@ -124,7 +124,7 @@ test.describe('CMP composer: templates and mailto links', () => {
     ['CMP-20', 'attachment'],
     ['CMP-21', 'inline image']
   ] as const) {
-    test(`${id} a template with an ${kind}, reopened, is saved again twice`, async ({
+    test(`${id} a template with an ${kind}, reopened, is saved again twice`, { tag: '@phone-only' }, async ({
       page,
       user,
       jmap
@@ -227,7 +227,7 @@ async function seedTemplates(
 }
 
 test.describe('CMP composer: templates follow-ups', () => {
-  test('CMP-91 two tabs saving their first template at the same time make a single Templates folder', async ({
+  test('CMP-91 two tabs saving their first template at the same time make a single Templates folder', { tag: '@phone-only' }, async ({
     page,
     user,
     jmap
@@ -264,7 +264,7 @@ test.describe('CMP composer: templates follow-ups', () => {
     expect(await personal()).toHaveLength(1)
   })
 
-  test('CMP-92 a reopened draft saved as a template leaves no draft behind', async ({
+  test('CMP-92 a reopened draft saved as a template leaves no draft behind', { tag: '@phone-only' }, async ({
     page,
     user,
     jmap
@@ -291,7 +291,7 @@ test.describe('CMP composer: templates follow-ups', () => {
     expect(await subjectsIn(jmap, templates.id)).toEqual(['Draft to template'])
   })
 
-  test('CMP-93 the template of a message written as a team mailbox is filed in the Templates of the team mailbox, and opens with its identity', async ({
+  test('CMP-93 the template of a message written as a team mailbox is filed in the Templates of the team mailbox, and opens with its identity', { tag: '@phone-only' }, async ({
     page,
     user,
     users,
@@ -322,7 +322,7 @@ test.describe('CMP composer: templates follow-ups', () => {
     await expect(reopened.identitySelect).toContainText(team.email)
   })
 
-  test('CMP-94 saving a draft of a team mailbox as a template asks before deleting it for the team', async ({
+  test('CMP-94 saving a draft of a team mailbox as a template asks before deleting it for the team', { tag: '@phone-only' }, async ({
     page,
     user,
     users,
@@ -368,7 +368,7 @@ test.describe('CMP composer: templates follow-ups', () => {
     expect(await subjectsIn(jmap, teamTemplates)).toEqual(['Shared draft'])
   })
 
-  test('CMP-95 the Insert template picker lists the templates, filters them, announces the results and inserts one with the keyboard', async ({
+  test('CMP-95 the Insert template picker lists the templates, filters them, announces the results and inserts one with the keyboard', { tag: '@phone-only' }, async ({
     page,
     user,
     users,
@@ -415,7 +415,7 @@ test.describe('CMP composer: templates follow-ups', () => {
     await expect(composer.editor).toBeFocused()
   })
 
-  test('CMP-96 inserting a template into a message that has text asks whether to insert it at the cursor or to replace the message', async ({
+  test('CMP-96 inserting a template into a message that has text asks whether to insert it at the cursor or to replace the message', { tag: '@phone-only' }, async ({
     page,
     user,
     jmap
@@ -455,8 +455,9 @@ test.describe('CMP composer: templates follow-ups', () => {
   })
 
   test(
-    'CMP-97 the Insert template picker opens as a sheet on a phone and a dialog elsewhere, and works by touch',
-    { tag: '@mobile' },
+    'CMP-97 the Insert template picker opens as a sheet on a phone, and works by touch',
+    // The Figma window has no "More": the picker opens on phones only
+    { tag: '@phone-only' },
     async ({ page, user, jmap }) => {
       await seedTemplates(jmap, await ownTemplatesFolder(jmap), {
         'Weekly report': 'Done this week:',
@@ -467,22 +468,16 @@ test.describe('CMP composer: templates follow-ups', () => {
       const composer = await mailbox.compose()
       await composer.openTemplatePicker()
 
+      // A sheet from the bottom edge, as wide as the screen
       const box = await composer.templatePicker.boundingBox()
-      if (size.width < 600) {
-        // A sheet from the bottom edge, as wide as the screen
-        expect(box?.x).toBe(0)
-        expect(box?.width).toBe(size.width)
-        await expect
-          .poll(async () => {
-            const sheet = await composer.templatePicker.boundingBox()
-            return Math.round((sheet?.y ?? 0) + (sheet?.height ?? 0))
-          })
-          .toBe(size.height)
-      } else {
-        // A dialog, centred
-        const middle = (box?.x ?? 0) + (box?.width ?? 0) / 2
-        expect(Math.abs(middle - size.width / 2)).toBeLessThan(2)
-      }
+      expect(box?.x).toBe(0)
+      expect(box?.width).toBe(size.width)
+      await expect
+        .poll(async () => {
+          const sheet = await composer.templatePicker.boundingBox()
+          return Math.round((sheet?.y ?? 0) + (sheet?.height ?? 0))
+        })
+        .toBe(size.height)
       await expectNoA11yViolations(page)
       await composer.templatePickerInput.fill('welc')
       await expect(composer.templatePickerResults).toHaveText(
@@ -519,7 +514,7 @@ test.describe('CMP composer: templates follow-ups', () => {
     await expect(mailbox.page.getByTestId('search-results')).toBeVisible()
   })
 
-  test('CMP-99 inserting a template saved with a signature keeps the signature of the identity, once', async ({
+  test('CMP-99 inserting a template saved with a signature keeps the signature of the identity, once', { tag: '@phone-only' }, async ({
     page,
     user,
     jmap

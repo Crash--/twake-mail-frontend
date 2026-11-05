@@ -51,8 +51,10 @@ async function showFrom(composer: HTMLElement): Promise<void> {
   // Once the subject has the focus, the recipients are folded
   const summary = within(composer).queryByTestId('composer-recipients-summary')
   if (summary !== null) await userEvent.click(summary)
+  // A phone: one chevron shows every optional line
   await userEvent.click(
-    within(composer).getByTestId('composer-show-from-button')
+    within(composer).queryByTestId('composer-show-more-fields-button') ??
+      within(composer).getByTestId('composer-show-from-button')
   )
 }
 
@@ -75,6 +77,7 @@ jest.setTimeout(15_000)
 describe('ComposerForm', () => {
   afterEach(() => {
     void clearComposerStorage()
+    resetViewport()
   })
 
   /** A composer the browser kept, as a reload leaves it */
@@ -323,6 +326,8 @@ describe('ComposerForm', () => {
     })
 
     it('asks a read receipt and marks the message important from "More"', async () => {
+      // The Figma window has no "More": its menu is on phones only
+      mockViewport({ width: 390, touch: true })
       const { jmapServer } = renderComposer()
       const composer = await openComposer()
       await fill(composer, { to: 'bob@example.com', subject: 'Options' })
@@ -369,6 +374,8 @@ describe('ComposerForm', () => {
     })
 
     it('asks a read receipt by default when the user always does', async () => {
+      // The Figma window has no "More": its menu is on phones only
+      mockViewport({ width: 390, touch: true })
       renderComposer(
         makeFakeJmapServer({
           capabilities: { 'com:linagora:params:jmap:settings': {} },
@@ -1175,6 +1182,15 @@ describe('ComposerForm', () => {
   })
 
   describe('print', () => {
+    // The Figma window has no "More": its menu is on phones only
+    beforeEach(() => {
+      mockViewport({ width: 390, touch: true })
+    })
+
+    afterEach(() => {
+      resetViewport()
+    })
+
     beforeEach(() => {
       jest.mocked(printHtmlDocument).mockClear()
     })
@@ -1225,6 +1241,15 @@ describe('ComposerForm', () => {
   })
 
   describe('templates', () => {
+    // The Figma window has no "More": its menu is on phones only
+    beforeEach(() => {
+      mockViewport({ width: 390, touch: true })
+    })
+
+    afterEach(() => {
+      resetViewport()
+    })
+
     function templatesOf(server: FakeJmapServer): typeof server.emails {
       const folder = server.mailboxes.find(
         mailbox => mailbox.name === 'Templates'

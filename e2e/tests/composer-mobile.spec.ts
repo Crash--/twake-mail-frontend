@@ -135,38 +135,29 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
   )
 
   test(
-    'CMP-88 the More menu of a phone holds the actions the bar has no room for, a tablet has no link item',
-    { tag: '@mobile' },
+    'CMP-88 the More menu of a phone holds the actions the bar has no room for; a tablet has no More',
+    { tag: '@touch-only' },
     async ({ page, user }) => {
-      const phone = isPhone(page.viewportSize()?.width)
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await expect(composer.sendButton).toBeVisible()
+      if (!isPhone(page.viewportSize()?.width)) {
+        // The Figma window: minimize, full screen and close only
+        await expect(composer.moreButton).toHaveCount(0)
+        return
+      }
       const items = await composer.openMoreMenu()
       const names = (await items.allInnerTexts()).map(text => text.trim())
-      expect(names).toEqual(
-        phone
-          ? [
-              'Insert link',
-              'Save as draft',
-              'Insert template',
-              'Save as template',
-              'Print',
-              'Request read receipt',
-              'Mark as important',
-              'Delete draft'
-            ]
-          : [
-              // "Save as draft" is a button of the footer, as tmail-flutter
-              'Insert emoji',
-              'Reply to',
-              'Insert template',
-              'Save as template',
-              'Print',
-              'Request read receipt',
-              'Mark as important'
-            ]
-      )
+      expect(names).toEqual([
+        'Insert link',
+        'Save as draft',
+        'Insert template',
+        'Save as template',
+        'Print',
+        'Request read receipt',
+        'Mark as important',
+        'Delete draft'
+      ])
     }
   )
 

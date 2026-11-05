@@ -1,7 +1,7 @@
 // Upstream to twake-ui: no, the sidebar categories
 // ("Personal folders", "Team-mailboxes" under "Folders"): a 36 px row like a
 // folder (a 16 px icon, the name, the chevron right after it) that expands
-// and collapses the tree under it, indented by 8 px.
+// and collapses the tree under it, indented by 16 px as a nested level.
 import { Icon, type IconProps, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
@@ -80,7 +80,7 @@ export function NavCategory({
           </Box>
         </ButtonBase>
       </Box>
-      <Box id={controlsId} hidden={!isExpanded} sx={{ pl: '8px' }}>
+      <Box id={controlsId} hidden={!isExpanded} sx={{ pl: '16px' }}>
         {children}
       </Box>
     </Box>

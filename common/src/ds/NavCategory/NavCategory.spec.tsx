@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
+import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { NavCategory } from './NavCategory'
@@ -37,5 +38,11 @@ describe('NavCategory', () => {
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByText('Projects')).not.toBeVisible()
+  })
+
+  it('moves what it holds 16 px in, a nested level of the design', () => {
+    renderDs(<Harness />)
+
+    expect(injectedCss()).toMatch(/\{padding-left:16px;\}/)
   })
 })

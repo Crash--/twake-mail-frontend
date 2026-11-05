@@ -63,15 +63,20 @@ describe('Settings', () => {
     renderWithProviders(<AppRoutes />, { route: '/mailbox/mailbox-sent' })
     await screen.findByTestId('mailbox-page')
 
-    // As tmail-flutter without the platform: in the drawer, not in the bar
+    // The last entry of the drawer, not in the bar nor the drawer header
     expect(
       within(screen.getByTestId('top-bar')).queryByTestId('settings-button')
     ).toBe(null)
     await userEvent.click(screen.getByTestId('mobile-mailbox-menu-button'))
-    await userEvent.click(
-      within(await screen.findByTestId('drawer-header')).getByTestId(
+    expect(
+      within(await screen.findByTestId('drawer-header')).queryByTestId(
         'settings-button'
       )
+    ).toBe(null)
+    await userEvent.click(
+      within(screen.getByTestId('mailbox-drawer')).getByRole('link', {
+        name: 'Settings'
+      })
     )
     await screen.findByTestId('settings-section-list')
 

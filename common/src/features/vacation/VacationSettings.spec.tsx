@@ -130,6 +130,35 @@ describe('VacationSettings', () => {
     })
   })
 
+  it('reopens a saved start that has passed on "Right away"', async () => {
+    setup({
+      isEnabled: true,
+      fromDate: '2020-01-01T09:00:00Z',
+      htmlBody: '<p>Away</p>'
+    })
+
+    await screen.findByTestId('vacation-form')
+    expect(
+      within(screen.getByRole('radiogroup', { name: 'Starts:' })).getByRole(
+        'radio',
+        { name: 'Right away' }
+      )
+    ).toBeChecked()
+    expect(screen.queryByLabelText(/^Start date/)).toBe(null)
+  })
+
+  it('reopens a saved start to come on "Pick a time"', async () => {
+    setup({
+      isEnabled: true,
+      fromDate: '2999-01-01T09:00:00Z',
+      htmlBody: '<p>Away</p>'
+    })
+
+    await screen.findByTestId('vacation-form')
+    expect(pickATime('Starts:')).toBeChecked()
+    expect(screen.getByLabelText(/^Start date/)).toHaveValue('2999-01-01')
+  })
+
   it('fills the end with the start, and refuses an end without a time', async () => {
     const fake = setup({
       isEnabled: true,
@@ -203,7 +232,7 @@ describe('VacationSettings', () => {
   it('turns it off, keeping the message for next time', async () => {
     const fake = setup({
       isEnabled: true,
-      fromDate: '2026-10-10T09:00:00Z',
+      fromDate: '2999-10-10T09:00:00Z',
       subject: 'Away',
       htmlBody: '<p>Away</p>'
     })

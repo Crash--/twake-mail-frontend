@@ -94,9 +94,15 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const startsId = useId()
   const endsId = useId()
   const [start] = useState(() => startInputs(vacation.fromDate, new Date()))
+  // "Right away" saves the moment it was saved, so a start that has passed
+  // reopens on it
+  const [wasRightAway] = useState(
+    () =>
+      vacation.fromDate === null || Date.parse(vacation.fromDate) <= Date.now()
+  )
   const end = toLocalInputs(vacation.toDate)
   const [isEnabled, setIsEnabled] = useState(vacation.isEnabled)
-  const [isRightAway, setIsRightAway] = useState(vacation.fromDate === null)
+  const [isRightAway, setIsRightAway] = useState(wasRightAway)
   const [startDate, setStartDate] = useState(start.date)
   const [startTime, setStartTime] = useState(start.time)
   const [hasEnd, setHasEnd] = useState(vacation.toDate !== null)
@@ -197,7 +203,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
 
   const handleCancel = (): void => {
     setIsEnabled(vacation.isEnabled)
-    setIsRightAway(vacation.fromDate === null)
+    setIsRightAway(wasRightAway)
     setStartDate(start.date)
     setStartTime(start.time)
     setHasEnd(vacation.toDate !== null)

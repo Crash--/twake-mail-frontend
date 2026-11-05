@@ -1,24 +1,11 @@
 // Upstream to twake-ui: no. The "Visible" / "Hidden" button (Settings >
-// Folder visibility), as the Figma: a 24 px pill on `primary.light`, its
-// 16 px icon before the state it shows, `caption` in `primary.main`.
+// Folder visibility): twake-mui's extra small primary ghost button, its icon
+// before the state it shows.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-const BUTTON_SX = {
-  flexShrink: 0,
-  minWidth: 0,
-  minHeight: 24,
-  px: 1,
-  py: 0,
-  gap: '4px',
-  borderRadius: '12px',
-  bgcolor: 'primary.light',
-  color: 'primary.main',
-  typography: 'caption',
-  '&:hover': { bgcolor: 'primary.light', filter: 'brightness(0.96)' },
-  '& .MuiButton-startIcon': { m: 0 }
-} as const
+const BUTTON_SX = { flexShrink: 0 } as const
 
 export interface VisibilityToggleButtonProps {
   /** The visible state, e.g. "Visible" */
@@ -30,7 +17,7 @@ export interface VisibilityToggleButtonProps {
   'data-testid'?: string
 }
 
-/** A small pill showing a state, that switches it */
+/** A small button showing a state, that switches it */
 export function VisibilityToggleButton({
   text,
   label,
@@ -40,9 +27,9 @@ export function VisibilityToggleButton({
 }: VisibilityToggleButtonProps): ReactElement {
   return (
     <Button
-      variant="text"
-      size="small"
-      disableRipple
+      variant="ghost"
+      color="primary"
+      size="xsmall"
       startIcon={<Icon icon={icon} size={16} />}
       aria-label={label}
       onClick={onClick}

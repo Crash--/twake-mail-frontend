@@ -40,7 +40,8 @@ import {
   startInputs,
   toLocalInputs,
   useVacation,
-  vacationKeys
+  vacationKeys,
+  vacationState
 } from './vacation'
 
 export interface VacationSettingsProps {
@@ -467,7 +468,9 @@ export function VacationSettings({
 }: VacationSettingsProps): ReactElement {
   const { t } = useI18n()
   const query = useVacation()
-  const isOn = query.data?.isEnabled === true
+  const state =
+    query.data === undefined ? 'off' : vacationState(query.data, new Date())
+  const isOn = state === 'active' || state === 'scheduled'
 
   return (
     <SettingsSectionLayout

@@ -544,3 +544,9 @@ in the app). What is missing around it:
 | `FixedDialog`, `ConfirmDialog` | The dialog frame of the Figma (Teammail 1.1): 544 px wide, an h4 title in a 76 px header with a 40 px close or back button in its row, 32 px gutters, 128 px wide buttons 8 px apart; a confirmation without lines, 24 px between title, text and actions | Every dialog of the app (create a folder, rules, recovery, labels, move to, confirmations) | `ds/ModalDialog` (`FixedDialog`) and `ds/SmallDialog` (`ConfirmDialog`), one paper `sx` from desktop up in `ds/ModalDialog/modalDialogSx` | These sizes as the theme of twake-mui's dialogs |
 | `TextField` | A label above the field (body2, 8 px gap) instead of the floating one | The fields of the dialogs | `ds/StackedField` | A `labelPlacement="top"` of `TextField` |
 | `ColorList` | A colour field: an icon button showing the colour chosen that opens the swatches in a popover, with "no colour" first and a free colour last, as a radio group (twake-mui's swatches are `div` buttons, without "no colour") | The colour of a label | `ds/ColorPopoverPicker` | A `ColorField` of twake-mui, and `ColorList` as a radio group with a "none" choice |
+## Email list (Figma 11827:28778)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Checkbox` | An unticked box in `border.main` (Grey900 at 0.16), lighter than the default `action.active` | The checkbox of a list row (Figma: 19.2 px box in a 32 px area) | Not followed: the row keeps twake-mui's `Checkbox` as is (lint forbids `sx`, `icon` on it) | A `subtle` colour of `Checkbox` for the unticked state |
+| `@linagora/twake-icons` | The slanted paper clip (`attachfile2`) and an empty 16 px box | The attachment of a row, "Select all" of the list toolbar | `AttachmentIcon` and `CheckboxBlankIcon` in `ds/ListIcons` | Both glyphs in twake-icons |

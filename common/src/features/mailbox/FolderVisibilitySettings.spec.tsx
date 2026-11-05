@@ -81,14 +81,13 @@ describe('FolderVisibilitySettings', () => {
       within(row('Work')).getByRole('button', { name: 'Collapse' })
     ).toHaveAttribute('aria-expanded', 'true')
 
-    // "Folders" folds the folders of the user and the team mailboxes
-    const folders = screen.getByRole('button', { name: 'Folders' })
-    expect(folders).toHaveAttribute('aria-expanded', 'true')
-    await userEvent.click(folders)
-    expect(folders).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByText('Work')).toBe(null)
-    expect(screen.queryByTestId('folder-visibility-team')).toBe(null)
-    expect(within(system).getByText('Inbox')).toBeVisible()
+    // Each group under its heading
+    expect(
+      within(screen.getByRole('region', { name: 'Folders' })).getByText('Work')
+    ).toBeVisible()
+    expect(screen.getByRole('region', { name: 'Mailboxes' })).toContainElement(
+      system
+    )
   })
 
   it('hides a folder with its subfolders, and shows it again', async () => {
@@ -111,10 +110,13 @@ describe('FolderVisibilitySettings', () => {
     expect(within(row('INBOX')).queryByTestId('folder-visibility-toggle')).toBe(
       null
     )
+    expect(within(row('INBOX')).getByText('Always visible')).toBeVisible()
 
-    await userEvent.click(
-      within(row('Work')).getByRole('button', { name: 'Hide Work' })
-    )
+    const toggle = within(row('Work')).getByRole('button', {
+      name: 'Visible: Hide Work'
+    })
+    expect(toggle).toHaveTextContent('Visible')
+    await userEvent.click(toggle)
 
     await waitFor(() => {
       expect(server.mailboxes.find(m => m.id === 'work')?.isSubscribed).toBe(
@@ -125,7 +127,9 @@ describe('FolderVisibilitySettings', () => {
       false
     )
     await userEvent.click(
-      await within(row('Work')).findByRole('button', { name: 'Show Work' })
+      await within(row('Work')).findByRole('button', {
+        name: 'Hidden: Show Work'
+      })
     )
     await waitFor(() => {
       expect(server.mailboxes.find(m => m.id === 'work')?.isSubscribed).toBe(

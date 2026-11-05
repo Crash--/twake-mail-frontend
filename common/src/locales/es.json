@@ -974,12 +974,13 @@
       "success": "Esta carpeta vuelve a mostrarse"
     },
     "visibility": {
-      "hide": "Ocultar",
-      "show": "Mostrar",
-      "personal": "Carpetas personales",
       "team": "Buzones de equipo",
       "hideOf": "Ocultar %{name}",
-      "showOf": "Mostrar %{name}"
+      "showOf": "Mostrar %{name}",
+      "visible": "Visible",
+      "hidden": "Oculta",
+      "alwaysVisible": "Siempre visible",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Buscar carpetas",

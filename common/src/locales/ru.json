@@ -974,12 +974,13 @@
       "success": "Папка снова отображается"
     },
     "visibility": {
-      "hide": "Скрыть",
-      "show": "Показать",
-      "personal": "Личные папки",
       "team": "Общие почтовые ящики",
       "hideOf": "Скрыть %{name}",
-      "showOf": "Показать %{name}"
+      "showOf": "Показать %{name}",
+      "visible": "Видима",
+      "hidden": "Скрыта",
+      "alwaysVisible": "Всегда видна",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Поиск папок",

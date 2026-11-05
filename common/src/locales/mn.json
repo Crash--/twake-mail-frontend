@@ -974,12 +974,13 @@
       "success": "Энэ хавтсыг дахин харуулж байна"
     },
     "visibility": {
-      "hide": "Нуух",
-      "show": "Харуулах",
-      "personal": "Хувийн хавтаснууд",
       "team": "Багийн шуудангийн хайрцаг",
       "hideOf": "%{name}-г нуух",
-      "showOf": "%{name}-г харуулах"
+      "showOf": "%{name}-г харуулах",
+      "visible": "Харагдана",
+      "hidden": "Нуусан",
+      "alwaysVisible": "Үргэлж харагдана",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Хавтас хайх",

@@ -974,12 +974,13 @@
       "success": "Ce dossier est de nouveau affiché"
     },
     "visibility": {
-      "hide": "Masquer",
-      "show": "Afficher",
-      "personal": "Dossiers personnels",
       "team": "Team-mailboxes",
       "hideOf": "Masquer %{name}",
-      "showOf": "Afficher %{name}"
+      "showOf": "Afficher %{name}",
+      "visible": "Visible",
+      "hidden": "Masqué",
+      "alwaysVisible": "Toujours visible",
+      "stateAction": "%{state} : %{action}"
     },
     "search": {
       "label": "Rechercher des dossiers",

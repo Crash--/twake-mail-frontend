@@ -974,12 +974,13 @@
       "success": "Questa cartella è di nuovo visibile"
     },
     "visibility": {
-      "hide": "Nascondere",
-      "show": "Mostra",
-      "personal": "Cartelle personali",
       "team": "Caselle di posta del team",
       "hideOf": "Nascondi %{name}",
-      "showOf": "Mostra %{name}"
+      "showOf": "Mostra %{name}",
+      "visible": "Visibile",
+      "hidden": "Nascosta",
+      "alwaysVisible": "Sempre visibile",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Cerca cartelle",

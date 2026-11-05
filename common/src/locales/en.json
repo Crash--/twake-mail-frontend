@@ -974,12 +974,13 @@
       "success": "This folder is shown again"
     },
     "visibility": {
-      "hide": "Hide",
-      "show": "Show",
-      "personal": "Personal folders",
       "team": "Team-mailboxes",
       "hideOf": "Hide %{name}",
-      "showOf": "Show %{name}"
+      "showOf": "Show %{name}",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "alwaysVisible": "Always visible",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Search for folders",

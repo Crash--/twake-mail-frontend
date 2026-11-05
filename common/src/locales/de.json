@@ -974,12 +974,13 @@
       "success": "Dieser Ordner wird wieder angezeigt"
     },
     "visibility": {
-      "hide": "Ausblenden",
-      "show": "Anzeigen",
-      "personal": "Persönliche Ordner",
       "team": "Team-Postfächer",
       "hideOf": "%{name} ausblenden",
-      "showOf": "%{name} anzeigen"
+      "showOf": "%{name} anzeigen",
+      "visible": "Sichtbar",
+      "hidden": "Ausgeblendet",
+      "alwaysVisible": "Immer sichtbar",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Suche nach Ordnern",

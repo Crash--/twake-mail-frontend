@@ -974,12 +974,13 @@
       "success": "Thư mục này đã được hiển thị lại"
     },
     "visibility": {
-      "hide": "Ẩn",
-      "show": "Hiển thị",
-      "personal": "Thư mục cá nhân",
       "team": "Hộp thư nhóm",
       "hideOf": "Ẩn %{name}",
-      "showOf": "Hiển thị %{name}"
+      "showOf": "Hiển thị %{name}",
+      "visible": "Hiển thị",
+      "hidden": "Đã ẩn",
+      "alwaysVisible": "Luôn hiển thị",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Tìm kiếm thư mục",

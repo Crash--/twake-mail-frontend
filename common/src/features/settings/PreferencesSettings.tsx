@@ -152,10 +152,9 @@ export function PreferencesSettings({
           data-testid="theme-setting"
         />
       ) : null}
-      {settings !== null &&
-      (hasReadReceipts || hasRemoteImages || hasErrorReporting) ? (
+      {hasReadReceipts || hasRemoteImages || hasErrorReporting ? (
         <SettingsOptionGroup title={t('settings.preferences.groups.privacy')}>
-          {hasReadReceipts ? (
+          {hasReadReceipts && settings !== null ? (
             <PreferenceOption
               description={t('settings.preferences.readReceiptsDescription')}
               toggleLabel={t('settings.preferences.readReceiptsToggle')}
@@ -167,7 +166,7 @@ export function PreferencesSettings({
               data-testid="read-receipts-setting-toggle"
             />
           ) : null}
-          {hasRemoteImages ? (
+          {hasRemoteImages && settings !== null ? (
             <PreferenceOption
               description={t('settings.preferences.remoteImagesDescription')}
               toggleLabel={t('settings.preferences.remoteImagesToggle')}

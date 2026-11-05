@@ -1,10 +1,10 @@
 import {
   Archive,
+  FolderOutlined,
   Reply,
   Star,
   StarOutline,
-  Trash,
-  Moveto
+  Trash
 } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
@@ -105,6 +105,11 @@ export function EmailViewActions({
   const starLabel = t('email.starred')
   const moreLabel = t('emailActions.menu.more')
   const replyLabel = t('emailActions.reply.reply')
+  // The design's 32 px buttons hold 20 px Material icons, a glyph of about
+  // 16 px: twake-icons draw theirs edge to edge, so 16 px (the "More" dots
+  // keep Material's margin, so 20 px). Phones keep larger touch targets
+  const buttonSize = isPhone ? 36 : 32
+  const glyphSize = isPhone ? 20 : 16
 
   const handleRun = (id: EmailActionId): void => {
     void runAction(id, email, mailboxId).then(done => {
@@ -121,8 +126,9 @@ export function EmailViewActions({
     >
       {!showsReply || replies.actions.length === 0 ? null : (
         <IconAction
-          size={36}
-          tone="icon"
+          size={buttonSize}
+          iconSize={glyphSize}
+          tone="primary"
           label={replyLabel}
           icon={Reply}
           onClick={() => {
@@ -133,10 +139,11 @@ export function EmailViewActions({
       )}
       {!showsShortcuts || move === undefined ? null : (
         <IconAction
-          size={36}
-          tone="icon"
+          size={buttonSize}
+          iconSize={glyphSize}
+          tone="primary"
           label={t(move.label)}
-          icon={move.id === 'move' ? Moveto : Archive}
+          icon={move.id === 'move' ? FolderOutlined : Archive}
           onClick={() => {
             handleRun(move.id)
           }}
@@ -145,10 +152,11 @@ export function EmailViewActions({
       )}
       {isMessageCompact ? null : (
         <IconAction
-          size={36}
+          size={buttonSize}
+          iconSize={glyphSize}
           label={starLabel}
           icon={isStarred ? Star : StarOutline}
-          tone={isStarred ? 'starred' : 'icon'}
+          tone={isStarred ? 'starred' : 'primary'}
           aria-pressed={isStarred}
           onClick={() => {
             handleRun(isStarred ? 'unstar' : 'star')
@@ -158,8 +166,9 @@ export function EmailViewActions({
       )}
       {!showsShortcuts || deletion === undefined ? null : (
         <IconAction
-          size={36}
-          tone="icon"
+          size={buttonSize}
+          iconSize={glyphSize}
+          tone="primary"
           label={t(deletion.label)}
           icon={Trash}
           onClick={() => {
@@ -169,8 +178,8 @@ export function EmailViewActions({
         />
       )}
       <IconAction
-        size={36}
-        tone="icon"
+        size={buttonSize}
+        tone="primary"
         label={moreLabel}
         icon={MoreVerticalIcon}
         aria-haspopup="menu"

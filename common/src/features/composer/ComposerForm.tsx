@@ -415,6 +415,7 @@ function LoadedComposerForm({
   const [emojiAnchor, setEmojiAnchor] = useState<HTMLElement | null>(null)
   const [focusField, setFocusField] = useState<RecipientKind | null>(null)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const isMoreFocusDueRef = useRef(false)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   /**
    * What the live region says of an autosave. A save asked for says it in
@@ -1100,8 +1101,15 @@ function LoadedComposerForm({
 
   const handleClosePicker = (): void => {
     setIsPickerOpen(false)
-    moreButtonRef.current?.focus()
+    isMoreFocusDueRef.current = true
   }
+  // After the render that closes the picker: until then the focus trap of
+  // a phone's sheet pulls the focus back into it
+  useEffect(() => {
+    if (isPickerOpen || !isMoreFocusDueRef.current) return
+    isMoreFocusDueRef.current = false
+    moreButtonRef.current?.focus()
+  }, [isPickerOpen])
 
   /**
    * "Insert template": its subject and body (its files and recipients stay

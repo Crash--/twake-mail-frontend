@@ -1799,6 +1799,23 @@ describe('ComposerForm', () => {
           await within(picker).findByTestId('template-picker-none')
         ).toBeVisible()
       })
+
+      it('gives the focus back to More when Escape closes the sheet', async () => {
+        renderComposer(serverWithTemplates())
+        const composer = await openComposer()
+        const picker = await openPicker(composer)
+        await within(picker).findByRole('combobox', {
+          name: 'Search templates'
+        })
+
+        await userEvent.keyboard('{Escape}')
+
+        await waitFor(() => {
+          expect(
+            within(composer).getByRole('button', { name: 'More' })
+          ).toHaveFocus()
+        })
+      })
     })
   })
 

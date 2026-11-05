@@ -44,8 +44,6 @@ export function ComposeButton({
         ...(isInToolbar
           ? { height: 34, minHeight: 34, py: 0, px: 2, whiteSpace: 'nowrap' }
           : {}),
-        // The body2 of the design (twake-mui's buttons track 0.1 px)
-        letterSpacing: '0.25px',
         '& .MuiButton-startIcon': { mr: '7px', ml: 0 },
         [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
       }}

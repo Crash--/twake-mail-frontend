@@ -549,4 +549,4 @@ in the app). What is missing around it:
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
 | `Checkbox` | An unticked box in `border.main` (Grey900 at 0.16), lighter than the default `action.active` | The checkbox of a list row (Figma: 19.2 px box in a 32 px area) | Not followed: the row keeps twake-mui's `Checkbox` as is (lint forbids `sx`, `icon` on it) | A `subtle` colour of `Checkbox` for the unticked state |
-| `@linagora/twake-icons` | The slanted paper clip (`attachfile2`) and an empty 16 px box | The attachment of a row, "Select all" of the list toolbar | `AttachmentIcon` and `CheckboxBlankIcon` in `ds/ListIcons` | Both glyphs in twake-icons |
+| `@linagora/twake-icons` | The slanted paper clip (`attachfile2`), an empty 16 px box, and a reply arrow outlined like `StarOutline` (`Reply` is filled) | The attachment of a row, "Select all" of the list toolbar, the answered or forwarded state of a row | `AttachmentIcon`, `CheckboxBlankIcon`, `ReplyOutlineIcon` and `ForwardOutlineIcon` in `ds/ListIcons` | These glyphs in twake-icons |

@@ -3,10 +3,8 @@ import {
   EmailNotification,
   EmailOpen,
   FolderMoveto,
-  Forward,
   InfoOutlined,
   Openwith,
-  Reply,
   Right,
   Star,
   StarOutline,
@@ -26,7 +24,12 @@ import {
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { FAVORITE_COLOR, IconAction } from '@/ds/IconAction/IconAction'
-import { AttachmentIcon, MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import {
+  AttachmentIcon,
+  ForwardOutlineIcon,
+  MoreVerticalIcon,
+  ReplyOutlineIcon
+} from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
@@ -302,7 +305,9 @@ export function EmailCell({
     : isForwarded
       ? t('email.forwardedState')
       : null
-  const answeredState =
+  // 20 px as the star in the 32 px slot of a wide row, 16 px in the line of
+  // a compact row, which it must not make taller
+  const answeredState = (size: 16 | 20): ReactElement | null =>
     answeredLabel === null ? null : (
       <Tooltip title={answeredLabel}>
         <span
@@ -312,8 +317,8 @@ export function EmailCell({
           data-testid="email-list-item-answered"
         >
           <Icon
-            icon={isAnswered ? Reply : Forward}
-            size={16}
+            icon={isAnswered ? ReplyOutlineIcon : ForwardOutlineIcon}
+            size={size}
             color={SECONDARY_ICON_COLOR}
             aria-hidden="true"
           />
@@ -548,7 +553,7 @@ export function EmailCell({
         <span className="u-flex u-flex-items-center">
           {checkbox}
           {wideStarButton}
-          <RowStateSlot>{answeredState}</RowStateSlot>
+          <RowStateSlot>{answeredState(20)}</RowStateSlot>
           <RowStateSlot>{framedDot}</RowStateSlot>
         </span>
       )
@@ -695,7 +700,7 @@ export function EmailCell({
             senderEnd={
               <>
                 {threadCount}
-                {answeredState}
+                {answeredState(16)}
                 {wideAttachment}
                 {wideDate}
               </>

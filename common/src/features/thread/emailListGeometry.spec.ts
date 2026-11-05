@@ -23,13 +23,13 @@ describe('getTrailingWidth', () => {
 
   it('holds the date beside five 44 px touch targets', () => {
     expect(getTrailingWidth({ canHover: false, isTouch: true })).toBe(
-      16 + 5 * 44 + 24 + 112
+      16 + 5 * 44 + 24 + 116
     )
   })
 
   it('holds the date beside 32 px actions without hover nor touch', () => {
     expect(getTrailingWidth({ canHover: false, isTouch: false })).toBe(
-      16 + 5 * 32 + 24 + 112
+      16 + 5 * 32 + 24 + 116
     )
   })
 })

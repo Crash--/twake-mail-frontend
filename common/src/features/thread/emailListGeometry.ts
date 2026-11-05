@@ -42,11 +42,11 @@ export function getCompactRowLayout(
 export const ACTION_SIZE = 32
 
 /**
- * The attachment (16 px and its 8 px margin), the longest list date ("Dec
+ * The attachment (20 px and its 8 px margin), the longest list date ("Dec
  * 30, 2025", 12 px) with its 8 px margin, shown beside the actions on a screen
  * without hover
  */
-const DATE_BLOCK_WIDTH = 24 + 80 + 8
+const DATE_BLOCK_WIDTH = 28 + 80 + 8
 
 /**
  * The folder of a search result before the attachment and the date: a pill

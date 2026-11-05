@@ -1,9 +1,9 @@
 // Upstream to twake-ui: yes, to @linagora/twake-icons, which does not have the
 // "More" of a row, three dots one above the other (ic_more_vertical.svg),
 // an outline pencil (its `Pen` is filled), the slanted paper clip of the Twake
-// Mail design (attachfile2) nor the empty box of "Select all"
-// (docs/twake-mui-gaps.md): drawn on the current text colour so that `Icon`
-// can size and colour them.
+// Mail design (attachfile2), the empty box of "Select all" nor the outlined
+// reply arrow of a row (docs/twake-mui-gaps.md): drawn on the current text
+// colour so that `Icon` can size and colour them.
 import type { ReactElement, SVGAttributes } from 'react'
 import { iconProps } from '@/ds/FlutterIcons/iconColor'
 
@@ -44,6 +44,27 @@ export function CheckboxBlankIcon(props: SvgProps): ReactElement {
   return (
     <svg viewBox="0 0 16 16" fill="currentColor" {...iconProps(props)}>
       <path d="M12.6667 3.33333V12.6667H3.33333V3.33333H12.6667ZM12.6667 2H3.33333C2.6 2 2 2.6 2 3.33333V12.6667C2 13.4 2.6 14 3.33333 14H12.6667C13.4 14 14 13.4 14 12.6667V3.33333C14 2.6 13.4 2 12.6667 2Z" />
+    </svg>
+  )
+}
+
+const REPLY_OUTLINE_PATH =
+  'M10.0922 3.33768C10.9838 3.40105 11.6875 4.14972 11.6875 5.06397L11.6883 6.7681L11.7046 6.77204C15.3262 7.52788 18 10.7607 18 14.5748C18 14.8519 17.9859 15.128 17.9581 15.4019C17.8918 16.0549 17.0666 16.2895 16.6712 15.7679L16.5219 15.5775C15.3558 14.1395 13.6956 13.1962 11.8589 12.9491L11.6883 12.9284L11.6875 14.9362C11.6875 15.323 11.5587 15.6989 11.3217 16.0036C10.7364 16.7558 9.65653 16.8877 8.90977 16.2981L2.65826 11.3621C2.54939 11.2761 2.45123 11.1772 2.3659 11.0676C1.78061 10.3153 1.9115 9.22747 2.65826 8.63786L8.90977 3.70186C9.21218 3.46309 9.58532 3.33333 9.96955 3.33333L10.0922 3.33768ZM9.96955 4.78224C9.907 4.78224 9.84625 4.80336 9.79702 4.84223L3.54551 9.77823C3.42394 9.87421 3.40264 10.0513 3.49792 10.1738C3.51181 10.1916 3.52779 10.2077 3.54551 10.2217L9.79702 15.1577C9.91859 15.2537 10.0944 15.2322 10.1897 15.1098C10.2282 15.0602 10.2492 14.999 10.2492 14.936L10.25 12.161C10.2501 11.7564 10.5793 11.4302 10.981 11.4369L11.1673 11.44L11.4407 11.4533C13.2578 11.5701 14.9539 12.2479 16.3297 13.3577L16.469 13.4733L16.45 13.3644C15.9364 10.6151 13.7053 8.44986 10.8819 8.10301C10.5212 8.05869 10.2499 7.7502 10.2498 7.38408L10.2492 5.06417C10.2492 4.90837 10.124 4.78224 9.96955 4.78224Z'
+
+/** The outlined arrow of an answered email, drawn like the outlined star */
+export function ReplyOutlineIcon(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" {...iconProps(props)}>
+      <path d={REPLY_OUTLINE_PATH} />
+    </svg>
+  )
+}
+
+/** The same arrow pointing right, a forwarded email */
+export function ForwardOutlineIcon(props: SvgProps): ReactElement {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" {...iconProps(props)}>
+      <path d={REPLY_OUTLINE_PATH} transform="matrix(-1 0 0 1 20 0)" />
     </svg>
   )
 }

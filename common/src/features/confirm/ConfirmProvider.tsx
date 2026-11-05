@@ -1,4 +1,4 @@
-import { Button, Typography } from '@linagora/twake-mui'
+import { Button, ConfirmDialog, Typography } from '@linagora/twake-mui'
 import {
   createContext,
   useCallback,
@@ -11,7 +11,6 @@ import {
   type ReactNode
 } from 'react'
 
-import { SmallDialog } from '@/ds/SmallDialog/SmallDialog'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface ConfirmOptions {
@@ -160,7 +159,7 @@ export function ConfirmProvider({
       {children}
       {/* Its confirming button stays the filled one even when it destroys,
           the title says what it does */}
-      <SmallDialog
+      <ConfirmDialog
         open={pending !== null}
         title={pending?.title}
         content={

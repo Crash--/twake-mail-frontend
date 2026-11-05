@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Checkbox,
+  FixedDialog,
   FormControlLabel,
   IconButton,
   MenuItem,
@@ -21,7 +22,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
@@ -297,7 +297,7 @@ export function RuleFormDialog({
   })
 
   return (
-    <ModalDialog
+    <FixedDialog
       open
       title={t(
         rule === null ? 'rules.form.createTitle' : 'rules.form.editTitle'
@@ -366,7 +366,6 @@ export function RuleFormDialog({
                   startIcon={
                     <Icon
                       icon={isPreviewShown ? EyeClosed : Eye}
-                      size={12}
                       aria-hidden="true"
                     />
                   }
@@ -607,7 +606,7 @@ export function RuleFormDialog({
             <Button
               variant="text"
               className="u-mt-1"
-              startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
+              startIcon={<Icon icon={Plus} aria-hidden="true" />}
               onClick={() => {
                 update({ conditions: [...draft.conditions, emptyCondition()] })
               }}
@@ -809,7 +808,7 @@ export function RuleFormDialog({
               <Button
                 variant="text"
                 className="u-mt-1"
-                startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
+                startIcon={<Icon icon={Plus} aria-hidden="true" />}
                 onClick={() => {
                   update({
                     actions: [...draft.actions, actionDraft()]

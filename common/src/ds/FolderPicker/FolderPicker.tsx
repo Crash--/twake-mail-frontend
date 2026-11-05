@@ -1,4 +1,4 @@
-// Upstream to twake-ui: yes. A destination picker in a `ModalDialog`:
+// Upstream to twake-ui: yes. A destination picker in twake-mui's `FixedDialog`:
 // a `SearchBar`, then the folders by blocks (the system ones, "Personal
 // folders", "Team-mailboxes", the last two folding), 36 px rows with a 16 px
 // icon and the subfolders folded behind a chevron after the name. twake-mui
@@ -22,6 +22,7 @@ import {
   Box,
   ButtonBase,
   Divider,
+  FixedDialog,
   IconButton,
   SearchBar,
   Tooltip,
@@ -39,7 +40,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 export interface FolderPickerOption {
@@ -377,7 +377,7 @@ export function FolderPicker({
   const isEmpty = shownSections.every(section => section.options.length === 0)
 
   return (
-    <ModalDialog
+    <FixedDialog
       open={open}
       onClose={onClose}
       title={labels.title}

@@ -1,4 +1,10 @@
-import { Button, COLORS, TextField, Typography } from '@linagora/twake-mui'
+import {
+  Button,
+  COLORS,
+  FixedDialog,
+  TextField,
+  Typography
+} from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Label } from 'jmap-client-ts/linagora'
 import {
@@ -12,7 +18,6 @@ import {
 
 import { ColorPopoverPicker } from '@/ds/ColorPopoverPicker/ColorPopoverPicker'
 import { normalizeHexColor } from '@/ds/ColorSwatchPicker/hexColor'
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { validateIdentityName } from '@common/features/identities/identityForm'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -242,7 +247,7 @@ export function LabelDialog({
   )
 
   return (
-    <ModalDialog
+    <FixedDialog
       open
       title={t(
         label === null ? 'labels.form.createTitle' : 'labels.form.editTitle'

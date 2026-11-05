@@ -3,6 +3,7 @@ import {
   Alert,
   Button,
   Checkbox,
+  FixedDialog,
   FormControlLabel,
   IconButton,
   MenuItem,
@@ -20,7 +21,6 @@ import {
 
 import { formatDayText } from '@/ds/DateRangePicker/calendarDays'
 import { FormRow } from '@/ds/FormRow/FormRow'
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { DayRangeDialog } from '@common/features/dateRange/DayRangeDialog'
 import type { DayRange } from '@common/features/dateRange/dayRange'
 import {
@@ -234,7 +234,7 @@ export function RecoveryDialog({
 
   return (
     <>
-      <ModalDialog
+      <FixedDialog
         open
         title={t('recovery.title')}
         fullScreen={false}

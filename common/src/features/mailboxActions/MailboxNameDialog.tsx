@@ -1,5 +1,11 @@
 import { Icon, FolderOutlined } from '@linagora/twake-icons'
-import { Button, MenuItem, TextField, Typography } from '@linagora/twake-mui'
+import {
+  Button,
+  FixedDialog,
+  MenuItem,
+  TextField,
+  Typography
+} from '@linagora/twake-mui'
 import {
   useEffect,
   useId,
@@ -9,7 +15,6 @@ import {
   type ReactElement
 } from 'react'
 
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
@@ -107,7 +112,7 @@ export function MailboxNameDialog({
   // small one with the field alone
   const isCreating = location !== null
   return (
-    <ModalDialog
+    <FixedDialog
       open
       title={title}
       size={isCreating ? 'medium' : 'small'}

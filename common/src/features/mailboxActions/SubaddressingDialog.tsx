@@ -1,8 +1,13 @@
 import { Icon, Copy } from '@linagora/twake-icons'
-import { Button, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import {
+  Button,
+  ConfirmDialog,
+  IconButton,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
-import { SmallDialog } from '@/ds/SmallDialog/SmallDialog'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface SubaddressingDialogProps {
@@ -31,7 +36,7 @@ export function SubaddressingDialog({
   const messageId = useId()
 
   return (
-    <SmallDialog
+    <ConfirmDialog
       open
       title={t('folders.menu.allowSubaddressing')}
       content={

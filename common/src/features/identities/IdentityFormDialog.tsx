@@ -1,6 +1,7 @@
 import {
   Button,
   Checkbox,
+  FixedDialog,
   FormControlLabel,
   TextField,
   Typography
@@ -18,7 +19,6 @@ import {
 } from 'react'
 
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
@@ -490,7 +490,7 @@ export function IdentityFormDialog({
   ) : null
 
   return (
-    <ModalDialog
+    <FixedDialog
       open
       title={t(identity === null ? 'identities.create' : 'identities.edit')}
       size="large"

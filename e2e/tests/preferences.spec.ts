@@ -132,11 +132,7 @@ test.describe('SET preferences', () => {
       await page.getByRole('switch', { name: 'Vacation responder' }).click()
       await expect(message).toHaveAttribute('contenteditable', 'true')
       await expect(message).not.toHaveAttribute('aria-disabled')
-      // The label covers the visually hidden radio
-      await page
-        .getByTestId('vacation-start-choice')
-        .getByText('Pick a time')
-        .click()
+      await page.getByTestId('vacation-start-choice-pick').click()
       await page.getByTestId('vacation-start-date-input').fill('2020-01-01')
       await page.getByTestId('vacation-save-button').click()
       await expect(page.getByTestId('vacation-error')).toHaveText(

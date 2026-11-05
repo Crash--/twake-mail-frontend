@@ -34,12 +34,16 @@ function setup(
   return fake
 }
 
-/** "Pick a time" of the "Starts:" or "Ends:" choice */
-function pickATime(group: string): HTMLElement {
-  return within(screen.getByRole('radiogroup', { name: group })).getByRole(
-    'radio',
-    { name: 'Pick a time' }
+/** A button of the "Starts:" or "Ends:" choice */
+function choice(group: string, name: string): HTMLElement {
+  return within(screen.getByRole('group', { name: group })).getByRole(
+    'button',
+    { name }
   )
+}
+
+function pickATime(group: string): HTMLElement {
+  return choice(group, 'Pick a time')
 }
 
 describe('VacationSettings', () => {
@@ -106,12 +110,10 @@ describe('VacationSettings', () => {
         name: 'Vacation responder'
       })
     )
-    expect(
-      within(screen.getByRole('radiogroup', { name: 'Starts:' })).getByRole(
-        'radio',
-        { name: 'Right away' }
-      )
-    ).toBeChecked()
+    expect(choice('Starts:', 'Right away')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
     expect(screen.queryByLabelText(/^Start date/)).toBe(null)
     await userEvent.type(
       screen.getByRole('textbox', { name: 'Message' }),
@@ -138,12 +140,10 @@ describe('VacationSettings', () => {
     })
 
     await screen.findByTestId('vacation-form')
-    expect(
-      within(screen.getByRole('radiogroup', { name: 'Starts:' })).getByRole(
-        'radio',
-        { name: 'Right away' }
-      )
-    ).toBeChecked()
+    expect(choice('Starts:', 'Right away')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
     expect(screen.queryByLabelText(/^Start date/)).toBe(null)
   })
 
@@ -155,7 +155,7 @@ describe('VacationSettings', () => {
     })
 
     await screen.findByTestId('vacation-form')
-    expect(pickATime('Starts:')).toBeChecked()
+    expect(pickATime('Starts:')).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByLabelText(/^Start date/)).toHaveValue('2999-01-01')
   })
 

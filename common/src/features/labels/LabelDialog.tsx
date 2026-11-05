@@ -171,7 +171,7 @@ export function LabelDialog({
   }
 
   const colorName = (value: string): string => {
-    const key = LABEL_PALETTE[value.toUpperCase()]?.name
+    const key = LABEL_PALETTE[value.toUpperCase()]
     return key === undefined ? value : t(key)
   }
 

@@ -8,7 +8,6 @@ import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { labelDisplayName } from './labelDisplayName'
-import { labelTextColor } from './labelPalette'
 import { DEFAULT_LABEL_COLOR } from './queries'
 
 /** The labels of an email among `labels`, in their order */
@@ -78,7 +77,6 @@ export function LabelChips({
           <ColorTag
             label={labelDisplayName(label, t)}
             color={label.color ?? DEFAULT_LABEL_COLOR}
-            textColor={labelTextColor(label.color ?? DEFAULT_LABEL_COLOR)}
             size={size}
             maxLength={max === undefined ? undefined : 16}
             hasTooltip

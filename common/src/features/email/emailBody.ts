@@ -86,6 +86,10 @@ p { margin: 0; }
 /* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */
 @media (max-width: 599px) { body { font-size: 16px; } }
 pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }
+/* A plain text email in the design's Regular text style (twake-mui's
+   \`body3\` in \`text.primary\`); an HTML email keeps the defaults above, which
+   its own layout was designed against */
+.tmail-plain-text { line-height: 1.313; letter-spacing: 0.25px; color: rgba(66, 66, 68, 0.9); }
 blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
 details.tmail-quoted-history > summary {
   display: inline-flex; align-items: center; justify-content: center; gap: 3px;

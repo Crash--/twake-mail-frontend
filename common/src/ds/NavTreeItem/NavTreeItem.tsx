@@ -26,8 +26,8 @@ import {
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import { useLongPress } from '@/ds/useLongPress/useLongPress'
 
-/** What each level below the first moves the whole row (tmail-flutter) */
-const LEVEL_STEP = 8
+/** What each level below the first moves the whole row (the design) */
+const LEVEL_STEP = 16
 /** Start padding of the row, before its icon */
 const ROW_PADDING = 8
 /** The icon, and the gap after it */
@@ -43,8 +43,8 @@ const TOGGLE_SIZE = 24
 const ROW_HEIGHT = 36
 
 /**
- * How far a row of the given level (1 = top) moves in, as tmail-flutter's
- * `LinagoraSidebarSubItem`: 8 px a level, background included, no cap
+ * How far a row of the given level (1 = top) moves in, as the sidebar item
+ * of the design: 16 px a level, background included, no cap
  */
 export function levelIndent(level: number): number {
   return Math.max(0, level - 1) * LEVEL_STEP

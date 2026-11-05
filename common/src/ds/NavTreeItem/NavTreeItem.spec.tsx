@@ -36,8 +36,8 @@ function pointer(
 }
 
 describe('levelIndent', () => {
-  it('moves each level 8 px further in, without a cap', () => {
-    expect([1, 2, 3, 4, 10].map(levelIndent)).toEqual([0, 8, 16, 24, 72])
+  it('moves each level 16 px further in, without a cap', () => {
+    expect([1, 2, 3, 4, 10].map(levelIndent)).toEqual([0, 16, 32, 48, 144])
   })
 })
 

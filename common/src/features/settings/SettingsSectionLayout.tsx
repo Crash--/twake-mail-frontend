@@ -94,7 +94,7 @@ export function SettingsSectionLayout({
           )}
         </>
       )}
-      <Box className={isDesktop ? 'u-mt-1-half' : 'u-mt-1'}>{children}</Box>
+      <Box className="u-mt-1">{children}</Box>
     </SettingsPane>
   )
 }

@@ -99,9 +99,9 @@ describe('htmlToText', () => {
     )
   })
 
-  it('keeps the "-- " signature delimiter, quoted or not', () => {
+  it('keeps the "-- " signature delimiter, quoted or not, for the "---" of the HTML', () => {
     const html =
-      '<div>Hi</div><div><span class="tmail_signature_prefix">--&nbsp;</span><br>Alice<br></div>' +
+      '<div>Hi</div><div><span class="tmail_signature_prefix">---</span><br>Alice<br></div>' +
       '<blockquote><div>Old</div><div>--&nbsp;<br>Bob</div></blockquote>' +
       '<div>Spaces   </div><div>--</div>'
 

@@ -15,14 +15,14 @@ const identity = (
 })
 
 describe('signatureHtml', () => {
-  it('writes the HTML signature after "-- ", sanitized, its images kept', () => {
+  it('writes the HTML signature after "---", sanitized, its images kept', () => {
     const html = signatureHtml(
       identity(
         '<p onclick="steal()">Alice <b>Martin</b></p><img src="https://assets.example.com/logo.png" alt="Logo"><script>alert(1)</script><style>body{display:none}</style><div style="position:fixed;color:red">Fixed</div>'
       )
     )
     expect(html).toContain(
-      '<span class="tmail_signature_prefix">--&nbsp;</span><br>'
+      '<span class="tmail_signature_prefix">---</span><br>'
     )
     expect(html).toContain('<b>Martin</b>')
     expect(html).toContain('src="https://assets.example.com/logo.png"')
@@ -34,7 +34,7 @@ describe('signatureHtml', () => {
 
   it('escapes a text signature and keeps its lines', () => {
     expect(signatureHtml(identity('', 'Alice <CEO>\nACME'))).toBe(
-      '<span class="tmail_signature_prefix">--&nbsp;</span><br>Alice &lt;CEO&gt;<br>ACME<br>'
+      '<span class="tmail_signature_prefix">---</span><br>Alice &lt;CEO&gt;<br>ACME<br>'
     )
   })
 

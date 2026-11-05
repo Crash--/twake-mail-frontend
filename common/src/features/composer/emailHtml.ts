@@ -15,6 +15,11 @@ export const BLOCKQUOTE_STYLE =
 /** tmail-flutter's signature wrapper (html-editor-enhanced, insertSignature) */
 export const SIGNATURE_CLASS = 'tmail-signature'
 const SIGNATURE_STYLE = 'clear: both; display: block;'
+/**
+ * The separator before the signature: `---` in the HTML (Figma), the RFC
+ * 3676 `-- ` delimiter in the text, where clients cut signatures with it
+ */
+export const SIGNATURE_PREFIX_CLASS = 'tmail_signature_prefix'
 
 const LIST_STYLE = 'margin:0 0 0 0;padding-left:24px;'
 const IMAGE_STYLE = 'max-width:100%;'
@@ -317,6 +322,10 @@ function collectLines(node: Node, context: TextContext, out: string[]): void {
   if (!(node instanceof Element) || SKIPPED_TAGS.has(node.tagName)) return
 
   const tag = node.tagName
+  if (node.classList.contains(SIGNATURE_PREFIX_CLASS)) {
+    pushText('-- ')
+    return
+  }
   if (tag === 'BR') {
     out.push('')
     return

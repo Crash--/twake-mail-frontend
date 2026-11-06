@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@v4
 
@@ -46,7 +46,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=twake-mail-frontend
 
       - name: Hand the image to the suites
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-image
           path: ${{ runner.temp }}/app-image.tar
@@ -94,9 +94,9 @@ jobs:
       E2E_SUITE: ${{ matrix.suite }}
       E2E_OIDC: ${{ matrix.oidc }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -104,7 +104,7 @@ jobs:
 
       # ------------------------------------------------------------------ app
       - name: Download the app image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: app-image
           path: ${{ runner.temp }}
@@ -129,7 +129,7 @@ jobs:
         run: npm ci
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
@@ -154,7 +154,7 @@ jobs:
 
       - name: Publish the HTML report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-${{ matrix.suite }}
           path: e2e/playwright-report/
@@ -162,7 +162,7 @@ jobs:
 
       - name: Publish traces, videos and logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results-${{ matrix.suite }}
           path: e2e/test-results/
@@ -170,7 +170,7 @@ jobs:
 
       - name: Test summary
         if: ${{ !cancelled() }}
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: E2E results (${{ matrix.suite }})
           path: e2e/test-results/junit.xml

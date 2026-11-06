@@ -724,7 +724,10 @@ export function EmailList(props: EmailListProps): ReactElement {
     content = (
       <EmptyListView
         title={t('mailbox.empty')}
-        text={t('mailbox.emptyHint')}
+        actionLabel={t('mailbox.emptyAction')}
+        onAction={() => {
+          openComposer()
+        }}
         data-testid="empty-thread-view"
       />
     )

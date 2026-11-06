@@ -48,8 +48,9 @@
     "personalFolders": "Personal folders"
   },
   "mailbox": {
-    "empty": "You don’t have any emails\n in this folder.",
+    "empty": "No emails in this folder yet.",
     "emptyHint": "Start to compose emails.",
+    "emptyAction": "Compose",
     "offline": "No internet connection, try again later.",
     "roles": {
       "inbox": "Inbox",

@@ -2,6 +2,7 @@
 // draws an illustration, a narrower column and a title that keeps the line
 // breaks of the translation; `Empty` takes a twake-icons glyph only. Kept
 // local until the Twake design system decides whether the other apps want it.
+import { Button } from '@linagora/twake-mui'
 import { styled } from '@mui/material/styles'
 import type { ReactElement } from 'react'
 
@@ -54,28 +55,53 @@ const Text = styled('p')(({ theme }) => ({
   color: theme.vars.palette.text.secondary
 }))
 
+// Below the title (or the hint), with the same gap as between them
+const Action = styled('div')({
+  marginTop: 16
+})
+
 export interface EmptyListViewProps {
   title: string
   /** Below the title, in grey; none when null */
   text?: string | null
+  /** A button below the text; none unless both the label and the handler are given */
+  actionLabel?: string
+  onAction?: () => void
+  /** The button gets `<data-testid>-action` */
   'data-testid'?: string
 }
 
 /**
  * An empty list of emails: the empty folder drawing (decorative), the reason
- * as a title and an optional hint below.
+ * as a title, an optional hint and an optional action below.
  */
 export function EmptyListView({
   title,
   text = null,
+  actionLabel,
+  onAction,
   'data-testid': testId
 }: EmptyListViewProps): ReactElement {
+  const hasAction = Boolean(actionLabel && onAction)
   return (
     <Root data-testid={testId}>
       <Column>
         <Illustration />
         <Title>{title}</Title>
         {text === null ? null : <Text>{text}</Text>}
+        {hasAction ? (
+          <Action>
+            <Button
+              variant="contained"
+              onClick={onAction}
+              data-testid={
+                testId === undefined ? undefined : `${testId}-action`
+              }
+            >
+              {actionLabel}
+            </Button>
+          </Action>
+        ) : null}
       </Column>
     </Root>
   )

@@ -48,8 +48,9 @@
     "personalFolders": "Persönliche Ordner"
   },
   "mailbox": {
-    "empty": "Sie haben keine E-Mails\n in diesem Ordner.",
+    "empty": "Noch keine E-Mails in diesem Ordner.",
     "emptyHint": "Beginnen Sie, E-Mails zu verfassen.",
+    "emptyAction": "Verfassen",
     "offline": "Keine Internetverbindung, versuche es später.",
     "roles": {
       "inbox": "Posteingang",

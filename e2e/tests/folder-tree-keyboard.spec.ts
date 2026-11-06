@@ -121,7 +121,7 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
   test(
     'TRE-03 the actions of the focused folder stay reachable: Tab to its arrow and menu button, Shift+F10 and the menu key',
     { tag: '@mobile' },
-    async ({ page, user, jmap }) => {
+    async ({ page, user, jmap }, testInfo) => {
       const work = await jmap.createMailbox({ name: 'Work' })
       await jmap.createMailbox({ name: 'Clients', parentId: work.id })
       const mailbox = await new LoginPage(page).loginAs(user)
@@ -132,9 +132,14 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
       await expect(row.getByTestId('mailbox-expand-button')).toBeFocused()
       await page.keyboard.press('Enter')
       await expect(row).toHaveAttribute('aria-expanded', 'true')
-      await page.keyboard.press('Tab')
-      await expect(row.getByTestId('mailbox-more-button')).toBeFocused()
-      await page.keyboard.press('Shift+Tab')
+      // The phone drawer has no menu button: a long press opens the menu
+      if (testInfo.project.name === 'mobile') {
+        await expect(row.getByTestId('mailbox-more-button')).toHaveCount(0)
+      } else {
+        await page.keyboard.press('Tab')
+        await expect(row.getByTestId('mailbox-more-button')).toBeFocused()
+        await page.keyboard.press('Shift+Tab')
+      }
       await page.keyboard.press('Shift+Tab')
       await mailbox.expectFolderFocused({ name: 'Work' })
 

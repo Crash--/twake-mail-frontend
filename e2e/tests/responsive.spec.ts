@@ -193,7 +193,7 @@ test.describe('RESP responsive layout', () => {
   test.describe('on a desktop', () => {
     test.use({ viewport: { width: 1440, height: 789 } })
 
-    test('RESP-06 without the platform, the bar of tmail-flutter holds the logotype, the search and the account', { tag: '@desktop-only' }, async ({
+    test('RESP-06 without the platform, the bar of tmail-flutter holds the logotype and the account, the search starts the page under it', { tag: '@desktop-only' }, async ({
       page,
       user
     }) => {
@@ -215,15 +215,14 @@ test.describe('RESP responsive layout', () => {
       expect(bar.width).toBe(1440)
       expect(Math.abs(bar.height - 48)).toBeLessThanOrEqual(1)
       expect(sidebar.y).toBeGreaterThanOrEqual(bar.y + bar.height)
-      // The search is in the bar, the initial of the user at its far end
-      expect(search.y).toBeGreaterThanOrEqual(bar.y)
-      expect(search.y + search.height).toBeLessThanOrEqual(bar.y + bar.height)
-      expect(account.x).toBeGreaterThan(search.x + search.width)
+      // The initial of the user is in the bar, the search in the page under it
       expect(
         Math.abs(account.y + account.height / 2 - (bar.y + bar.height / 2))
       ).toBeLessThan(8)
-      // The list toolbar is under the bar
-      expect(toolbar.y).toBeGreaterThanOrEqual(bar.y + bar.height)
+      expect(search.y).toBeGreaterThanOrEqual(bar.y + bar.height)
+      expect(search.width).toBeLessThanOrEqual(820)
+      // The list toolbar is under the search
+      expect(toolbar.y).toBeGreaterThanOrEqual(search.y + search.height)
       await expect(mailbox.selectionToolbar).toBeHidden()
       await expectNoA11yViolations(page)
     })

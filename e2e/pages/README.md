@@ -358,3 +358,4 @@ Conventions:
 | `delegation-team-list` / `delegation-team-item` / `delegation-leave-team-button` | Settings > Delegation > "Delegated to me": the team mailboxes of the user, under the delegated mailboxes, each with "Leave the team mailbox <name>" (the `delegation-remove-dialog` then, `TeamMailbox/revokeAccess`) | — (tmail-flutter#4977) |
 | `forward-empty` | Settings > Forwarding, "Forwarding is off" in place of the list while no address is forwarded to | — |
 | `mailbox-search-back-button` | the back arrow before the field of the folder search: closes it, back to the folders, the focus on the magnifier | — (Teammail 13446:27267) |
+| `mailbox-context-banner` / `mailbox-context-back-button` | #698: the info banner above the mail screens of a mailbox delegated to the user or a team mailbox picked in the switcher ("You are in the mailbox of <name> (<address>)…"), with "Back to your mailbox", which does what `mailbox-switcher-back-button` does | — (#698) |

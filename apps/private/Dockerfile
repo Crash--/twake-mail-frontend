@@ -19,7 +19,7 @@
 # ---------------------------------------------------------------- build
 # On the platform of the builder: the bundle is the same for every target
 # architecture, only the nginx stage is multi-platform.
-FROM --platform=$BUILDPLATFORM node:24-alpine AS build
+FROM --platform=$BUILDPLATFORM node:25-alpine AS build
 # git: jmap-client-ts is installed from GitHub
 RUN apk add --no-cache git
 WORKDIR /src

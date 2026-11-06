@@ -10,6 +10,7 @@ import {
 import { Box } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import {
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -32,6 +33,7 @@ import { ReadingNotFoundView } from '@common/features/email/ReadingNotFoundView'
 import { ReadingToolbar } from '@common/features/email/ReadingToolbar'
 import type { EmailViewNavigation } from '@common/features/email/useEmailViewShortcuts'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
+import { runFromView, takeMoveFromView } from '@common/features/email/viewMoves'
 import {
   findMailboxIdByRole,
   findTeamHomeId
@@ -108,6 +110,8 @@ interface ConversationContentProps {
   /** Some of its messages are in a team mailbox: no Archive nor Spam */
   isTeam: boolean
   onBack: () => void
+  /** Leaves the folder, after a move of this view when `isOwnMove` */
+  onLeave: (isOwnMove?: boolean) => void
   navigation?: EmailViewNavigation
 }
 
@@ -122,6 +126,7 @@ function ConversationContent({
   ownAddress,
   isTeam,
   onBack,
+  onLeave,
   navigation = NO_NAVIGATION
 }: ConversationContentProps): ReactElement {
   const { t } = useI18n()
@@ -175,7 +180,7 @@ function ConversationContent({
   }, [])
 
   // Once none of its messages is left in the folder (moved by the actions of
-  // a message, or by another client), back to the list; a message moved to
+  // a message, or by another client), it leaves (`onLeave`); a message moved to
   // a folder of the same side stays in the conversation, one moved to
   // another side (Trash, Spam) leaves it
   const isInMailbox =
@@ -186,9 +191,9 @@ function ConversationContent({
       wasInMailboxRef.current = true
     } else if (wasInMailboxRef.current) {
       wasInMailboxRef.current = false
-      onBack()
+      onLeave()
     }
-  }, [isInMailbox, onBack])
+  }, [isInMailbox, onLeave])
 
   const handleToggle = (emailId: string): void => {
     const email = emails.find(candidate => candidate.id === emailId)
@@ -247,12 +252,12 @@ function ConversationContent({
     runOnAll(isStarred ? 'unstar' : 'star')
   }
 
-  // The conversation leaves the folder: back to the list
+  // The conversation leaves the folder, moved by the user
   const handleMove = (action: EmailActionName) => (): void => {
     // Leaves once, not again when the messages leave the folder
     wasInMailboxRef.current = false
     void run({ action, emails: movedEmails, mailboxId })
-    onBack()
+    onLeave(true)
   }
 
   // In the folder it is shown from, as the menus of a message: out of Spam
@@ -263,8 +268,12 @@ function ConversationContent({
   const role = mailbox?.role ?? null
   const isSpam = role === 'junk'
   const handleDeleteForever = (): void => {
-    // Once deleted, the conversation is gone: ConversationView goes back
-    void removeEmails(emails, mailboxId)
+    // Once deleted, the conversation is gone: ConversationView leaves
+    void runFromView(
+      'delete-permanently',
+      emails.map(email => email.id),
+      () => removeEmails(emails, mailboxId)
+    )
   }
   const moves: ConversationMenuItem[] = [
     ...(isSpam
@@ -430,6 +439,11 @@ export interface ConversationViewProps {
    */
   fromList?: boolean
   onBack: () => void
+  /**
+   * Once the conversation left the folder, or is gone: after a move of this
+   * view when `isOwnMove`. Back to the list (`onBack`) without it
+   */
+  onLeave?: (isOwnMove: boolean) => void
   /** The previous and next email of the folder, for the toolbar */
   navigation?: EmailViewNavigation
 }
@@ -449,6 +463,7 @@ export function ConversationView({
   mailboxId = null,
   fromList = false,
   onBack,
+  onLeave,
   navigation = NO_NAVIGATION
 }: ConversationViewProps): ReactElement {
   const { t } = useI18n()
@@ -515,7 +530,25 @@ export function ConversationView({
     mailAddress
   ])
 
-  // Its last message deleted, the conversation is gone: back to the list
+  // The messages it showed: one moved or deleted by the view is no longer in
+  // it once it leaves the folder
+  const shownIdsRef = useRef(new Set<string>())
+  useEffect(() => {
+    query.data?.emails.forEach(email => shownIdsRef.current.add(email.id))
+  }, [query.data])
+  const leave = useCallback(
+    (isOwnMove?: boolean): void => {
+      const isOwn = isOwnMove ?? takeMoveFromView([...shownIdsRef.current])
+      if (onLeave === undefined) {
+        onBack()
+      } else {
+        onLeave(isOwn)
+      }
+    },
+    [onBack, onLeave]
+  )
+
+  // Its last message deleted, the conversation is gone: it leaves
   const hasEmails = emails.length > 0
   const hadEmailsRef = useRef(false)
   useEffect(() => {
@@ -523,9 +556,9 @@ export function ConversationView({
       hadEmailsRef.current = true
     } else if (hadEmailsRef.current) {
       hadEmailsRef.current = false
-      onBack()
+      leave()
     }
-  }, [hasEmails, onBack])
+  }, [hasEmails, leave])
 
   // The folders tell the sides apart: the conversation waits for them, and
   // shows the opened message alone if they fail to load
@@ -566,6 +599,7 @@ export function ConversationView({
       ownAddress={mailAddress}
       isTeam={emails.some(email => findTeamHomeId(mailboxList, email) !== null)}
       onBack={onBack}
+      onLeave={leave}
       navigation={navigation}
     />
   )

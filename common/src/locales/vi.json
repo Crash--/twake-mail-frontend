@@ -48,8 +48,9 @@
     "personalFolders": "Thư mục cá nhân"
   },
   "mailbox": {
-    "empty": "Bạn không có thư nào\ntại thư mục này.",
+    "empty": "Chưa có thư nào trong thư mục này.",
     "emptyHint": "Bắt đầu soạn thư mới.",
+    "emptyAction": "Soạn thư",
     "offline": "Không có kết nối mạng, thử lại sau.",
     "roles": {
       "inbox": "Hộp thư đến",

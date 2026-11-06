@@ -94,7 +94,7 @@ Conventions:
 | `email-context-menu` | the actions menu of a row: ⋮, right click, menu key or Shift+F10; items `email-action-<action>` | — |
 | `email-list-item-checkbox` | selection checkbox (Shift+click selects a range) | `UiKeys.tabletEmailSelectionAvatar` |
 | `important-flag-icon` | "important" marker | `important_flag_icon` |
-| `empty-thread-view` | empty folder view | `UiKeys.emptyThreadView` |
+| `empty-thread-view` / `empty-thread-view-action` | empty folder view and its "Compose" button (an empty folder only, not an empty filter) | `UiKeys.emptyThreadView` |
 | `quick-filter-attachments` / `quick-filter-unread` / `quick-filter-starred` | items of the "Filter" menu of the list toolbar (filter the folder in place) | `attachments_filter`, `unread_filter`, `starred_filter` |
 | `scroll-to-top-button` | floating "back to top" button | `ScrollToTopButtonWidget` |
 | `selection-toolbar` | toolbar shown when emails are selected (a `section` named "Selection actions") | — |

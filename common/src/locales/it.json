@@ -48,8 +48,9 @@
     "personalFolders": "Cartelle personali"
   },
   "mailbox": {
-    "empty": "Non hai nessuna email\n in questa cartella.",
+    "empty": "Ancora nessuna email in questa cartella.",
     "emptyHint": "Inizia a scrivere email.",
+    "emptyAction": "Scrivi",
     "offline": "Nessuna connessione a Internet, riprova più tardi.",
     "roles": {
       "inbox": "Posta in arrivo",

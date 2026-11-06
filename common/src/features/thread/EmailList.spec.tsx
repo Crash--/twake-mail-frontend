@@ -20,6 +20,7 @@ import {
   installFakeLabels
 } from '@common/testing/fakeLinagora'
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
+import { ComposerProvider } from '@common/features/composer/ComposerProvider'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
@@ -466,12 +467,39 @@ describe('EmailList', () => {
     renderList(makeFakeJmapServer({ emails: [] }))
 
     expect(await screen.findByTestId('empty-thread-view')).toHaveTextContent(
-      'You don’t have any emails in this folder.'
+      'No emails in this folder yet.'
     )
     expect(screen.queryByTestId('email-list')).toBe(null)
   })
 
-  it('says that no email matches the filter, without the hint', async () => {
+  it('opens a new message from the empty view', async () => {
+    renderWithProviders(
+      <ComposerProvider>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </ComposerProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({ emails: [] })
+      }
+    )
+
+    const empty = await screen.findByTestId('empty-thread-view')
+    await userEvent.click(
+      within(empty).getByRole('button', { name: 'Compose' })
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'New message' })
+    ).toBeVisible()
+  })
+
+  it('says that no email matches the filter, without the action', async () => {
     renderWithProviders(
       <ListFilterProvider>
         <VirtuosoMockContext.Provider
@@ -496,7 +524,7 @@ describe('EmailList', () => {
     expect(empty).toHaveTextContent(
       'There are no emails that match your current filter.'
     )
-    expect(empty).not.toHaveTextContent('Start to compose emails.')
+    expect(within(empty).queryByRole('button')).toBe(null)
   })
 
   describe('offline', () => {

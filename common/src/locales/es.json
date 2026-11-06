@@ -48,8 +48,9 @@
     "personalFolders": "Carpetas personales"
   },
   "mailbox": {
-    "empty": "No tiene ningún correo\n en esta carpeta.",
+    "empty": "Todavía no hay correos en esta carpeta.",
     "emptyHint": "Empiece a redactar correos.",
+    "emptyAction": "Redactar",
     "offline": "Sin conexión a Internet, inténtelo más tarde.",
     "roles": {
       "inbox": "Bandeja de entrada",

@@ -48,8 +48,9 @@
     "personalFolders": "Dossiers personnels"
   },
   "mailbox": {
-    "empty": "Aucun email\n dans ce dossier.",
+    "empty": "Aucun email dans ce dossier pour l’instant.",
     "emptyHint": "Commencer à écrire des emails.",
+    "emptyAction": "Écrire",
     "offline": "Connexion Internet indisponible, réessayez plus tard.",
     "roles": {
       "inbox": "Boîte de réception",

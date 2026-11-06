@@ -18,7 +18,8 @@ export const JMAP_PROXY_PATHS: readonly string[] = [
   '/upload',
   '/download',
   '/eventSource',
-  '/.well-known/jmap'
+  '/.well-known/jmap',
+  '/ai'
 ]
 
 const SESSION_PATH = '/jmap/session'

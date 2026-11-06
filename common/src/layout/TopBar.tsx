@@ -29,6 +29,7 @@ import {
 import { usePlatformStatus } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { AssistantButton } from './AssistantButton'
 import { HelpButton } from './HelpButton'
 import { MailSearchBar } from './MailSearchBar'
 import { SettingsButton } from './SettingsButton'
@@ -124,6 +125,7 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
           {/* Without the platform they are in the drawer, as tmail-flutter */}
           {isPlatformActive ? (
             <>
+              <AssistantButton />
               <HelpButton />
               <SettingsButton />
             </>

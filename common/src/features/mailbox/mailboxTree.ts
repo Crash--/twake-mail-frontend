@@ -63,17 +63,28 @@ export function isPersonalMailbox(
   )
 }
 
+/** The namespace James gives the folders another user shares with the user */
+const SHARED_NAMESPACE_PREFIX = 'Delegated'
+
 /**
- * The address of the team mailbox a folder belongs to: what its namespace
- * holds between brackets (`TeamMailbox[team@example.com]`), else the whole
- * namespace, as tmail-flutter's `emailTeamMailBoxes`; null for a folder of
- * the user. Every folder of a team mailbox has the namespace of its root.
+ * A folder another user shares with the user (`Delegated[bob@example.com]`):
+ * a folder of its own, holding emails, not the part of a team mailbox
  */
-export function teamMailboxAddress(
+export function isSharedMailbox(
   mailbox: Pick<MailboxSummary, 'namespace'>
-): string | null {
-  if (isPersonalMailbox(mailbox)) return null
-  const namespace = mailbox.namespace ?? ''
+): boolean {
+  return (mailbox.namespace ?? '').startsWith(SHARED_NAMESPACE_PREFIX)
+}
+
+/** A folder of a team mailbox: neither the user's, nor shared by a user */
+export function isTeamMailbox(
+  mailbox: Pick<MailboxSummary, 'namespace'>
+): boolean {
+  return !isPersonalMailbox(mailbox) && !isSharedMailbox(mailbox)
+}
+
+/** What a namespace holds between brackets, else the whole namespace */
+function namespaceAddress(namespace: string): string | null {
   const open = namespace.indexOf('[')
   const close = namespace.indexOf(']', open)
   const address =
@@ -81,18 +92,55 @@ export function teamMailboxAddress(
   return address === '' ? null : address
 }
 
-/** The root of a team mailbox: a folder of another namespace without parent */
+/**
+ * The address of the team mailbox a folder belongs to: what its namespace
+ * holds between brackets (`TeamMailbox[team@example.com]`), else the whole
+ * namespace, as tmail-flutter's `emailTeamMailBoxes`; null for a folder of
+ * the user or shared by another user. Every folder of a team mailbox has the
+ * namespace of its root.
+ */
+export function teamMailboxAddress(
+  mailbox: Pick<MailboxSummary, 'namespace'>
+): string | null {
+  return isTeamMailbox(mailbox)
+    ? namespaceAddress(mailbox.namespace ?? '')
+    : null
+}
+
+/**
+ * The address of the user who shares a folder with the user
+ * (`Delegated[bob@example.com]`), null for any other folder
+ */
+export function sharedMailboxOwner(
+  mailbox: Pick<MailboxSummary, 'namespace'>
+): string | null {
+  return isSharedMailbox(mailbox)
+    ? namespaceAddress(mailbox.namespace ?? '')
+    : null
+}
+
+/** The root of a team mailbox: a folder of a team without parent */
 export function isTeamRoot(
   mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
 ): boolean {
-  return !isPersonalMailbox(mailbox) && mailbox.parentId === null
+  return isTeamMailbox(mailbox) && mailbox.parentId === null
 }
 
 /** A folder of a team mailbox, not its root */
 export function isTeamFolder(
   mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
 ): boolean {
-  return !isPersonalMailbox(mailbox) && mailbox.parentId !== null
+  return isTeamMailbox(mailbox) && mailbox.parentId !== null
+}
+
+/**
+ * A shared folder at the top of what the user sees of the other user's
+ * folders: the one the sidebar names with its owner's address
+ */
+export function isSharedRoot(
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
+): boolean {
+  return isSharedMailbox(mailbox) && mailbox.parentId === null
 }
 
 type NamedMailbox = Pick<
@@ -443,13 +491,15 @@ export function findDescendantIds(
 
 /**
  * A folder the user hid (`isSubscribed: false`), as tmail-flutter: personal
- * folders without a role, and the roots of team mailboxes
+ * folders without a role, and the roots of team mailboxes. The folders
+ * other users share are never hidden: the user is not subscribed to them
+ * until they choose to, and they are shown all the same.
  */
 export function isHiddenMailbox(mailbox: MailboxSummary): boolean {
   if (mailbox.isSubscribed) return false
   return isPersonalMailbox(mailbox)
     ? mailbox.role === null
-    : mailbox.parentId === null
+    : isTeamRoot(mailbox)
 }
 
 export interface MailboxTreeSections {
@@ -457,13 +507,16 @@ export interface MailboxTreeSections {
   personal: MailboxNode[]
   /** One root per team mailbox, its folders under it */
   team: MailboxNode[]
+  /** The folders other users share with the user, with their subfolders */
+  shared: MailboxNode[]
   /** How many folders are hidden, with their subfolders */
   hiddenCount: number
 }
 
 /**
- * The trees of the sidebar: the personal folders, then the team mailboxes.
- * Hidden folders and their subfolders are left out, unless `showHidden`.
+ * The trees of the sidebar: the personal folders, the team mailboxes, then
+ * the folders other users share. Hidden folders and their subfolders are
+ * left out, unless `showHidden`.
  */
 export function buildMailboxSections(
   mailboxes: readonly MailboxSummary[],
@@ -480,9 +533,8 @@ export function buildMailboxSections(
     : mailboxes.filter(mailbox => !hidden.has(mailbox.id))
   return {
     personal: buildMailboxTree(shown.filter(isPersonalMailbox)),
-    team: buildMailboxTree(
-      shown.filter(mailbox => !isPersonalMailbox(mailbox))
-    ),
+    team: buildMailboxTree(shown.filter(isTeamMailbox)),
+    shared: buildMailboxTree(shown.filter(isSharedMailbox)),
     hiddenCount: hidden.size
   }
 }
@@ -531,8 +583,8 @@ export function splitPersonalTree(
 }
 
 /**
- * The folder of a team mailbox an email is in, null for an email of the
- * user
+ * The folder of a team mailbox, or shared by another user, an email is in,
+ * null for an email of the user
  */
 export function findTeamHomeId(
   mailboxes: readonly MailboxSummary[],

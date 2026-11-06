@@ -37,7 +37,7 @@
     "cozy-intent": "^2.29.1",
     "cozy-interapp": "0.21.0",
     "dompurify": "^3.4.16",
-    "emojibase-data": "^17.0.0",
+    "emojibase-data": "^18.0.0",
     "jmap-client-ts": "github:Crash--/jmap-client-ts#v2",
     "linkifyjs": "^4.3.3",
     "openid-client": "^6.8.8",

@@ -50,6 +50,13 @@
   "mailbox": {
     "empty": "No tiene ningún correo\n en esta carpeta.",
     "emptyHint": "Empiece a redactar correos.",
+    "emptyHints": {
+      "trash": "¿Ha eliminado algo por error? Puede recuperar los mensajes eliminados recientemente.",
+      "spam": "Los correos detectados como spam aparecerán aquí.",
+      "drafts": "Los mensajes empezados y no enviados se guardan aquí.",
+      "sent": "Los correos que envíe aparecerán aquí.",
+      "starred": "Destaque un correo con una estrella para encontrarlo aquí."
+    },
     "offline": "Sin conexión a Internet, inténtelo más tarde.",
     "roles": {
       "inbox": "Bandeja de entrada",
@@ -69,7 +76,6 @@
     "actionRequired": "Acción requerida",
     "emptyActionRequired": "No tiene ningún correo que requiera acción.",
     "emptyStarred": "No tiene ningún correo destacado.",
-    "emptyStarredHint": "Empiece a destacar correos",
     "emptyFilter": "No hay ningún correo que coincida con el filtro actual."
   },
   "email": {
@@ -651,6 +657,7 @@
       "sizeDescending": "Tamaño descendente"
     },
     "empty": "Ningún correo coincide con su búsqueda",
+    "emptyHint": "Revise la ortografía o quite algunos filtros.",
     "title": "Buscar",
     "results": "Resultados de la búsqueda",
     "inMailbox": "En %{name}",

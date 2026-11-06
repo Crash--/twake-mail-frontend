@@ -50,6 +50,13 @@
   "mailbox": {
     "empty": "Non hai nessuna email\n in questa cartella.",
     "emptyHint": "Inizia a scrivere email.",
+    "emptyHints": {
+      "trash": "Hai eliminato qualcosa per errore? Puoi recuperare i messaggi eliminati di recente.",
+      "spam": "Le email riconosciute come spam appariranno qui.",
+      "drafts": "I messaggi iniziati e non inviati vengono salvati qui.",
+      "sent": "Le email che invii appariranno qui.",
+      "starred": "Aggiungi una stella a un'email per ritrovarla qui."
+    },
     "offline": "Nessuna connessione a Internet, riprova più tardi.",
     "roles": {
       "inbox": "Posta in arrivo",
@@ -69,7 +76,6 @@
     "actionRequired": "Azione richiesta",
     "emptyActionRequired": "Non hai nessuna email che richiede un'azione.",
     "emptyStarred": "Non hai nessuna email preferita.",
-    "emptyStarredHint": "Inizia ad aggiungere email ai preferiti",
     "emptyFilter": "Siamo spiacenti, non ci sono email che corrispondono al tuo filtro attuale."
   },
   "email": {
@@ -651,6 +657,7 @@
       "sizeDescending": "Dimensione decrescente"
     },
     "empty": "Nessuna e-mail corrisponde alla tua ricerca",
+    "emptyHint": "Controlla l'ortografia o rimuovi alcuni filtri.",
     "title": "Ricerca",
     "results": "Risultati della ricerca",
     "inMailbox": "In %{name}",

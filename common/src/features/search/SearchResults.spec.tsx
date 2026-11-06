@@ -161,9 +161,32 @@ describe('SearchResults', () => {
   it('shows the empty view when nothing matches', async () => {
     renderSearch(makeServer(), 'q=nothing')
 
-    expect(await screen.findByTestId('empty-search-view')).toHaveTextContent(
-      'No emails are matching your search'
+    const empty = await screen.findByTestId('empty-search-view')
+    expect(empty).toHaveTextContent('No emails match your search')
+    expect(empty).toHaveTextContent(
+      'Check the spelling, or remove some filters.'
     )
+    // Only words: no filter to clear
+    expect(within(empty).queryByRole('button')).toBe(null)
+  })
+
+  it('clears the filters hiding the results, keeping the words', async () => {
+    renderSearch(makeServer(), 'q=last+year&attachment=1')
+    const empty = await screen.findByTestId('empty-search-view')
+
+    await userEvent.click(
+      within(empty).getByRole('button', { name: 'Clear filter' })
+    )
+
+    await waitFor(() => {
+      expect(rows()).toHaveLength(1)
+    })
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/search?q=last+year&sort=relevance'
+    )
+    expect(
+      screen.getByRole('button', { name: 'Has attachment' })
+    ).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('runs the search again when a filter changes, in the URL', async () => {

@@ -50,6 +50,13 @@
   "mailbox": {
     "empty": "Bạn không có thư nào\ntại thư mục này.",
     "emptyHint": "Bắt đầu soạn thư mới.",
+    "emptyHints": {
+      "trash": "Lỡ xóa nhầm? Bạn có thể khôi phục các thư đã xóa gần đây.",
+      "spam": "Email bị phát hiện là thư rác sẽ xuất hiện ở đây.",
+      "drafts": "Thư bạn bắt đầu viết nhưng chưa gửi sẽ được lưu ở đây.",
+      "sent": "Email bạn gửi sẽ xuất hiện ở đây.",
+      "starred": "Gắn sao cho email để tìm lại ở đây."
+    },
     "offline": "Không có kết nối mạng, thử lại sau.",
     "roles": {
       "inbox": "Hộp thư đến",
@@ -69,7 +76,6 @@
     "actionRequired": "Cần xử lý",
     "emptyActionRequired": "Bạn chưa có email nào cần xử lý.",
     "emptyStarred": "Bạn không có thư quan trọng.",
-    "emptyStarredHint": "Bắt đầu thêm các thư quan trọng",
     "emptyFilter": "Không có email nào phù hợp với bộ lọc hiện tại của bạn."
   },
   "email": {
@@ -651,6 +657,7 @@
       "sizeDescending": "Kích thước giảm dần"
     },
     "empty": "Không có email phù hợp với tìm kiếm của bạn",
+    "emptyHint": "Kiểm tra chính tả hoặc bỏ bớt bộ lọc.",
     "title": "Tìm kiếm",
     "results": "Kết quả tìm kiếm",
     "inMailbox": "Trong %{name}",

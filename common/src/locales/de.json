@@ -50,6 +50,13 @@
   "mailbox": {
     "empty": "Sie haben keine E-Mails\n in diesem Ordner.",
     "emptyHint": "Beginnen Sie, E-Mails zu verfassen.",
+    "emptyHints": {
+      "trash": "Versehentlich etwas gelöscht? Sie können kürzlich gelöschte Nachrichten wiederherstellen.",
+      "spam": "Als Spam erkannte E-Mails erscheinen hier.",
+      "drafts": "Begonnene, nicht gesendete Nachrichten werden hier gespeichert.",
+      "sent": "E-Mails, die Sie senden, erscheinen hier.",
+      "starred": "Markieren Sie eine E-Mail mit einem Stern, um sie hier wiederzufinden."
+    },
     "offline": "Keine Internetverbindung, versuche es später.",
     "roles": {
       "inbox": "Posteingang",
@@ -69,7 +76,6 @@
     "actionRequired": "Aktion erforderlich",
     "emptyActionRequired": "Sie haben keine E-Mails, die eine Aktion erfordern.",
     "emptyStarred": "Sie haben keine markierten E-Mails.",
-    "emptyStarredHint": "Beginnen Sie, E-Mails zu markieren",
     "emptyFilter": "Es tut uns leid, es gibt keine E-Mails, die Ihrem aktuellen Filter entsprechen."
   },
   "email": {
@@ -651,6 +657,7 @@
       "sizeDescending": "Größe absteigend"
     },
     "empty": "Es wurden keine E-Mails zu Ihrer Suche gefunden",
+    "emptyHint": "Prüfen Sie die Schreibweise oder entfernen Sie Filter.",
     "title": "Suchen",
     "results": "Suchergebnisse",
     "inMailbox": "In %{name}",

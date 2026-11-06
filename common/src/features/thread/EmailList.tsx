@@ -42,6 +42,7 @@ import { useEmailActions } from '@common/features/emailActions/useEmailActions'
 import {
   findMailboxIdByRole,
   hasMailboxRole,
+  isPersonalMailbox,
   isTeamDrafts,
   isTeamTemplates,
   isTemplatesMailbox
@@ -55,7 +56,7 @@ import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useOnlineStatus } from '@common/features/network/useOnlineStatus'
 import { useThreadPreference } from '@common/features/settings/threadPreference'
-import { useI18n } from '@common/i18n/useI18n'
+import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -106,6 +107,7 @@ import {
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
+import { useTrashRecovery } from './useTrashRecovery'
 import {
   getLeadWidth,
   getHoverActionsRoom,
@@ -123,6 +125,17 @@ const RECIPIENT_ROLES: readonly string[] = [
   'outbox',
   'templates'
 ]
+
+/**
+ * What an empty folder of the user is for, by its role; the others (Inbox,
+ * Archive, their own folders, the folders of a team mailbox) say nothing
+ */
+const EMPTY_HINT_KEYS: Readonly<Partial<Record<string, TranslationKey>>> = {
+  trash: 'mailbox.emptyHints.trash',
+  junk: 'mailbox.emptyHints.spam',
+  drafts: 'mailbox.emptyHints.drafts',
+  sent: 'mailbox.emptyHints.sent'
+}
 
 /** Rows left below the visible ones when the next page is requested */
 const PRELOAD_ROWS = 10
@@ -367,11 +380,24 @@ export function EmailList(props: EmailListProps): ReactElement {
   const total = query.data?.pages[0]?.total ?? null
   const location = useLocation()
   const focusEmailId = readFocusEmailId(location.state)
+  // "Clear the filter" of an empty list: the focus goes to the first row once
+  // the emails show, to the title of the empty folder otherwise. Until
+  // another list or filter shows
+  const [clearedScope, setClearedScope] = useState<string | null>(null)
+  if (
+    clearedScope !== null &&
+    (clearedScope !== filterScope || filter !== 'all')
+  ) {
+    setClearedScope(null)
+  }
+  const focusesAfterClear = clearedScope !== null
   // Back from an email that left the list (deleted, moved), the focus goes
   // to the list: its first row
   const focusedIndex =
     focusEmailId === null
-      ? null
+      ? focusesAfterClear
+        ? 0
+        : null
       : Math.max(
           0,
           emails.findIndex(email => email.id === focusEmailId)
@@ -595,6 +621,18 @@ export function EmailList(props: EmailListProps): ReactElement {
   const isFramed = useTeamMailboxEmbed() !== null
 
   const { openComposer } = useComposer()
+  const recoverDeleted = useTrashRecovery(mailbox)
+  const { clear: clearListFilter } = listFilter
+  const handleClearFilter = useCallback((): void => {
+    setClearedScope(filterScope)
+    clearListFilter()
+  }, [filterScope, clearListFilter])
+  const emptyTitleRef = useRef<HTMLParagraphElement>(null)
+  const isEmptyFolder =
+    query.isSuccess && emails.length === 0 && filter === 'all'
+  useEffect(() => {
+    if (focusesAfterClear && isEmptyFolder) emptyTitleRef.current?.focus()
+  }, [focusesAfterClear, isEmptyFolder])
   const showImportant = useShowsSenderPriority()
   // A disabled query keeps its cached data: "Display labels" off must hide
   // the chips the labels loaded before
@@ -711,20 +749,42 @@ export function EmailList(props: EmailListProps): ReactElement {
         <ErrorScreen {...errorProps} headingLevel="h2" />
       )
   } else if (emails.length === 0 && filter !== 'all') {
-    // tmail-flutter: a filter that leaves nothing says so, without a hint
+    // tmail-flutter: a filter that leaves nothing says so, without a hint;
+    // the way out is clearing it
     content = (
       <EmptyListView
         title={t('mailbox.emptyFilter')}
+        action={{
+          label: t('thread.toolbar.clearFilter'),
+          onClick: handleClearFilter,
+          'data-testid': 'empty-filter-clear-button'
+        }}
         data-testid="empty-thread-view"
       />
     )
   } else if (emails.length === 0 && search !== null) {
     content = search.empty
   } else if (emails.length === 0) {
+    // What the folder is for; in the Trash, where deleted messages can be
+    // recovered from
+    const hintKey =
+      mailbox !== null && isPersonalMailbox(mailbox) && role !== null
+        ? (EMPTY_HINT_KEYS[role] ?? null)
+        : null
     content = (
       <EmptyListView
         title={t('mailbox.empty')}
-        text={t('mailbox.emptyHint')}
+        text={hintKey === null ? null : t(hintKey)}
+        action={
+          recoverDeleted === null
+            ? null
+            : {
+                label: t('recovery.title'),
+                onClick: recoverDeleted,
+                'data-testid': 'empty-trash-recover-button'
+              }
+        }
+        titleRef={emptyTitleRef}
         data-testid="empty-thread-view"
       />
     )

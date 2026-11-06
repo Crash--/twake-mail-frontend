@@ -18,9 +18,11 @@ import { useI18n } from '@common/i18n/useI18n'
 import { SearchFiltersRow } from './SearchFiltersRow'
 import { SearchSortButton } from './SearchSortButton'
 import {
+  hasFiltersBeyondText,
   searchPath,
   toSearchParams,
   toSearchRequest,
+  withoutFilters,
   type SearchFilter
 } from './searchFilter'
 import { useSearchContext } from './useSearchContext'
@@ -82,14 +84,33 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
     [navigate]
   )
 
+  // Nothing found: the filters may be what hides the email
+  const canClearFilters = hasFiltersBeyondText(filter)
   const empty = useMemo(
     () => (
       <EmptyListView
         title={t('search.empty')}
+        text={t('search.emptyHint')}
+        action={
+          canClearFilters
+            ? {
+                label: t('search.clearFilter'),
+                // The button goes with the filters: the focus goes to the
+                // heading of the results
+                onClick: () => {
+                  handleChange(withoutFilters(filter))
+                  headingRef.current?.focus()
+                },
+                'data-testid': 'empty-search-clear-filter-button'
+              }
+            : null
+        }
         data-testid="empty-search-view"
       />
     ),
-    [t]
+    // The params say all the filter does
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t, canClearFilters, handleChange, params]
   )
   // Below the desktop size the order is the last chip of the filters
   const toolbarEnd = useMemo(

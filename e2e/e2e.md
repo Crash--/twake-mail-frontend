@@ -813,7 +813,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`, uploads held by a route.
 - [x] `CMP-73` A failed upload says "Upload failed" (icon and words) and its Retry button sends the same file again. — web app only, no Patrol test
   - Spec: `tests/composer-attachments-ui.spec.ts`.
-- [x] `CMP-74` The signature is shown in the text of the message, without a pill. — web app only, no Patrol test (Figma "Signature")
+- [x] `CMP-74` The signature is under a "Signature" pill (`aria-expanded`) that folds it in the view only: the message still carries it. — web app only, no Patrol test (Figma "Signature")
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-75` The recipients folded (focus on the subject or the body) show their chips with a "+N" counter for those that do not fit, in one button named after every recipient; a click unfolds them and focuses To, whose chips stay out of the tab order (ArrowLeft reaches them). — web app only, no Patrol test (`RecipientsCollapsedComposerWidget`)
   - Spec: `tests/composer-attachments-ui.spec.ts`.

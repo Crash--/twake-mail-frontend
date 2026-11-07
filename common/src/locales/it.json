@@ -368,6 +368,7 @@
     "send": "Inviare",
     "saveAsDraft": "Salva come bozza",
     "print": "Stampa",
+    "signature": "Firma",
     "fields": {
       "to": "A",
       "cc": "Cc",

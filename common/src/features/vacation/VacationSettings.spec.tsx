@@ -147,6 +147,28 @@ describe('VacationSettings', () => {
     expect(screen.queryByLabelText(/^Start date/)).toBe(null)
   })
 
+  it('keeps a saved start that has passed when saving something else', async () => {
+    const fake = setup({
+      isEnabled: true,
+      fromDate: '2020-01-01T09:00:00Z',
+      subject: 'Away',
+      htmlBody: '<p>Away</p>'
+    })
+
+    const subject = await screen.findByRole('textbox', { name: 'Subject' })
+    await userEvent.clear(subject)
+    await userEvent.type(subject, 'Out of office')
+    await userEvent.click(screen.getByTestId('vacation-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Vacation settings saved'
+    )
+    expect(fake.vacation()).toMatchObject({
+      fromDate: '2020-01-01T09:00:00Z',
+      subject: 'Out of office'
+    })
+  })
+
   it('reopens a saved start to come on "Pick a time"', async () => {
     setup({
       isEnabled: true,

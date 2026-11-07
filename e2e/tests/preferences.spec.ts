@@ -147,20 +147,31 @@ test.describe('SET preferences', () => {
         'Your vacation responder is enabled.'
       )
       await expectNoA11yViolations(page)
+      const savedVacation = async (): Promise<Record<string, unknown>> => {
+        const result = await jmap.call(
+          'VacationResponse/get',
+          { ids: ['singleton'] },
+          ['urn:ietf:params:jmap:vacationresponse']
+        )
+        return (result.list as Record<string, unknown>[])[0] ?? {}
+      }
+      await expect.poll(savedVacation).toMatchObject({
+        isEnabled: true,
+        subject: 'Away',
+        htmlBody: '<p>I am away.</p>'
+      })
+
+      // A start that has passed is saved again as it was, not as the save time
+      const { fromDate } = await savedVacation()
+      await expect(page.getByTestId('vacation-start-choice-now')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await page.getByTestId('vacation-subject-input').fill('Out of office')
+      await page.getByTestId('vacation-save-button').click()
       await expect
-        .poll(async () => {
-          const result = await jmap.call(
-            'VacationResponse/get',
-            { ids: ['singleton'] },
-            ['urn:ietf:params:jmap:vacationresponse']
-          )
-          return (result.list as unknown[])[0]
-        })
-        .toMatchObject({
-          isEnabled: true,
-          subject: 'Away',
-          htmlBody: '<p>I am away.</p>'
-        })
+        .poll(savedVacation)
+        .toMatchObject({ subject: 'Out of office', fromDate })
 
       await settings.backToMail()
       await expect(mailbox.root).toBeVisible()

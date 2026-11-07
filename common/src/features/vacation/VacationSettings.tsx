@@ -101,7 +101,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const endsId = useId()
   const [start] = useState(() => startInputs(vacation.fromDate, new Date()))
   // "Right away" saves the moment it was saved, so a start that has passed
-  // reopens on it
+  // reopens on it, and a response still on saves that start again as it was
   const [wasRightAway] = useState(
     () =>
       vacation.fromDate === null || Date.parse(vacation.fromDate) <= Date.now()
@@ -139,9 +139,11 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const values = (): VacationResponse | VacationProblem => {
     if (!isEnabled) return { id: 'singleton', ...disabledVacation(vacation) }
     const now = startInputs(null, new Date())
-    const fromDate = isRightAway
-      ? fromLocalInputs(now.date, now.time)
-      : fromLocalInputs(startDate, startTime)
+    const fromDate = !isRightAway
+      ? fromLocalInputs(startDate, startTime)
+      : wasRightAway && vacation.isEnabled && vacation.fromDate !== null
+        ? vacation.fromDate
+        : fromLocalInputs(now.date, now.time)
     if (fromDate === null) {
       return {
         key: 'vacation.errors.noStart',

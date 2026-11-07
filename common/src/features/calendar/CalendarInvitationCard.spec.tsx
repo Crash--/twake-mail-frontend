@@ -418,6 +418,80 @@ describe('CalendarInvitationCard', () => {
     expect(text).toHaveTextContent(/^Description\s*Agenda: roadmap$/)
   })
 
+  it('tells an update of one occurrence of a recurring event', async () => {
+    const server = makeServer({
+      ...INVITATION,
+      title: 'Weekly sync (moved once)',
+      method: 'REQUEST',
+      sequence: 1,
+      utcStart: '2026-11-03T10:00:00Z',
+      utcEnd: '2026-11-03T11:00:00Z',
+      timeZone: 'Europe/Paris',
+      recurrenceRules: []
+    })
+    server.blobs.set(
+      'b-ics',
+      [
+        'BEGIN:VCALENDAR',
+        'METHOD:REQUEST',
+        'BEGIN:VEVENT',
+        'UID:weekly-sync',
+        'RECURRENCE-ID;TZID=Europe/Paris:20261103T090000',
+        'DTSTART;TZID=Europe/Paris:20261103T110000',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n')
+    )
+    renderView(server)
+
+    const occurrence = await screen.findByTestId('calendar-event-occurrence')
+    // 09:00 in Paris, in the UTC of the tests
+    expect(occurrence).toHaveTextContent(
+      'This occurrence only (originally Tuesday, November 3, 2026 at 8:00 AM)'
+    )
+    expect(screen.queryByTestId('calendar-event-recurrence')).toBe(null)
+  })
+
+  it('says nothing of an occurrence for a one-off event', async () => {
+    const server = makeServer({ ...INVITATION, recurrenceRules: [] })
+    server.blobs.set(
+      'b-ics',
+      'BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:weekly-sync\r\nEND:VEVENT\r\nEND:VCALENDAR'
+    )
+    renderView(server)
+
+    expect(await screen.findByTestId('calendar-event-card')).toBeVisible()
+    expect(screen.queryByTestId('calendar-event-occurrence')).toBe(null)
+  })
+
+  it('takes a recurring event for the whole series', async () => {
+    const server = makeServer(INVITATION)
+    server.blobs.set(
+      'b-ics',
+      'BEGIN:VEVENT\r\nRECURRENCE-ID:20261012T080000Z\r\nEND:VEVENT'
+    )
+    renderView(server)
+
+    expect(await screen.findByTestId('calendar-event-recurrence')).toBeVisible()
+    expect(screen.queryByTestId('calendar-event-occurrence')).toBe(null)
+  })
+
+  it('reads the recurrence id the server gives', async () => {
+    renderView(
+      makeServer({
+        ...INVITATION,
+        recurrenceRules: [],
+        recurrenceId: '20261012T080000Z'
+      })
+    )
+
+    expect(
+      await screen.findByTestId('calendar-event-occurrence')
+    ).toHaveTextContent(
+      'This occurrence only (originally Monday, October 12, 2026 at 8:00 AM)'
+    )
+  })
+
   it('reads no event without the capability', async () => {
     const server = makeServer(INVITATION, { capability: null })
     renderView(server)

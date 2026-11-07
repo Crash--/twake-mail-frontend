@@ -368,7 +368,6 @@
     "send": "Отправить",
     "saveAsDraft": "Сохранить как черновик",
     "print": "Печать",
-    "signature": "Подпись",
     "fields": {
       "to": "Кому",
       "cc": "Копия",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Вставка изображения"
-    }
+    },
+    "hideSignature": "Скрыть подпись",
+    "showSignature": "Показать подпись"
   },
   "layout": {
     "navigation": "Навигация"

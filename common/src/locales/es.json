@@ -368,7 +368,6 @@
     "send": "Enviar",
     "saveAsDraft": "Guardar como borrador",
     "print": "Imprimir",
-    "signature": "Firma",
     "fields": {
       "to": "A",
       "cc": "CC",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Insertando la imagen"
-    }
+    },
+    "hideSignature": "Ocultar firma",
+    "showSignature": "Mostrar firma"
   },
   "layout": {
     "navigation": "Navegación"

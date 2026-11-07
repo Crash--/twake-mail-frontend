@@ -2290,7 +2290,7 @@ describe('ComposerForm', () => {
   })
 
   describe('signature', () => {
-    it('is shown under a "Signature" pill that folds it and unfolds it', async () => {
+    it('folds and unfolds from the button of its --- line, which keeps the focus', async () => {
       renderComposer(
         makeFakeJmapServer({
           identities: [
@@ -2304,19 +2304,24 @@ describe('ComposerForm', () => {
       )
       const composer = await openComposer()
 
-      const pill = await within(composer).findByRole('button', {
-        name: 'Signature'
+      const toggle = await within(composer).findByRole('button', {
+        name: 'Hide signature'
       })
-      expect(pill).toHaveAttribute('aria-expanded', 'true')
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+      const separator = within(composer).getByText('---')
       const text = within(composer).getByText(/The sales team/)
       expect(text).toBeVisible()
 
-      await userEvent.click(pill)
-      expect(pill).toHaveAttribute('aria-expanded', 'false')
+      await userEvent.click(toggle)
+      expect(toggle).toHaveAccessibleName('Show signature')
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
       expect(text).not.toBeVisible()
+      expect(separator).toBeVisible()
 
-      await userEvent.click(pill)
+      expect(toggle).toHaveFocus()
+      await userEvent.keyboard('{Enter}')
       expect(text).toBeVisible()
+      expect(toggle).toHaveFocus()
     })
   })
 })

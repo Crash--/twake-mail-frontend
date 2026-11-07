@@ -368,7 +368,6 @@
     "send": "Send",
     "saveAsDraft": "Save as draft",
     "print": "Print",
-    "signature": "Signature",
     "fields": {
       "to": "To",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Inserting the image"
-    }
+    },
+    "hideSignature": "Hide signature",
+    "showSignature": "Show signature"
   },
   "layout": {
     "navigation": "Navigation"

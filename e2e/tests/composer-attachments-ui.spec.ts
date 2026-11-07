@@ -123,7 +123,7 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
     })
   })
 
-  test('CMP-74 the signature is under a "Signature" pill that folds it', async ({
+  test('CMP-74 the signature folds from the button of its --- line', async ({
     page,
     user,
     jmap
@@ -132,13 +132,22 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
     const mailbox = await new LoginPage(page).loginAs(user)
     const composer = await mailbox.compose()
 
-    const pill = composer.root.getByTestId('composer-signature-toggle')
-    await expect(pill).toHaveAttribute('aria-expanded', 'true')
+    const toggle = composer.root.getByTestId('composer-signature-toggle')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(toggle).toHaveAccessibleName('Hide signature')
     await expect(composer.root.getByText('CARD_SIGNATURE')).toBeVisible()
     await expectNoA11yViolations(page)
-    await pill.click()
-    await expect(pill).toHaveAttribute('aria-expanded', 'false')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(toggle).toHaveAccessibleName('Show signature')
+    await expect(toggle).toBeFocused()
     await expect(composer.root.getByText('CARD_SIGNATURE')).toBeHidden()
+    await expect(composer.root.getByText('---', { exact: true })).toBeVisible()
+    await toggle.press('Enter')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await expect(toggle).toBeFocused()
+    await expect(composer.root.getByText('CARD_SIGNATURE')).toBeVisible()
+    await toggle.click()
     // Folded in the view only: the message still carries it
     expect(await composer.editorHtml()).toContain('CARD_SIGNATURE')
   })

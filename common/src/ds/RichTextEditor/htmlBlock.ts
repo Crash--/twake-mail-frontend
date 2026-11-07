@@ -30,9 +30,13 @@ export interface HtmlBlockOptions {
   editLabel: (kind: string) => string | null
   /** `data-testid` of that button */
   editTestId: (kind: string) => string | undefined
-  /** Label of the pill that folds an `inline` block, null for none */
-  toggleLabel: (kind: string) => string | null
-  /** `data-testid` of that pill */
+  /**
+   * Label of the button that folds an `inline` block down to its first
+   * line, up to its first top-level `<br>` (no button without one); null
+   * for none
+   */
+  toggleLabel: (kind: string, isFolded: boolean) => string | null
+  /** `data-testid` of that button */
   toggleTestId: (kind: string) => string | undefined
   /**
    * The editable HTML of a block the user unwraps (image URLs to display,

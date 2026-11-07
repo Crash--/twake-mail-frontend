@@ -1985,8 +1985,14 @@ function LoadedComposerForm({
               fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
               htmlBlock={{
-                toggleLabel: kind =>
-                  kind === 'signature' ? t('composer.signature') : null,
+                toggleLabel: (kind, isFolded) =>
+                  kind === 'signature'
+                    ? t(
+                        isFolded
+                          ? 'composer.showSignature'
+                          : 'composer.hideSignature'
+                      )
+                    : null,
                 toggleTestId: kind =>
                   kind === 'signature' ? 'composer-signature-toggle' : undefined
               }}

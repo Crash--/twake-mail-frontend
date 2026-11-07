@@ -368,7 +368,6 @@
     "send": "Gửi",
     "saveAsDraft": "Lưu nháp",
     "print": "In",
-    "signature": "Chữ ký",
     "fields": {
       "to": "Đến",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Đang chèn ảnh"
-    }
+    },
+    "hideSignature": "Ẩn chữ ký",
+    "showSignature": "Hiện chữ ký"
   },
   "layout": {
     "navigation": "Điều hướng"

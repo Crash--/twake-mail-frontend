@@ -8,6 +8,10 @@ import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig } from '@common/config/config'
 import type { AuthService } from '@common/features/auth/types'
 import {
+  makeFakeJmapServer,
+  type FakeJmapServer
+} from '@common/testing/fakeJmapServer'
+import {
   makeFakeBasicAuthService,
   makeFakeOidcAuthService
 } from '@common/testing/makeFakeAuthService'
@@ -134,15 +138,18 @@ const oidcService = (
 
 function renderLayout({
   authService = oidcService(),
-  route = '/'
+  route = '/',
+  jmapServer
 }: {
   authService?: AuthService
   route?: string
+  jmapServer?: FakeJmapServer
 } = {}): void {
   renderWithProviders(withConfig(<AppLayout />), {
     route,
     path: '*',
     authService,
+    jmapServer,
     withJmapSession: true,
     childRoutes: (
       <>
@@ -300,6 +307,29 @@ describe('AppLayout with the platform bar', () => {
       })
     )
     expect(await screen.findByText('Settings content')).toBeVisible()
+  })
+
+  it('keeps the help of the mail in the bar of the mail on a phone', async () => {
+    mockViewport({ width: 390, touch: true })
+    mockPlatform()
+    renderLayout({
+      route: '/mailbox/mailbox-inbox',
+      jmapServer: makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:support': {
+            httpLink: 'https://support.example.com/help'
+          }
+        }
+      })
+    })
+
+    const topBar = await screen.findByTestId('top-bar')
+    expect(
+      await within(topBar).findByRole('link', {
+        name: 'Get help or report a bug'
+      })
+    ).toHaveAttribute('href', 'https://support.example.com/help')
+    expect(screen.getAllByTestId('help-button')).toHaveLength(1)
   })
 
   it('keeps the bar, with a log out button, when the platform refuses the token', async () => {

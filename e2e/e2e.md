@@ -704,6 +704,8 @@ finishes issue #112.
   - Spec: `tests/toolbar-capabilities.spec.ts`.
 - [x] `TBAR-05` Without a support contact there is no help button. — web app (issue #112)
   - Spec: `tests/toolbar-capabilities.spec.ts`.
+- [x] `TBAR-06` Under the Workplace bar (suite `oidc`), the help button is in that bar on a desktop and in the bar of the mail on a tablet and a phone. Axe. — `chromium`, `mobile`, `tablet`
+  - Spec: `tests/platform-help.spec.ts`.
 - [x] `LST-03` The reply button of a row opens the composer on a reply to it ("Re: subject"). — `chromium`
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-04` The hover actions open the email in a tab of its own, and open the folder picker to move it. — `chromium`

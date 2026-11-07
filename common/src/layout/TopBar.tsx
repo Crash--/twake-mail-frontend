@@ -41,7 +41,7 @@ export interface TopBarProps {
 /**
  * The bar of the mail below the desktop size, as tmail-flutter's: a button
  * opening the folders, the current folder, the filter of the list (and the
- * help and the settings under the bar of Twake Workplace on a tablet;
+ * help under the bar of Twake Workplace, with the settings on a tablet;
  * otherwise the drawer holds them), and the search under it (not in the
  * settings)
  */
@@ -50,9 +50,9 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const isPlatformActive = usePlatformStatus() !== 'public'
-  // Phones keep the bar to the folders, the title and the filter: the
-  // settings are at the foot of the drawer, the help in the platform bar
-  const hasBarActions = isPlatformActive && screenSize !== 'mobile'
+  // Phones have their settings at the foot of the drawer. The help of the
+  // platform bar is the Workplace's (`help_link`), not the mail's support
+  const hasSettingsButton = isPlatformActive && screenSize !== 'mobile'
   const mailboxName = useCurrentMailboxName()
   const isSearch = useMatch('/search/*') !== null
   // As tmail-flutter's search view: the back button and the search fill
@@ -89,7 +89,7 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const location = useLocation()
   const isBackFromSettings = isSettingsExitState(location.state)
   useEffect(() => {
-    if (!isBackFromSettings || hasBarActions) return undefined
+    if (!isBackFromSettings || hasSettingsButton) return undefined
     // After the page under it took the focus on its way in
     const timer = window.setTimeout(() => {
       menuRef.current?.focus()
@@ -97,7 +97,7 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
     return () => {
       window.clearTimeout(timer)
     }
-  }, [isBackFromSettings, hasBarActions, location.key])
+  }, [isBackFromSettings, hasSettingsButton, location.key])
   // On desktops the search is in the page, which handles the shortcut
   useShortcuts(
     { '/': () => searchActions.current?.focusSearch() },
@@ -126,13 +126,9 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       actions={
         <>
           <ListFilterSlot />
-          {/* Without the platform, and on phones, they are in the drawer */}
-          {hasBarActions ? (
-            <>
-              <HelpButton />
-              <SettingsButton />
-            </>
-          ) : null}
+          {/* Without the platform the drawer holds both */}
+          {isPlatformActive ? <HelpButton /> : null}
+          {hasSettingsButton ? <SettingsButton /> : null}
         </>
       }
       menu={{

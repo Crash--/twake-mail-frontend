@@ -33,9 +33,9 @@ export interface AppHeaderProps {
  * Without the platform (`public`), on a desktop, the logotype, the help,
  * and the settings and the log out behind the initial of the user. On a
  * desktop the search starts the page. Smaller screens keep the bar of the
- * mail under the platform bar, for the folders, the search and the
- * settings. Inside an iframe of the Workplace, the container shows the
- * platform bar, and the search is in the page.
+ * mail under the platform bar, for the folders, the search, the help and
+ * (on a tablet) the settings. Inside an iframe of the Workplace, the
+ * container shows the platform bar, and the search is in the page.
  */
 export function AppHeader({
   onOpenFolders,

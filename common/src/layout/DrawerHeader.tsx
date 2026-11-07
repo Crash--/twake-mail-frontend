@@ -16,9 +16,8 @@ import { SettingsButton } from './SettingsButton'
  * The top of the folder drawer below the desktop size: the logotype. Without
  * the platform of Twake Workplace (no bar of its own above the bar of the
  * mail), as tmail-flutter's drawer: the help, the settings and the log out
- * too, which the bar of the mail leaves out. Framed by the Workplace, the
- * help and the settings alone. A phone has its settings at the foot of the
- * drawer.
+ * too, which the bar of the mail leaves out. A phone has its settings at the
+ * foot of the drawer.
  */
 export function DrawerHeader(): ReactElement {
   const sdk = usePlatformSdk()

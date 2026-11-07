@@ -330,6 +330,45 @@ describe('ComposerProvider', () => {
     ).toEqual(['zoe@example.com', 'Zelda Contact <zelda@example.com>'])
   })
 
+  it('suggests a contact collected from a sent email once, by its name (issue #741)', async () => {
+    renderComposer(
+      makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:autocomplete': {
+            minInputLength: 1
+          }
+        },
+        contacts: [
+          {
+            id: 'collected',
+            firstname: 'paul@external.test',
+            surname: '',
+            emailAddress: 'paul@external.test'
+          },
+          {
+            id: 'named',
+            firstname: 'Paul Known',
+            surname: '',
+            emailAddress: 'Paul@external.test'
+          }
+        ]
+      })
+    )
+    const composer = await openComposer()
+    await userEvent.keyboard('paul')
+
+    const option = await within(composer).findByRole('option', {
+      name: /Paul Known/
+    })
+    expect(within(composer).getAllByRole('option')).toHaveLength(1)
+    await userEvent.click(option)
+    expect(
+      within(composer)
+        .getAllByTestId('recipient-chip')
+        .map(chip => chip.getAttribute('title'))
+    ).toEqual(['Paul Known <Paul@external.test>'])
+  })
+
   describe('beyond the first 8 contacts (issue #551)', () => {
     const contactServer = (count: number): FakeJmapServer =>
       makeFakeJmapServer({

@@ -4,6 +4,10 @@ import {
   type TMailContact
 } from 'jmap-client-ts/linagora'
 
+import {
+  contactName,
+  uniqueContacts
+} from '@common/features/contacts/contactNames'
 import { contactAutocompleteQueryOptions } from '@common/features/contacts/queries'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
@@ -17,11 +21,10 @@ function nameIn(
   contacts: readonly TMailContact[] | undefined,
   address: string
 ): string {
-  const contact = contacts?.find(candidate =>
+  const contact = uniqueContacts(contacts ?? []).find(candidate =>
     sameAddress(candidate.emailAddress, address)
   )
-  const name = `${contact?.firstname ?? ''} ${contact?.surname ?? ''}`.trim()
-  return name === '' ? address : name
+  return (contact === undefined ? null : contactName(contact)) ?? address
 }
 
 /**

@@ -4,6 +4,7 @@ import {
   ContactPickerDialog,
   type ContactPickerItem
 } from '@/ds/ContactPickerDialog/ContactPickerDialog'
+import { contactName } from '@common/features/contacts/contactNames'
 import { isValidEmail } from '@common/features/composer/recipients'
 import { useContactSuggestions } from '@common/features/composer/useContactSuggestions'
 import { useI18n } from '@common/i18n/useI18n'
@@ -16,14 +17,6 @@ export interface SearchAddressDialogProps {
   /** Runs the search with the changed filter */
   onChange: (filter: SearchFilter) => void
   onClose: () => void
-}
-
-function contactName(contact: {
-  firstname: string
-  surname: string
-}): string | null {
-  const name = `${contact.firstname} ${contact.surname}`.trim()
-  return name === '' ? null : name
 }
 
 function sameAddress(a: string, b: string): boolean {

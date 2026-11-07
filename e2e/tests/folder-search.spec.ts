@@ -105,4 +105,17 @@ test.describe('MBX folder search of the sidebar', () => {
     await expect(mailbox.folderTree).toBeVisible()
     await expect(mailbox.folderSearchButton).toBeFocused()
   })
+
+  test('MBX-33b the search leads to Settings > Folder visibility', { tag: '@mobile' }, async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+
+    await mailbox.searchFolders('')
+    await mailbox.folderSearchVisibilityLink.click()
+
+    await expect(page).toHaveURL(/\/settings\/folder-visibility$/)
+    await expect(page.getByTestId('folder-visibility-personal')).toBeVisible()
+  })
 })

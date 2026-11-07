@@ -38,12 +38,13 @@ export class MailboxPage {
   readonly folderDrawer: Locator
   readonly addFolderButton: Locator
   readonly folderSearchButton: Locator
-  /** The search of folders: the panel, its back button, its field, the count it announces, its results */
+  /** The search of folders: the panel, its back button, its field, the count it announces, its results, its link to Folder visibility */
   readonly folderSearch: Locator
   readonly folderSearchBackButton: Locator
   readonly folderSearchInput: Locator
   readonly folderSearchStatus: Locator
   readonly folderSearchResults: Locator
+  readonly folderSearchVisibilityLink: Locator
   readonly emailList: Locator
   readonly emptyListView: Locator
   readonly composeButton: Locator
@@ -84,6 +85,9 @@ export class MailboxPage {
     this.folderSearchInput = page.getByTestId('mailbox-search-input')
     this.folderSearchStatus = page.getByTestId('mailbox-search-status')
     this.folderSearchResults = page.getByTestId('mailbox-search-results')
+    this.folderSearchVisibilityLink = page.getByTestId(
+      'mailbox-search-visibility-link'
+    )
     this.emailList = page.getByTestId('email-list')
     this.emptyListView = page.getByTestId('empty-thread-view')
     this.composeButton = page.getByTestId('compose-email-button')

@@ -5,7 +5,10 @@ import { Outlet, Route, useParams } from 'react-router'
 
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { SupportedLanguage } from '@common/i18n/languages'
+import { writeMailboxView } from '@common/jmap/mailboxView'
+import { FAKE_DELEGATION_CAPABILITIES } from '@common/testing/fakeDelegation'
 import {
+  FAKE_USERNAME,
   makeDefaultMailboxes,
   makeFakeJmapServer,
   makeMailbox,
@@ -104,6 +107,10 @@ function result(name: string): HTMLElement {
 }
 
 describe('Folder search of the sidebar', () => {
+  afterEach(() => {
+    window.sessionStorage.clear()
+  })
+
   it('opens a named field with the focus in it, in place of the trees and their header', async () => {
     await renderSidebar()
 
@@ -313,5 +320,34 @@ describe('Folder search of the sidebar', () => {
 
     await userEvent.click(magnifier())
     expect(field()).toHaveValue('')
+  })
+
+  it('links to Settings > Folder visibility', async () => {
+    await renderSidebar()
+    await userEvent.click(magnifier())
+
+    expect(
+      screen.getByRole('link', { name: 'Folder visibility' })
+    ).toHaveAttribute('href', '/settings/folder-visibility')
+  })
+
+  it('has no link to the settings in a mailbox delegated to the user', async () => {
+    writeMailboxView(FAKE_USERNAME, {
+      kind: 'delegated',
+      accountId: 'account-alice'
+    })
+    await renderSidebar(
+      makeFakeJmapServer({
+        capabilities: FAKE_DELEGATION_CAPABILITIES,
+        delegatedAccounts: [
+          { accountId: 'account-alice', name: 'alice@example.com' }
+        ],
+        mailboxes: makeDefaultMailboxes()
+      })
+    )
+    await userEvent.click(magnifier())
+
+    expect(screen.getByRole('search')).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'Folder visibility' })).toBe(null)
   })
 })

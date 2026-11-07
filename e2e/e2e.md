@@ -636,6 +636,8 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/folder-search.spec.ts`.
 - [x] `MBX-33` The back button of the folder search returns to the folders and focuses the magnifier. — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
+- [x] `MBX-33b` The folder search links to Settings > Folder visibility (not in a mailbox delegated to the user). — web app only, no Patrol test
+  - Spec: `tests/folder-search.spec.ts`.
 - [ ] `FBAR-01` The inbox toolbar offers refresh, "Select all messages of this page" and the three
   filters (menu); selecting all turns it into the selection bar; axe. — also on phones and tablets
   - Spec: `tests/folder-toolbar.spec.ts`.

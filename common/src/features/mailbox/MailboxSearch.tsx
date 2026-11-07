@@ -1,6 +1,7 @@
-import { Icon, Cross, Left } from '@linagora/twake-icons'
+import { Icon, Cross, Eye, Left } from '@linagora/twake-icons'
 import {
   Box,
+  Button,
   IconButton,
   SearchBar,
   Tooltip,
@@ -16,11 +17,13 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { NavTree } from '@/ds/NavTree/NavTree'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
+import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
+import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { isTeamRoot } from './mailboxTree'
 import { MailboxTreeItem } from './MailboxTreeItem'
@@ -44,6 +47,8 @@ export interface MailboxSearchProps {
  * labels while it is open. The focus starts in the field; Escape closes it
  * from anywhere in the panel, Enter opens the first folder found, ArrowDown
  * goes down to the results and the count of folders found is announced.
+ * No link to Folder visibility in a mailbox delegated to the user: its
+ * settings are the owner's.
  */
 export function MailboxSearch({
   selectedId,
@@ -51,6 +56,7 @@ export function MailboxSearch({
   onOpenMenu
 }: MailboxSearchProps): ReactElement {
   const { t } = useI18n()
+  const isDelegated = useJmapSession().view.kind === 'delegated'
   const navigate = useNavigate()
   const getName = useMailboxName()
   const { data: mailboxes } = useMailboxes()
@@ -206,6 +212,19 @@ export function MailboxSearch({
           ))}
         </NavTree>
       ) : null}
+      {isDelegated ? null : (
+        <Button
+          component={Link}
+          to={settingsSectionPath('folder-visibility')}
+          variant="text"
+          size="small"
+          color="inherit"
+          startIcon={<Icon icon={Eye} />}
+          data-testid="mailbox-search-visibility-link"
+        >
+          {t('settings.sections.folderVisibility.title')}
+        </Button>
+      )}
     </Box>
   )
 }

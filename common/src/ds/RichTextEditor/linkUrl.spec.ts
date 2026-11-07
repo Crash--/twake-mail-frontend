@@ -34,4 +34,15 @@ describe('toLinkUrl', () => {
   ])('refuses %s', url => {
     expect(toLinkUrl(url)).toBe(null)
   })
+
+  it.each(['e.0', ' ww.0', 'm2i1.2.3.4', 'example.123'])(
+    'refuses the bare host %j, which no browser parses as a URL',
+    url => {
+      expect(toLinkUrl(url)).toBe(null)
+    }
+  )
+
+  it('completes a bare IPv4 address with https://', () => {
+    expect(toLinkUrl('192.168.0.1/x')).toBe('https://192.168.0.1/x')
+  })
 })

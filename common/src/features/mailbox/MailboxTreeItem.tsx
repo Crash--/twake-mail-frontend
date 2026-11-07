@@ -59,13 +59,12 @@ export function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
  * A folder of the sidebar tree: icon, name, expand arrow and unread count,
  * linking to the folder, where dragged emails can drop; a personal folder
  * dragged onto another moves under it (from the keyboard: "Move folder" in
- * its menu). Its menu opens from
- * the ⋮ button shown on hover or focus, a right click, the menu key or
- * Shift+F10; on a phone, which has no ⋮ nor "Clean", from a long press.
- * On the Spam, "Clean" empties it. A hidden folder, shown on
- * demand, has the icon of hidden folders and says so. The root of a team
- * mailbox is a container, as tmail-flutter: no link, no drop, a click opens
- * or closes it.
+ * its menu). Its menu opens from the ⋮ button shown on hover or focus, a
+ * right click, the menu key or Shift+F10; on a phone, also from a long
+ * press. On the Spam, "Clean" empties it. A hidden folder, shown on demand,
+ * has the icon of hidden folders and says so. The root of a team mailbox is
+ * a container, as tmail-flutter: no link, no drop, a click opens or closes
+ * it.
  */
 export function MailboxTreeItem({
   row,
@@ -217,31 +216,29 @@ export function MailboxTreeItem({
       }
       longPressHint={t('folders.longPressHint')}
       actions={
-        isPhone ? null : (
-          <>
-            {canEmptySpam ? (
-              <RowTextAction
-                description={t('folders.menu.emptySpam')}
-                onClick={handleEmptySpam}
-                data-testid="mailbox-clean-button"
-              >
-                {t('folders.clean')}
-              </RowTextAction>
-            ) : null}
-            <Tooltip title={menuLabel}>
-              <IconButton
-                size="small"
-                aria-label={menuLabel}
-                aria-haspopup="menu"
-                onClick={handleOpenMenu}
-                data-testid="mailbox-more-button"
-              >
-                {/* As tmail-flutter: the vertical dots */}
-                <Icon icon={MoreVerticalIcon} />
-              </IconButton>
-            </Tooltip>
-          </>
-        )
+        <>
+          {canEmptySpam ? (
+            <RowTextAction
+              description={t('folders.menu.emptySpam')}
+              onClick={handleEmptySpam}
+              data-testid="mailbox-clean-button"
+            >
+              {t('folders.clean')}
+            </RowTextAction>
+          ) : null}
+          <Tooltip title={menuLabel}>
+            <IconButton
+              size="small"
+              aria-label={menuLabel}
+              aria-haspopup="menu"
+              onClick={handleOpenMenu}
+              data-testid="mailbox-more-button"
+            >
+              {/* As tmail-flutter: the vertical dots */}
+              <Icon icon={MoreVerticalIcon} />
+            </IconButton>
+          </Tooltip>
+        </>
       }
       drop={isContainer ? undefined : drop}
       nameTestId="mailbox-item-name"

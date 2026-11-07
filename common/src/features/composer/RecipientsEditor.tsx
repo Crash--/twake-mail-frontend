@@ -403,20 +403,17 @@ export function RecipientsEditor({
                       {t('composer.fields.from')}
                     </FieldTextButton>
                   )}
-                  {/* Reply to is in the "More" menu of the composer */}
-                  {hidden
-                    .filter(other => other !== 'replyTo')
-                    .map(other => (
-                      <FieldTextButton
-                        key={other}
-                        onClick={() => {
-                          handleShow(other)
-                        }}
-                        data-testid={`composer-show-${FIELD_IDS[other]}-button`}
-                      >
-                        {t(LABEL_KEYS[other])}
-                      </FieldTextButton>
-                    ))}
+                  {hidden.map(other => (
+                    <FieldTextButton
+                      key={other}
+                      onClick={() => {
+                        handleShow(other)
+                      }}
+                      data-testid={`composer-show-${FIELD_IDS[other]}-button`}
+                    >
+                      {t(LABEL_KEYS[other])}
+                    </FieldTextButton>
+                  ))}
                 </>
               )
             ) : (

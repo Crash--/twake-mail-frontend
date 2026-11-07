@@ -974,6 +974,7 @@
       "success": "Ce dossier est de nouveau affiché"
     },
     "visibility": {
+      "personal": "Dossiers personnels",
       "team": "Team-mailboxes",
       "hideOf": "Masquer %{name}",
       "showOf": "Afficher %{name}",

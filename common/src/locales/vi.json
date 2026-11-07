@@ -974,6 +974,7 @@
       "success": "Thư mục này đã được hiển thị lại"
     },
     "visibility": {
+      "personal": "Thư mục cá nhân",
       "team": "Hộp thư nhóm",
       "hideOf": "Ẩn %{name}",
       "showOf": "Hiển thị %{name}",

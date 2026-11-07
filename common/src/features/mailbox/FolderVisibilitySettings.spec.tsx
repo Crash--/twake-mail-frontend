@@ -81,12 +81,31 @@ describe('FolderVisibilitySettings', () => {
       within(row('Work')).getByRole('button', { name: 'Collapse' })
     ).toHaveAttribute('aria-expanded', 'true')
 
-    expect(
-      within(screen.getByRole('region', { name: 'Folders' })).getByText('Work')
-    ).toBeVisible()
     expect(screen.getByRole('region', { name: 'Mailboxes' })).toContainElement(
       system
     )
+    expect(
+      within(screen.getByRole('list', { name: 'Personal folders' })).getByText(
+        'Work'
+      )
+    ).toBeVisible()
+
+    // "Personal folders" and "Team-mailboxes" fold on their own
+    const team = screen.getByRole('button', { name: 'Team-mailboxes' })
+    await userEvent.click(team)
+    expect(team).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByTestId('folder-visibility-team')).toBe(null)
+    expect(screen.getByText('Work')).toBeVisible()
+    await userEvent.click(team)
+
+    // "Folders" folds the folders of the user and the team mailboxes
+    const folders = screen.getByRole('button', { name: 'Folders' })
+    expect(folders).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.click(folders)
+    expect(folders).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Work')).toBe(null)
+    expect(screen.queryByTestId('folder-visibility-team')).toBe(null)
+    expect(within(system).getByText('Inbox')).toBeVisible()
   })
 
   it('hides a folder with its subfolders, and shows it again', async () => {

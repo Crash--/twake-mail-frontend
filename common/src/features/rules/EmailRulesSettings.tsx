@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { SettingsCardList } from '@/ds/SettingsCards/SettingsCards'
 import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
+import { SettingsLabelPill } from '@/ds/SettingsFields/SettingsFields'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -271,6 +272,10 @@ export function EmailRulesSettings({
         />
       ) : (
         <>
+          <SettingsLabelPill
+            label={t('rules.nameOfRules')}
+            pill={t('rules.count', { smart_count: rules.length })}
+          />
           <SettingsCardList
             label={t('rules.listLabel')}
             data-testid="email-rule-list"

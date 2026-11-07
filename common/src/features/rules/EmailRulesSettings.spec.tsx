@@ -96,6 +96,7 @@ describe('EmailRulesSettings', () => {
 
     const empty = await screen.findByTestId('email-rules-empty')
     expect(empty).toHaveTextContent('No Rules Configured')
+    expect(screen.queryByText('Name of Rules')).toBe(null)
     await userEvent.click(
       within(empty).getByRole('button', { name: 'Create My First Rule' })
     )
@@ -104,12 +105,14 @@ describe('EmailRulesSettings', () => {
     ).toBeVisible()
   })
 
-  it('lists the rules with their first condition', async () => {
+  it('lists the rules with their first condition, and counts them', async () => {
     setup([NEWSLETTERS])
 
     const item = await screen.findByTestId('email-rule-item')
     expect(item).toHaveTextContent('Newsletters')
     expect(item).toHaveTextContent('From, contains: news@')
+    expect(screen.getByText('Name of Rules')).toBeVisible()
+    expect(screen.getByText('1 rule')).toBeVisible()
   })
 
   it('creates a rejecting rule from an address, once confirmed, at the top', async () => {

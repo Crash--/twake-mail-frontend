@@ -1154,6 +1154,7 @@
     "deleteOf": "Xóa %{name}",
     "listLabel": "Quy tắc",
     "count": "%{smart_count} quy tắc",
+    "nameOfRules": "Tên bộ lọc",
     "moveUp": "Di chuyển lên",
     "moveDown": "Di chuyển xuống",
     "moveUpOf": "Di chuyển %{name} lên",

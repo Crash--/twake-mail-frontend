@@ -158,6 +158,8 @@ test.describe('RULE email rules', () => {
     await expect(settings.rule('Newsletters')).toContainText(
       'Subject, contains: [weekly]'
     )
+    await expect(page.getByText('Name of Rules')).toBeVisible()
+    await expect(page.getByText('1 rule', { exact: true })).toBeVisible()
 
     await jmap.sendEmail({
       to: user.email,

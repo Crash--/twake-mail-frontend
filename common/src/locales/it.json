@@ -1154,6 +1154,7 @@
     "deleteOf": "Elimina %{name}",
     "listLabel": "Regole",
     "count": "%{smart_count} regola |||| %{smart_count} regole",
+    "nameOfRules": "Nome delle regole",
     "moveUp": "Sposta su",
     "moveDown": "Sposta giù",
     "moveUpOf": "Sposta su %{name}",

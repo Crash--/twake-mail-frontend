@@ -298,12 +298,34 @@ export function formatDay(date: Date): string {
 /** Midnight (local time) of a `YYYY-MM-DD` day, moved by `days` days */
 function startOfDay(day: string, days = 0): Date {
   const [year = 0, month = 1, date = 1] = day.split('-').map(Number)
-  return new Date(year, month - 1, date + days)
+  // Not `new Date(year, …)`, which reads years 0 to 99 as 1900 to 1999
+  const midnight = new Date(0)
+  midnight.setFullYear(year, month - 1, date + days)
+  midnight.setHours(0, 0, 0, 0)
+  return midnight
 }
 
-/** JMAP `UTCDate`: no milliseconds */
-function toUtcDate(date: Date): string {
-  return date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+const UTC_DATE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
+
+/**
+ * JMAP `UTCDate`: no milliseconds, a four-digit year. `null` outside years
+ * 0000 to 9999, which `toISOString` writes `±YYYYYY`.
+ */
+function toUtcDate(date: Date): string | null {
+  const utcDate = date.toISOString().replace(/\.\d{3}Z$/, 'Z')
+  return UTC_DATE.test(utcDate) ? utcDate : null
+}
+
+/**
+ * A bound of the received date, dropped when it falls outside what a
+ * `UTCDate` can say: every email is on the right side of it anyway.
+ */
+function dateBound(
+  name: 'after' | 'before',
+  date: Date
+): Pick<EmailFilterCondition, 'after' | 'before'> {
+  const utcDate = toUtcDate(date)
+  return utcDate === null ? {} : { [name]: utcDate }
 }
 
 const RANGE_DAYS: Readonly<Record<DateRange, number | null>> = {
@@ -328,14 +350,14 @@ function dateBounds(
     return {
       ...(filter.startDate === null
         ? {}
-        : { after: toUtcDate(startOfDay(filter.startDate)) }),
+        : dateBound('after', startOfDay(filter.startDate))),
       ...(filter.endDate === null
         ? {}
-        : { before: toUtcDate(startOfDay(filter.endDate, 1)) })
+        : dateBound('before', startOfDay(filter.endDate, 1)))
     }
   }
   const days = RANGE_DAYS[filter.dateRange]
-  return days === null ? {} : { after: toUtcDate(startOfDay(today, -days)) }
+  return days === null ? {} : dateBound('after', startOfDay(today, -days))
 }
 
 function anyOf(

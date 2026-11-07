@@ -198,7 +198,7 @@ Conventions:
 | `composer-to-suggestions` (… `-cc-`, `-bcc-`, `-reply-to-`) | the contact suggestions of a field (`role="listbox"`) | — |
 | `composer-to-input` / `composer-cc-input` / `composer-bcc-input` / `composer-reply-to-input` | recipient inputs | `prefix_to_recipient_composer_widget`… |
 | `composer-to-field` (… `-cc-`, `-bcc-`, `-reply-to-`) + `recipient-chip` | recipient chips of a field | — |
-| `composer-show-cc-button` / `composer-show-bcc-button` | reveal hidden fields (Reply to: the phone chevron; `composer-show-reply-to-item` is its More menu item, desktop and tablet) | `prefix_cc_recipient_expand_button`… |
+| `composer-show-cc-button` / `composer-show-bcc-button` / `composer-show-reply-to-button` | reveal hidden fields, on the To line (a phone: one chevron; `composer-show-reply-to-item` is the Reply to item of the More menu, desktop and tablet) | `prefix_cc_recipient_expand_button`… |
 | `composer-subject-input` | subject | — |
 | `composer-editor` | rich text editor (contenteditable) | `mobile_editor` |
 | `rich-text-<item>-button` (`undo`, `redo`, `bold`, `italic`, `underline`, `strike`, `color`, `size`, `align`, `bullet-list`, `ordered-list`, `blockquote`, `link`, `image`, `clear-formatting`) | buttons of the formatting toolbar (Alt+F10) | — |

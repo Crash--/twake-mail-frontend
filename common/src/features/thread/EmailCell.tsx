@@ -237,7 +237,8 @@ export function EmailCell({
   // `thread.members` here instead of `email`.
   const emailLabels = labelsOfEmail(labels, email)
   const isActionRequired = showActionRequired && hasKeyword(email, NEEDS_ACTION)
-  // As the Figma list: the first label, the others behind a "+N" chip
+  // As tmail-flutter (`LabelTagListWidget`): 3 tags on a wide row, 1 on a
+  // compact one (a narrow table on a desktop too), the others behind "+N"
   const labelChips =
     emailLabels.length === 0 && !isActionRequired ? null : (
       <>
@@ -248,7 +249,7 @@ export function EmailCell({
         ) : null}
         <LabelChips
           labels={emailLabels}
-          max={1}
+          max={column.id === 'subject' ? 3 : 1}
           size="small"
           nowrap
           className="u-flex-shrink-0 u-mr-half"

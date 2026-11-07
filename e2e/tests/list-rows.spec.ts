@@ -236,14 +236,25 @@ test.describe('LST labels in the list rows', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const row = mailbox.emailRow('Three labels row')
 
-      // As the Figma list: the first tag, the others behind "+N"
-      await expect(row.getByTestId('label-chip')).toHaveCount(1)
-      await expect(row.getByTestId('label-chip')).toHaveText('Design')
-      await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
-      // The hidden labels are named for assistive technologies
-      await expect(
-        row.getByRole('list', { name: 'Labels of the email' })
-      ).toContainText('2 more labels: Personal, Urgent')
+      // The desktop size of the app starts at 1200 px
+      const isDesktop = (page.viewportSize()?.width ?? 0) >= 1200
+      if (isDesktop) {
+        // As tmail-flutter: up to 3 tags on a desktop
+        await expect(row.getByTestId('label-chip')).toHaveText([
+          'Design',
+          'Personal',
+          'Urgent'
+        ])
+        await expect(row.getByTestId('label-chip-more')).toHaveCount(0)
+      } else {
+        await expect(row.getByTestId('label-chip')).toHaveCount(1)
+        await expect(row.getByTestId('label-chip')).toHaveText('Design')
+        await expect(row.getByTestId('label-chip-more')).toHaveText('+2')
+        // The hidden labels are named for assistive technologies
+        await expect(
+          row.getByRole('list', { name: 'Labels of the email' })
+        ).toContainText('2 more labels: Personal, Urgent')
+      }
       const rowBox = await row.boundingBox()
       const chipBox = await row
         .getByTestId('label-chip')
@@ -255,8 +266,7 @@ test.describe('LST labels in the list rows', () => {
       const previewBox = await row
         .getByTestId('email-list-item-preview')
         .boundingBox()
-      const viewport = page.viewportSize()
-      if (viewport !== null && viewport.width < 1000) {
+      if (!isDesktop) {
         // Phones and tablets: the chips end the preview line, inside the row
         expect(chipBox?.y ?? 0).toBeGreaterThan(subjectBox?.y ?? 0)
         expect(chipBox?.y ?? 0).toBeGreaterThanOrEqual(previewBox?.y ?? 0)
@@ -273,6 +283,14 @@ test.describe('LST labels in the list rows', () => {
           Math.abs((rowBox?.height ?? 0) - (plainBox?.height ?? 99))
         ).toBeLessThan(1)
         expect(chipBox?.x).toBeLessThan(subjectBox?.x ?? 0)
+        // The three chips stay before the subject, on its line
+        const lastChipBox = await row
+          .getByTestId('label-chip')
+          .last()
+          .boundingBox()
+        expect(
+          (lastChipBox?.x ?? 0) + (lastChipBox?.width ?? 0)
+        ).toBeLessThanOrEqual(subjectBox?.x ?? 0)
       }
       await expectNoA11yViolations(page)
     }

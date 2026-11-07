@@ -30,16 +30,68 @@ const CELL_STYLE = 'border:1px solid #ccc;padding:4px 8px;vertical-align:top;'
 // its wrapper sets it apart
 const HTML_BLOCK_SELECTOR = '[data-html-block]:not([data-html-block="quote"])'
 
+// Elements on their own lines: in the text alternative, and in the editor,
+// which takes them out of a code block
+const BLOCK_TAGS = new Set([
+  'ADDRESS',
+  'ARTICLE',
+  'ASIDE',
+  'BLOCKQUOTE',
+  'CITE',
+  'DIV',
+  'DL',
+  'FIELDSET',
+  'FIGURE',
+  'FOOTER',
+  'FORM',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'HEADER',
+  'HR',
+  'LI',
+  'MAIN',
+  'NAV',
+  'OL',
+  'P',
+  'PRE',
+  'SECTION',
+  'TABLE',
+  'TR',
+  'UL'
+])
+
+// Parts of a table or a list, between which whitespace is not text
+const STRUCTURE_TAGS = new Set([
+  'CAPTION',
+  'DD',
+  'DT',
+  'TBODY',
+  'TD',
+  'TFOOT',
+  'TH',
+  'THEAD'
+])
+
 function parse(html: string): HTMLElement {
   return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html')
     .body
 }
 
-function rename(element: Element, tagName: string): HTMLElement {
-  const renamed = element.ownerDocument.createElement(tagName)
+/** An element named `tagName`, with the attributes of `element` */
+function emptyCopy(element: Element, tagName: string): HTMLElement {
+  const copy = element.ownerDocument.createElement(tagName)
   for (const attribute of Array.from(element.attributes)) {
-    renamed.setAttribute(attribute.name, attribute.value)
+    copy.setAttribute(attribute.name, attribute.value)
   }
+  return copy
+}
+
+function rename(element: Element, tagName: string): HTMLElement {
+  const renamed = emptyCopy(element, tagName)
   renamed.append(...Array.from(element.childNodes))
   element.replaceWith(renamed)
   return renamed
@@ -123,11 +175,99 @@ export function toEmailHtml(editorHtml: string): string {
   return root.innerHTML
 }
 
+function isBlock(node: Node | null): node is Element {
+  return (
+    node instanceof Element &&
+    (BLOCK_TAGS.has(node.tagName) || STRUCTURE_TAGS.has(node.tagName))
+  )
+}
+
+function isBlank(node: Node): boolean {
+  return (
+    node.nodeType === Node.TEXT_NODE && /^\s*$/.test(node.textContent ?? '')
+  )
+}
+
+/** Its lines, between `<br>`, with spaces that no parsing collapses */
+function preformattedLines(text: Text): Node[] {
+  const document = text.ownerDocument
+  return text.data
+    .split(/\r\n|\r|\n/)
+    .flatMap((line, index) => [
+      ...(index > 0 ? [document.createElement('br')] : []),
+      ...(line === ''
+        ? []
+        : [document.createTextNode(line.replace(/[ \t]/g, '\u00a0'))])
+    ])
+}
+
+/**
+ * The text of a block taken out of a `<pre>`, outside a `<pre>` of its own,
+ * written so that it keeps its spaces and lines once out of it; blanks
+ * between blocks are dropped
+ */
+function keepPreformattedText(block: Element): void {
+  const walker = block.ownerDocument.createTreeWalker(
+    block,
+    NodeFilter.SHOW_TEXT
+  )
+  const texts: Text[] = []
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    if (node instanceof Text && node.parentElement?.closest('pre') === null) {
+      texts.push(node)
+    }
+  }
+  for (const text of texts) {
+    if (
+      isBlank(text) &&
+      (isBlock(text.previousSibling) || isBlock(text.nextSibling))
+    ) {
+      text.remove()
+    } else {
+      text.replaceWith(...preformattedLines(text))
+    }
+  }
+}
+
+/**
+ * A `<pre>` holding blocks, split around them: a code block only holds text,
+ * so the editor takes the blocks out of it, but keeps the spaces of the
+ * `<pre>` in them, which the next loading collapses (#780)
+ */
+function splitPreformatted(pre: Element): void {
+  const children = Array.from(pre.childNodes)
+  if (!children.some(isBlock)) return
+  const parts: Node[] = []
+  const blocks: Element[] = []
+  let run: Node[] = []
+  const flushRun = (): void => {
+    if (run.some(node => !isBlank(node))) {
+      const part = emptyCopy(pre, 'pre')
+      part.append(...run)
+      parts.push(part)
+    }
+    run = []
+  }
+  for (const child of children) {
+    if (isBlock(child)) {
+      flushRun()
+      parts.push(child)
+      blocks.push(child)
+    } else {
+      run.push(child)
+    }
+  }
+  flushRun()
+  pre.replaceWith(...parts)
+  blocks.forEach(keepPreformattedText)
+}
+
 /**
  * The editor HTML of an email body: `cid:` images of the editor's own
  * content get their display URL back and keep their Content-ID in
  * `data-reference`. Kept HTML blocks stay in their `cid:` form (they map
- * Content-IDs to URLs only when displayed).
+ * Content-IDs to URLs only when displayed). A `<pre>` holding blocks is split
+ * around them, their text keeping its spaces and lines.
  *
  * @param urlFor display URL of a Content-ID, null when unknown
  */
@@ -136,6 +276,7 @@ export function fromEmailHtml(
   urlFor: (cid: string) => string | null
 ): string {
   const root = parse(html)
+  editorElements(root, 'pre').forEach(splitPreformatted)
   for (const image of editorElements(root, 'img')) {
     const src = image.getAttribute('src') ?? ''
     const reference =
@@ -262,38 +403,6 @@ export function hasBlockedImages(editorHtml: string): boolean {
 }
 
 // --- text alternative -------------------------------------------------------
-
-const BLOCK_TAGS = new Set([
-  'ADDRESS',
-  'ARTICLE',
-  'ASIDE',
-  'BLOCKQUOTE',
-  'CITE',
-  'DIV',
-  'DL',
-  'FIELDSET',
-  'FIGURE',
-  'FOOTER',
-  'FORM',
-  'H1',
-  'H2',
-  'H3',
-  'H4',
-  'H5',
-  'H6',
-  'HEADER',
-  'HR',
-  'LI',
-  'MAIN',
-  'NAV',
-  'OL',
-  'P',
-  'PRE',
-  'SECTION',
-  'TABLE',
-  'TR',
-  'UL'
-])
 
 const SKIPPED_TAGS = new Set(['STYLE', 'SCRIPT', 'HEAD', 'TITLE', 'META'])
 

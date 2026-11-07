@@ -1,3 +1,12 @@
+import { Editor } from '@tiptap/core'
+import StarterKit from '@tiptap/starter-kit'
+
+import { HtmlBlock } from '@/ds/RichTextEditor/htmlBlock'
+import {
+  QuoteBlock,
+  QuoteCite,
+  QuoteKeys
+} from '@/ds/RichTextEditor/quoteBlock'
 import {
   elapsedMs,
   randomTexts,
@@ -12,6 +21,23 @@ import {
   toEmailHtml,
   toStorageHtml
 } from './emailHtml'
+
+/** The editor HTML of `content`, loaded with the composer's schema */
+function loadInEditor(content: string): string {
+  const editor = new Editor({
+    extensions: [
+      StarterKit.configure({ trailingNode: false, link: false }),
+      HtmlBlock,
+      QuoteBlock,
+      QuoteCite,
+      QuoteKeys
+    ],
+    content
+  })
+  const html = editor.getHTML()
+  editor.destroy()
+  return html
+}
 
 // Cases in the spirit of the email exporter tests of Messages (La Suite
 // numérique, src/frontend/src/features/blocknote/email-exporter/
@@ -139,6 +165,48 @@ describe('the quote, edited as the rest of the text', () => {
     )
     expect(toEmailHtml(editable)).toContain('src="cid:logo"')
   })
+
+  it('splits a <pre> around its blocks, their text keeping its spaces and lines', () => {
+    expect(
+      fromEmailHtml(
+        '<pre class="c">x<blockquote>  a\n\tb</blockquote>\n<p>c</p>y  z</pre>',
+        () => null
+      )
+    ).toBe(
+      '<pre class="c">x</pre><blockquote>&nbsp;&nbsp;a<br>&nbsp;b</blockquote><p>c</p><pre class="c">y  z</pre>'
+    )
+  })
+
+  it('leaves the text of a <pre> inside a block of a <pre> as it is', () => {
+    expect(
+      fromEmailHtml(
+        '<pre><blockquote><pre> a\n b</pre></blockquote></pre>',
+        () => null
+      )
+    ).toBe('<blockquote><pre> a\n b</pre></blockquote>')
+  })
+
+  it.each([
+    ['a quote', '<pre>x<blockquote>  a\n  b</blockquote></pre>'],
+    [
+      'a link in a quote',
+      '<pre>x<blockquote><a href="https://e.example">  pre\n  text</a></blockquote></pre>'
+    ],
+    ['a list', '<pre>x<ul>\n <li>  a\n  b</li>\n</ul>\n  y</pre>'],
+    ['a table', '<pre>x<table><tr><td>  a\n  b</td></tr></table></pre>'],
+    ['a <pre>', '<pre>x<blockquote><pre>  a\n  b</pre></blockquote></pre>']
+  ])(
+    'gives a stable draft when the quote has %s inside a <pre> (#780)',
+    (_, preformatted) => {
+      const quote =
+        '<div data-html-block="quote"><cite>On Monday, Jane wrote:</cite>' +
+        `<blockquote>${preformatted}</blockquote></div>`
+      const first = loadInEditor(fromEmailHtml(`<p></p>${quote}`, () => null))
+      expect(loadInEditor(first)).toBe(first)
+      // The indentation stays
+      expect(first).toMatch(/(&nbsp;&nbsp;| {2})(a|pre)/)
+    }
+  )
 })
 
 describe('emailHtml against ReDoS', () => {

@@ -1598,8 +1598,6 @@ function LoadedComposerForm({
       </Box>
     </>
   )
-  // Phones only: the Figma window has no "More". Its desktop items (emoji,
-  // Reply to) stay in the menu for when a place is designed for them
   const moreButton = (
     <ActionIconButton
       ref={moreButtonRef}
@@ -2034,6 +2032,7 @@ function LoadedComposerForm({
             {linkButton}
             {driveButton}
             {scribeMenu}
+            {moreButton}
             {fileInput}
             {saveStatus}
             <ActionIconButton

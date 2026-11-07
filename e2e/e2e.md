@@ -795,7 +795,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-81` Each control of the toolbar (text style, size, font, colour, highlight, B/I/U/S, alignment, indentation) formats the text, the buttons say the current value, and the recipient receives the inline styles. — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
-- [ ] `CMP-82` The emoji picker (categories, search, recent) inserts the emoji at the caret, closes with Escape or a click outside, and gives the focus back to the text. No way in since the composer follows the Figma window (#819), which has no "More"; the spec comes back with one. — web app only: tmail-flutter has no emoji picker
+- [x] `CMP-82` The emoji picker (item of the More menu, categories, search, recent) inserts the emoji at the caret, closes with Escape or a click outside, and gives the focus back to the text. — web app only: tmail-flutter has no emoji picker
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-83` On a phone the footer of the composer stays on one line (Send is an icon, no emoji button) and the formatting toolbar is one line that scrolls sideways, its last button reachable (#55). — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
@@ -839,13 +839,13 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/search.spec.ts`.
 - [x] `CMP-84` The composer has the measures of the design on a desktop: 790 x 634 window with an 8 px radius, 44 px title bar with three 32 px buttons 4 px apart, 37 px fields, a toolbar 40 px high under a 1 px rule with 32 px boxes 8 px apart and a 114 px wide B I U S group, a footer with 16 px padding, 40 px icon buttons 8 px apart and a 128 x 40 Send pill with a 100 px radius. — web app (Figma, editor E4)
   - Spec: `tests/composer-geometry.spec.ts`.
-- [x] `CMP-85` At every width the formatting, attach and image buttons of the composer are 40 px round buttons (close and More too in the top bar of a phone; close is 32 px in the title bar elsewhere), the toolbar boxes are 32 px high and the toolbar 41 px with its rule (touch screens enlarge the targets to 44 px). — web app (Figma, editor E4)
+- [x] `CMP-85` At every width the formatting, attach, image and More buttons of the composer are 40 px round buttons (close too in the top bar of a phone; close is 32 px in the title bar elsewhere), the toolbar boxes are 32 px high and the toolbar 41 px with its rule (touch screens enlarge the targets to 44 px). — web app (Figma, editor E4)
   - Spec: `tests/composer-geometry.spec.ts`.
 - [x] `CMP-86` On a phone the composer has no title bar nor footer: a 56 px bar holds the close button, then Aa (the formatting toolbar is hidden until it is pressed), attach, image, a round Send (a disc in a 44 px target) and "More", every target at least 44 px, in that order. — web app (Figma phone composer, tmail-flutter `MobileResponsiveAppBarComposerWidget`, editor E5)
   - Spec: `tests/composer-mobile.spec.ts`.
 - [x] `CMP-87` At 390 and 360 px "Aa" shows the formatting toolbar at the bottom of the window, nothing overflows the screen horizontally, the toolbar scrolls sideways, its last button is whole at the end and a swipe stops on the start of a group. — web app (editor E5)
   - Spec: `tests/composer-mobile.spec.ts`.
-- [x] `CMP-88` The More menu of a phone holds Insert link, Save as draft, Save as template, Request read receipt, Mark as important and Delete draft; a tablet has no More, as the Figma window (#819). — web app (tmail-flutter mobile app bar, editor E5)
+- [x] `CMP-88` The More menu of a phone holds Insert link, Save as draft, Save as template, Request read receipt, Mark as important and Delete draft; a tablet's holds the four of tmail-flutter's desktop menu (no link, no delete: they are in the footer). — web app (tmail-flutter mobile app bar, editor E5)
   - Spec: `tests/composer-mobile.spec.ts`.
 - [x] `CMP-89` On a tablet (820 px) the composer is a 772 x 710 window with 24 px around it, its title centred and minimize, expand and close at the end (44 px), no horizontal overflow; it minimizes into the dock. — web app (Figma tablet composer, tmail-flutter `TabletResponsiveContainerView`, editor E5)
   - Spec: `tests/composer-mobile.spec.ts`.
@@ -870,7 +870,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-templates.spec.ts`.
 - [x] `CMP-98` A template found by a search opens in the composer (a new message linked to the template), not in the reading view; the search stays behind. — web app only, no Patrol test (issue #54)
   - Spec: `tests/composer-templates.spec.ts`.
-- [x] `CMP-88` (updated, issue #54) — the More menu holds "Insert template" between "Save as draft" and "Save as template", on a phone. — web app (issue #54)
+- [x] `CMP-88` (updated, issue #54) — the More menu holds "Insert template" between "Save as draft" and "Save as template", on a phone and on a tablet. — web app (issue #54)
   - Spec: `tests/composer-mobile.spec.ts`.
 - [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a desktop the row is as high as a row without labels with the chip before the subject, on a phone and a tablet the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
 - [x] `LST-06` A row with three labels shows the first one then a "+2" chip; the list of labels of the row names the hidden ones ("2 more labels: Personal, Urgent"); on a desktop the row is as high as a row without labels with the chip before the subject, on a phone and a tablet the chips end the preview line, inside the row; axe. — web app (Figma list rows, tmail-flutter `LabelTagListWidget`) (issue #110)
@@ -923,7 +923,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-a11y.spec.ts`.
 - [x] `A11Y-12` The formatting toolbar has `aria-pressed` states, Alt+F10 goes to it and Escape comes back; the link dialog is named and takes the focus in and gives it back; the image toolbar is named, its sizes are pressed buttons and the width is announced. — web app only (RGAA)
   - Spec: `tests/composer-a11y.spec.ts`.
-- [x] `A11Y-13` Attachments are a list named with its count, adding one is announced, a toast is a polite status, the "Save message" dialog is named (the template picker: `CMP-95`, on a phone), take the focus in and give it back. — web app only (RGAA)
+- [x] `A11Y-13` Attachments are a list named with its count, adding one is announced, a toast is a polite status, the template picker and the "Save message" dialog are named, take the focus in and give it back. — web app only (RGAA)
   - Spec: `tests/composer-a11y.spec.ts`.
 - [x] `A11Y-14` Sending without a recipient opens a dialog with the focus on "Add recipients", which takes it to the To field. — web app only (RGAA, `@mobile`)
   - Spec: `tests/composer-a11y.spec.ts`.
@@ -1013,7 +1013,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/recovery.spec.ts`.
 - [x] `CMP-110` In dark mode (the `appearance.theme` setting of the account), the formatting toolbar of the composer is drawn on the dark paper, its font name and pressed toggles light, and each of its menus (text styles, sizes, fonts, alignments, lists) and colour popovers shows light entries on a dark paper (axe on each). — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
-- [ ] `CMP-111` Reply to, from a reply with folded recipients, unfolds them and takes the focus. No way in on a desktop or a tablet since the composer follows the Figma window (#819), which has no "More"; the spec comes back with one. — web app only, no Patrol test
+- [x] `CMP-111` From the More menu of a reply with folded recipients, Reply to unfolds them and takes the focus, and leaves the menu. — web app only, no Patrol test
   - Spec: `tests/composer-reply.spec.ts`.
 - [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.

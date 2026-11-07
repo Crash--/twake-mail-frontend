@@ -135,6 +135,41 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     }
   })
 
+  test('CMP-82 the emoji picker inserts at the caret and gives the focus back to the text', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+    await composer.editor.click()
+    await page.keyboard.type('Hi ')
+
+    await composer.openEmojiPicker()
+    const picker = page.getByRole('dialog', { name: 'Emoji' })
+    await expect(picker).toBeVisible()
+    await expect(
+      picker.getByRole('searchbox', { name: 'Search emoji' })
+    ).toBeFocused()
+    await expect(picker.getByRole('heading', { name: 'Recent' })).toBeVisible()
+    await expectNoA11yViolations(page)
+
+    await page.keyboard.type('grinning')
+    await picker.getByRole('button', { name: 'grinning face' }).first().click()
+    await expect(picker).toBeHidden()
+    await expect(composer.editor).toBeFocused()
+    await expect(composer.editor).toContainText('Hi 😀')
+
+    // Escape closes it, as a click outside, and the text has the focus again
+    await composer.openEmojiPicker()
+    await expect(picker).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(picker).toBeHidden()
+    await expect(composer.editor).toBeFocused()
+    await composer.openEmojiPicker()
+    await composer.subjectInput.click({ force: true })
+    await expect(picker).toBeHidden()
+  })
+
   test(
     'CMP-83 on a phone the footer stays on one line, without emoji button, and the toolbar scrolls',
     { tag: '@phone-only' },

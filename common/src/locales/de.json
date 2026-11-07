@@ -974,6 +974,7 @@
       "success": "Dieser Ordner wird wieder angezeigt"
     },
     "visibility": {
+      "personal": "Persönliche Ordner",
       "team": "Team-Postfächer",
       "hideOf": "%{name} ausblenden",
       "showOf": "%{name} anzeigen",

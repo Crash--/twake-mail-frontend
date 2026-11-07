@@ -974,6 +974,7 @@
       "success": "Esta carpeta vuelve a mostrarse"
     },
     "visibility": {
+      "personal": "Carpetas personales",
       "team": "Buzones de equipo",
       "hideOf": "Ocultar %{name}",
       "showOf": "Mostrar %{name}",

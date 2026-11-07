@@ -974,6 +974,7 @@
       "success": "This folder is shown again"
     },
     "visibility": {
+      "personal": "Personal folders",
       "team": "Team-mailboxes",
       "hideOf": "Hide %{name}",
       "showOf": "Show %{name}",

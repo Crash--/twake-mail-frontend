@@ -974,6 +974,7 @@
       "success": "Questa cartella è di nuovo visibile"
     },
     "visibility": {
+      "personal": "Cartelle personali",
       "team": "Caselle di posta del team",
       "hideOf": "Nascondi %{name}",
       "showOf": "Mostra %{name}",

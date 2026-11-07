@@ -425,6 +425,21 @@ export function mailboxPath(
     .join('/')
 }
 
+/**
+ * The name of a mailbox out of the folder tree (a search scope, the folder
+ * of a search result): a folder of a team mailbox goes with the team
+ * mailbox ("bob-guests/Inbox"), to tell it from the personal one
+ */
+export function mailboxDisplayName(
+  mailboxes: readonly MailboxSummary[],
+  mailbox: MailboxSummary,
+  getName: (mailbox: MailboxSummary) => string
+): string {
+  return isTeamFolder(mailbox)
+    ? mailboxPath(mailboxes, mailbox.id, getName)
+    : getName(mailbox)
+}
+
 /** The descendants of a mailbox, the deepest first */
 export function findDescendantIds(
   mailboxes: readonly MailboxSummary[],

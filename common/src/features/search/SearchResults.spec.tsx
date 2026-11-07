@@ -153,9 +153,14 @@ describe('SearchResults', () => {
     await waitFor(() => {
       expect(rows()).toHaveLength(1)
     })
+    const row = rows()[0] ?? document.body
     expect(
-      within(rows()[0] ?? document.body).getByTestId('email-list-item-subject')
+      within(row).getByTestId('email-list-item-subject')
     ).toHaveTextContent('Team report')
+    // Named with its team mailbox, not as the personal Inbox
+    expect(
+      within(row).getByTestId('email-list-item-mailbox')
+    ).toHaveTextContent('In team/Inbox')
   })
 
   it('shows the empty view when nothing matches', async () => {

@@ -2,7 +2,7 @@ import { Email, FolderMoveto } from '@linagora/twake-icons'
 import { useCallback } from 'react'
 
 import { usePickFolderOrChoice } from '@common/features/mailbox/MailboxPickerProvider'
-import { isTeamFolder, mailboxPath } from '@common/features/mailbox/mailboxTree'
+import { mailboxDisplayName } from '@common/features/mailbox/mailboxTree'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useI18n } from '@common/i18n/useI18n'
@@ -84,9 +84,7 @@ export function useSearchScopeLabel(): (scope: Scope) => string {
       }
       const mailbox = mailboxes?.find(({ id }) => id === scope.mailboxId)
       if (mailbox === undefined) return t('search.fields.folder')
-      return isTeamFolder(mailbox)
-        ? mailboxPath(mailboxes ?? [], mailbox.id, getName)
-        : getName(mailbox)
+      return mailboxDisplayName(mailboxes ?? [], mailbox, getName)
     },
     [mailboxes, getName, t]
   )

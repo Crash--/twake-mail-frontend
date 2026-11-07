@@ -121,8 +121,10 @@ function displayName(person: {
 /**
  * The banner of an event: the organizer for an invitation, an update or a
  * cancellation; the participant who wrote the email (its From or Reply-To)
- * for an answer or a counter proposal. A new sequence of a request is an
- * update (tmail-flutter only says so for `REFRESH`).
+ * for an answer or a counter proposal. A request is an invitation whatever
+ * its sequence, as tmail-flutter words it: Twake Calendar creates events
+ * with sequence 1, and an attendee added later gets a higher sequence on
+ * their very first invitation; only `REFRESH` is an update.
  */
 export function bannerOf(
   event: CalendarEvent,
@@ -141,11 +143,7 @@ export function bannerOf(
   switch (method) {
     case 'REQUEST':
     case 'ADD':
-      if (!organizer) return null
-      return {
-        kind: (event.sequence ?? 0) > 0 ? 'updated' : 'invited',
-        actor: organizer
-      }
+      return organizer ? { kind: 'invited', actor: organizer } : null
     case 'REFRESH':
       return organizer ? { kind: 'updated', actor: organizer } : null
     case 'CANCEL':

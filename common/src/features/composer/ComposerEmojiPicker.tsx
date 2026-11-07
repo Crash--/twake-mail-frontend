@@ -21,8 +21,9 @@ export interface ComposerEmojiPickerProps {
 }
 
 /**
- * The emoji picker of the composer, opened from its "More" menu. The dataset
- * is loaded, in the language of the UI, the first time the picker opens.
+ * The emoji picker of the composer, opened from its footer button or its
+ * "More" menu. The dataset is loaded, in the language of the UI, the first
+ * time the picker opens.
  */
 export function ComposerEmojiPicker({
   anchor,

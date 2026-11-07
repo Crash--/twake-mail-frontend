@@ -48,6 +48,7 @@ import {
 } from '@/ds/FileDropZone/FileDropZone'
 import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
+import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { PillButton } from '@/ds/PillButton/PillButton'
@@ -1549,6 +1550,20 @@ function LoadedComposerForm({
       <Icon icon={Link} size={24} aria-hidden="true" />
     </ActionIconButton>
   )
+  const emojiButton = (
+    <ActionIconButton
+      label={t('composer.emoji.open')}
+      aria-haspopup="dialog"
+      aria-expanded={emojiAnchor !== null}
+      onClick={event => {
+        setEmojiAnchor(event.currentTarget)
+      }}
+      className={gap}
+      data-testid="composer-emoji-button"
+    >
+      <EditorIcon name="emoji" fontSize="medium" />
+    </ActionIconButton>
+  )
   const driveButton = (
     <DriveAttachButton
       maxFileSize={uploadLimits.maxFileSize}
@@ -2030,6 +2045,7 @@ function LoadedComposerForm({
             {attachButton}
             {imageButton}
             {linkButton}
+            {emojiButton}
             {driveButton}
             {scribeMenu}
             {moreButton}

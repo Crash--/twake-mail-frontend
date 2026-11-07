@@ -795,7 +795,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-81` Each control of the toolbar (text style, size, font, colour, highlight, B/I/U/S, alignment, indentation) formats the text, the buttons say the current value, and the recipient receives the inline styles. — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.
-- [x] `CMP-82` The emoji picker (item of the More menu, categories, search, recent) inserts the emoji at the caret, closes with Escape or a click outside, and gives the focus back to the text. — web app only: tmail-flutter has no emoji picker
+- [x] `CMP-82` The emoji picker (footer button on a desktop and a tablet, also an item of the More menu, categories, search, recent) inserts the emoji at the caret, closes with Escape or a click outside, and gives the focus back to the text. — web app only: tmail-flutter has no emoji picker
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-83` On a phone the footer of the composer stays on one line (Send is an icon, no emoji button) and the formatting toolbar is one line that scrolls sideways, its last button reachable (#55). — web app only, no Patrol test
   - Spec: `tests/composer-format.spec.ts`.

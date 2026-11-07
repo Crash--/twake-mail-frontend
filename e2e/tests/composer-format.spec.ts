@@ -144,9 +144,11 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     await composer.editor.click()
     await page.keyboard.type('Hi ')
 
-    await composer.openEmojiPicker()
+    const button = composer.root.getByTestId('composer-emoji-button')
+    await button.click()
     const picker = page.getByRole('dialog', { name: 'Emoji' })
     await expect(picker).toBeVisible()
+    await expect(button).toHaveAttribute('aria-expanded', 'true')
     await expect(
       picker.getByRole('searchbox', { name: 'Search emoji' })
     ).toBeFocused()
@@ -160,12 +162,12 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     await expect(composer.editor).toContainText('Hi 😀')
 
     // Escape closes it, as a click outside, and the text has the focus again
-    await composer.openEmojiPicker()
+    await button.click()
     await expect(picker).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(picker).toBeHidden()
     await expect(composer.editor).toBeFocused()
-    await composer.openEmojiPicker()
+    await button.click()
     await composer.subjectInput.click({ force: true })
     await expect(picker).toBeHidden()
   })
@@ -177,6 +179,9 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
 
+      await expect(
+        composer.root.getByTestId('composer-emoji-button')
+      ).toHaveCount(0)
       await composer.openMoreMenu()
       await expect(page.getByTestId('composer-emoji-item')).toHaveCount(0)
       await page.keyboard.press('Escape')

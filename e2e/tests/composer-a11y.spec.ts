@@ -64,6 +64,7 @@ test.describe('A11Y composer', () => {
         - button "Attach file"
         - button "Insert image"
         - button "Insert link"
+        - button "Insert emoji"
         - button "More"
         - status
         - button "Delete draft"
@@ -89,6 +90,7 @@ test.describe('A11Y composer', () => {
       'Attach file',
       'Insert image',
       'Insert link',
+      'Insert emoji',
       'More',
       'Delete draft',
       'Save as draft',

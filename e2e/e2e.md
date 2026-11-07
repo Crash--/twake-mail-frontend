@@ -162,6 +162,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/actions.spec.ts`. Passes in CI.
 - [x] `MBX-29` A folder hidden from its menu leaves the tree; the folder search lists it, marked hidden, and "Show folder", reached with Shift+F10 on it (axe on the menu), shows it for good. — web app only, no Patrol test (tmail-flutter shows hidden folders from Settings > Folder visibility)
   - Spec: `tests/folders.spec.ts`. Passes in CI.
+- [x] `MBX-29b` "Show hidden folders" (`aria-pressed`) lists a hidden folder in the tree, marked hidden; "Show folder", reached with Shift+F10 on it (axe on the menu), shows it for good and the toggle goes with the last hidden folder; a folder hidden next leaves the tree. — web app only, no Patrol test
+  - Spec: `tests/folders.spec.ts`.
 - [x] `MBX-30` A member of a team mailbox gets, on its root, only the actions the server rights allow (`myRights`: no rename, no delete; hide). — web app only, no Patrol test
   - Spec: `tests/folders.spec.ts`. Passes in CI.
 
@@ -826,6 +828,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
 - [x] `SBR-04` The system folders (Inbox to Archive) come first in the sidebar, in their own tree named "Mailboxes"; the "Folders" title comes after them, then the folders of the user, then "Labels". — web app (sidebar D4; tmail-flutter's `exchange` and `personalFolders` categories)
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-05` A hidden folder found by the folder search keeps its whole name: the icon of hidden folders replaces its folder icon and the word "hidden" is said by the link (visually hidden), not shown as a badge. — web app (tmail-flutter `icHideFolder`)
+  - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-05b` The same for a hidden folder listed on demand in the tree ("Show hidden folders"), also in the phone drawer. — web app
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-06` The Spam row, with emails, has a "Clean" text button (described by "Delete all spam emails") that empties it after the confirmation; no other row has it. — web app (Figma sidebar, tmail-flutter `clean`)
   - Spec: `tests/sidebar.spec.ts`.

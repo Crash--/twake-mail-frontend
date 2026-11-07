@@ -967,6 +967,7 @@
       "success": "This folder has been hidden from your primary folder"
     },
     "hidden": {
+      "show": "Show hidden folders",
       "label": "hidden"
     },
     "show": {

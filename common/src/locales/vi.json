@@ -967,6 +967,7 @@
       "success": "Thư mục này đã được ẩn khỏi thư mục chính của bạn"
     },
     "hidden": {
+      "show": "Hiển thị thư mục ẩn",
       "label": "đã ẩn"
     },
     "show": {

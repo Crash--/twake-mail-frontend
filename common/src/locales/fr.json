@@ -967,6 +967,7 @@
       "success": "Ce dossier a été masqué dans votre dossier principal"
     },
     "hidden": {
+      "show": "Afficher les dossiers masqués",
       "label": "masqué"
     },
     "show": {

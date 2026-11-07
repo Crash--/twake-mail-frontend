@@ -967,6 +967,7 @@
       "success": "Questa cartella è stata nascosta dalla tua cartella principale"
     },
     "hidden": {
+      "show": "Mostra le cartelle nascoste",
       "label": "nascosta"
     },
     "show": {

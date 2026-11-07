@@ -967,6 +967,7 @@
       "success": "Esta carpeta se ha ocultado de su carpeta principal"
     },
     "hidden": {
+      "show": "Mostrar las carpetas ocultas",
       "label": "oculta"
     },
     "show": {

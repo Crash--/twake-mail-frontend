@@ -67,7 +67,7 @@ Conventions:
 | `mailbox-more-button` | ⋮ button shown on hover or focus (always on touch screens), named "Actions on <folder>" | `UiKeys.mailboxMoreActionButton` |
 | `mailbox-context-menu` | folder actions menu (⋮, right click, menu key or Shift+F10); items `mailbox-action-<action>`: `new-subfolder`, `mark-as-read`, `empty-trash`, `empty-spam`, `move`, `rename`, `hide`, `show`, `delete` | — |
 | `add-new-folder-button` | "+" new folder in the "Folders" header | `UiKeys.addNewFolderButton` |
-| `mailbox-item-hidden` | "hidden" beside a hidden folder found by the folder search (the row has `data-hidden="true"`) | — |
+| `mailbox-item-hidden` | "hidden" beside a hidden folder found by the folder search or listed on demand (the row has `data-hidden="true"`) | — |
 | `mailbox-name-dialog` / `mailbox-name-input` / `mailbox-name-location-button` / `mailbox-name-submit-button` / `mailbox-name-cancel-button` | the dialog naming a folder to create or rename it, and where it goes | `create_new_mailbox_*` |
 | `mailbox-search-button` | magnifier in the "Folders" header | `UiKeys.mailboxSearchButton` |
 | `team-mailboxes-section` | "Team-mailboxes" category of the Folders section and its tree, after the folders of the user; its roots have no icon and their address on a second line | — |
@@ -75,6 +75,7 @@ Conventions:
 | `mailbox-item` with `data-mailbox-role="favorite"` | the Starred virtual folder (`/starred`), after the Inbox | `favorite` folder |
 | `quota-indicator` (`data-used`) + `quota-refresh-button`, `quota-text` / `quota-banner` / `storage-settings` | the storage used at the bottom of the sidebar, the banner past the warning limit, Settings > Storage | `MailboxSidebarFooter`, `QuotasBannerWidget` |
 | `mailbox-action-recover-deleted-messages` / `recovery-dialog` + `recovery-deletion-select`, `recovery-reception-select`, `recovery-deletion-date-button`, `recovery-reception-date-button`, `recovery-range-dialog` (`recovery-range-start-input`, `recovery-range-end-input`, `recovery-range-cancel-button`, `recovery-range-confirm-button`), `recovery-subject-input`, `recovery-recipients-input`, `recovery-sender-input`, `recovery-cancel-button`, `recovery-restore-button`, `recovery-error` / `recovery-banner` / `recovery-open-button` | "Recover deleted messages" of the Trash menu, its progress banner and the "Open" of its toast | `recoverDeletedMessages` |
+| `show-hidden-folders-button` | eye in the "Folders" header listing the hidden folders in the tree, marked hidden (`aria-pressed`), shown when some are hidden | — (Settings > Folder visibility in tmail-flutter) |
 
 ### Email list (thread view)
 
@@ -359,4 +360,4 @@ Conventions:
 | `forward-empty` | Settings > Forwarding, "Forwarding is off" in place of the list while no address is forwarded to | — |
 | `mailbox-search-back-button` | the back arrow before the field of the folder search: closes it, back to the folders, the focus on the magnifier | — (Teammail 13446:27267) |
 | `settings-button` / `drawer-header` / `settings-back-button` / `settings-copy-address-button` / `settings-sign-out-button` | Phones (issues #826, #830): `settings-button` is the last entry of the folder drawer (the header of the drawer and the bar of the mail have no gear); `/settings` draws its own header, its back arrow `settings-back-button` and the copy button of the address; Sign out closes the list | — |
-| `mailbox-more-button` / `mailbox-clean-button` / `label-item-menu-button` / `show-hidden-folders-button` | Absent on phones (issue #829): a long press, the menu key or Shift+F10 on the row opens the menu of a folder or a label (`openFolderMenu`, `LabelModals.runMenu` use the keyboard there); the hidden folders are shown from Settings > Folder visibility | — |
+| `mailbox-more-button` / `mailbox-clean-button` / `label-item-menu-button` | Absent on phones (issue #829): a long press, the menu key or Shift+F10 on the row opens the menu of a folder or a label (`openFolderMenu`, `LabelModals.runMenu` use the keyboard there) | — |

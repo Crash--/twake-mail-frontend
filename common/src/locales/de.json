@@ -368,6 +368,7 @@
     "send": "Senden",
     "saveAsDraft": "Als Entwurf speichern",
     "print": "Drucken",
+    "signature": "Signatur",
     "fields": {
       "to": "An",
       "cc": "Cc",

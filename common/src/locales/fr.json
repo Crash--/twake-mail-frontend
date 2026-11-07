@@ -368,6 +368,7 @@
     "send": "Envoyer",
     "saveAsDraft": "Enregistrer comme brouillon",
     "print": "Imprimer",
+    "signature": "Signature",
     "fields": {
       "to": "À",
       "cc": "Copie à",

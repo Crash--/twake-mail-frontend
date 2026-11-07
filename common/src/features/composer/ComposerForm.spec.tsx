@@ -2290,7 +2290,7 @@ describe('ComposerForm', () => {
   })
 
   describe('signature', () => {
-    it('is shown in the text of the message, without a pill', async () => {
+    it('is shown under a "Signature" pill that folds it and unfolds it', async () => {
       renderComposer(
         makeFakeJmapServer({
           identities: [
@@ -2304,10 +2304,19 @@ describe('ComposerForm', () => {
       )
       const composer = await openComposer()
 
-      expect(await within(composer).findByText(/The sales team/)).toBeVisible()
-      expect(
-        within(composer).queryByRole('button', { name: 'Signature' })
-      ).not.toBeInTheDocument()
+      const pill = await within(composer).findByRole('button', {
+        name: 'Signature'
+      })
+      expect(pill).toHaveAttribute('aria-expanded', 'true')
+      const text = within(composer).getByText(/The sales team/)
+      expect(text).toBeVisible()
+
+      await userEvent.click(pill)
+      expect(pill).toHaveAttribute('aria-expanded', 'false')
+      expect(text).not.toBeVisible()
+
+      await userEvent.click(pill)
+      expect(text).toBeVisible()
     })
   })
 })

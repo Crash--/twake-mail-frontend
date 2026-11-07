@@ -1,4 +1,5 @@
 // Upstream to twake-ui: with HtmlBlock (see htmlBlock.ts).
+import { Icon, Bottom, Top } from '@linagora/twake-icons'
 import { Box, Button } from '@linagora/twake-mui'
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
@@ -87,6 +88,9 @@ export function HtmlBlockView({
   const kind = String(node.attrs.kind)
   const html = String(node.attrs.html)
   const editLabel = options.editLabel(kind)
+  const toggleLabel =
+    node.attrs.display === 'inline' ? options.toggleLabel(kind) : null
+  const [isUnfolded, setIsUnfolded] = useState(true)
 
   const handleEdit = (): void => {
     const position = getPos()
@@ -105,8 +109,26 @@ export function HtmlBlockView({
           outlineColor: 'primary.main'
         }}
       >
+        {toggleLabel === null ? null : (
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            aria-expanded={isUnfolded}
+            onClick={() => {
+              setIsUnfolded(unfolded => !unfolded)
+            }}
+            endIcon={
+              <Icon icon={isUnfolded ? Top : Bottom} aria-hidden="true" />
+            }
+            data-testid={options.toggleTestId(kind)}
+          >
+            {toggleLabel}
+          </Button>
+        )}
         {node.attrs.display === 'inline' ? (
           <Box
+            hidden={!isUnfolded}
             // Sanitized by whoever inserted the block (see HtmlBlock)
             dangerouslySetInnerHTML={{ __html: html }}
           />

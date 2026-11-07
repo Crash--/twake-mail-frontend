@@ -1589,6 +1589,10 @@
       "viewing": "Vue : %{name}",
       "open": "Changer de boîte mail, vue : %{name}",
       "back": "Revenir à votre boîte mail"
+    },
+    "banner": {
+      "delegated": "Vous êtes dans la boîte mail de %{name} (%{email}). Les e-mails envoyés d'ici partent au nom de %{name}.",
+      "team": "Vous êtes dans la boîte d'équipe %{name} (%{email}). Les e-mails envoyés d'ici partent de cette adresse."
     }
   }
 }

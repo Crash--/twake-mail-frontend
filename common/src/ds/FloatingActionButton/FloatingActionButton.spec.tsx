@@ -2,6 +2,7 @@ import { Pen } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { FloatingActionButton } from './FloatingActionButton'
@@ -30,5 +31,21 @@ describe('FloatingActionButton', () => {
     await userEvent.click(button)
 
     expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps twake-mui’s pale background under its dark label on touch screens', () => {
+    renderDs(<FloatingActionButton label="New message" icon={Pen} />)
+
+    const button = screen.getByRole('button', { name: 'New message' })
+    const style = getComputedStyle(button)
+    // A white label on this background was about 1.3:1 (issue #733)
+    expect(style.color).toBe('var(--twake-palette-primary-dark)')
+    expect(style.backgroundColor).toBe('var(--twake-palette-primary-light)')
+    const [fabClass] = Array.from(button.classList).filter(name =>
+      name.startsWith('css-')
+    )
+    expect(injectedCss()).toContain(
+      `@media(hover:none){.${fabClass}{background-color:var(--twake-palette-primary-light);}}`
+    )
   })
 })

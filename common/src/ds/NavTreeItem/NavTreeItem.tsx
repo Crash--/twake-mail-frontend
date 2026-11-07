@@ -102,8 +102,8 @@ export interface NavTreeItemProps {
    */
   actions?: ReactNode
   /**
-   * A finger held on the row (no ⋮ button on a phone): opens its menu,
-   * anchored to the row, without following the link
+   * A finger held on the row: opens its menu, anchored to the row, without
+   * following the link
    */
   onLongPress?: (row: HTMLElement) => void
   /**
@@ -413,6 +413,12 @@ export function NavTreeItem({
           ? {
               '& [data-nav-actions]': { ml: 'auto' },
               '& [data-nav-count] ~ [data-nav-actions]': { ml: 1 },
+              // Out of the 44 px minimum of `TouchTargets`, as the arrow
+              '& [data-nav-actions] .MuiIconButton-root': {
+                minWidth: 0,
+                minHeight: 0
+              },
+              '& [data-nav-actions] .MuiButton-root': { minHeight: 0 },
               // Without a pointer to hover, the actions are always there. With
               // one, they take no room until the row is hovered or holds the
               // keyboard focus, then replace the counter (they stay focusable)

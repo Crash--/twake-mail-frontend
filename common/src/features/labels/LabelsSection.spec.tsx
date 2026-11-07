@@ -261,12 +261,14 @@ describe('LabelsSection', () => {
     })
   })
 
-  it('opens the menu of a label from the keyboard on a phone, which has no ⋮', async () => {
+  it('opens the menu of a label on a phone from its ⋮ or from the row', async () => {
     mockViewport({ width: 390, touch: true })
     setup()
 
     const link = await screen.findByRole('link', { name: 'Work' })
-    expect(screen.queryByRole('button', { name: 'Actions on Work' })).toBe(null)
+    expect(
+      screen.getByRole('button', { name: 'Actions on Work' })
+    ).toHaveAttribute('aria-haspopup', 'menu')
     expect(link).toHaveAttribute('aria-haspopup', 'menu')
     expect(link).toHaveAccessibleDescription('Long press for actions')
     link.focus()

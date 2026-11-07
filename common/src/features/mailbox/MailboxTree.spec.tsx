@@ -140,7 +140,7 @@ describe('MailboxTree', () => {
     )
   })
 
-  it('keeps a phone drawer clear of ⋮ and Clean', async () => {
+  it('keeps ⋮ and Clean in a phone drawer, beside the long press', async () => {
     mockViewport({ width: 390, touch: true })
     renderTree('/mailbox/mailbox-inbox', 'en', [
       makeMailbox({
@@ -148,13 +148,16 @@ describe('MailboxTree', () => {
         name: 'Spam',
         role: 'junk',
         totalEmails: 3
-      }),
-      makeMailbox({ id: 'rare', name: 'Rarely used', isSubscribed: false })
+      })
     ])
     await screen.findAllByTestId('mailbox-item')
 
-    expect(screen.queryByTestId('mailbox-more-button')).toBe(null)
-    expect(screen.queryByTestId('mailbox-clean-button')).toBe(null)
+    expect(
+      within(folder('Spam')).getByRole('button', { name: 'Actions on Spam' })
+    ).toHaveAttribute('aria-haspopup', 'menu')
+    expect(
+      within(folder('Spam')).getByRole('button', { name: 'Clean' })
+    ).toBeInTheDocument()
     expect(folder('Spam')).toHaveAttribute('aria-haspopup', 'menu')
     expect(folder('Spam')).toHaveAccessibleDescription('Long press for actions')
     resetViewport()

@@ -361,5 +361,5 @@ Conventions:
 | `forward-empty` | Settings > Forwarding, "Forwarding is off" in place of the list while no address is forwarded to | — |
 | `mailbox-search-back-button` | the back arrow before the field of the folder search: closes it, back to the folders, the focus on the magnifier | — (Teammail 13446:27267) |
 | `settings-button` / `drawer-header` / `settings-back-button` / `settings-copy-address-button` / `settings-sign-out-button` | Phones (issues #826, #830): `settings-button` is the last entry of the folder drawer (the header of the drawer and the bar of the mail have no gear); `/settings` draws its own header, its back arrow `settings-back-button` and the copy button of the address; Sign out closes the list | — |
-| `mailbox-more-button` / `mailbox-clean-button` / `label-item-menu-button` | Absent on phones (issue #829): a long press, the menu key or Shift+F10 on the row opens the menu of a folder or a label (`openFolderMenu`, `LabelModals.runMenu` use the keyboard there) | — |
 | `composer-signature-toggle` | the "Signature" pill folding the signature in the editor (`aria-expanded`) | none (Figma) |
+| `mailbox-more-button` / `mailbox-clean-button` / `label-item-menu-button` | Also in the phone drawer, reachable with Tab; there a long press on the row opens the menu of a folder or a label too (issue #829) | — |

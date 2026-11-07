@@ -910,7 +910,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-02` Right expands a collapsed folder (the focus stays on it), then goes to its first child; Left goes from a child to its parent, collapses an expanded folder; Right on a folder without children does nothing; `aria-level`, `aria-posinset`, `aria-setsize` and `aria-expanded` follow; Enter opens the folder and the drawer closes. — web app, WAI-ARIA APG tree view (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
-- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button (none on a phone, where a long press opens the menu; Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
+- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button, on a phone too (Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-04` The folders of the user and the team mailboxes are trees of their own (one tab stop each, arrows stopping at their ends); Right and Left work in a team mailbox; from the field of the folder search, Down goes to the first result, a row of a tree. — web app (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.

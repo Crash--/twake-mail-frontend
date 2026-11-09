@@ -94,7 +94,8 @@ describe('sanitizeStyleSheet', () => {
     it.each([
       ['an http', 'url("http://fonts.example.com/a).woff2")'],
       ['a data:', 'url("da0 /-o* …r); po:…")'],
-      ['a relative', 'url( "dpr):l" )']
+      ['a relative', 'url( "dpr):l" )'],
+      ['a mangled-scheme', 'url("ht)ps://fonts.example.com/a.woff2")']
     ])(
       'drops a src holding %s url() with a quoted ")", which it cannot read',
       (_kind, unreadable) => {

@@ -8,6 +8,19 @@ function clean(html: string): string {
 }
 
 describe('sanitizeEmailHtml', () => {
+  it.each(['__proto__', 'constructor', 'toString', 'hasOwnProperty'])(
+    'drops an attribute named %s instead of throwing',
+    name => {
+      expect(clean(`<p ${name}="x">Hello</p>`)).toBe('<p>Hello</p>')
+    }
+  )
+
+  it('keeps an attribute allowed on its tag only', () => {
+    expect(clean('<a href="https://example.com/">a</a><p href="x">b</p>')).toBe(
+      '<a href="https://example.com/" target="_blank" rel="noopener noreferrer">a</a><p>b</p>'
+    )
+  })
+
   describe('autolink', () => {
     it('leaves bare URLs as text by default (composer quote)', () => {
       expect(clean('<p>https://example.com</p>')).toBe(

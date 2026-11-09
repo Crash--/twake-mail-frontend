@@ -44,16 +44,20 @@ const GLOBAL_ATTRIBUTES = [
   'public-asset-id', 'data-mimetype'
 ] // prettier-ignore
 
-/** Attributes allowed on some tags only (tmail-flutter `AttributePolicy`) */
-const TAG_ATTRIBUTES: Readonly<Record<string, readonly string[]>> = {
-  href: ['a'],
-  src: ['img'],
-  longdesc: ['img'],
-  srcset: ['img'],
-  cite: ['blockquote', 'del', 'ins', 'q'],
-  itemscope: ['div'],
-  itemtype: ['div']
-}
+/**
+ * Attributes allowed on some tags only (tmail-flutter `AttributePolicy`).
+ * A `Map`, not an object literal: the attribute names come from the email,
+ * and `__proto__` or `constructor` would otherwise hit `Object.prototype`.
+ */
+const TAG_ATTRIBUTES: ReadonlyMap<string, readonly string[]> = new Map([
+  ['href', ['a']],
+  ['src', ['img']],
+  ['longdesc', ['img']],
+  ['srcset', ['img']],
+  ['cite', ['blockquote', 'del', 'ins', 'q']],
+  ['itemscope', ['div']],
+  ['itemtype', ['div']]
+])
 
 /** Removed with their content */
 const FORBIDDEN_TAGS = [
@@ -184,7 +188,7 @@ function currentRun(): Run {
 }
 
 function isAllowedOnTag(attribute: string, tagName: string): boolean {
-  const tags = TAG_ATTRIBUTES[attribute]
+  const tags = TAG_ATTRIBUTES.get(attribute)
   return tags === undefined || tags.includes(tagName)
 }
 
@@ -326,12 +330,7 @@ const CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = {
   // Keeps the <style> elements of the <head> and those before any content
   FORCE_BODY: true,
   ALLOWED_TAGS,
-  ALLOWED_ATTR: [
-    ...GLOBAL_ATTRIBUTES,
-    ...Object.keys(TAG_ATTRIBUTES),
-    'id',
-    'class'
-  ],
+  ALLOWED_ATTR: [...GLOBAL_ATTRIBUTES, ...TAG_ATTRIBUTES.keys(), 'id', 'class'],
   FORBID_TAGS: FORBIDDEN_TAGS,
   FORBID_CONTENTS: FORBIDDEN_CONTENTS,
   ALLOW_DATA_ATTR: false,

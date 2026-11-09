@@ -21,6 +21,7 @@ import {
   READ_RECEIPT_REQUEST_HEADER,
   type AttachedFile
 } from './composeEmail'
+import { sanitizeDraftHtml } from './draftHtml'
 import { blockRemoteImages, fromEmailHtml, hasBlockedImages } from './emailHtml'
 import type { InlineImageStore, StoredImage } from './InlineImageStore'
 import { mailtoBodyHtml, type MailtoFields } from './mailto'
@@ -356,7 +357,9 @@ export async function loadDraftContent(
   // SAFETY: the header property asked above comes back under its name
   const email = response.list[0] as DraftEmail | undefined
   if (!email) throw new Error(`Draft ${draftId} not found`)
-  const html = draftHtml(email)
+  // Its HTML comes from the server, maybe from someone else: sanitized as
+  // a quote, its own blocks (signature, Drive cards) given back
+  const html = sanitizeDraftHtml(draftHtml(email), { isForeign: asNew })
   const inline = findReferencedCids(html)
   const attachments: ComposerAttachment[] = []
   for (const part of email.attachments) {

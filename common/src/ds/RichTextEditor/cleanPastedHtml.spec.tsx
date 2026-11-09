@@ -3,6 +3,17 @@ import { cleanPastedHtml } from './cleanPastedHtml'
 // The end-to-end spike specs paste whole fixtures (e2e/fixtures/clipboard);
 // these are the rules one by one.
 describe('cleanPastedHtml', () => {
+  it('drops the markers of kept HTML blocks, but the quote one', () => {
+    expect(
+      cleanPastedHtml(
+        '<div data-html-block="signature" data-html-block-display="inline">Sig</div>' +
+          '<div data-html-block="quote"><blockquote>Old</blockquote></div>'
+      )
+    ).toBe(
+      '<div>Sig</div><div data-html-block="quote"><blockquote>Old</blockquote></div>'
+    )
+  })
+
   it('rebuilds Word lists, nested, without the drawn bullets', () => {
     const word = [
       `<p class=MsoListParagraphCxSpFirst style='mso-list:l0 level1 lfo1'><span style='font-family:Symbol'><span style='mso-list:Ignore'>·<span>&nbsp;&nbsp;</span></span></span>One<o:p></o:p></p>`,

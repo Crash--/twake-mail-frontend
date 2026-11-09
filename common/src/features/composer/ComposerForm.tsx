@@ -136,6 +136,7 @@ import { TemplatePicker } from './TemplatePicker'
 import { chooseTemplatesTarget, templatesTargetKey } from './templatesFolder'
 import { EDITOR_TEST_IDS } from './editorTestIds'
 import { showBlockedImages } from './editorImages'
+import { blockDisplay } from './draftHtml'
 import { InlineImageStore, resizeImage } from './InlineImageStore'
 import { isLargeMessage } from './largeMessage'
 import type { MailtoFields } from './mailto'
@@ -1985,6 +1986,7 @@ function LoadedComposerForm({
               fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
               htmlBlock={{
+                displayOf: blockDisplay,
                 toggleLabel: (kind, isFolded) =>
                   kind === 'signature'
                     ? t(

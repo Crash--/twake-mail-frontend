@@ -5,6 +5,9 @@
 // src/frontend/src/features/blocknote/paste-sanitizer.ts, MIT, © DINUM):
 // a color the user cannot see while composing must not reach the sent HTML.
 
+import { HTML_BLOCK_ATTRIBUTE } from './htmlBlock'
+import { QUOTE_BLOCK_KIND } from './quoteBlock'
+
 /** The only inline styles a paste keeps, the ones the toolbar can set */
 const KEPT_STYLES = new Set([
   'color',
@@ -288,7 +291,8 @@ function rebuildWordLists(root: HTMLElement): void {
  * - only the styles the toolbar can set stay, minus the default text and
  *   page colours of the source (spam filters dislike `color:#000000` on
  *   every span);
- * - classes and ids go.
+ * - classes and ids go, and so do the markers of kept HTML blocks (but the
+ *   editable quote's).
  *
  * The editor schema drops everything else it does not know.
  */
@@ -354,6 +358,12 @@ export function cleanPastedHtml(html: string): string {
   })
 
   body.querySelectorAll<HTMLElement>('*').forEach(element => {
+    // A pasted block of kept HTML would skip the schema: its content is
+    // parsed as the rest (an editable quote has nothing raw)
+    if (element.getAttribute(HTML_BLOCK_ATTRIBUTE) !== QUOTE_BLOCK_KIND) {
+      element.removeAttribute(HTML_BLOCK_ATTRIBUTE)
+    }
+    element.removeAttribute('data-html-block-display')
     element.removeAttribute('class')
     element.removeAttribute('id')
     element.removeAttribute('lang')

@@ -132,6 +132,21 @@ describe('sanitizeEmailHtml', () => {
         )
       ).toBe('<p>Your password:</p>')
     })
+
+    it('parses the email in standards mode, as the reader frame does (#763)', () => {
+      // In quirks mode, the <table> would stay inside the open <p>
+      expect(clean('<p>a<table><tr><td>b</td></tr></table>')).toBe(
+        '<p>a</p><table><tbody><tr><td>b</td></tr></tbody></table>'
+      )
+    })
+
+    it('gives HTML that parses back into the tree it sanitized (#763)', () => {
+      const html =
+        '<p><table><i>a<b>b</b>c<table><i>d<b>e</b>f<img><b>g<b/>h<table><i>i<b>j</b>k<tr>l<tr>m</p>'
+      const once = clean(html)
+
+      expect(clean(once)).toBe(once)
+    })
   })
 
   describe('allow-list of tmail-flutter', () => {

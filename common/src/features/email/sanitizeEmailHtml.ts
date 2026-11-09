@@ -323,8 +323,6 @@ purifier.addHook('afterSanitizeAttributes', finishElement)
 
 const CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = {
   RETURN_DOM_FRAGMENT: true,
-  // Keeps the <style> elements of the <head> and those before any content
-  FORCE_BODY: true,
   ALLOWED_TAGS,
   ALLOWED_ATTR: [
     ...GLOBAL_ATTRIBUTES,
@@ -337,6 +335,25 @@ const CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = {
   ALLOW_DATA_ATTR: false,
   ALLOW_ARIA_ATTR: false,
   ALLOW_UNKNOWN_PROTOCOLS: false
+}
+
+/**
+ * Parses the email as the reader frame does (`buildEmailDocument`): in
+ * standards mode, `<!doctype html>`, so that the tree DOMPurify checks is the
+ * one the frame builds from the output. Without a doctype the parser would be
+ * in quirks mode, where a `<table>` stays inside an open `<p>`: the output
+ * would then parse into another tree. Starting in the body keeps the `<style>`
+ * elements of the `<head>` and those before any content. A `DOMParser`
+ * document is inert: nothing runs, nothing loads.
+ */
+function parseEmailHtml(html: string): DocumentFragment {
+  const parsed = new DOMParser().parseFromString(
+    `<!doctype html><body>${html}`,
+    'text/html'
+  )
+  const content = parsed.createDocumentFragment()
+  content.append(...Array.from(parsed.body.childNodes))
+  return content
 }
 
 /**
@@ -364,7 +381,7 @@ export function sanitizeEmailHtml(
     blockedRemoteContent: 0
   }
   try {
-    const content = purifier.sanitize(html, CONFIG)
+    const content = purifier.sanitize(parseEmailHtml(html), CONFIG)
     // On the sanitized DOM: the links it adds are built, never parsed
     if (withAutolink) autolink(content)
     const container = document.createElement('div')

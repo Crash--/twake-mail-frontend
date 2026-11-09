@@ -1,4 +1,4 @@
-import { Left } from '@linagora/twake-icons'
+import { Icon, Left } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
@@ -21,7 +21,7 @@ export function BackButton({
   return (
     <Button
       variant="text"
-      startIcon={<Left width={9} height={16} aria-hidden="true" />}
+      startIcon={<Icon icon={Left} aria-hidden="true" />}
       onClick={onClick}
       aria-label={label}
       color="inherit"

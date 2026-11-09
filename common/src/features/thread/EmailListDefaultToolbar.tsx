@@ -1,9 +1,9 @@
-import { RestoreStraight, SelectAll, Refresh } from '@linagora/twake-icons'
+import { Restore, RestoreStraight } from '@linagora/twake-icons'
 import { Box, CircularProgress } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { CheckboxBlankIcon } from '@/ds/ListIcons/ListIcons'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -91,11 +91,8 @@ export function EmailListDefaultToolbar({
       ) : (
         <IconAction
           label={refreshLabel}
-          icon={Refresh}
+          icon={Restore}
           iconSize={16}
-          // As tmail-flutter: its 26 x 24 drawing, 16 px high
-          iconWidth={(16 * 26) / 24}
-          tone="filled"
           onClick={onRefresh}
           data-testid="list-refresh-button"
         />
@@ -103,7 +100,7 @@ export function EmailListDefaultToolbar({
       {loadedCount === 0 && !isLoading ? null : isPhone ? (
         <IconAction
           label={selectAllLabel}
-          icon={SelectAll}
+          icon={CheckboxBlankIcon}
           disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
           data-testid="list-select-all-button"

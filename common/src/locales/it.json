@@ -368,7 +368,6 @@
     "send": "Inviare",
     "saveAsDraft": "Salva come bozza",
     "print": "Stampa",
-    "signature": "Firma",
     "fields": {
       "to": "A",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Inserimento dell'immagine"
-    }
+    },
+    "hideSignature": "Nascondi firma",
+    "showSignature": "Mostra firma"
   },
   "layout": {
     "navigation": "Navigazione"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Navigazione e chiusura",
       "reading": "Lettura e risposta",
-      "management": "Gestione e selezione dei messaggi",
+      "management": "Messaggi e selezione",
       "label": "Categorie di scorciatoie",
       "navigationShort": "Navigazione",
       "readingShort": "Lettura",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Impostazioni",
     "manageAccount": "Gestisci profilo",
+    "more": "Altro",
     "sections": {
       "profiles": {
         "title": "Profili",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Conversazioni",
       "threadDescription": "Visualizza più email correlate come una conversazione",
-      "readReceipts": "Conferme di lettura",
       "readReceiptsDescription": "Le conferme di lettura sono notifiche che possono essere inviate da e verso i tuoi utenti per verificare che un'email sia stata letta.",
       "readReceiptsToggle": "Richiedi sempre la conferma di lettura per i messaggi in uscita",
-      "senderPriority": "Contrassegno di importanza del mittente",
       "senderPriorityDescription": "Mostra il contrassegno delle email importanti nella posta in arrivo. Questa funzione è controllata dal mittente e potrebbe quindi dare luogo ad abusi.",
       "senderPriorityToggle": "Mostra il contrassegno di importanza del mittente",
-      "remoteImages": "Immagini remote",
       "remoteImagesDescription": "Mostra senza chiedere le immagini e gli altri contenuti che le email caricano da Internet. Indicano al mittente quando e dove leggi l'email.",
       "remoteImagesToggle": "Mostra le immagini remote",
       "remoteImagesWarning": "Mostrare sempre le immagini remote ti espone al tracciamento della tua attività e può quindi nuocere alla tua privacy.",
       "threadToggle": "Attiva le conversazioni",
-      "spamReports": "Rapporti spam",
       "spamReportsDescription": "Ti ricorda di moderare regolarmente le email di spam",
       "spamReportsToggle": "Attiva il rapporto spam",
-      "labels": "Visibilità delle etichette",
       "labelsDescription": "Mostra le etichette assegnate alle email direttamente nell'elenco dei messaggi per una categorizzazione più semplice.",
       "labelsToggle": "Mostra le etichette",
-      "driveAttachment": "Allegati da Drive",
       "driveAttachmentDescription": "Mostra o nascondi il pulsante degli allegati di Twake Drive nell'editor",
       "driveAttachmentToggle": "Attiva il pulsante degli allegati da Drive",
       "accessibility": "Accessibilità",
@@ -857,15 +852,18 @@
       "themeLight": "Chiaro",
       "themeDark": "Scuro",
       "themeAuto": "Automatico",
-      "errorReporting": "Segnalazione errori",
       "errorReportingDescription": "Invia rapporti su arresti anomali ed errori affinché il team di supporto possa diagnosticare i problemi che riscontri. Le tue email, il loro contenuto e i loro destinatari non sono mai inclusi.",
       "errorReportingToggle": "Invia segnalazioni di errore",
-      "aiLabelCategorization": "Categorizzazione con etichette",
       "aiLabelCategorizationDescription": "Applica le mie etichette alle email in arrivo in base alla loro descrizione",
       "aiLabelCategorizationToggle": "Attiva la categorizzazione con etichette",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "Usa l'IA per aiutarti a scrivere e migliorare le tue email",
-      "aiScribeToggle": "Attiva AI Scribe"
+      "aiScribeToggle": "Attiva AI Scribe",
+      "groups": {
+        "privacy": "Privacy",
+        "inbox": "Posta in arrivo",
+        "smartFeatures": "Funzioni intelligenti",
+        "writing": "Scrittura"
+      }
     },
     "backToMail": "Torna alla posta",
     "language": {
@@ -978,12 +976,14 @@
       "success": "Questa cartella è di nuovo visibile"
     },
     "visibility": {
-      "hide": "Nascondere",
-      "show": "Mostra",
       "personal": "Cartelle personali",
       "team": "Caselle di posta del team",
       "hideOf": "Nascondi %{name}",
-      "showOf": "Mostra %{name}"
+      "showOf": "Mostra %{name}",
+      "visible": "Visibile",
+      "hidden": "Nascosta",
+      "alwaysVisible": "Sempre visibile",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Cerca cartelle",
@@ -995,6 +995,7 @@
       "progress": "Spostamento delle email: %{moved} di %{total}"
     },
     "clean": "Pulisci",
+    "longPressHint": "Tieni premuto per le azioni",
     "progress": {
       "markAsRead": "Contrassegno come letti di tutti i messaggi in «%{folderName}»",
       "empty": "Svuotamento di «%{folderName}»"
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Crea una nuova regola",
       "editTitle": "Modifica la regola",
-      "create": "Crea la regola",
+      "create": "Crea",
       "name": "Nome della regola",
       "namePlaceholder": "Inserisci il nome della regola",
       "conditions": "Condizione",
@@ -1199,7 +1200,10 @@
     "externalBanner": "Stai reindirizzando le email a un altro dominio. Questo potrebbe rappresentare una minaccia per la sicurezza o essere considerato un'estrazione illegale di dati.",
     "listLabel": "Indirizzi di inoltro",
     "removeOf": "Rimuovi %{email}",
-    "inputLabel": "Nuovo destinatario",
+    "inputLabel": "Aggiungi un destinatario",
+    "pasteHint": "Incolla più indirizzi",
+    "emptyTitle": "L'inoltro è disattivato",
+    "emptyText": "Aggiungi un indirizzo qui sopra e ogni nuova email ricevuta verrà inviata anche lì.",
     "recipientCount": "%{smart_count} destinatario |||| %{smart_count} destinatari",
     "selectAll": "Seleziona tutti",
     "selectedCount": "%{count} selezionato",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Rispondi automaticamente ai messaggi quando vengono ricevuti.",
+    "responder": "Risposta automatica",
+    "starts": "Inizio:",
+    "ends": "Fine:",
+    "rightAway": "Subito",
+    "pickTime": "Scegli una data",
+    "untilTurnedOff": "Quando la disattivo",
+    "statusOn": "Attiva",
+    "statusOff": "Disattivata",
     "startDate": "Data di inizio",
     "startTime": "Tempo di inizio",
-    "stops": "La risposta automatica si ferma a",
     "endDate": "Data di fine",
     "endTime": "Tempo di fine",
     "subject": "Oggetto",
@@ -1254,6 +1265,7 @@
       "description": "Descrizione (facoltativa)",
       "descriptionPlaceholder": "Aggiungi una breve descrizione per spiegare a cosa serve questa etichetta",
       "color": "Scegli un colore per l'etichetta",
+      "colorCurrent": "Colore dell'etichetta: %{color}",
       "create": "Crea l'etichetta"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "Nessun colore",
     "colors": {
       "navyBlue": "Blu navy",
+      "skyBlue": "Azzurro cielo",
+      "brightBlue": "Blu acceso",
+      "royalBlue": "Blu reale",
       "purple": "Viola",
       "lavender": "Lavanda",
       "indigo": "Indaco",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Grigio scuro",
       "grey": "Grigio"
     },
-    "colorCustom": "Colore personalizzato",
-    "colorCustomNamed": "Colore personalizzato %{color}",
     "colorHex": "Colore personalizzato (esadecimale)",
     "colorHexHint": "Formato #RRGGBB, ad esempio #1A2B3C",
     "colorHexInvalid": "Inserisci un colore nel formato #RRGGBB, ad esempio #1A2B3C",
-    "colorPicker": "Apri il selettore di colore",
     "removeFromEmail": "Rimuovi l'etichetta %{name}",
     "moreNames": "%{smart_count} altra etichetta: %{names} |||| %{smart_count} altre etichette: %{names}",
     "listLabel": "Etichette dell'email"
@@ -1440,6 +1452,7 @@
     },
     "replyFailed": "Invio della risposta all'evento non riuscito!",
     "alreadyAnswered": "Hai già dato questa risposta all'invito",
+    "eventCanceled": "Questo evento è stato annullato",
     "counterAccepted": "Hai accettato l'orario proposto per questa riunione",
     "eventLabel": "Evento: %{title}",
     "allDay": "Tutto il giorno",

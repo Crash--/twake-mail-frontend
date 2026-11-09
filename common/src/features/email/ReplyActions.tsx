@@ -1,8 +1,7 @@
-import { Icon, Reply } from '@linagora/twake-icons'
+import { Icon, Forward, Reply, ReplyAll } from '@linagora/twake-icons'
 import type { ReactElement, ReactNode } from 'react'
 
 import { ActionBar, ActionBarButton } from '@/ds/ActionBar/ActionBar'
-import { ForwardIcon, ReplyAllIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { useI18n } from '@common/i18n/useI18n'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
 
@@ -19,9 +18,9 @@ export interface ReplyActionsProps {
 
 const ICONS: Record<ReplyAction, ReactNode> = {
   reply: <Icon icon={Reply} size={20} aria-hidden="true" />,
-  replyAll: <ReplyAllIcon />,
+  replyAll: <Icon icon={ReplyAll} size={20} aria-hidden="true" />,
   replyToList: <Icon icon={Reply} size={20} aria-hidden="true" />,
-  forward: <ForwardIcon />
+  forward: <Icon icon={Forward} size={20} aria-hidden="true" />
 }
 
 /** The order of the mock: Reply all, Reply, Reply to list, Forward */

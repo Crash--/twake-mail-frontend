@@ -1,4 +1,10 @@
-import { resolveLanguage, toSupportedLanguage } from './languages'
+import {
+  parseAllowedLanguages,
+  resolveLanguage,
+  SUPPORTED_LANGUAGES,
+  toAllowedLanguage,
+  toSupportedLanguage
+} from './languages'
 
 describe('toSupportedLanguage', () => {
   it('keeps the primary subtag of a supported language', () => {
@@ -22,5 +28,41 @@ describe('resolveLanguage', () => {
 
   it('falls back to English', () => {
     expect(resolveLanguage(['ar', undefined])).toBe('en')
+  })
+
+  it('skips the languages the deployment does not offer', () => {
+    expect(resolveLanguage(['fr', 'mn-MN', 'en'], ['en', 'mn'])).toBe('mn')
+  })
+
+  it('falls back to English when allowed, else to the first allowed', () => {
+    expect(resolveLanguage(['fr'], ['mn', 'en'])).toBe('en')
+    expect(resolveLanguage(['fr'], ['mn', 'de'])).toBe('mn')
+  })
+})
+
+describe('parseAllowedLanguages', () => {
+  it('keeps the listed languages in their order, case and region ignored', () => {
+    expect(parseAllowedLanguages('MN, en-US,"fr_FR"')).toEqual([
+      'mn',
+      'en',
+      'fr'
+    ])
+  })
+
+  it('skips the unknown and repeated codes', () => {
+    expect(parseAllowedLanguages('xx,mn,mn,ar')).toEqual(['mn'])
+  })
+
+  it('offers every language when unset, blank or without a known code', () => {
+    expect(parseAllowedLanguages(null)).toBe(SUPPORTED_LANGUAGES)
+    expect(parseAllowedLanguages(' , ')).toBe(SUPPORTED_LANGUAGES)
+    expect(parseAllowedLanguages('xx,ar')).toBe(SUPPORTED_LANGUAGES)
+  })
+})
+
+describe('toAllowedLanguage', () => {
+  it('returns null for a supported language the deployment does not offer', () => {
+    expect(toAllowedLanguage('fr', ['mn', 'en'])).toBe(null)
+    expect(toAllowedLanguage('en-GB', ['mn', 'en'])).toBe('en')
   })
 })

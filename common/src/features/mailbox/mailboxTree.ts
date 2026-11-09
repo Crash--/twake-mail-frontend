@@ -81,18 +81,29 @@ export function teamMailboxAddress(
   return address === '' ? null : address
 }
 
-/** The root of a team mailbox: a folder of another namespace without parent */
+/**
+ * The root of a team mailbox: a folder of another namespace without parent,
+ * named after the local part of the address of its namespace (a team
+ * mailbox name has no `.`). A folder whose parent the user cannot see also
+ * comes without parent: it is not a root, else each one would be shown as a
+ * team mailbox of its own.
+ */
 export function isTeamRoot(
-  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId' | 'name'>
 ): boolean {
-  return !isPersonalMailbox(mailbox) && mailbox.parentId === null
+  if (mailbox.parentId !== null) return false
+  const address = teamMailboxAddress(mailbox)
+  if (address === null) return false
+  const at = address.lastIndexOf('@')
+  const localPart = at > 0 ? address.slice(0, at) : address
+  return localPart.toLowerCase() === mailbox.name.toLowerCase()
 }
 
 /** A folder of a team mailbox, not its root */
 export function isTeamFolder(
-  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId' | 'name'>
 ): boolean {
-  return !isPersonalMailbox(mailbox) && mailbox.parentId !== null
+  return !isPersonalMailbox(mailbox) && !isTeamRoot(mailbox)
 }
 
 type NamedMailbox = Pick<
@@ -148,8 +159,11 @@ export function isDraftsMailbox(mailbox: NamedMailbox): boolean {
  * `isFirstLevelTeamSystemFolder`
  */
 export function isFirstLevelTeamFolder(
-  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId'>,
-  mailboxes: readonly Pick<MailboxSummary, 'id' | 'namespace' | 'parentId'>[]
+  mailbox: Pick<MailboxSummary, 'namespace' | 'parentId' | 'name'>,
+  mailboxes: readonly Pick<
+    MailboxSummary,
+    'id' | 'namespace' | 'parentId' | 'name'
+  >[]
 ): boolean {
   if (!isTeamFolder(mailbox)) return false
   const parent = mailboxes.find(candidate => candidate.id === mailbox.parentId)

@@ -368,7 +368,6 @@
     "send": "Gửi",
     "saveAsDraft": "Lưu nháp",
     "print": "In",
-    "signature": "Chữ ký",
     "fields": {
       "to": "Đến",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Đang chèn ảnh"
-    }
+    },
+    "hideSignature": "Ẩn chữ ký",
+    "showSignature": "Hiện chữ ký"
   },
   "layout": {
     "navigation": "Điều hướng"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Điều hướng và Đóng",
       "reading": "Đọc và Trả lời email",
-      "management": "Quản lý và lựa chọn tin nhắn",
+      "management": "Tin nhắn & lựa chọn",
       "label": "Danh mục phím tắt",
       "navigationShort": "Điều hướng",
       "readingShort": "Đọc",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Cài đặt",
     "manageAccount": "Quản lý tài khoản",
+    "more": "Khác",
     "sections": {
       "profiles": {
         "title": "Hồ sơ",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Hội thoại",
       "threadDescription": "Xem các thư của cuộc hội thoại",
-      "readReceipts": "Xác nhận đã đọc tin nhắn",
       "readReceiptsDescription": "Xác nhận đã đọc là thông báo có thể được gửi đến và đi từ người dùng của bạn để xác minh rằng thư đã được đọc.",
       "readReceiptsToggle": "Luôn yêu cầu xác nhận đã đọc khi gửi tin nhắn",
-      "senderPriority": "Cờ ưu tiên",
       "senderPriorityDescription": "Cho phép hiển thị cờ đánh dấu email quan trọng trong hộp thư đến của bạn. Tính năng này do người gửi kiểm soát, do đó có thể bị lạm dụng.",
       "senderPriorityToggle": "Hiển thị cờ ưu tiên",
-      "remoteImages": "Hình ảnh từ xa",
       "remoteImagesDescription": "Hiển thị mà không cần hỏi các hình ảnh và nội dung khác mà email tải từ Internet. Chúng cho người gửi biết bạn đọc email khi nào và ở đâu.",
       "remoteImagesToggle": "Hiển thị hình ảnh từ xa",
       "remoteImagesWarning": "Luôn hiển thị hình ảnh từ xa khiến bạn có thể bị theo dõi hoạt động và do đó có thể ảnh hưởng đến quyền riêng tư của bạn.",
       "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại",
-      "spamReports": "Báo cáo thư rác",
       "spamReportsDescription": "Nhắc định kỳ kiểm tra thư rác",
       "spamReportsToggle": "Bật báo cáo thư rác",
-      "labels": "Hiển thị nhãn",
       "labelsDescription": "Hiển thị các nhãn được gán cho email trực tiếp trong danh sách tin nhắn để phân loại dễ dàng hơn.",
       "labelsToggle": "Hiển thị nhãn",
-      "driveAttachment": "Tệp đính kèm Drive",
       "driveAttachmentDescription": "Hiển thị hoặc ẩn nút đính kèm Twake Drive trong trình soạn thư",
       "driveAttachmentToggle": "Bật nút đính kèm Drive",
       "accessibility": "Trợ năng",
@@ -857,15 +852,18 @@
       "themeLight": "Sáng",
       "themeDark": "Tối",
       "themeAuto": "Tự động",
-      "errorReporting": "Báo cáo lỗi",
       "errorReportingDescription": "Gửi báo cáo sự cố và lỗi để nhóm hỗ trợ có thể chẩn đoán các vấn đề bạn gặp phải. Email của bạn, nội dung và người nhận không bao giờ được đưa vào.",
       "errorReportingToggle": "Gửi báo cáo lỗi",
-      "aiLabelCategorization": "Nhãn phân loại tự động",
       "aiLabelCategorizationDescription": "Gán nhãn tự động dựa trên nội dung mô tả của nhãn",
       "aiLabelCategorizationToggle": "Kích hoạt nhãn phân loại tự động",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "Sử dụng AI để giúp soạn thảo và cải thiện email của bạn",
-      "aiScribeToggle": "Bật AI Scribe"
+      "aiScribeToggle": "Bật AI Scribe",
+      "groups": {
+        "privacy": "Quyền riêng tư",
+        "inbox": "Hộp thư đến",
+        "smartFeatures": "Tính năng thông minh",
+        "writing": "Soạn thư"
+      }
     },
     "backToMail": "Quay lại hộp thư",
     "language": {
@@ -978,12 +976,14 @@
       "success": "Thư mục này đã được hiển thị lại"
     },
     "visibility": {
-      "hide": "Ẩn",
-      "show": "Hiển thị",
       "personal": "Thư mục cá nhân",
       "team": "Hộp thư nhóm",
       "hideOf": "Ẩn %{name}",
-      "showOf": "Hiển thị %{name}"
+      "showOf": "Hiển thị %{name}",
+      "visible": "Hiển thị",
+      "hidden": "Đã ẩn",
+      "alwaysVisible": "Luôn hiển thị",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Tìm kiếm thư mục",
@@ -995,6 +995,7 @@
       "progress": "Đang chuyển thư: %{moved}/%{total}"
     },
     "clean": "Dọn dẹp",
+    "longPressHint": "Nhấn giữ để xem thao tác",
     "progress": {
       "markAsRead": "Đang đánh dấu tất cả thư trong \"%{folderName}\" là đã đọc",
       "empty": "Đang dọn sạch \"%{folderName}\""
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Tạo bộ lọc mới",
       "editTitle": "Sửa bộ lọc",
-      "create": "Tạo bộ lọc",
+      "create": "Tạo mới",
       "name": "Tên bộ lọc",
       "namePlaceholder": "Nhập tên bộ lọc",
       "conditions": "Điều kiện",
@@ -1199,7 +1200,10 @@
     "externalBanner": "Bạn đang chuyển hướng email đến một tên miền khác. Đây có thể là một mối đe dọa bảo mật hoặc được coi là trích xuất dữ liệu bất hợp pháp.",
     "listLabel": "Địa chỉ chuyển tiếp",
     "removeOf": "Xóa %{email}",
-    "inputLabel": "Người nhận mới",
+    "inputLabel": "Thêm người nhận",
+    "pasteHint": "Dán nhiều địa chỉ",
+    "emptyTitle": "Chuyển tiếp đang tắt",
+    "emptyText": "Thêm một địa chỉ ở trên và mọi email mới bạn nhận được cũng sẽ được gửi đến đó.",
     "recipientCount": "%{smart_count} người nhận",
     "selectAll": "Chọn tất cả",
     "selectedCount": "Chọn %{count}",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Tự động trả lời tin nhắn.",
+    "responder": "Trả lời tự động khi vắng mặt",
+    "starts": "Bắt đầu:",
+    "ends": "Kết thúc:",
+    "rightAway": "Ngay lập tức",
+    "pickTime": "Chọn thời gian",
+    "untilTurnedOff": "Khi tôi tắt",
+    "statusOn": "Bật",
+    "statusOff": "Tắt",
     "startDate": "Bắt đầu",
     "startTime": "Bắt đầu",
-    "stops": "Kết thúc kỳ nghỉ",
     "endDate": "Kết thúc",
     "endTime": "Kết thúc",
     "subject": "Tiêu đề",
@@ -1254,6 +1265,7 @@
       "description": "Mô tả (tuỳ chọn)",
       "descriptionPlaceholder": "Thêm thông tin mô tả cho Nhãn",
       "color": "Chọn màu nhãn",
+      "colorCurrent": "Màu nhãn: %{color}",
       "create": "Tạo nhãn"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "Không màu",
     "colors": {
       "navyBlue": "Xanh hải quân",
+      "skyBlue": "Xanh da trời",
+      "brightBlue": "Xanh tươi",
+      "royalBlue": "Xanh hoàng gia",
       "purple": "Tím",
       "lavender": "Tím oải hương",
       "indigo": "Chàm",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Xám đậm",
       "grey": "Xám"
     },
-    "colorCustom": "Màu tùy chỉnh",
-    "colorCustomNamed": "Màu tùy chỉnh %{color}",
     "colorHex": "Màu tùy chỉnh (mã thập lục phân)",
     "colorHexHint": "Định dạng #RRGGBB, ví dụ #1A2B3C",
     "colorHexInvalid": "Nhập màu theo định dạng #RRGGBB, ví dụ #1A2B3C",
-    "colorPicker": "Mở bộ chọn màu",
     "removeFromEmail": "Gỡ nhãn %{name}",
     "moreNames": "%{smart_count} nhãn khác: %{names}",
     "listLabel": "Nhãn của email"
@@ -1440,6 +1452,7 @@
     },
     "replyFailed": "Hồi đáp sự kiện không thành công!",
     "alreadyAnswered": "Bạn đã gửi câu trả lời này cho lời mời",
+    "eventCanceled": "Sự kiện này đã bị hủy",
     "counterAccepted": "Bạn đã chấp nhận một đề xuất thời gian mới cho cuộc họp này",
     "eventLabel": "Sự kiện: %{title}",
     "allDay": "Cả ngày",

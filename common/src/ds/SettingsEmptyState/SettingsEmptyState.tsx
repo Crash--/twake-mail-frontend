@@ -1,6 +1,6 @@
 // Upstream to twake-ui: no. The empty lists of the settings ("No Rules
 // Configured"): twake-mui's `Empty` (icon, title as an `h2`, what to do) and
-// an outlined button to start.
+// a button to start.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button, Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
@@ -37,10 +37,9 @@ export function SettingsEmptyState({
     >
       {action === undefined ? null : (
         <Button
-          variant="outlined"
+          className="u-mt-1-half"
           onClick={action.onClick}
-          startIcon={<Icon icon={action.icon} size={16} aria-hidden="true" />}
-          sx={{ mt: 3 }}
+          startIcon={<Icon icon={action.icon} size={12} aria-hidden="true" />}
           data-testid={action['data-testid']}
         >
           {action.label}

@@ -2,12 +2,13 @@
 // toolbar above the list has 16 px of padding and between its controls, and
 // a divider below.
 import { Box } from '@linagora/twake-mui'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement, ReactNode, Ref } from 'react'
 
 export interface ListToolbarProps {
   /** Accessible name of the toolbar region */
   label: string
   children: ReactNode
+  ref?: Ref<HTMLElement>
   'data-testid'?: string
 }
 
@@ -15,10 +16,12 @@ export interface ListToolbarProps {
 export function ListToolbar({
   label,
   children,
+  ref,
   'data-testid': testId
 }: ListToolbarProps): ReactElement {
   return (
     <Box
+      ref={ref}
       component="section"
       aria-label={label}
       className="u-flex u-flex-items-center u-flex-wrap"

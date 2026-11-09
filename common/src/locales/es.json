@@ -368,7 +368,6 @@
     "send": "Enviar",
     "saveAsDraft": "Guardar como borrador",
     "print": "Imprimir",
-    "signature": "Firma",
     "fields": {
       "to": "A",
       "cc": "CC",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Insertando la imagen"
-    }
+    },
+    "hideSignature": "Ocultar firma",
+    "showSignature": "Mostrar firma"
   },
   "layout": {
     "navigation": "Navegación"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Navegación y cierre",
       "reading": "Lectura y respuesta",
-      "management": "Gestión y selección de mensajes",
+      "management": "Mensajes y selección",
       "label": "Categorías de atajos",
       "navigationShort": "Navegación",
       "readingShort": "Lectura",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Configuración",
     "manageAccount": "Gestionar cuenta",
+    "more": "Más",
     "sections": {
       "profiles": {
         "title": "Perfiles",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Conversaciones",
       "threadDescription": "Ver varios correos relacionados como una conversación",
-      "readReceipts": "Acuses de lectura",
       "readReceiptsDescription": "Los acuses de lectura son notificaciones que se pueden enviar entre usuarios para comprobar que un correo se ha leído.",
       "readReceiptsToggle": "Solicitar siempre acuse de lectura en los mensajes enviados",
-      "senderPriority": "Marca de importancia del remitente",
       "senderPriorityDescription": "Muestra la marca de correo importante en su bandeja de entrada. La controla el remitente, por lo que puede dar lugar a abusos.",
       "senderPriorityToggle": "Mostrar la marca de importancia del remitente",
-      "remoteImages": "Imágenes remotas",
       "remoteImagesDescription": "Mostrar sin preguntar las imágenes y otros contenidos que los correos cargan desde Internet. Indican al remitente cuándo y dónde lee el correo.",
       "remoteImagesToggle": "Mostrar las imágenes remotas",
       "remoteImagesWarning": "Mostrar siempre las imágenes remotas le expone al seguimiento de su actividad y puede perjudicar su privacidad.",
       "threadToggle": "Activar las conversaciones",
-      "spamReports": "Informes de spam",
       "spamReportsDescription": "Le recuerda que debe revisar periódicamente sus correos de spam",
       "spamReportsToggle": "Activar el informe de spam",
-      "labels": "Visibilidad de las etiquetas",
       "labelsDescription": "Mostrar las etiquetas asignadas a los correos directamente en la lista de mensajes para clasificarlos más fácilmente.",
       "labelsToggle": "Mostrar las etiquetas",
-      "driveAttachment": "Archivos adjuntos de Drive",
       "driveAttachmentDescription": "Mostrar u ocultar el botón de archivos adjuntos de Twake Drive en el editor",
       "driveAttachmentToggle": "Activar el botón de archivos adjuntos de Drive",
       "accessibility": "Accesibilidad",
@@ -857,15 +852,18 @@
       "themeLight": "Claro",
       "themeDark": "Oscuro",
       "themeAuto": "Automático",
-      "errorReporting": "Informes de errores",
       "errorReportingDescription": "Enviar informes de fallos y errores para que el equipo de soporte pueda diagnosticar los problemas que encuentre. Nunca se incluyen sus correos, su contenido ni sus destinatarios.",
       "errorReportingToggle": "Enviar informes de errores",
-      "aiLabelCategorization": "Clasificación por etiquetas",
       "aiLabelCategorizationDescription": "Aplicar mis etiquetas a los correos entrantes según su descripción",
       "aiLabelCategorizationToggle": "Activar la clasificación por etiquetas",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "Usar la IA para ayudarle a escribir y mejorar sus correos",
-      "aiScribeToggle": "Activar AI Scribe"
+      "aiScribeToggle": "Activar AI Scribe",
+      "groups": {
+        "privacy": "Privacidad",
+        "inbox": "Bandeja de entrada",
+        "smartFeatures": "Funciones inteligentes",
+        "writing": "Redacción"
+      }
     },
     "backToMail": "Volver al correo",
     "language": {
@@ -978,12 +976,14 @@
       "success": "Esta carpeta vuelve a mostrarse"
     },
     "visibility": {
-      "hide": "Ocultar",
-      "show": "Mostrar",
       "personal": "Carpetas personales",
       "team": "Buzones de equipo",
       "hideOf": "Ocultar %{name}",
-      "showOf": "Mostrar %{name}"
+      "showOf": "Mostrar %{name}",
+      "visible": "Visible",
+      "hidden": "Oculta",
+      "alwaysVisible": "Siempre visible",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Buscar carpetas",
@@ -995,6 +995,7 @@
       "progress": "Moviendo correos: %{moved} de %{total}"
     },
     "clean": "Limpiar",
+    "longPressHint": "Mantén pulsado para ver las acciones",
     "progress": {
       "markAsRead": "Marcando como leídos todos los mensajes de «%{folderName}»",
       "empty": "Vaciando «%{folderName}»"
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Crear una regla nueva",
       "editTitle": "Editar regla",
-      "create": "Crear la regla",
+      "create": "Crear",
       "name": "Nombre de la regla",
       "namePlaceholder": "Introduzca el nombre de la regla",
       "conditions": "Condición",
@@ -1199,7 +1200,10 @@
     "externalBanner": "Está redirigiendo correos a otro dominio. Esto podría ser una amenaza para la seguridad o considerarse una extracción ilegal de datos.",
     "listLabel": "Direcciones de reenvío",
     "removeOf": "Quitar %{email}",
-    "inputLabel": "Nuevo destinatario",
+    "inputLabel": "Añadir un destinatario",
+    "pasteHint": "Pegue varias direcciones",
+    "emptyTitle": "El reenvío está desactivado",
+    "emptyText": "Añada una dirección arriba y cada nuevo correo que reciba también se enviará allí.",
     "recipientCount": "%{smart_count} destinatario |||| %{smart_count} destinatarios",
     "selectAll": "Seleccionar todo",
     "selectedCount": "%{count} seleccionados",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Responder automáticamente a los mensajes cuando se reciban.",
+    "responder": "Respuesta automática",
+    "starts": "Inicio:",
+    "ends": "Fin:",
+    "rightAway": "Ahora mismo",
+    "pickTime": "Elegir una fecha",
+    "untilTurnedOff": "Cuando la desactive",
+    "statusOn": "Activada",
+    "statusOff": "Desactivada",
     "startDate": "Fecha de inicio",
     "startTime": "Hora de inicio",
-    "stops": "Las vacaciones terminan el",
     "endDate": "Fecha de fin",
     "endTime": "Hora de fin",
     "subject": "Asunto",
@@ -1254,6 +1265,7 @@
       "description": "Descripción (opcional)",
       "descriptionPlaceholder": "Añada una breve descripción para explicar para qué sirve esta etiqueta",
       "color": "Elegir un color para la etiqueta",
+      "colorCurrent": "Color de la etiqueta: %{color}",
       "create": "Crear la etiqueta"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "Sin color",
     "colors": {
       "navyBlue": "Azul marino",
+      "skyBlue": "Azul cielo",
+      "brightBlue": "Azul vivo",
+      "royalBlue": "Azul real",
       "purple": "Morado",
       "lavender": "Lavanda",
       "indigo": "Índigo",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Gris oscuro",
       "grey": "Gris"
     },
-    "colorCustom": "Color personalizado",
-    "colorCustomNamed": "Color personalizado %{color}",
     "colorHex": "Color personalizado (hexadecimal)",
     "colorHexHint": "Formato #RRGGBB, por ejemplo #1A2B3C",
     "colorHexInvalid": "Introduzca un color con el formato #RRGGBB, por ejemplo #1A2B3C",
-    "colorPicker": "Abrir el selector de color",
     "removeFromEmail": "Quitar la etiqueta %{name}",
     "moreNames": "%{smart_count} etiqueta más: %{names} |||| %{smart_count} etiquetas más: %{names}",
     "listLabel": "Etiquetas del correo"
@@ -1440,6 +1452,7 @@
     },
     "replyFailed": "¡No se pudo enviar la respuesta al evento!",
     "alreadyAnswered": "Ya ha dado esta respuesta a la invitación",
+    "eventCanceled": "Este evento ha sido cancelado",
     "counterAccepted": "Ha aceptado la hora propuesta para esta reunión",
     "eventLabel": "Evento: %{title}",
     "allDay": "Todo el día",

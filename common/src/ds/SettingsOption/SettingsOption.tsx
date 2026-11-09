@@ -1,6 +1,7 @@
-// Upstream to twake-ui: no. The options of the settings: the title
-// (`subtitle2`), what it does in `body1` `text.secondary` around it, then
-// twake-mui's `Switch` and its label; a margin between two options.
+// Upstream to twake-ui: no. The options of the settings, as the Figma's
+// Preferences: groups under a `body2` heading, one row per option (its label
+// in `body1`, what it does in `caption` `text.secondary`, twake-mui's
+// `Switch` at the end), 24 px between two groups.
 import {
   Box,
   FormControlLabel,
@@ -9,30 +10,28 @@ import {
   Switch,
   Typography
 } from '@linagora/twake-mui'
-import { useId, type ChangeEvent, type ReactElement } from 'react'
+import {
+  useId,
+  type ChangeEvent,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 
-const SECTION_SX = { mb: '49px', '&:last-child': { mb: 0 } } as const
+const SECTION_SX = { mb: 3, '&:last-child': { mb: 0 } } as const
 
 const TITLE_SX = {
   m: 0,
-  typography: 'subtitle2',
+  typography: 'body2',
   color: 'text.primary'
 } as const
+
+const GROUP_TITLE_SX = { ...TITLE_SX, mb: 0.5 } as const
 
 const DESCRIPTION_SX = {
-  my: '12px',
-  typography: 'body1',
+  mt: 0.5,
+  mb: 1,
+  typography: 'caption',
   color: 'text.secondary'
-} as const
-
-const LABEL_SX = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  width: 'fit-content',
-  cursor: 'pointer',
-  typography: 'body1',
-  color: 'text.primary'
 } as const
 
 const ROW_SX = {
@@ -63,6 +62,8 @@ export interface SettingsSwitchRowProps {
   isChecked: boolean
   isDisabled?: boolean
   onChange: (isChecked: boolean) => void
+  /** The switch at the end of a row this wide at most, instead of first */
+  endWidth?: number
   /** On the switch */
   'data-testid'?: string
 }
@@ -77,6 +78,7 @@ export function SettingsSwitchRow({
   isChecked,
   isDisabled = false,
   onChange,
+  endWidth,
   'data-testid': testId
 }: SettingsSwitchRowProps): ReactElement {
   const switchId = useId()
@@ -87,7 +89,20 @@ export function SettingsSwitchRow({
   }
 
   return (
-    <Box sx={ROW_SX}>
+    <Box
+      sx={
+        endWidth === undefined
+          ? ROW_SX
+          : {
+              ...ROW_SX,
+              flexDirection: 'row-reverse',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              maxWidth: endWidth,
+              py: 1
+            }
+      }
+    >
       <Switch
         id={switchId}
         checked={isChecked}
@@ -126,16 +141,36 @@ export function SettingsSwitchRow({
   )
 }
 
-export interface SettingsOptionProps {
+export interface SettingsOptionGroupProps {
   title: string
-  description: string
+  children: ReactNode
+}
+
+/** A few options under their heading (an `h2`) */
+export function SettingsOptionGroup({
+  title,
+  children
+}: SettingsOptionGroupProps): ReactElement {
+  const titleId = useId()
+  return (
+    <Box component="section" aria-labelledby={titleId} sx={SECTION_SX}>
+      <Typography id={titleId} component="h2" sx={GROUP_TITLE_SX}>
+        {title}
+      </Typography>
+      {children}
+    </Box>
+  )
+}
+
+export interface SettingsOptionProps {
   /** Label of the switch, e.g. "Enable thread" */
   toggleLabel: string
+  description: string
   isChecked: boolean
   isDisabled?: boolean
   onChange: (isChecked: boolean) => void
   /**
-   * What the choice made costs, under the switch in orange, null for none;
+   * What the choice made costs, under the text in orange, null for none;
    * announced when it appears, and describing the switch
    */
   warning?: string | null
@@ -144,20 +179,20 @@ export interface SettingsOptionProps {
 }
 
 /**
- * An option of the settings: its title (an `h2`), what it does, and the
- * switch, named by its label and described by both (and by its warning)
+ * An option of the settings, one row: the label of the switch and what it
+ * does, the switch at the end, named by the label and described by the text
+ * (and by its warning)
  */
 export function SettingsOption({
-  title,
-  description,
   toggleLabel,
+  description,
   isChecked,
   isDisabled = false,
   onChange,
   warning = null,
   'data-testid': testId
 }: SettingsOptionProps): ReactElement {
-  const titleId = useId()
+  const switchId = useId()
   const descriptionId = useId()
   const warningId = useId()
 
@@ -166,49 +201,71 @@ export function SettingsOption({
   }
 
   return (
-    <Box component="section" aria-labelledby={titleId} sx={SECTION_SX}>
-      <Typography id={titleId} component="h2" sx={TITLE_SX}>
-        {title}
-      </Typography>
-      <Typography id={descriptionId} component="p" sx={DESCRIPTION_SX}>
-        {description}
-      </Typography>
-      <Box component="label" sx={LABEL_SX}>
-        <Switch
-          checked={isChecked}
-          disabled={isDisabled}
-          onChange={handleChange}
-          disableRipple
-          slotProps={{
-            input: {
-              'aria-describedby': [
-                titleId,
-                descriptionId,
-                ...(warning === null ? [] : [warningId])
-              ].join(' ')
-            }
-          }}
-          data-testid={testId}
-        />
-        {toggleLabel}
+    <Box sx={OPTION_SX}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box
+          component="label"
+          htmlFor={switchId}
+          sx={
+            isDisabled
+              ? { ...ROW_TITLE_SX, color: 'text.disabled', cursor: 'default' }
+              : ROW_TITLE_SX
+          }
+        >
+          {toggleLabel}
+        </Box>
+        <Typography id={descriptionId} component="p" sx={OPTION_DESCRIPTION_SX}>
+          {description}
+        </Typography>
+        {/* Kept in the page, so that the warning is announced as it appears */}
+        <Box role="status">
+          {warning === null ? null : (
+            <Typography id={warningId} component="p" sx={WARNING_SX}>
+              {warning}
+            </Typography>
+          )}
+        </Box>
       </Box>
-      {/* Kept in the page, so that the warning is announced as it appears */}
-      <Box role="status">
-        {warning === null ? null : (
-          <Typography id={warningId} component="p" sx={WARNING_SX}>
-            {warning}
-          </Typography>
-        )}
-      </Box>
+      <Switch
+        id={switchId}
+        checked={isChecked}
+        disabled={isDisabled}
+        onChange={handleChange}
+        disableRipple
+        sx={{ flexShrink: 0 }}
+        slotProps={{
+          input: {
+            'aria-describedby': [
+              descriptionId,
+              ...(warning === null ? [] : [warningId])
+            ].join(' ')
+          }
+        }}
+        data-testid={testId}
+      />
     </Box>
   )
 }
 
-// A one line warning under the switch, in the orange of the theme's warning
-const WARNING_SX = {
-  mt: '8px',
+const OPTION_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 2,
+  maxWidth: 628,
+  py: '12px'
+} as const
+
+const OPTION_DESCRIPTION_SX = {
+  mt: '2px',
   mb: 0,
-  typography: 'body1',
+  typography: 'caption',
+  color: 'text.secondary'
+} as const
+
+const WARNING_SX = {
+  mt: 0.5,
+  mb: 0,
+  typography: 'caption',
   color: 'warning.main'
 } as const
 

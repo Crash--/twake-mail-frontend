@@ -47,31 +47,64 @@ export function toSupportedLanguage(
 }
 
 /**
- * The first supported language among the candidates, by order of
- * preference, or the default language.
+ * The languages the deployment offers (tmail-flutter `ALLOWED_LANGUAGES`):
+ * comma-separated codes (`mn,en`), in their order, case and region ignored.
+ * Unknown codes are skipped; none known (or unset) offers every language.
+ */
+export function parseAllowedLanguages(
+  value: string | null
+): readonly SupportedLanguage[] {
+  const languages = (value ?? '')
+    .split(',')
+    .map(code => toSupportedLanguage(code.replace(/["']/g, '')))
+    .filter(language => language !== null)
+  const unique = [...new Set(languages)]
+  return unique.length === 0 ? SUPPORTED_LANGUAGES : unique
+}
+
+/**
+ * The supported language of a tag, when the deployment offers it
+ */
+export function toAllowedLanguage(
+  tag: string | null | undefined,
+  allowedLanguages: readonly SupportedLanguage[]
+): SupportedLanguage | null {
+  const language = toSupportedLanguage(tag)
+  return language !== null && allowedLanguages.includes(language)
+    ? language
+    : null
+}
+
+/**
+ * The first allowed language among the candidates, by order of preference,
+ * else the default language when allowed, else the first allowed one (as
+ * tmail-flutter).
  */
 export function resolveLanguage(
-  candidates: readonly (string | null | undefined)[]
+  candidates: readonly (string | null | undefined)[],
+  allowedLanguages: readonly SupportedLanguage[] = SUPPORTED_LANGUAGES
 ): SupportedLanguage {
   for (const candidate of candidates) {
-    const language = toSupportedLanguage(candidate)
+    const language = toAllowedLanguage(candidate, allowedLanguages)
     if (language) return language
   }
-  return DEFAULT_LANGUAGE
+  return allowedLanguages.includes(DEFAULT_LANGUAGE)
+    ? DEFAULT_LANGUAGE
+    : (allowedLanguages[0] ?? DEFAULT_LANGUAGE)
 }
 
 /**
  * The language of the UI: the one the user chose, then the one of the
- * deployment, then the one of the browser.
+ * deployment, then the one of the browser, among the allowed ones.
  */
 export function findPreferredLanguage(
-  configuredLanguage: string | null
+  configuredLanguage: string | null,
+  allowedLanguages: readonly SupportedLanguage[] = SUPPORTED_LANGUAGES
 ): SupportedLanguage {
-  return resolveLanguage([
-    readStoredLanguage(),
-    configuredLanguage,
-    ...navigator.languages
-  ])
+  return resolveLanguage(
+    [readStoredLanguage(), configuredLanguage, ...navigator.languages],
+    allowedLanguages
+  )
 }
 
 /** Remembers the language chosen in this browser */

@@ -16,6 +16,11 @@ export interface CalendarInvitation {
   attendance: CalendarEventAttendanceStatus | null
   /** False when the user has another event at that time */
   isFree: boolean
+  /**
+   * The server refused an answer because the event was canceled since:
+   * neither the email nor `CalendarEventAttendance/get` tell it beforehand
+   */
+  isCanceled: boolean
 }
 
 export type CalendarInvitationKey = readonly [
@@ -83,7 +88,8 @@ export function calendarInvitationQueryOptions(
         blobId: found.blobId,
         event: found.event,
         attendance: record?.eventAttendanceStatus ?? null,
-        isFree: record?.isFree ?? true
+        isFree: record?.isFree ?? true,
+        isCanceled: false
       }
     },
     staleTime: Infinity

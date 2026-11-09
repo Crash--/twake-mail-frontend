@@ -1,10 +1,10 @@
-import { HelpOutlined, Logout } from '@linagora/twake-icons'
+import { HelpOutlined, LogoutLarge } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
 import {
-  SettingsMenuDivider,
+  SettingsMenuGroups,
   SettingsMenuItem,
   SettingsMenuList,
   SettingsMenuTitle
@@ -37,8 +37,8 @@ function SettingsNavItem({
 }
 
 /**
- * The sections of the settings, as tmail-flutter's menu: "Manage account",
- * the sections, then "Sign out" when given (the sidebar of a desktop; on
+ * The sections of the settings: "Manage account", the sections, then "More"
+ * (support, "Sign out") when signing out is given (the sidebar of a desktop; on
  * smaller screens the bars at the top sign out)
  */
 export function SettingsNav({
@@ -53,42 +53,44 @@ export function SettingsNav({
 
   return (
     <Box component="nav" aria-labelledby={titleId} data-testid="settings-nav">
-      <SettingsMenuTitle id={titleId}>
-        {t('settings.manageAccount')}
-      </SettingsMenuTitle>
-      <SettingsMenuList>
-        {sections.map(section => (
-          <SettingsNavItem key={section.id} section={section} />
-        ))}
-      </SettingsMenuList>
-      {onSignOut === null ? null : (
-        <>
-          <SettingsMenuDivider />
-          <SettingsMenuList>
-            {/* As tmail-flutter: when the server tells where to ask; the
+      <SettingsMenuGroups>
+        <SettingsMenuTitle id={titleId}>
+          {t('settings.manageAccount')}
+        </SettingsMenuTitle>
+        <SettingsMenuList>
+          {sections.map(section => (
+            <SettingsNavItem key={section.id} section={section} />
+          ))}
+        </SettingsMenuList>
+        {onSignOut === null ? null : (
+          <>
+            <SettingsMenuTitle>{t('settings.more')}</SettingsMenuTitle>
+            <SettingsMenuList>
+              {/* As tmail-flutter: when the server tells where to ask; the
                 settings have no composer, an address opens the mail app */}
-            {support === null ? null : (
+              {support === null ? null : (
+                <SettingsMenuItem
+                  icon={HelpOutlined}
+                  label={t('settings.contactSupport')}
+                  href={
+                    support.kind === 'address'
+                      ? `mailto:${support.address}`
+                      : support.href
+                  }
+                  isExternal={support.kind === 'link'}
+                  data-testid="settings-contact-support"
+                />
+              )}
               <SettingsMenuItem
-                icon={HelpOutlined}
-                label={t('settings.contactSupport')}
-                href={
-                  support.kind === 'address'
-                    ? `mailto:${support.address}`
-                    : support.href
-                }
-                isExternal={support.kind === 'link'}
-                data-testid="settings-contact-support"
+                icon={LogoutLarge}
+                label={t('topbar.logout')}
+                onClick={onSignOut}
+                data-testid="settings-sign-out-button"
               />
-            )}
-            <SettingsMenuItem
-              icon={Logout}
-              label={t('topbar.logout')}
-              onClick={onSignOut}
-              data-testid="settings-sign-out-button"
-            />
-          </SettingsMenuList>
-        </>
-      )}
+            </SettingsMenuList>
+          </>
+        )}
+      </SettingsMenuGroups>
     </Box>
   )
 }

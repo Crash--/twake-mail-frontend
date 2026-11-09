@@ -5,7 +5,6 @@ import { useState, type ReactElement } from 'react'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
-  SettingsCount,
   SettingsFormRow,
   SettingsLabelPill,
   SettingsMenuSelect,
@@ -77,20 +76,14 @@ describe('SettingsFields', () => {
 
   it('shows a label with its value', () => {
     renderDs(
-      <>
-        <SettingsLabelPill
-          component="h2"
-          label="Forward to"
-          pill="2 recipients"
-        />
-        <SettingsCount label="Name of Rules" count={3} />
-      </>
+      <SettingsLabelPill
+        component="h2"
+        label="Forward to"
+        pill="2 recipients"
+      />
     )
 
     expect(screen.getByRole('heading', { name: 'Forward to' })).toBeVisible()
     expect(screen.getByText('2 recipients')).toBeVisible()
-    expect(screen.getByText('Name of Rules')).toHaveTextContent(
-      'Name of Rules 3'
-    )
   })
 })

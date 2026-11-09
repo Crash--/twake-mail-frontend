@@ -1199,4 +1199,50 @@ describe('EmailList', () => {
     expect(within(row).queryByTestId('label-chips')).toBe(null)
     window.localStorage.clear()
   })
+
+  describe('label chips of a row', () => {
+    afterEach(resetViewport)
+
+    function renderThreeLabels(): void {
+      const server = makeFakeJmapServer({
+        capabilities: FAKE_LINAGORA_CAPABILITIES,
+        emails: [
+          makeEmail({
+            id: 'plan',
+            subject: 'Plan',
+            keywords: { $seen: true, design: true, urgent: true, home: true }
+          })
+        ]
+      })
+      installFakeLabels(server, [
+        { id: 'design', displayName: 'Design', keyword: 'design' },
+        { id: 'urgent', displayName: 'Urgent', keyword: 'urgent' },
+        { id: 'home', displayName: 'Home', keyword: 'home' }
+      ])
+      renderList(server)
+    }
+
+    it('shows three on a desktop, as tmail-flutter', async () => {
+      mockViewport({ width: 1440, touch: false })
+      renderThreeLabels()
+
+      const row = await screen.findByTestId('email-list-item')
+      const chips = await within(row).findAllByTestId('label-chip')
+      expect(chips.map(chip => chip.textContent)).toEqual([
+        'Design',
+        'Home',
+        'Urgent'
+      ])
+      expect(within(row).queryByTestId('label-chip-more')).toBe(null)
+    })
+
+    it('shows one then "+N" on a phone', async () => {
+      mockViewport({ width: 390, touch: true })
+      renderThreeLabels()
+
+      const row = await screen.findByTestId('email-list-item')
+      expect(await within(row).findAllByTestId('label-chip')).toHaveLength(1)
+      expect(within(row).getByTestId('label-chip-more')).toHaveTextContent('+2')
+    })
+  })
 })

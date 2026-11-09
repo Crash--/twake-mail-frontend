@@ -3,12 +3,19 @@ import userEvent from '@testing-library/user-event'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { ColorTag, readableTextColor } from './ColorTag'
+import { ColorTag, tagTextColor } from './ColorTag'
 
 describe('ColorTag', () => {
-  it('writes in black or white, whichever contrasts most', () => {
-    expect(readableTextColor('#273891')).toBe('#FFFFFF')
-    expect(readableTextColor('#EDC661')).toBe('#000000')
+  it('writes in white, unless the background is too light for it', () => {
+    expect(tagTextColor('#273891')).toBe('#FFFFFF')
+    // Saturated and fairly light: still white
+    expect(tagTextColor('#1EBBCC')).toBe('#FFFFFF')
+    // Pastel: a dark shade of its hue
+    expect(tagTextColor('#91CEF6')).toBe('#083C5E')
+    expect(tagTextColor('#EDC661')).toBe('#5C450A')
+    // Grey, or a near-white tint: a dark neutral
+    expect(tagTextColor('#D9D9D9')).toBe('#424244')
+    expect(tagTextColor('#F3F6F9')).toBe('#424244')
   })
 
   it('shortens long names and removes itself with its × button', async () => {

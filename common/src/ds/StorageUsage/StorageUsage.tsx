@@ -2,7 +2,7 @@
 // then in a 350 px column the space used (`h5`), "of … used" and
 // "Available: …" (`caption`), over a thin gauge; on a phone the cloud above
 // the line.
-import { Icon, Cloud } from '@linagora/twake-icons'
+import { Icon, CloudRainbow } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
@@ -33,8 +33,7 @@ const CIRCLE_SX = {
   width: 64,
   height: 64,
   borderRadius: '50%',
-  bgcolor: 'primary.light',
-  color: 'primary.main'
+  bgcolor: 'background.default'
 } as const
 
 const COLUMN_SX = { width: 351, maxWidth: '100%', minWidth: 0 } as const
@@ -81,7 +80,7 @@ export function StorageUsage({
       data-used={dataUsed}
     >
       <Box sx={CIRCLE_SX} aria-hidden="true">
-        <Icon icon={Cloud} size={28} />
+        <Icon icon={CloudRainbow} size={28} />
       </Box>
       <Box sx={isPhone ? PHONE_COLUMN_SX : COLUMN_SX}>
         <Box className="u-flex u-flex-items-baseline">

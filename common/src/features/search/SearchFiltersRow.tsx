@@ -16,9 +16,9 @@ export interface SearchFiltersRowProps {
 }
 
 /**
- * The back button and the filters of the search results. On a desktop, as
- * tmail-flutter, they sit above the white card of the list (`FlatMain`
- * header, `SearchFiltersHeader`), else at the top of the results.
+ * The back button and the filters of the search results. On a desktop they
+ * sit under the search, above the list (`SearchFiltersHeader`), else at the
+ * top of the results.
  */
 export function SearchFiltersRow({
   filter

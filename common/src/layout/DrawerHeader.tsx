@@ -5,6 +5,7 @@ import {
   usePlatformSdk,
   usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { AppTitle } from '@injected/layout/AppTitle'
 
 import { HelpButton } from './HelpButton'
@@ -15,12 +16,13 @@ import { SettingsButton } from './SettingsButton'
  * The top of the folder drawer below the desktop size: the logotype. Without
  * the platform of Twake Workplace (no bar of its own above the bar of the
  * mail), as tmail-flutter's drawer: the help, the settings and the log out
- * too, which the bar of the mail leaves out. Framed by the Workplace, the
- * help and the settings alone.
+ * too, which the bar of the mail leaves out. A phone has its settings at the
+ * foot of the drawer.
  */
 export function DrawerHeader(): ReactElement {
   const sdk = usePlatformSdk()
   const isPlatformActive = usePlatformStatus() !== 'public'
+  const isPhone = useScreenSize() === 'mobile'
 
   return (
     <Box
@@ -34,7 +36,7 @@ export function DrawerHeader(): ReactElement {
       {isPlatformActive ? null : (
         <>
           <HelpButton />
-          <SettingsButton />
+          {isPhone ? null : <SettingsButton />}
           {sdk === null ? null : <LogoutButton />}
         </>
       )}

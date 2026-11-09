@@ -8,7 +8,6 @@ import { FolderPicker, type FolderPickerSection } from './FolderPicker'
 
 const LABELS = {
   title: 'Move To',
-  close: 'Close',
   search: 'Search folders',
   empty: 'No folder',
   collapsed: 'subfolders hidden',

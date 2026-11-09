@@ -8,6 +8,10 @@ import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig } from '@common/config/config'
 import type { AuthService } from '@common/features/auth/types'
 import {
+  makeFakeJmapServer,
+  type FakeJmapServer
+} from '@common/testing/fakeJmapServer'
+import {
   makeFakeBasicAuthService,
   makeFakeOidcAuthService
 } from '@common/testing/makeFakeAuthService'
@@ -134,20 +138,27 @@ const oidcService = (
 
 function renderLayout({
   authService = oidcService(),
-  route = '/'
+  route = '/',
+  jmapServer
 }: {
   authService?: AuthService
   route?: string
+  jmapServer?: FakeJmapServer
 } = {}): void {
   renderWithProviders(withConfig(<AppLayout />), {
     route,
     path: '*',
     authService,
+    jmapServer,
     withJmapSession: true,
     childRoutes: (
       <>
         <Route index element={<p>Routed content</p>} />
         <Route path="mailbox/:mailboxId" element={<p>Folder content</p>} />
+        <Route
+          path="mailbox/:mailboxId/email/:emailId"
+          element={<p>Email content</p>}
+        />
         <Route path="settings/*" element={<p>Settings content</p>} />
       </>
     )
@@ -243,8 +254,8 @@ describe('AppLayout with the platform bar', () => {
     })
   })
 
-  it('keeps the bar of the mail under it below the desktop size, with the folders and a gear', async () => {
-    mockViewport({ width: 390, touch: true })
+  it('keeps the bar of the mail under it on a tablet, with the folders and a gear', async () => {
+    mockViewport({ width: 700, touch: true })
     mockPlatform()
     renderLayout({ route: '/mailbox/mailbox-inbox' })
 
@@ -261,6 +272,64 @@ describe('AppLayout with the platform bar', () => {
       within(topBar).getByRole('button', { name: 'Settings' })
     )
     expect(await screen.findByText('Settings content')).toBeVisible()
+  })
+
+  it('gives an email open on a phone the screen under the platform bar', async () => {
+    mockViewport({ width: 390, touch: true })
+    mockPlatform()
+    renderLayout({ route: '/mailbox/mailbox-inbox/email/e1' })
+
+    expect(await screen.findByText('Email content')).toBeVisible()
+    expect(await screen.findByTestId('twake-bar')).toBeVisible()
+    expect(screen.queryByTestId('top-bar')).toBe(null)
+  })
+
+  it('puts the settings of a phone at the foot of the drawer, out of the bar of the mail', async () => {
+    mockViewport({ width: 390, touch: true })
+    mockPlatform()
+    renderLayout({ route: '/mailbox/mailbox-inbox' })
+
+    expect(await screen.findByTestId('twake-bar')).toBeVisible()
+    const topBar = screen.getByTestId('top-bar')
+    expect(
+      await within(topBar).findByTestId('top-bar-folder-name')
+    ).toHaveTextContent('Inbox')
+    expect(within(topBar).queryByRole('button', { name: 'Settings' })).toBe(
+      null
+    )
+
+    await userEvent.click(
+      within(topBar).getByRole('button', { name: 'Show folders' })
+    )
+    await userEvent.click(
+      within(await screen.findByTestId('mailbox-drawer')).getByRole('link', {
+        name: 'Settings'
+      })
+    )
+    expect(await screen.findByText('Settings content')).toBeVisible()
+  })
+
+  it('keeps the help of the mail in the bar of the mail on a phone', async () => {
+    mockViewport({ width: 390, touch: true })
+    mockPlatform()
+    renderLayout({
+      route: '/mailbox/mailbox-inbox',
+      jmapServer: makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:support': {
+            httpLink: 'https://support.example.com/help'
+          }
+        }
+      })
+    })
+
+    const topBar = await screen.findByTestId('top-bar')
+    expect(
+      await within(topBar).findByRole('link', {
+        name: 'Get help or report a bug'
+      })
+    ).toHaveAttribute('href', 'https://support.example.com/help')
+    expect(screen.getAllByTestId('help-button')).toHaveLength(1)
   })
 
   it('keeps the bar, with a log out button, when the platform refuses the token', async () => {

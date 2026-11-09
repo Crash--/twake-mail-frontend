@@ -13,6 +13,7 @@ import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { CountBadge } from '@/ds/CountBadge/CountBadge'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { RowTextAction } from '@/ds/RowTextAction/RowTextAction'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useDropEmails } from '@common/features/emailActions/useDropEmails'
 import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderActionsMenu'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
@@ -50,7 +51,7 @@ export interface MailboxTreeItemProps {
 }
 
 /** The menu key, or Shift+F10: the keyboard way to a context menu */
-function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
+export function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
   return event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)
 }
 
@@ -58,12 +59,12 @@ function isMenuKey(event: KeyboardEvent<HTMLElement>): boolean {
  * A folder of the sidebar tree: icon, name, expand arrow and unread count,
  * linking to the folder, where dragged emails can drop; a personal folder
  * dragged onto another moves under it (from the keyboard: "Move folder" in
- * its menu). Its menu opens from
- * the ⋮ button shown on hover or focus, a right click, the menu key or
- * Shift+F10. On the Spam, "Clean" empties it. A hidden folder, shown on
- * demand, has the icon of hidden folders and says so. The root of a team
- * mailbox is a container, as tmail-flutter: no link, no drop, a click opens
- * or closes it.
+ * its menu). Its menu opens from the ⋮ button shown on hover or focus, a
+ * right click, the menu key or Shift+F10; on a phone, also from a long
+ * press. On the Spam, "Clean" empties it. A hidden folder, shown on demand,
+ * has the icon of hidden folders and says so. The root of a team mailbox is
+ * a container, as tmail-flutter: no link, no drop, a click opens or closes
+ * it.
  */
 export function MailboxTreeItem({
   row,
@@ -75,6 +76,7 @@ export function MailboxTreeItem({
   const { t } = useI18n()
   const getName = useMailboxName()
   const folderActions = useFolderActions()
+  const isPhone = useScreenSize() === 'mobile'
   const { mailbox } = row
   const toggleLabel = t(row.isExpanded ? 'mailbox.collapse' : 'mailbox.expand')
   // Keyboard users move emails from their menus: "Move message"
@@ -205,6 +207,14 @@ export function MailboxTreeItem({
         )
       }
       countText={shownCount === null ? undefined : String(shownCount.count)}
+      onLongPress={
+        isPhone
+          ? element => {
+              onOpenMenu(mailbox, { element })
+            }
+          : undefined
+      }
+      longPressHint={t('folders.longPressHint')}
       actions={
         <>
           {canEmptySpam ? (

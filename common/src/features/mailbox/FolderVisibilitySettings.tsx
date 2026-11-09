@@ -1,4 +1,5 @@
-import { FolderOutlined, EyeClosed, Eye } from '@linagora/twake-icons'
+import { EyeClosed, Eye, Icon, Lock } from '@linagora/twake-icons'
+import { Box, Typography } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
 import { CollapsibleCategory } from '@/ds/CollapsibleCategory/CollapsibleCategory'
@@ -32,6 +33,32 @@ function canHide(node: MailboxNode): boolean {
     : mailbox.parentId === null
 }
 
+/** The system folders (Inbox, Sent…) are always in the sidebar */
+function isAlwaysVisible(node: MailboxNode): boolean {
+  return isPersonalMailbox(node.mailbox) && node.mailbox.role !== null
+}
+
+function AlwaysVisible(): ReactElement {
+  const { t } = useI18n()
+  return (
+    <Box
+      component="span"
+      className="u-flex u-flex-items-center u-flex-shrink-0"
+      data-testid="folder-visibility-always-visible"
+    >
+      <Icon icon={Lock} size={16} aria-hidden="true" />
+      <Typography
+        variant="caption"
+        component="span"
+        color="textPrimary"
+        className="u-ml-half"
+      >
+        {t('folders.visibility.alwaysVisible')}
+      </Typography>
+    </Box>
+  )
+}
+
 interface FolderRowsProps {
   nodes: readonly MailboxNode[]
   expandedIds: ReadonlySet<string>
@@ -60,6 +87,9 @@ function FolderRows({
         const name = getName(mailbox)
         const isExpanded = expandedIds.has(mailbox.id)
         const isTeamMailbox = isTeamRoot(mailbox)
+        const state = t(
+          isHidden ? 'folders.visibility.hidden' : 'folders.visibility.visible'
+        )
         return (
           <FolderVisibilityRow
             key={mailbox.id}
@@ -87,23 +117,25 @@ function FolderRows({
             action={
               canHide(node) ? (
                 <VisibilityToggleButton
-                  text={t(
-                    isHidden
-                      ? 'folders.visibility.show'
-                      : 'folders.visibility.hide'
-                  )}
-                  label={t(
-                    isHidden
-                      ? 'folders.visibility.showOf'
-                      : 'folders.visibility.hideOf',
-                    { name }
-                  )}
-                  icon={isHidden ? Eye : EyeClosed}
+                  text={state}
+                  // Starts with the state shown, then says what a click does
+                  label={t('folders.visibility.stateAction', {
+                    state,
+                    action: t(
+                      isHidden
+                        ? 'folders.visibility.showOf'
+                        : 'folders.visibility.hideOf',
+                      { name }
+                    )
+                  })}
+                  icon={isHidden ? EyeClosed : Eye}
                   onClick={() => {
                     run(isHidden ? 'show' : 'hide', mailbox)
                   }}
                   data-testid="folder-visibility-toggle"
                 />
+              ) : isAlwaysVisible(node) ? (
+                <AlwaysVisible />
               ) : null
             }
             data-testid="folder-visibility-item"
@@ -124,16 +156,49 @@ function FolderRows({
   )
 }
 
+interface FolderGroupProps {
+  title: string
+  isFirst?: boolean
+  children: ReactElement
+  'data-testid': string
+}
+
+/** A heading and its list of folders */
+function FolderGroup({
+  title,
+  isFirst = false,
+  children,
+  'data-testid': testId
+}: FolderGroupProps): ReactElement {
+  const titleId = useId()
+  return (
+    <Box component="section" aria-labelledby={titleId}>
+      <Typography
+        id={titleId}
+        variant="caption"
+        component="h2"
+        color="textSecondary"
+        className={isFirst ? 'u-mb-half' : 'u-mt-1 u-mb-half'}
+      >
+        {title}
+      </Typography>
+      <PlainList label={title} data-testid={testId}>
+        {children}
+      </PlainList>
+    </Box>
+  )
+}
+
 export interface FolderVisibilitySettingsProps {
   section: SettingsSection
 }
 
 /**
- * Settings > Folder visibility, as tmail-flutter: the system folders, then
- * the "Folders" bar folding the user's own folders and the team mailboxes,
- * in a 315 px column. Each folder the user made, and each team mailbox, is
- * hidden or shown again (`isSubscribed`, with their subfolders, or with
- * their parents).
+ * Settings > Folder visibility, as the Figma: the system folders, always
+ * visible, then the "Folders" heading folding the user's own folders and the
+ * team mailboxes, each under its own folding heading. Each folder the user
+ * made, and each team mailbox, is hidden or shown again (`isSubscribed`, with
+ * their subfolders, or with their parents).
  */
 export function FolderVisibilitySettings({
   section
@@ -177,12 +242,13 @@ export function FolderVisibilitySettings({
   return (
     <SettingsSectionLayout section={section}>
       <NarrowColumn>
-        <PlainList
-          label={t('sidebar.mailboxes')}
+        <FolderGroup
+          title={t('sidebar.mailboxes')}
+          isFirst
           data-testid="folder-visibility-personal"
         >
           {rows(system)}
-        </PlainList>
+        </FolderGroup>
         {folders.length === 0 && team.length === 0 ? null : (
           <CollapsibleCategory
             title={t('sidebar.folders')}
@@ -196,13 +262,12 @@ export function FolderVisibilitySettings({
             {folders.length === 0 ? null : (
               <CollapsibleCategory
                 title={t('folders.visibility.personal')}
-                icon={FolderOutlined}
                 isExpanded={isPersonalExpanded}
                 onToggle={() => {
                   setPersonalExpanded(current => !current)
                 }}
                 controlsId={`${baseId}-personal`}
-                inset={10}
+                headingLevel="h3"
                 isList
                 data-testid="folder-visibility-folders"
               >
@@ -212,13 +277,12 @@ export function FolderVisibilitySettings({
             {team.length === 0 ? null : (
               <CollapsibleCategory
                 title={t('folders.visibility.team')}
-                icon={FolderOutlined}
                 isExpanded={isTeamExpanded}
                 onToggle={() => {
                   setTeamExpanded(current => !current)
                 }}
                 controlsId={`${baseId}-team`}
-                inset={10}
+                headingLevel="h3"
                 isList
                 data-testid="folder-visibility-team"
               >

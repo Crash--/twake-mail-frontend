@@ -129,13 +129,10 @@ test.describe('SET preferences', () => {
       await expect(page.getByTestId('vacation-subject-input')).toBeDisabled()
       await expectNoA11yViolations(page)
 
-      await page
-        .getByRole('switch', {
-          name: 'Automatically reply to messages when they are received.'
-        })
-        .click()
+      await page.getByRole('switch', { name: 'Vacation responder' }).click()
       await expect(message).toHaveAttribute('contenteditable', 'true')
       await expect(message).not.toHaveAttribute('aria-disabled')
+      await page.getByTestId('vacation-start-choice-pick').click()
       await page.getByTestId('vacation-start-date-input').fill('2020-01-01')
       await page.getByTestId('vacation-save-button').click()
       await expect(page.getByTestId('vacation-error')).toHaveText(
@@ -150,20 +147,31 @@ test.describe('SET preferences', () => {
         'Your vacation responder is enabled.'
       )
       await expectNoA11yViolations(page)
+      const savedVacation = async (): Promise<Record<string, unknown>> => {
+        const result = await jmap.call(
+          'VacationResponse/get',
+          { ids: ['singleton'] },
+          ['urn:ietf:params:jmap:vacationresponse']
+        )
+        return (result.list as Record<string, unknown>[])[0] ?? {}
+      }
+      await expect.poll(savedVacation).toMatchObject({
+        isEnabled: true,
+        subject: 'Away',
+        htmlBody: '<p>I am away.</p>'
+      })
+
+      // A start that has passed is saved again as it was, not as the save time
+      const { fromDate } = await savedVacation()
+      await expect(page.getByTestId('vacation-start-choice-now')).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await page.getByTestId('vacation-subject-input').fill('Out of office')
+      await page.getByTestId('vacation-save-button').click()
       await expect
-        .poll(async () => {
-          const result = await jmap.call(
-            'VacationResponse/get',
-            { ids: ['singleton'] },
-            ['urn:ietf:params:jmap:vacationresponse']
-          )
-          return (result.list as unknown[])[0]
-        })
-        .toMatchObject({
-          isEnabled: true,
-          subject: 'Away',
-          htmlBody: '<p>I am away.</p>'
-        })
+        .poll(savedVacation)
+        .toMatchObject({ subject: 'Out of office', fromDate })
 
       await settings.backToMail()
       await expect(mailbox.root).toBeVisible()
@@ -197,6 +205,14 @@ test.describe('SET preferences', () => {
         .getByTestId('folder-visibility-toggle')
     ).toHaveCount(0)
     await expectNoA11yViolations(page)
+
+    // "Folders" folds the personal folders and the team mailboxes
+    const foldersToggle = page.getByTestId('folder-visibility-folders-toggle')
+    await foldersToggle.click()
+    await expect(foldersToggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByTestId('folder-visibility-folders')).toHaveCount(0)
+    await foldersToggle.click()
+    await expect(page.getByTestId('folder-visibility-folders')).toBeVisible()
 
     await page.getByRole('button', { name: 'Hide Projects' }).click()
     await expect(

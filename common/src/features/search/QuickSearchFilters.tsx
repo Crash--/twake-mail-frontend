@@ -2,10 +2,9 @@ import {
   StarOutline,
   Attachment,
   CalendarToday,
-  Check,
   Account
 } from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
+import { Stack } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
@@ -35,77 +34,66 @@ export function QuickSearchFilters({
   const isFromMe = filter.from.includes(ownAddress)
   const isLast7Days = filter.dateRange === 'last7Days'
 
-  // The chips keep a bottom margin for when they wrap: half a padding below
-  // them makes the space the same above and below
   return (
-    <Box
+    <Stack
+      direction="row"
+      spacing={0.5}
+      useFlexGap
       role="group"
       aria-label={t('search.quickFilters')}
-      className="u-flex u-flex-wrap u-pt-1 u-ph-1 u-pb-half"
+      className="u-flex-wrap u-ph-1 u-pv-half"
       data-testid="quick-search-filters"
     >
-      <span className="u-mr-half u-mb-half">
-        <FilterChip
-          label={t('search.filters.hasAttachment')}
-          icon={Attachment}
-          selectedIcon={Check}
-          isSelected={filter.hasAttachment}
-          keepFocus
-          onClick={() => {
-            onChange({ ...filter, hasAttachment: !filter.hasAttachment })
-          }}
-          data-testid="quick-search-filter-has-attachment"
-        />
-      </span>
-      <span className="u-mr-half u-mb-half">
-        <FilterChip
-          label={t('search.dates.last7Days')}
-          icon={CalendarToday}
-          selectedIcon={Check}
-          isSelected={isLast7Days}
-          keepFocus
-          onClick={() => {
-            onChange({
-              ...filter,
-              dateRange: isLast7Days ? 'allTime' : 'last7Days',
-              startDate: null,
-              endDate: null
-            })
-          }}
-          data-testid="quick-search-filter-last-7-days"
-        />
-      </span>
-      <span className="u-mr-half u-mb-half">
-        <FilterChip
-          label={t('search.filters.fromMe')}
-          icon={Account}
-          selectedIcon={Check}
-          isSelected={isFromMe}
-          keepFocus
-          onClick={() => {
-            onChange({
-              ...filter,
-              from: isFromMe
-                ? filter.from.filter(address => address !== ownAddress)
-                : [...filter.from, ownAddress]
-            })
-          }}
-          data-testid="quick-search-filter-from-me"
-        />
-      </span>
-      <span className="u-mr-half u-mb-half">
-        <FilterChip
-          label={t('search.filters.starred')}
-          icon={StarOutline}
-          selectedIcon={Check}
-          isSelected={filter.starred}
-          keepFocus
-          onClick={() => {
-            onChange({ ...filter, starred: !filter.starred })
-          }}
-          data-testid="quick-search-filter-starred"
-        />
-      </span>
-    </Box>
+      <FilterChip
+        label={t('search.filters.hasAttachment')}
+        icon={Attachment}
+        isSelected={filter.hasAttachment}
+        keepFocus
+        onClick={() => {
+          onChange({ ...filter, hasAttachment: !filter.hasAttachment })
+        }}
+        data-testid="quick-search-filter-has-attachment"
+      />
+      <FilterChip
+        label={t('search.dates.last7Days')}
+        icon={CalendarToday}
+        isSelected={isLast7Days}
+        keepFocus
+        onClick={() => {
+          onChange({
+            ...filter,
+            dateRange: isLast7Days ? 'allTime' : 'last7Days',
+            startDate: null,
+            endDate: null
+          })
+        }}
+        data-testid="quick-search-filter-last-7-days"
+      />
+      <FilterChip
+        label={t('search.filters.fromMe')}
+        icon={Account}
+        isSelected={isFromMe}
+        keepFocus
+        onClick={() => {
+          onChange({
+            ...filter,
+            from: isFromMe
+              ? filter.from.filter(address => address !== ownAddress)
+              : [...filter.from, ownAddress]
+          })
+        }}
+        data-testid="quick-search-filter-from-me"
+      />
+      <FilterChip
+        label={t('search.filters.starred')}
+        icon={StarOutline}
+        isSelected={filter.starred}
+        keepFocus
+        onClick={() => {
+          onChange({ ...filter, starred: !filter.starred })
+        }}
+        data-testid="quick-search-filter-starred"
+      />
+    </Stack>
   )
 }

@@ -11,7 +11,7 @@ import { CategoryTabs } from '@/ds/CategoryTabs/CategoryTabs'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import { SettingsSubheading } from '@/ds/SettingsHeading/SettingsHeading'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
-import { ShortcutList } from '@/ds/ShortcutList/ShortcutList'
+import { SHORTCUTS_WIDTH, ShortcutList } from '@/ds/ShortcutList/ShortcutList'
 import { useI18n } from '@common/i18n/useI18n'
 
 import {
@@ -31,7 +31,10 @@ const CATEGORY_ICONS: Record<ShortcutCategory, IconProps['icon']> = {
 }
 
 export interface ShortcutsPanelProps {
-  /** Id of the description, for the dialog or region showing the panel */
+  /**
+   * Id of the description, for the dialog showing the panel; without it the
+   * page around says what the shortcuts do
+   */
   descriptionId?: string
   /** Id of the heading naming the table */
   labelledBy: string
@@ -54,15 +57,18 @@ export function ShortcutsPanel({
 
   return (
     <>
-      <div id={descriptionId}>
-        <SecondaryText variant="body2" component="p" className="u-mb-1">
-          {t('shortcuts.description')}
-        </SecondaryText>
-      </div>
+      {descriptionId === undefined ? null : (
+        <div id={descriptionId}>
+          <SecondaryText variant="body2" component="p" className="u-mb-1">
+            {t('shortcuts.description')}
+          </SecondaryText>
+        </div>
+      )}
       <SettingsSwitchRow
         title={t('shortcuts.enable')}
         isChecked={isEnabled}
         onChange={setEnabled}
+        endWidth={SHORTCUTS_WIDTH}
         data-testid="shortcuts-enabled-switch"
       />
       <Box className="u-mt-1">
@@ -78,6 +84,7 @@ export function ShortcutsPanel({
             setCategory(id as ShortcutCategory)
           }}
           label={t('shortcuts.categories.label')}
+          barWidth={SHORTCUTS_WIDTH}
           data-testid="shortcuts-categories"
         >
           <ShortcutList

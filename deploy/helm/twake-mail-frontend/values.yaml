@@ -145,6 +145,9 @@ config:
   # (/embed/team-mailboxes/<id>); allow it in csp.frameAncestors
   twakeSpaceUrl: ""
   forwardWarningMessage: ""
+  # -- ALLOWED_LANGUAGES: the languages offered, comma-separated and in the
+  # order of the picker (e.g. mn,en); empty offers every language
+  allowedLanguages: ""
   # -- Twake Drive picker of the composer, offered on the Workplace of the
   # user (OIDC, workplaceFqdn claim or workplaceFqdnFallback) when Drive is
   # installed there. Allow the Drive hosts in csp.frameSrc

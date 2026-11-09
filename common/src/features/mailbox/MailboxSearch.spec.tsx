@@ -5,7 +5,10 @@ import { Outlet, Route, useParams } from 'react-router'
 
 import { FolderActionsProvider } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { SupportedLanguage } from '@common/i18n/languages'
+import { writeMailboxView } from '@common/jmap/mailboxView'
+import { FAKE_DELEGATION_CAPABILITIES } from '@common/testing/fakeDelegation'
 import {
+  FAKE_USERNAME,
   makeDefaultMailboxes,
   makeFakeJmapServer,
   makeMailbox,
@@ -16,7 +19,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { MailboxPickerProvider } from './MailboxPickerProvider'
 import { MailboxTree } from './MailboxTree'
 
-const TEAM = 'TeamMailbox[team@example.com]'
+const TEAM = 'TeamMailbox[clients-team@example.com]'
 
 function Screen(): ReactElement {
   return (
@@ -48,7 +51,7 @@ function makeServer(): FakeJmapServer {
         parentId: 'taxes',
         isSubscribed: false
       }),
-      makeMailbox({ id: 'team', name: 'Clients team', namespace: TEAM }),
+      makeMailbox({ id: 'team', name: 'clients-team', namespace: TEAM }),
       makeMailbox({
         id: 'team-inbox',
         name: 'Clients INBOX',
@@ -104,20 +107,22 @@ function result(name: string): HTMLElement {
 }
 
 describe('Folder search of the sidebar', () => {
-  it('opens a named field with the focus in it, in place of the trees', async () => {
+  afterEach(() => {
+    window.sessionStorage.clear()
+  })
+
+  it('opens a named field with the focus in it, in place of the trees and their header', async () => {
     await renderSidebar()
 
-    expect(magnifier()).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(magnifier())
 
-    expect(magnifier()).toHaveAttribute('aria-expanded', 'true')
     expect(field()).toHaveFocus()
     expect(screen.getByRole('search')).toBeVisible()
-    expect(magnifier()).toHaveAttribute(
-      'aria-controls',
-      screen.getByRole('search').id
-    )
     expect(screen.queryByTestId('mailbox-tree')).toBe(null)
+    expect(screen.queryByTestId('mailbox-tree-title')).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Search for folders' })).toBe(
+      null
+    )
     expect(results()).toEqual([])
   })
 
@@ -138,16 +143,16 @@ describe('Folder search of the sidebar', () => {
     expect(results()).toEqual([
       'Old clients',
       'Clients',
-      'Clients team',
+      'clients-team',
       'Clients INBOX'
     ])
     expect(within(result('Clients')).getByText('Work/Clients')).toBeVisible()
     // The root of a team mailbox says whose it is, its folders their path
     expect(
-      within(result('Clients team')).getByText('team@example.com')
+      within(result('clients-team')).getByText('clients-team@example.com')
     ).toBeVisible()
     expect(
-      within(result('Clients INBOX')).getByText('Clients team/Clients INBOX')
+      within(result('Clients INBOX')).getByText('clients-team/Clients INBOX')
     ).toBeVisible()
   })
 
@@ -288,7 +293,6 @@ describe('Folder search of the sidebar', () => {
 
     expect(screen.queryByRole('search')).toBe(null)
     expect(screen.getByTestId('mailbox-tree')).toBeVisible()
-    expect(magnifier()).toHaveAttribute('aria-expanded', 'false')
     expect(magnifier()).toHaveFocus()
   })
 
@@ -304,13 +308,15 @@ describe('Folder search of the sidebar', () => {
     expect(magnifier()).toHaveFocus()
   })
 
-  it('closes with the magnifier, and starts again from an empty field', async () => {
+  it('goes back to the folders with its back button, and starts again from an empty field', async () => {
     await renderSidebar()
     await userEvent.click(magnifier())
     await userEvent.type(field(), 'client')
 
-    await userEvent.click(magnifier())
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(screen.queryByRole('search')).toBe(null)
+    expect(screen.getByTestId('mailbox-tree')).toBeVisible()
+    expect(magnifier()).toHaveFocus()
 
     await userEvent.click(magnifier())
     expect(field()).toHaveValue('')
@@ -323,5 +329,25 @@ describe('Folder search of the sidebar', () => {
     expect(
       screen.getByRole('link', { name: 'Folder visibility' })
     ).toHaveAttribute('href', '/settings/folder-visibility')
+  })
+
+  it('has no link to the settings in a mailbox delegated to the user', async () => {
+    writeMailboxView(FAKE_USERNAME, {
+      kind: 'delegated',
+      accountId: 'account-alice'
+    })
+    await renderSidebar(
+      makeFakeJmapServer({
+        capabilities: FAKE_DELEGATION_CAPABILITIES,
+        delegatedAccounts: [
+          { accountId: 'account-alice', name: 'alice@example.com' }
+        ],
+        mailboxes: makeDefaultMailboxes()
+      })
+    )
+    await userEvent.click(magnifier())
+
+    expect(screen.getByRole('search')).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'Folder visibility' })).toBe(null)
   })
 })

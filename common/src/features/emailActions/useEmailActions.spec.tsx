@@ -26,20 +26,23 @@ import type { TargetEmail } from './planEmailChanges'
 import {
   inStartFolder,
   useEmailActions,
-  type EmailActionName
+  type EmailActionName,
+  type EmailActionRequest
 } from './useEmailActions'
 
 interface ActionButtonProps {
   action: EmailActionName
   emailIds: string[]
   destinationId?: string
+  labels?: EmailActionRequest['labels']
 }
 
 /** Runs an action on emails of the cache, as the screens will */
 function ActionButton({
   action,
   emailIds,
-  destinationId
+  destinationId,
+  labels
 }: ActionButtonProps): ReactElement {
   const { run } = useEmailActions()
   const queryClient = useQueryClient()
@@ -48,7 +51,13 @@ function ActionButton({
       const email = findCachedEmail(queryClient, FAKE_ACCOUNT_ID, id)
       return email === null ? [] : [email]
     })
-    void run({ action, emails, mailboxId: 'mailbox-inbox', destinationId })
+    void run({
+      action,
+      emails,
+      mailboxId: 'mailbox-inbox',
+      destinationId,
+      labels
+    })
   }
   return (
     <button type="button" onClick={handleClick}>
@@ -256,6 +265,48 @@ describe('useEmailActions', () => {
     expect(
       emailSets(server).map(args => Object.keys(args.update ?? {}).length)
     ).toEqual([2, 2, 1])
+  })
+
+  it('puts on and takes off several labels in one Email/set per email', async () => {
+    const server = makeServer({
+      emails: [
+        makeEmail({
+          id: 'e1',
+          receivedAt: '2026-10-03T08:00:00Z',
+          keywords: { old: true }
+        })
+      ]
+    })
+    await renderActions(server, [
+      {
+        action: 'setLabels',
+        emailIds: ['e1'],
+        labels: {
+          added: [{ keyword: 'first' }, { keyword: 'second' }],
+          removed: [{ keyword: 'old' }]
+        }
+      }
+    ])
+
+    await userEvent.click(screen.getByRole('button', { name: 'Run setLabels' }))
+
+    await screen.findByTestId('toast')
+    expect(emailSets(server)).toEqual([
+      {
+        accountId: FAKE_ACCOUNT_ID,
+        update: {
+          e1: {
+            'keywords/old': null,
+            'keywords/first': true,
+            'keywords/second': true
+          }
+        }
+      }
+    ])
+    expect(server.emails.find(email => email.id === 'e1')?.keywords).toEqual({
+      first: true,
+      second: true
+    })
   })
 
   it('rolls back the emails the server refuses, and retries them', async () => {

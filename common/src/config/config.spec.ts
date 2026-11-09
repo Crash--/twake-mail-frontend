@@ -1,3 +1,5 @@
+import { SUPPORTED_LANGUAGES } from '@common/i18n/languages'
+
 import { DEFAULT_SSO_SCOPE, resolveConfig } from './config'
 
 const ORIGIN = 'https://mail.example.com'
@@ -77,6 +79,15 @@ describe('resolveConfig', () => {
     expect(result.ok && result.value.forwardWarningMessage).toBe(
       'No external forward.'
     )
+  })
+
+  it('reads the languages offered from ALLOWED_LANGUAGES', () => {
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, ALLOWED_LANGUAGES: 'mn,en' }, ORIGIN)
+    ).toMatchObject({ value: { allowedLanguages: ['mn', 'en'] } })
+    expect(
+      resolveConfig({ ...FLUTTER_ENV_FILE, ALLOWED_LANGUAGES: '' }, ORIGIN)
+    ).toMatchObject({ value: { allowedLanguages: SUPPORTED_LANGUAGES } })
   })
 
   it('turns the Drive picker on with TDRIVE_ENABLED', () => {

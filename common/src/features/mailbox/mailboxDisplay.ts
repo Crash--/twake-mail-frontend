@@ -2,12 +2,12 @@ import {
   Archive,
   FolderOutlined,
   FileOutline,
-  Email,
-  Send,
+  Inbox,
+  Outbox,
   Restore,
   Paperplane,
-  Warning,
-  Note,
+  Spam,
+  Template,
   Trash,
   type IconProps
 } from '@linagora/twake-icons'
@@ -39,13 +39,13 @@ const ROLE_NAMES: Partial<Record<string, TranslationKey>> = {
 }
 
 const ROLE_ICONS: Partial<Record<string, MailboxIcon>> = {
-  inbox: Email,
+  inbox: Inbox,
   drafts: FileOutline,
-  outbox: Send,
+  outbox: Outbox,
   sent: Paperplane,
   trash: Trash,
-  junk: Warning,
-  templates: Note,
+  junk: Spam,
+  templates: Template,
   archive: Archive,
   'restored messages': Restore
 }

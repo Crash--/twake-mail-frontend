@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { ChipBackButton } from '@/ds/ChipBackButton/ChipBackButton'
 import { ResponsiveSidebar } from '@/ds/ResponsiveSidebar/ResponsiveSidebar'
 import { useI18n } from '@common/i18n/useI18n'
+import { MailSidebarFooter } from '@common/layout/MailSidebarFooter'
 
 import {
   SETTINGS_EXIT_STATE,
@@ -12,17 +13,15 @@ import {
 } from './SettingsExitProvider'
 import { SettingsNav } from './SettingsNav'
 
-/** Width of the settings menu of tmail-flutter (`defaultSizeMenu`) */
-const SETTINGS_SIDEBAR_WIDTH = 256
-
 export interface SettingsSidebarProps {
   /** "Sign out" at the end of the menu */
   onSignOut: () => void
 }
 
 /**
- * The column of the settings on a desktop, as tmail-flutter's: "Back" to
- * the mail, then "Manage account" and its sections, and "Sign out". Smaller
+ * The column of the settings on a desktop, as the Figma's: "Back" to the
+ * mail, "Manage account" and its sections, "More" (support, sign out), and
+ * the storage and the version at the foot, as the mail's sidebar. Smaller
  * screens list the sections in the page.
  */
 export function SettingsSidebar({
@@ -37,10 +36,9 @@ export function SettingsSidebar({
       onClose={() => undefined}
       label={t('settings.title')}
       closeLabel={t('common.close')}
-      width={SETTINGS_SIDEBAR_WIDTH}
       data-testid="settings-sidebar"
     >
-      <Box className="u-ml-1 u-mt-1-half">
+      <Box className="u-flex-auto u-ov-auto u-ph-1 u-pt-1">
         <ChipBackButton
           component={Link}
           to={exitPath}
@@ -50,10 +48,11 @@ export function SettingsSidebar({
         >
           {t('common.back')}
         </ChipBackButton>
+        <Box className="u-mt-1-half u-pb-1">
+          <SettingsNav onSignOut={onSignOut} />
+        </Box>
       </Box>
-      <Box className="u-flex-auto u-ov-auto u-mt-half u-ph-half">
-        <SettingsNav onSignOut={onSignOut} />
-      </Box>
+      <MailSidebarFooter />
     </ResponsiveSidebar>
   )
 }

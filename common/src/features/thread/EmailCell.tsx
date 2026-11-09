@@ -1,18 +1,17 @@
 import {
   Icon,
-  Attachment,
   EmailNotification,
   EmailOpen,
   FolderMoveto,
+  InfoOutlined,
   Openwith,
-  Reply,
   Right,
   Star,
   StarOutline,
-  Trash,
-  WarningCircle
+  Trash
 } from '@linagora/twake-icons'
 import {
+  Checkbox,
   Tooltip,
   type VirtualizedTableColumn,
   type VirtualizedTableRow
@@ -25,12 +24,20 @@ import {
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { FAVORITE_COLOR, IconAction } from '@/ds/IconAction/IconAction'
-import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import {
+  AttachmentIcon,
+  ForwardOutlineIcon,
+  MoreVerticalIcon,
+  ReplyOutlineIcon
+} from '@/ds/ListIcons/ListIcons'
 import { MailboxTag } from '@/ds/MailboxTag/MailboxTag'
-import { ForwardIcon } from '@/ds/ReplyIcons/ReplyIcons'
 import { CalendarEventMark } from '@/ds/CalendarEventMark/CalendarEventMark'
+import {
+  COMPACT_ROW_ASIDE_ROOM,
+  CompactRowAside
+} from '@/ds/CompactRowAside/CompactRowAside'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
-import { RowCheckbox } from '@/ds/RowCheckbox/RowCheckbox'
+import { initialsOf } from '@/ds/RecipientField/initials'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
@@ -39,7 +46,10 @@ import { RowLink } from '@/ds/RowLink/RowLink'
 import { ROW_AVATAR_SIZE, RowSender } from '@/ds/RowSender/RowSender'
 import { RowStateSlot } from '@/ds/RowStateSlot/RowStateSlot'
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
-import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
+import {
+  COMPACT_AVATAR_SIZE,
+  SelectableAvatar
+} from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
@@ -77,8 +87,8 @@ import type { EmailListItemData, EmailSnippet } from './queries'
 import type { ThreadSummary } from './threadSummary'
 import { useEmailSelectionContext } from './useEmailSelection'
 
-/** The attachment icon of a wide row */
-const ATTACHMENT_ICON_COLOR = 'var(--twake-palette-text-icon)'
+const CHEVRON_ICON_COLOR = 'var(--twake-palette-text-icon)'
+const SECONDARY_ICON_COLOR = 'var(--twake-palette-text-secondary)'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`
@@ -209,6 +219,7 @@ export function EmailCell({
   const navigate = useNavigate()
   const ensureEmailViewReady = useEmailViewReady()
   const screenSize = useScreenSize()
+  const isPhone = screenSize === 'mobile'
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
@@ -226,9 +237,9 @@ export function EmailCell({
   // `thread.members` here instead of `email`.
   const emailLabels = labelsOfEmail(labels, email)
   const isActionRequired = showActionRequired && hasKeyword(email, NEEDS_ACTION)
-  // As tmail-flutter (`LabelTagListWidget`): 3 tags on a desktop, 1 below
-  const maxLabels = screenSize === 'desktop' ? 3 : 1
-  const labelChips = (max: number): ReactElement | null =>
+  // As tmail-flutter (`LabelTagListWidget`): 3 tags on a wide row, 1 on a
+  // compact one (a narrow table on a desktop too), the others behind "+N"
+  const labelChips =
     emailLabels.length === 0 && !isActionRequired ? null : (
       <>
         {isActionRequired ? (
@@ -238,7 +249,7 @@ export function EmailCell({
         ) : null}
         <LabelChips
           labels={emailLabels}
-          max={max}
+          max={column.id === 'subject' ? 3 : 1}
           size="small"
           nowrap
           className="u-flex-shrink-0 u-mr-half"
@@ -257,16 +268,17 @@ export function EmailCell({
       : t(showRecipients ? 'thread.row.noRecipient' : 'thread.row.noSender')
 
   // Decorative: the name of the sender is the text next to it. The first
-  // letter of the name, coloured from the address
+  // letter of the name (two initials on a phone), coloured from the address
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
   const avatarName =
     avatarAddress === null ? '' : addressDisplayName(avatarAddress)
   const avatarEmail = avatarAddress?.email ?? ''
+  const avatarText = avatarName === '' ? avatarEmail : avatarName
   const avatar = (
     <GradientAvatar
-      text={firstLetterOf(avatarName === '' ? avatarEmail : avatarName)}
+      text={isPhone ? initialsOf(avatarText) : firstLetterOf(avatarText)}
       colorKey={avatarEmail}
-      size={ROW_AVATAR_SIZE}
+      size={column.id === 'select' ? COMPACT_AVATAR_SIZE : ROW_AVATAR_SIZE}
       data-testid="email-list-item-avatar"
     />
   )
@@ -275,13 +287,12 @@ export function EmailCell({
   const handleToggleStar = (): void => {
     onToggleStar(email)
   }
-  // As tmail-flutter: the star of a wide row is a bare 20 px icon
   const wideStarButton = (
     <IconAction
       label={starLabel}
       icon={isStarred ? Star : StarOutline}
-      tone={isStarred ? 'starred' : 'muted'}
-      size={20}
+      tone={isStarred ? 'starred' : 'default'}
+      iconSize={16}
       aria-pressed={isStarred}
       onClick={handleToggleStar}
       data-testid="email-list-item-star"
@@ -312,11 +323,12 @@ export function EmailCell({
           className="u-flex"
           data-testid="email-list-item-answered"
         >
-          {isAnswered ? (
-            <Icon icon={Reply} size={16} aria-hidden="true" />
-          ) : (
-            <ForwardIcon size={16} />
-          )}
+          <Icon
+            icon={isAnswered ? ReplyOutlineIcon : ForwardOutlineIcon}
+            size={16}
+            color={SECONDARY_ICON_COLOR}
+            aria-hidden="true"
+          />
         </span>
       </Tooltip>
     )
@@ -408,10 +420,17 @@ export function EmailCell({
   }
   const checkbox =
     selection === null ? null : (
-      <RowCheckbox
+      <Checkbox
         checked={isSelected}
         onClick={handleSelect}
-        label={t('thread.selection.select', { subject: email.subject ?? '' })}
+        size="small"
+        slotProps={{
+          input: {
+            'aria-label': t('thread.selection.select', {
+              subject: email.subject ?? ''
+            })
+          }
+        }}
         data-testid="email-list-item-checkbox"
       />
     )
@@ -493,7 +512,6 @@ export function EmailCell({
   // before the subject, said in the name of the row link
   const eventMark = isEvent ? (
     <CalendarEventMark
-      isMuted={!isUnread}
       gap={screenSize === 'desktop' ? 12 : screenSize === 'mobile' ? 4 : 8}
       data-testid="email-list-item-event-icon"
     />
@@ -501,7 +519,9 @@ export function EmailCell({
   // Said in the name of the row link: the icon shows it to the eye
   const importantIcon = isImportant ? (
     <Icon
-      icon={WarningCircle}
+      icon={InfoOutlined}
+      size={20}
+      color={SECONDARY_ICON_COLOR}
       aria-hidden="true"
       className="u-mr-half u-flex-shrink-0"
       data-testid="important-flag-icon"
@@ -509,18 +529,19 @@ export function EmailCell({
   ) : null
 
   // As tmail-flutter: 8 px after the folder, the date 8 px after it
-  const wideAttachment = hasAttachment ? (
-    <span className="u-flex u-flex-shrink-0 u-ml-half">
-      {/* 16 px, in the icon colour */}
-      <Icon
-        icon={Attachment}
-        size={16}
-        color={ATTACHMENT_ICON_COLOR}
-        role="img"
-        aria-label={t('email.attachment')}
-      />
-    </span>
-  ) : null
+  // 16 px in the line of a compact row, as the answered state
+  const attachmentMark = (size: 16 | 20): ReactElement | null =>
+    hasAttachment ? (
+      <span className="u-flex u-flex-shrink-0 u-ml-half">
+        <Icon
+          icon={AttachmentIcon}
+          size={size}
+          color={SECONDARY_ICON_COLOR}
+          role="img"
+          aria-label={t('email.attachment')}
+        />
+      </span>
+    ) : null
 
   switch (column.id as EmailColumnId) {
     case 'select':
@@ -599,7 +620,7 @@ export function EmailCell({
                 <>
                   {eventMark}
                   {importantIcon}
-                  {labelChips(maxLabels)}
+                  {labelChips}
                 </>
               )
             }
@@ -619,7 +640,11 @@ export function EmailCell({
                 )}
                 {hasAttachment ? (
                   <span className="u-flex u-flex-shrink-0 u-ml-half">
-                    <Icon icon={Attachment} size={16} />
+                    <Icon
+                      icon={AttachmentIcon}
+                      size={20}
+                      color={SECONDARY_ICON_COLOR}
+                    />
                   </span>
                 ) : null}
                 <RowDate isStrong={isUnread}>
@@ -633,14 +658,12 @@ export function EmailCell({
     }
     case 'trailing':
       return (
-        // As tmail-flutter: the actions 11 px apart, 16 px before the edge
         <RowHoverActions
-          endGap={16}
           replaces={
             <>
               {/* As tmail-flutter: the folder right before the attachment */}
               {mailboxLabel}
-              {wideAttachment}
+              {attachmentMark(20)}
               {wideDate}
             </>
           }
@@ -661,8 +684,9 @@ export function EmailCell({
         isEvent ? t('calendar.eventMark') : null
       ].filter(state => state !== null)
       // As tmail-flutter's compact tile: sender, marks and date then a
-      // chevron; subject (the folder, the star); one line of preview
-      return (
+      // chevron; subject (the folder, the star); one line of preview. A
+      // phone has no chevron, and the star toggle ends the preview line
+      const link = (
         <RowLink
           href={href}
           onNavigate={handleNavigate}
@@ -687,18 +711,20 @@ export function EmailCell({
               <>
                 {threadCount}
                 {answeredState}
-                {wideAttachment}
+                {attachmentMark(16)}
                 {wideDate}
               </>
             }
             end={
-              <Icon
-                icon={Right}
-                size={16}
-                color={ATTACHMENT_ICON_COLOR}
-                aria-hidden="true"
-                className="u-flex-shrink-0"
-              />
+              isPhone ? null : (
+                <Icon
+                  icon={Right}
+                  size={16}
+                  color={CHEVRON_ICON_COLOR}
+                  aria-hidden="true"
+                  className="u-flex-shrink-0"
+                />
+              )
             }
             subject={
               <>
@@ -710,7 +736,7 @@ export function EmailCell({
             subjectEnd={
               <>
                 {mailboxLabel}
-                {isStarred ? (
+                {isStarred && !isPhone ? (
                   <Icon
                     icon={Star}
                     size={15}
@@ -722,7 +748,8 @@ export function EmailCell({
               </>
             }
             preview={preview}
-            previewEnd={labelChips(maxLabels)}
+            previewEnd={labelChips}
+            previewEndRoom={isPhone ? COMPACT_ROW_ASIDE_ROOM : 0}
             testIds={{
               sender: 'email-list-item-sender',
               subject: 'email-list-item-subject',
@@ -730,6 +757,11 @@ export function EmailCell({
             }}
           />
         </RowLink>
+      )
+      return isPhone ? (
+        <CompactRowAside aside={wideStarButton}>{link}</CompactRowAside>
+      ) : (
+        link
       )
     }
     default:

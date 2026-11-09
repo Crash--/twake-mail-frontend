@@ -18,8 +18,6 @@ export interface RowHoverActionsProps {
    * `RowHoverSpace` keeps at the end of the cell before.
    */
   replaces?: ReactNode
-  /** With `replaces`: room after the actions, in px */
-  endGap?: number
 }
 
 /**
@@ -30,8 +28,7 @@ export interface RowHoverActionsProps {
 export function RowHoverActions({
   children,
   in: container = 'tableRow',
-  replaces,
-  endGap = 0
+  replaces
 }: RowHoverActionsProps): ReactElement {
   const row = ROW_CONTAINERS[container]
   if (replaces !== undefined) {
@@ -65,9 +62,6 @@ export function RowHoverActions({
             right: 0,
             // As wide as they are, whatever the width of the cell
             width: 'max-content',
-            // tmail-flutter's actions are 11 px apart
-            gap: '11px',
-            pr: `${endGap}px`,
             opacity: 0,
             [`${row}:hover &, ${row}:focus-within &`]: { opacity: 1 },
             '@media (hover: none)': {

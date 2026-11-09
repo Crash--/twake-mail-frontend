@@ -1,12 +1,32 @@
 // Upstream to twake-ui: with HtmlBlock (see htmlBlock.ts).
 import { Icon, Bottom, Top } from '@linagora/twake-icons'
-import { Box, Button } from '@linagora/twake-mui'
+import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
-import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 
 import type { HtmlBlockOptions } from './htmlBlock'
 
 const MIN_FRAME_HEIGHT = 24
+
+const FIRST_LINE_SX = { display: 'flex', alignItems: 'center', gap: 0.5 }
+
+function serialize(nodes: Node[]): string {
+  const container = document.createElement('div')
+  container.append(...nodes)
+  return container.innerHTML
+}
+
+function splitFirstLine(html: string): { first: string; rest: string } | null {
+  const template = document.createElement('template')
+  template.innerHTML = html
+  const nodes = Array.from(template.content.childNodes)
+  const index = nodes.findIndex(node => node.nodeName === 'BR')
+  if (index === -1) return null
+  return {
+    first: serialize(nodes.slice(0, index)),
+    rest: serialize(nodes.slice(index + 1))
+  }
+}
 
 /**
  * The frame of a `frame` block, as high as its content. No `allow-scripts`:
@@ -88,9 +108,14 @@ export function HtmlBlockView({
   const kind = String(node.attrs.kind)
   const html = String(node.attrs.html)
   const editLabel = options.editLabel(kind)
+  const [isFolded, setIsFolded] = useState(false)
   const toggleLabel =
-    node.attrs.display === 'inline' ? options.toggleLabel(kind) : null
-  const [isUnfolded, setIsUnfolded] = useState(true)
+    node.attrs.display === 'inline' ? options.toggleLabel(kind, isFolded) : null
+  const isFoldable = toggleLabel !== null
+  const lines = useMemo(
+    () => (isFoldable ? splitFirstLine(html) : null),
+    [isFoldable, html]
+  )
 
   const handleEdit = (): void => {
     const position = getPos()
@@ -109,47 +134,40 @@ export function HtmlBlockView({
           outlineColor: 'primary.main'
         }}
       >
-        {toggleLabel === null ? null : (
-          <Button
-            variant="outlined"
-            color="inherit"
-            aria-expanded={isUnfolded}
-            onClick={() => {
-              setIsUnfolded(unfolded => !unfolded)
-            }}
-            endIcon={<Icon icon={isUnfolded ? Top : Bottom} size={16} />}
-            sx={{
-              borderRadius: '100px',
-              borderColor: 'text.secondary',
-              color: 'text.secondary',
-              px: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              fontSize: 14,
-              lineHeight: '20px',
-              letterSpacing: '0.1px',
-              mb: 0.5
-            }}
-            data-testid={options.toggleTestId(kind)}
-          >
-            {toggleLabel}
-          </Button>
-        )}
-        {node.attrs.display === 'inline' ? (
+        {toggleLabel !== null && lines !== null ? (
+          // Sanitized by whoever inserted the block (see HtmlBlock)
+          <>
+            <Box sx={FIRST_LINE_SX}>
+              <span dangerouslySetInnerHTML={{ __html: lines.first }} />
+              <Tooltip title={toggleLabel}>
+                <IconButton
+                  size="xsmall"
+                  aria-label={toggleLabel}
+                  aria-expanded={!isFolded}
+                  onClick={() => {
+                    setIsFolded(folded => !folded)
+                  }}
+                  data-testid={options.toggleTestId(kind)}
+                >
+                  <Icon
+                    icon={isFolded ? Bottom : Top}
+                    size={16}
+                    aria-hidden="true"
+                    // A click on the icon must target the button: ProseMirror
+                    // keeps clicks on a button, but selects the block (and
+                    // takes the focus) on any other element of the node view
+                    pointerEvents="none"
+                  />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <Box
+              hidden={isFolded}
+              dangerouslySetInnerHTML={{ __html: lines.rest }}
+            />
+          </>
+        ) : node.attrs.display === 'inline' ? (
           <Box
-            hidden={!isUnfolded}
-            sx={
-              toggleLabel === null
-                ? undefined
-                : {
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: '8px',
-                    bgcolor: 'background.paper',
-                    p: 2,
-                    overflow: 'auto'
-                  }
-            }
             // Sanitized by whoever inserted the block (see HtmlBlock)
             dangerouslySetInnerHTML={{ __html: html }}
           />

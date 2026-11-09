@@ -2,7 +2,7 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import { Icon, Dash, Top, Cross, Narrow } from '@linagora/twake-icons'
+import { Icon, Dash, Cross, Narrow, OpenInFull } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
@@ -24,7 +24,6 @@ import {
   type ReactNode
 } from 'react'
 
-import { Fullscreen } from '@/ds/FlutterIcons/FlutterIcons'
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
@@ -140,7 +139,7 @@ interface TitleBarButtonProps {
   'data-testid'?: string
 }
 
-/** A button of the title bar: a 24 px icon in 40 px */
+/** A button of the title bar (Figma): 32 px, twake-icons' 16 px default */
 function TitleBarButton({
   label,
   icon,
@@ -149,7 +148,7 @@ function TitleBarButton({
 }: TitleBarButtonProps): ReactElement {
   return (
     <ActionIconButton label={label} onClick={onClick} data-testid={testId}>
-      <Icon icon={icon} size={24} aria-hidden="true" />
+      <Icon icon={icon} aria-hidden="true" />
     </ActionIconButton>
   )
 }
@@ -269,7 +268,7 @@ export function DockedWindow({
   const fullscreenButton = (
     <TitleBarButton
       label={fullscreenLabel}
-      icon={mode === 'fullscreen' ? Narrow : Fullscreen}
+      icon={mode === 'fullscreen' ? Narrow : OpenInFull}
       onClick={() => {
         onModeChange(mode === 'fullscreen' ? 'normal' : 'fullscreen')
       }}
@@ -297,20 +296,20 @@ export function DockedWindow({
     </>
   )
 
-  // tmail-flutter's `MinimizeComposerWidget`: close, full screen and show
-  // first, then the title
+  // The Figma's reduced composer: the title, then the buttons of the open
+  // window, the same "−" showing it again
   const minimizedControls = (
     <>
-      {closeButton}
-      {fullscreenButton}
       <TitleBarButton
         label={labels.restore}
-        icon={Top}
+        icon={Dash}
         onClick={() => {
           onModeChange('normal')
         }}
         data-testid={testIds.minimize}
       />
+      {fullscreenButton}
+      {closeButton}
     </>
   )
 
@@ -413,7 +412,6 @@ export function DockedWindow({
               }}
             >
               {isCentered ? <span /> : null}
-              {isMinimized ? minimizedControls : null}
               {isMinimized ? (
                 <ButtonBase
                   ref={restoreRef}
@@ -447,7 +445,9 @@ export function DockedWindow({
                 >
                   {controls}
                 </Box>
-              ) : isMinimized ? null : (
+              ) : isMinimized ? (
+                minimizedControls
+              ) : (
                 controls
               )}
             </Box>

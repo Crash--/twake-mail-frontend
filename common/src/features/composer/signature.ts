@@ -4,6 +4,8 @@ import type { Identity } from 'jmap-client-ts'
 
 import { sanitizeEmailHtml } from '@common/features/email/sanitizeEmailHtml'
 
+import { SIGNATURE_PREFIX_CLASS } from './emailHtml'
+
 function escapeHtml(text: string): string {
   return text
     .replaceAll('&', '&amp;')
@@ -32,9 +34,10 @@ export function sanitizeSignature(html: string): string {
 
 /**
  * The signature block of an identity, as tmail-flutter writes it
- * (`asSignatureHtml`): `-- ` then the HTML signature, or the text one
- * (escaped, its lines kept; tmail-flutter inserts it raw). Null when the
- * identity has none.
+ * (`asSignatureHtml`) but separated by `---` as the Figma: the HTML
+ * signature, or the text one (escaped, its lines kept; tmail-flutter
+ * inserts it raw). The text part keeps `-- ` (`SIGNATURE_PREFIX_CLASS`).
+ * Null when the identity has none.
  */
 export function signatureHtml(
   identity: Pick<Identity, 'htmlSignature' | 'textSignature'>
@@ -46,7 +49,7 @@ export function signatureHtml(
     html !== ''
       ? sanitizeSignature(html)
       : escapeHtml(text).replaceAll('\n', '<br>')
-  return `<span class="tmail_signature_prefix">--&nbsp;</span><br>${content}<br>`
+  return `<span class="${SIGNATURE_PREFIX_CLASS}">---</span><br>${content}<br>`
 }
 
 /** The editor HTML of the signature block (an inline HtmlBlock) */

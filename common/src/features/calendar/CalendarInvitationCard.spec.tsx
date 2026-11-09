@@ -325,6 +325,45 @@ describe('CalendarInvitationCard', () => {
     jest.restoreAllMocks()
   })
 
+  it('tells the event was canceled and drops the answers', async () => {
+    const server = makeServer(INVITATION)
+    server.handlers.set('CalendarEvent/maybe', args => {
+      // tmail-backend reports the refused answer as given
+      server.handlers.set('CalendarEventAttendance/get', attendanceArgs => ({
+        accountId: attendanceArgs.accountId,
+        list: [
+          {
+            blobId: 'b-ics',
+            eventAttendanceStatus: 'tentativelyAccepted',
+            isFree: true
+          }
+        ]
+      }))
+      return {
+        accountId: args.accountId,
+        notMaybe: {
+          'b-ics': {
+            type: 'eventCancelled',
+            description: 'The event you reply to has been cancelled'
+          }
+        }
+      }
+    })
+    renderView(server)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Maybe' }))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'This event was canceled'
+    )
+    expect(screen.getByTestId('calendar-event-canceled')).toHaveTextContent(
+      'This event was canceled'
+    )
+    expect(screen.queryByRole('group', { name: 'Attending?' })).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Maybe' })).toBe(null)
+    expect(server.callsOf('CalendarEventAttendance/get')).toHaveLength(1)
+  })
+
   it('offers only Yes on a counter proposal, which accepts it', async () => {
     const server = makeServer({ ...INVITATION, method: 'COUNTER' })
     server.handlers.set('CalendarEventCounter/accept', args => ({

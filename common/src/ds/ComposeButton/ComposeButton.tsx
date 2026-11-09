@@ -34,6 +34,8 @@ export function ComposeButton({
   return (
     <Button
       variant="contained"
+      // Aligned on the create button of Drive
+      className="u-bdrs-6"
       fullWidth={!isInToolbar}
       onClick={onClick}
       startIcon={<Icon icon={icon} size={12} />}

@@ -2,6 +2,22 @@ import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
+test.describe('MBX enter in a dialog form', () => {
+  test('MBX-63 Enter in the name field creates the folder', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.addFolderButton.click()
+    await mailbox.mailboxNameDialog
+      .getByTestId('mailbox-name-input')
+      .fill('by enter')
+    await page.keyboard.press('Enter')
+    await expect(mailbox.mailboxNameDialog).toBeHidden()
+    await expect(mailbox.toast).toContainText('by enter')
+  })
+})
+
 test.describe('MBX folders', () => {
   test('MBX-01 "New folder" creates a personal folder in the sidebar', async ({
     page,
@@ -248,7 +264,31 @@ test.describe('MBX folders', () => {
     }
   )
 
-  test('MBX-29 a hidden folder shows again from the hidden folders, with the keyboard', async ({
+  test('MBX-29 a hidden folder shows again from the folder search, with the keyboard', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.createMailbox({ name: 'Rarely used' })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.runFolderAction({ name: 'Rarely used' }, 'hide')
+    await expect(mailbox.folder({ name: 'Rarely used' })).toBeHidden()
+
+    await mailbox.searchFolders('rarely')
+    const hidden = mailbox.folder({ name: 'Rarely used' })
+    await expect(hidden).toHaveAttribute('data-hidden', 'true')
+    await hidden.focus()
+    await page.keyboard.press('Shift+F10')
+    const menu = page.getByTestId('mailbox-context-menu').getByRole('menu')
+    await expect(menu.getByRole('menuitem').first()).toBeFocused()
+    await expectNoA11yViolations(page)
+    await menu.getByTestId('mailbox-action-show').press('Enter')
+
+    await expect(hidden).not.toHaveAttribute('data-hidden')
+  })
+
+  test('MBX-29b a hidden folder shows again from the hidden folders, with the keyboard', async ({
     page,
     user,
     jmap
@@ -275,6 +315,14 @@ test.describe('MBX folders', () => {
 
     await expect(hidden).not.toHaveAttribute('data-hidden')
     await expect(mailbox.showHiddenFoldersButton).toBeHidden()
+
+    // Hidden again, it leaves the tree: the hidden folders are not shown
+    await mailbox.runFolderAction({ name: 'Rarely used' }, 'hide')
+    await expect(hidden).toBeHidden()
+    await expect(mailbox.showHiddenFoldersButton).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
   })
 
   test('MBX-30 a member of a team mailbox gets the actions their rights allow', async ({

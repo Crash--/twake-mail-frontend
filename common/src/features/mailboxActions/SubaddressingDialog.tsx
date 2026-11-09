@@ -1,11 +1,13 @@
 import { Icon, Copy } from '@linagora/twake-icons'
-import { IconButton, Tooltip, Typography } from '@linagora/twake-mui'
+import {
+  Button,
+  ConfirmDialog,
+  IconButton,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
-import {
-  ConfirmDialogButton,
-  ConfirmDialogFrame
-} from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface SubaddressingDialogProps {
@@ -31,15 +33,14 @@ export function SubaddressingDialog({
   onClose
 }: SubaddressingDialogProps): ReactElement {
   const { t } = useI18n()
-  const titleId = useId()
   const messageId = useId()
 
   return (
-    <ConfirmDialogFrame
+    <ConfirmDialog
       open
       title={t('folders.menu.allowSubaddressing')}
-      message={
-        <>
+      content={
+        <div id={messageId}>
           <Typography component="p">
             {t('folders.subaddressing.confirm', { nameMailbox: folderName })}
           </Typography>
@@ -64,25 +65,25 @@ export function SubaddressingDialog({
               </IconButton>
             </Tooltip>
           </span>
+        </div>
+      }
+      actions={
+        <>
+          <Button variant="outlined" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            autoFocus
+            onClick={onAllow}
+            data-testid="subaddressing-allow-button"
+          >
+            {t('folders.subaddressing.allow')}
+          </Button>
         </>
       }
-      closeLabel={t('common.close')}
       onClose={onClose}
-      titleId={titleId}
-      messageId={messageId}
+      aria-describedby={messageId}
       data-testid="subaddressing-dialog"
-    >
-      <ConfirmDialogButton onClick={onClose}>
-        {t('common.cancel')}
-      </ConfirmDialogButton>
-      <ConfirmDialogButton
-        isMain
-        autoFocus
-        onClick={onAllow}
-        data-testid="subaddressing-allow-button"
-      >
-        {t('folders.subaddressing.allow')}
-      </ConfirmDialogButton>
-    </ConfirmDialogFrame>
+    />
   )
 }

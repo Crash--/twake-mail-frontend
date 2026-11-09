@@ -62,7 +62,7 @@ them out, so that no run skips a spec:
 | `E2E_SUITE` | Stack | Specs |
 |---|---|---|
 | `main` (unset) | `./scripts/start.sh` | all the others |
-| `oidc` | `E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh` | `drive.spec.ts`, `infra-oidc.spec.ts` |
+| `oidc` | `E2E_OIDC=1 E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh` | `drive.spec.ts`, `infra-oidc.spec.ts`, `platform-help.spec.ts` |
 | `chart` | `E2E_CHART_IMAGE=<image> ./scripts/start-chart.sh` | `chart-image.spec.ts` |
 | `chart-sso` | `E2E_OIDC=1 E2E_CHART_IMAGE=<image> ./scripts/start-chart.sh` | `chart-image-sso.spec.ts` |
 

@@ -1,6 +1,6 @@
+import { StandardDialog } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
-import { ModalDialog } from '@/ds/ModalDialog/ModalDialog'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { ShortcutsPanel } from './ShortcutsPanel'
@@ -20,21 +20,18 @@ export function ShortcutsHelpDialog({
   const { t } = useI18n()
   const titleId = useId()
   const descriptionId = useId()
-  const closeLabel = t('common.close')
 
-  // The frame of tmail-flutter's modals (`ds/ModalDialog`)
   return (
-    <ModalDialog
+    <StandardDialog
       open={open}
       onClose={onClose}
-      title={t('shortcuts.title')}
-      titleId={titleId}
-      describedBy={descriptionId}
-      closeLabel={closeLabel}
-      width={640}
+      fullScreen={false}
+      title={<span id={titleId}>{t('shortcuts.title')}</span>}
+      content={
+        <ShortcutsPanel descriptionId={descriptionId} labelledBy={titleId} />
+      }
+      aria-describedby={descriptionId}
       data-testid="shortcuts-dialog"
-    >
-      <ShortcutsPanel descriptionId={descriptionId} labelledBy={titleId} />
-    </ModalDialog>
+    />
   )
 }

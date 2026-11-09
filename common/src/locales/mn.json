@@ -368,7 +368,6 @@
     "send": "Илгээх",
     "saveAsDraft": "Ноорог болгон хадгалах",
     "print": "Хэвлэх",
-    "signature": "Гарын үсэг",
     "fields": {
       "to": "Хэнд",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Зураг оруулж байна"
-    }
+    },
+    "hideSignature": "Гарын үсгийг нуух",
+    "showSignature": "Гарын үсгийг харуулах"
   },
   "layout": {
     "navigation": "Навигаци"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Навигаци ба хаалт",
       "reading": "Унших ба хариулах",
-      "management": "Мессеж удирдах ба сонгох",
+      "management": "Мессеж ба сонголт",
       "label": "Товчлолын ангилал",
       "navigationShort": "Навигаци",
       "readingShort": "Унших",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Тохиргоо",
     "manageAccount": "Бүртгэл удирдах",
+    "more": "Бусад",
     "sections": {
       "profiles": {
         "title": "Профайлууд",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Утас",
       "threadDescription": "Холбоотой олон имэйлийг харилцан яриа шиг харах",
-      "readReceipts": "Имэйл уншсан тухай мэдэгдэл",
       "readReceiptsDescription": "Уншсан тухай мэдэгдэл нь хэрэглэгчид имэйл уншигдсан эсэхийг баталгаажуулахад ашиглагддаг.",
       "readReceiptsToggle": "Гарч буй мессежүүдэд уншсан тухай мэдэгдлийг үргэлж хүсэх",
-      "senderPriority": "Илгээгчийн тавьсан чухал тэмдэглэгээ",
       "senderPriorityDescription": "Ирэх имэйлд чухал имэйлийн тэмдэглэгээг харуулахыг идэвхжүүлнэ. Энэ функцийг илгээгч хянадаг тул буруу ашиглагдах боломжтой.",
       "senderPriorityToggle": "Илгээгчийн тавьсан чухал тэмдэглэгээг харуулах",
-      "remoteImages": "Гадаад зургууд",
       "remoteImagesDescription": "Имэйлүүдийн интернэтээс ачаалдаг зураг болон бусад агуулгыг асуулгүйгээр харуулах. Тэдгээр нь таныг имэйлийг хэзээ, хаана уншсаныг илгээгчид мэдэгддэг.",
       "remoteImagesToggle": "Гадаад зургийг харуулах",
       "remoteImagesWarning": "Гадаад зургийг үргэлж харуулах нь таны үйл ажиллагааг хянах боломж олгож, хувийн нууцад тань хохирол учруулж болзошгүй.",
       "threadToggle": "Утасыг идэвхжүүлэх",
-      "spamReports": "Спам тайлан",
       "spamReportsDescription": "Спам имэйлүүдийг тогтмол дунд зэрэглэхийг танд сануулна",
       "spamReportsToggle": "Спам тайланг идэвхжүүлэх",
-      "labels": "Шошгоны харагдац",
       "labelsDescription": "Имэйлд оногдуулсан шошгыг мессежийн жагсаалтад шууд харуулж ангилалд тусалдаг.",
       "labelsToggle": "Шошгуудыг харуулах",
-      "driveAttachment": "Drive хавсралт",
       "driveAttachmentDescription": "Бичигч дэх Twake Drive хавсралтын товчийг харуулах эсвэл нуух",
       "driveAttachmentToggle": "Drive хавсралтын товчийг идэвхжүүлэх",
       "accessibility": "Хүртээмж",
@@ -857,15 +852,18 @@
       "themeLight": "Цайвар",
       "themeDark": "Бараан",
       "themeAuto": "Автомат",
-      "errorReporting": "Алдааны тайлан",
       "errorReportingDescription": "Дэмжлэгийн баг таны тааралдсан асуудлыг оношлох боломжтой болохын тулд гэмтэл болон алдааны тайлан илгээнэ үү. Таны имэйл, тэдгээрийн агуулга болон хүлээн авагчид хэзээ ч орохгүй.",
       "errorReportingToggle": "Алдааны тайлан илгээх",
-      "aiLabelCategorization": "Шошго ангилах",
       "aiLabelCategorizationDescription": "Ирж буй имэйлүүдэд тайлбарыг нь ашиглан шошгуудыг хэрэгжүүлэх",
       "aiLabelCategorizationToggle": "Шошго ангиллыг идэвхжүүлэх",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "Имэйлээ бичих, сайжруулахад AI-г ашиглах",
-      "aiScribeToggle": "AI Scribe-г идэвхжүүлэх"
+      "aiScribeToggle": "AI Scribe-г идэвхжүүлэх",
+      "groups": {
+        "privacy": "Нууцлал",
+        "inbox": "Ирсэн захидал",
+        "smartFeatures": "Ухаалаг боломжууд",
+        "writing": "Захидал бичих"
+      }
     },
     "backToMail": "Шуудан руу буцах",
     "language": {
@@ -978,12 +976,14 @@
       "success": "Энэ хавтсыг дахин харуулж байна"
     },
     "visibility": {
-      "hide": "Нуух",
-      "show": "Харуулах",
       "personal": "Хувийн хавтаснууд",
       "team": "Багийн шуудангийн хайрцаг",
       "hideOf": "%{name}-г нуух",
-      "showOf": "%{name}-г харуулах"
+      "showOf": "%{name}-г харуулах",
+      "visible": "Харагдана",
+      "hidden": "Нуусан",
+      "alwaysVisible": "Үргэлж харагдана",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Хавтас хайх",
@@ -995,6 +995,7 @@
       "progress": "Имэйл зөөж байна: %{total}-с %{moved}"
     },
     "clean": "Цэвэрлэх",
+    "longPressHint": "Үйлдлүүдийг харахын тулд удаан дарна уу",
     "progress": {
       "markAsRead": "«%{folderName}» доторх бүх мессежийг уншсан гэж тэмдэглэж байна",
       "empty": "«%{folderName}»-г хоослож байна"
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Шинэ дүрэм үүсгэх",
       "editTitle": "Дүрэм засах",
-      "create": "Дүрэм үүсгэх",
+      "create": "Үүсгэх",
       "name": "Дүрмийн нэр",
       "namePlaceholder": "Дүрмийн нэрийг оруулна уу",
       "conditions": "Нөхцөл",
@@ -1199,7 +1200,10 @@
     "externalBanner": "Та имэйлийг өөр домэйн руу чиглүүлж байна. Энэ нь аюулгүй байдлын аюул учруулах эсвэл хууль бус өгөгдөл задлах гэж тооцогдож болзошгүй.",
     "listLabel": "Дамжуулах хаягууд",
     "removeOf": "%{email}-г хасах",
-    "inputLabel": "Шинэ хүлээн авагч",
+    "inputLabel": "Хүлээн авагч нэмэх",
+    "pasteHint": "Олон хаяг буулгах",
+    "emptyTitle": "Дамжуулалт унтраалттай",
+    "emptyText": "Дээр хаяг нэмбэл ирсэн шинэ имэйл бүр тэнд бас илгээгдэнэ.",
     "recipientCount": "%{smart_count} хүлээн авагч |||| %{smart_count} хүлээн авагч",
     "selectAll": "Бүгдийг сонгох",
     "selectedCount": "%{count} сонгогдсон",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Мессеж хүлээн авах үед автоматаар хариулах.",
+    "responder": "Амралтын автомат хариу",
+    "starts": "Эхлэх:",
+    "ends": "Дуусах:",
+    "rightAway": "Шууд",
+    "pickTime": "Цаг сонгох",
+    "untilTurnedOff": "Би унтраах үед",
+    "statusOn": "Асаалттай",
+    "statusOff": "Унтраалттай",
     "startDate": "Эхлэх огноо",
     "startTime": "Эхлэх цаг",
-    "stops": "Амралт дуусах",
     "endDate": "Дуусах огноо",
     "endTime": "Дуусах цаг",
     "subject": "Гарчиг",
@@ -1254,6 +1265,7 @@
       "description": "Тайлбар (заавал биш)",
       "descriptionPlaceholder": "Энэ шошго юунд зориулагдсаныг тайлбарлах товч тайлбар нэмэх",
       "color": "Шошгоны өнгийг сонгоно уу",
+      "colorCurrent": "Шошгоны өнгө: %{color}",
       "create": "Шошго үүсгэх"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "Өнгөгүй",
     "colors": {
       "navyBlue": "Хар хөх",
+      "skyBlue": "Тэнгэрийн цэнхэр",
+      "brightBlue": "Тод цэнхэр",
+      "royalBlue": "Хааны цэнхэр",
       "purple": "Нил ягаан",
       "lavender": "Лаванда",
       "indigo": "Индиго",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Бараан саарал",
       "grey": "Саарал"
     },
-    "colorCustom": "Өөрийн өнгө",
-    "colorCustomNamed": "Өөрийн өнгө %{color}",
     "colorHex": "Өөрийн өнгө (арван зургаатын)",
     "colorHexHint": "#RRGGBB хэлбэр, жишээ нь #1A2B3C",
     "colorHexInvalid": "Өнгийг #RRGGBB хэлбэрээр оруулна уу, жишээ нь #1A2B3C",
-    "colorPicker": "Өнгө сонгогчийг нээх",
     "removeFromEmail": "%{name} шошгыг хасах",
     "moreNames": "Бусад %{smart_count} шошго: %{names} |||| Бусад %{smart_count} шошго: %{names}",
     "listLabel": "Имэйлийн шошгууд"
@@ -1440,6 +1452,7 @@
     },
     "replyFailed": "Арга хэмжээний хариу амжилтгүй илгээгдлээ!",
     "alreadyAnswered": "Та энэ урилгад аль хэдийн ийм хариу өгсөн",
+    "eventCanceled": "Энэ арга хэмжээ цуцлагдсан",
     "counterAccepted": "Та энэ уулзалтын санал болгосон цагийг хүлээн зөвшөөрсөн",
     "eventLabel": "Арга хэмжээ: %{title}",
     "allDay": "Өдөржин",

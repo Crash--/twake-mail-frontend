@@ -1,24 +1,28 @@
 // Upstream to twake-ui: yes, as options of the platform bar
-// (`@linagora/twake-bar`): its search slot grows to the menus. Here the
-// search starts above the list, where the sidebar ends, and takes half the
-// room left.
+// (`@linagora/twake-bar`): its margins and its divider.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-/** The search: half the room, at least this wide */
-const SEARCH_MIN_WIDTH = 576
-/** The 30 px margins of the bar and the sidebar under its start (236 px) */
-const APP_BAR_ROOM = 30 + 236
+const HEADER_SX = { borderBottom: 1, borderColor: 'divider' } as const
+
+/**
+ * A 1 px divider closes the bar, then 4 px of the page background before the
+ * sidebar and the page, as the design
+ */
+const BASE_SX = {
+  flexShrink: 0,
+  mb: '4px',
+  '& > header': HEADER_SX
+} as const
 
 const FRAME_SX = {
-  flexShrink: 0,
+  ...BASE_SX,
   '& > header': {
+    ...HEADER_SX,
     pl: '30px',
     pr: '30px'
   }
 } as const
-
-const PLAIN_SX = { flexShrink: 0 } as const
 
 const LEFT_SX = {
   display: 'flex',
@@ -26,48 +30,33 @@ const LEFT_SX = {
   flexShrink: 0
 } as const
 
-// Half the room after the start of the bar and its margins (not the slot,
-// which the buttons at the end shorten)
-const SEARCH_SX = {
-  width: `max(calc((100vw - ${APP_BAR_ROOM}px) / 2), ${SEARCH_MIN_WIDTH}px)`,
-  maxWidth: '100%'
-} as const
-
 export interface AppBarFrameProps {
   /** The platform bar, a `header` */
   children: ReactNode
   /**
-   * Leaves the bar as it is (the platform of Twake Workplace answers): the
-   * same element, so that the bar does not mount again when it changes
+   * Leaves the margins of the bar as they are (the platform of Twake
+   * Workplace answers): the same element, so that the bar does not mount
+   * again when it changes
    */
   isPlain?: boolean
 }
 
-/** Around the platform bar: its margins */
+/** Around the platform bar: its margins, its divider, the gap under it */
 export function AppBarFrame({
   children,
   isPlain = false
 }: AppBarFrameProps): ReactElement {
-  return <Box sx={isPlain ? PLAIN_SX : FRAME_SX}>{children}</Box>
+  return <Box sx={isPlain ? BASE_SX : FRAME_SX}>{children}</Box>
 }
 
 export interface AppBarLeftProps {
   /** The logotype */
   children: ReactNode
-  /** The width of the sidebar: the search starts where it ends */
+  /** The width of the sidebar under it */
   width: number
 }
 
 /** The start of the bar, as wide as the sidebar under it (minus the margin) */
 export function AppBarLeft({ children, width }: AppBarLeftProps): ReactElement {
   return <Box sx={{ ...LEFT_SX, width: `${width - 30}px` }}>{children}</Box>
-}
-
-/** The search of the bar */
-export function AppBarSearch({
-  children
-}: {
-  children: ReactNode
-}): ReactElement {
-  return <Box sx={SEARCH_SX}>{children}</Box>
 }

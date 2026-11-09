@@ -1,11 +1,8 @@
+import { Button, ConfirmDialog } from '@linagora/twake-mui'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRef, useState, type ReactElement, type RefObject } from 'react'
 
-import {
-  ConfirmDialogButton,
-  ConfirmDialogFrame
-} from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { useFocusFallback } from './useFocusFallback'
@@ -133,34 +130,31 @@ function ConfirmedRemoval({
         />
       ) : null}
       <button type="button">After</button>
-      <ConfirmDialogFrame
+      <ConfirmDialog
         open={isAsking}
         title="Remove"
-        message="Remove it?"
-        closeLabel="Close"
+        content="Remove it?"
         onClose={() => {
           setIsAsking(false)
         }}
-        titleId="title"
-        messageId="message"
-      >
-        <ConfirmDialogButton
-          isMain
-          autoFocus
-          onClick={() => {
-            setIsAsking(false)
-            if (isRemovedLater) {
-              setTimeout(() => {
+        actions={
+          <Button
+            autoFocus
+            onClick={() => {
+              setIsAsking(false)
+              if (isRemovedLater) {
+                setTimeout(() => {
+                  setIsShown(false)
+                }, 20)
+              } else {
                 setIsShown(false)
-              }, 20)
-            } else {
-              setIsShown(false)
-            }
-          }}
-        >
-          Confirm
-        </ConfirmDialogButton>
-      </ConfirmDialogFrame>
+              }
+            }}
+          >
+            Confirm
+          </Button>
+        }
+      />
     </>
   )
 }

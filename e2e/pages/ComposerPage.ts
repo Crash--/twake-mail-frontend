@@ -92,6 +92,12 @@ export class ComposerPage {
     return menu.getByRole('menuitem').or(menu.getByRole('menuitemcheckbox'))
   }
 
+  /** Opens the emoji picker, from the More menu */
+  async openEmojiPicker(): Promise<void> {
+    await this.moreButton.click()
+    await this.page.getByTestId('composer-emoji-item').click()
+  }
+
   /** The horizontal overflow of the page and of the window, in px (0: none) */
   async horizontalOverflow(): Promise<{ page: number; window: number }> {
     return this.page.evaluate(
@@ -243,7 +249,7 @@ export class ComposerPage {
   }
 
   /**
-   * Opens From, Cc, Bcc or Reply-To: by its text button, or on a phone by the
+   * Opens From, Cc, Bcc or Reply-To by its text button, or on a phone by the
    * chevron showing them all
    */
   private async openOptionalLine(

@@ -1,3 +1,4 @@
+import { Button, ConfirmDialog, Typography } from '@linagora/twake-mui'
 import {
   createContext,
   useCallback,
@@ -10,10 +11,6 @@ import {
   type ReactNode
 } from 'react'
 
-import {
-  ConfirmDialogButton,
-  ConfirmDialogFrame
-} from '@/ds/ConfirmDialogFrame/ConfirmDialogFrame'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface ConfirmOptions {
@@ -89,7 +86,6 @@ export function ConfirmProvider({
   children
 }: ConfirmProviderProps): ReactElement {
   const { t } = useI18n()
-  const titleId = useId()
   const messageId = useId()
   const [pending, setPending] = useState<PendingConfirm | null>(null)
   const pendingRef = useRef<PendingConfirm | null>(null)
@@ -161,45 +157,51 @@ export function ConfirmProvider({
   return (
     <ConfirmContext.Provider value={api}>
       {children}
-      {/* tmail-flutter's confirmation dialog: its confirming button is the
-          blue pill even when it destroys, the title says what it does */}
-      <ConfirmDialogFrame
+      {/* Its confirming button stays the filled one even when it destroys,
+          the title says what it does */}
+      <ConfirmDialog
         open={pending !== null}
         title={pending?.title}
-        message={pending?.message}
-        closeLabel={t('common.close')}
+        content={
+          <Typography id={messageId} component="p">
+            {pending?.message}
+          </Typography>
+        }
+        actions={
+          <>
+            {isAlert ? null : (
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+                autoFocus={!isChoice}
+                data-testid="confirm-dialog-cancel-button"
+              >
+                {pending?.cancelLabel ?? t('common.cancel')}
+              </Button>
+            )}
+            {isChoice ? (
+              <Button
+                variant="outlined"
+                onClick={handleAlternative}
+                data-testid="confirm-dialog-alternative-button"
+              >
+                {pending?.alternativeLabel}
+              </Button>
+            ) : null}
+            <Button
+              onClick={handleConfirm}
+              autoFocus={isChoice || isAlert}
+              data-testid="confirm-dialog-confirm-button"
+            >
+              {pending?.confirmLabel}
+            </Button>
+          </>
+        }
         onClose={handleCancel}
-        onExited={handleExited}
-        titleId={titleId}
-        messageId={messageId}
+        aria-describedby={messageId}
+        slotProps={{ transition: { onExited: handleExited } }}
         data-testid="confirm-dialog"
-      >
-        {isAlert ? null : (
-          <ConfirmDialogButton
-            onClick={handleCancel}
-            autoFocus={!isChoice}
-            data-testid="confirm-dialog-cancel-button"
-          >
-            {pending?.cancelLabel ?? t('common.cancel')}
-          </ConfirmDialogButton>
-        )}
-        {isChoice ? (
-          <ConfirmDialogButton
-            onClick={handleAlternative}
-            data-testid="confirm-dialog-alternative-button"
-          >
-            {pending?.alternativeLabel}
-          </ConfirmDialogButton>
-        ) : null}
-        <ConfirmDialogButton
-          isMain
-          onClick={handleConfirm}
-          autoFocus={isChoice || isAlert}
-          data-testid="confirm-dialog-confirm-button"
-        >
-          {pending?.confirmLabel}
-        </ConfirmDialogButton>
-      </ConfirmDialogFrame>
+      />
     </ConfirmContext.Provider>
   )
 }

@@ -368,7 +368,6 @@
     "send": "Envoyer",
     "saveAsDraft": "Enregistrer comme brouillon",
     "print": "Imprimer",
-    "signature": "Signature",
     "fields": {
       "to": "À",
       "cc": "Copie à",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Insertion de l’image"
-    }
+    },
+    "hideSignature": "Cacher la signature",
+    "showSignature": "Afficher la signature"
   },
   "layout": {
     "navigation": "Navigation"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Navigation & Fermeture",
       "reading": "Lecture & Réponse",
-      "management": "Gestion des messages & Sélection",
+      "management": "Messages & Sélection",
       "label": "Catégories de raccourcis",
       "navigationShort": "Navigation",
       "readingShort": "Lecture",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Paramètres",
     "manageAccount": "Gérer le compte",
+    "more": "Plus",
     "sections": {
       "profiles": {
         "title": "Profils",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Fil de discussion",
       "threadDescription": "Afficher plusieurs e-mail associée comme une conversation",
-      "readReceipts": "Accusés de lecture",
       "readReceiptsDescription": "Les accusés de lecture sont des notifications qui peuvent être envoyées à l'expéditeur pour confirmer que le destinataire a bien ouvert le message.",
       "readReceiptsToggle": "Toujours exiger des accusés de lecture pour les messages sortants",
-      "senderPriority": "Étiquette Important définie par l'expéditeur",
       "senderPriorityDescription": "Active l'affichage des messages marqués comme important dans votre boîte de réception. Cette fonctionnalité est contrôlée par l'envoyeur et peut entraîner des abus.",
       "senderPriorityToggle": "Afficher l'étiquette Important définie par l'expéditeur",
-      "remoteImages": "Images distantes",
       "remoteImagesDescription": "Affiche sans demander les images et autres contenus que les e-mails chargent depuis Internet. Ils indiquent à l'expéditeur quand et où vous lisez l'e-mail.",
       "remoteImagesToggle": "Afficher les images distantes",
       "remoteImagesWarning": "Toujours afficher les images distantes vous expose au suivi de votre activité et peut ainsi nuire à votre vie privée.",
       "threadToggle": "Activer les fils de discussion",
-      "spamReports": "Signaler un spam",
       "spamReportsDescription": "Vous rappelle que vous devez modérer régulièrement vos courriers indésirables",
       "spamReportsToggle": "Activer le signalement des spams",
-      "labels": "Visibilité du libellé",
       "labelsDescription": "Afficher les libellés assignés aux e-mails directement dans votre liste de messages pour une catégorisation plus facile.",
       "labelsToggle": "Afficher les libellés",
-      "driveAttachment": "Pièce jointe Drive",
       "driveAttachmentDescription": "Afficher ou masquer le bouton de pièce jointe Twake Drive dans l'éditeur de message",
       "driveAttachmentToggle": "Activer le bouton de pièce jointe Drive",
       "accessibility": "Accessibilité",
@@ -857,15 +852,18 @@
       "themeLight": "Clair",
       "themeDark": "Sombre",
       "themeAuto": "Automatique",
-      "errorReporting": "Rapports d'erreurs",
       "errorReportingDescription": "Envoyer des rapports de plantage et d'erreur pour que l'équipe d'assistance puisse diagnostiquer les problèmes que vous rencontrez. Vos e-mails, leur contenu et leurs destinataires ne sont jamais inclus.",
       "errorReportingToggle": "Envoyer des rapports d'erreurs",
-      "aiLabelCategorization": "Libellés de catégorisation",
       "aiLabelCategorizationDescription": "Appliquer mes libellés sur les e-mails entrants en utilisant leur description",
       "aiLabelCategorizationToggle": "Activer la catégorisation par libellés",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "Utiliser l'IA pour vous aider à rédiger et améliorer vos e-mails",
-      "aiScribeToggle": "Activer AI Scribe"
+      "aiScribeToggle": "Activer AI Scribe",
+      "groups": {
+        "privacy": "Confidentialité",
+        "inbox": "Boîte de réception",
+        "smartFeatures": "Fonctions intelligentes",
+        "writing": "Rédaction"
+      }
     },
     "backToMail": "Retour aux e-mails",
     "language": {
@@ -978,12 +976,14 @@
       "success": "Ce dossier est de nouveau affiché"
     },
     "visibility": {
-      "hide": "Masquer",
-      "show": "Afficher",
       "personal": "Dossiers personnels",
       "team": "Team-mailboxes",
       "hideOf": "Masquer %{name}",
-      "showOf": "Afficher %{name}"
+      "showOf": "Afficher %{name}",
+      "visible": "Visible",
+      "hidden": "Masqué",
+      "alwaysVisible": "Toujours visible",
+      "stateAction": "%{state} : %{action}"
     },
     "search": {
       "label": "Rechercher des dossiers",
@@ -995,6 +995,7 @@
       "progress": "Déplacement des e-mails : %{moved} sur %{total}"
     },
     "clean": "Vider",
+    "longPressHint": "Appui long pour les actions",
     "progress": {
       "markAsRead": "Marquage de tous les messages de « %{folderName} » comme lus",
       "empty": "Vidage de « %{folderName} »"
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Créer une nouvelle règle",
       "editTitle": "Modifier la règle",
-      "create": "Créer une règle",
+      "create": "Créer",
       "name": "Nom de la règle",
       "namePlaceholder": "Entrez le nom de la règle",
       "conditions": "Conditions",
@@ -1199,7 +1200,10 @@
     "externalBanner": "Vous redirigez vos e-mails vers un autre domaine. Cela pourrait constituer une menace pour la sécurité ou être considéré comme une extraction illégale de données.",
     "listLabel": "Adresses de transfert",
     "removeOf": "Retirer %{email}",
-    "inputLabel": "Nouveau destinataire",
+    "inputLabel": "Ajouter un destinataire",
+    "pasteHint": "Collez plusieurs adresses",
+    "emptyTitle": "Le transfert est désactivé",
+    "emptyText": "Ajoutez une adresse ci-dessus et chaque nouvel e-mail reçu y sera aussi envoyé.",
     "recipientCount": "%{smart_count} destinataire |||| %{smart_count} destinataires",
     "selectAll": "Tout sélectionner",
     "selectedCount": "%{count} sélectionnés",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Renvoie automatiquement une réponse aux messages reçus.",
+    "responder": "Réponse automatique",
+    "starts": "Début :",
+    "ends": "Fin :",
+    "rightAway": "Tout de suite",
+    "pickTime": "Choisir une date",
+    "untilTurnedOff": "Quand je la désactive",
+    "statusOn": "Activée",
+    "statusOff": "Désactivée",
     "startDate": "Date de début",
     "startTime": "Heure de début",
-    "stops": "Les réponses automatiques s'arrêtent le",
     "endDate": "Date de fin",
     "endTime": "Heure de fin",
     "subject": "Sujet",
@@ -1254,6 +1265,7 @@
       "description": "Description (optionnel)",
       "descriptionPlaceholder": "Ajoutez une brève description pour expliquer à quoi sert ce libellé",
       "color": "Choisir une couleur de libellé",
+      "colorCurrent": "Couleur du libellé : %{color}",
       "create": "Créer un libellé"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "Sans couleur",
     "colors": {
       "navyBlue": "Bleu marine",
+      "skyBlue": "Bleu ciel",
+      "brightBlue": "Bleu vif",
+      "royalBlue": "Bleu roi",
       "purple": "Violet",
       "lavender": "Lavande",
       "indigo": "Indigo",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Gris foncé",
       "grey": "Gris"
     },
-    "colorCustom": "Couleur personnalisée",
-    "colorCustomNamed": "Couleur personnalisée %{color}",
     "colorHex": "Couleur personnalisée (hexadécimal)",
     "colorHexHint": "Format #RRGGBB, par exemple #1A2B3C",
     "colorHexInvalid": "Saisissez une couleur au format #RRGGBB, par exemple #1A2B3C",
-    "colorPicker": "Ouvrir le sélecteur de couleur",
     "removeFromEmail": "Retirer le libellé %{name}",
     "moreNames": "%{smart_count} autre libellé : %{names} |||| %{smart_count} autres libellés : %{names}",
     "listLabel": "Libellés de l'e-mail"
@@ -1440,6 +1452,7 @@
     },
     "replyFailed": "La réponse à l'évènement n'a pas été envoyée !",
     "alreadyAnswered": "Vous avez déjà donné cette réponse à l'invitation",
+    "eventCanceled": "Cet évènement a été annulé",
     "counterAccepted": "Vous avez accepté le créneau horaire proposé pour cette réunion",
     "eventLabel": "Événement : %{title}",
     "allDay": "Toute la journée",

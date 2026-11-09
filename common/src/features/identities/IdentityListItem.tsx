@@ -1,14 +1,14 @@
 import {
+  CheckCircle,
   Icon,
   Trash,
   Pen,
-  RadioUnchecked,
-  RadioChecked
+  RadioUnchecked
 } from '@linagora/twake-icons'
 import { Radio } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { SettingsRowButton } from '@/ds/SettingsButtons/SettingsButtons'
+import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import {
   SettingsListHtml,
   SettingsListItem,
@@ -31,10 +31,10 @@ export interface IdentityListItemProps {
 }
 
 /**
- * An identity in Settings > Profiles, as tmail-flutter lists it: the radio
- * making it the default one, name, address, Reply-To, Bcc, "--" and the
- * signature as it is written, then "Edit" and "Delete" (no delete for the
- * identity of the account, which the server keeps).
+ * An identity in Settings > Profiles, as the Figma lists it: the radio
+ * making it the default one, name, address, Reply-To, Bcc, then "Edit" and
+ * "Delete" (no delete for the identity of the account, which the server
+ * keeps), and the signature as it is written under the row.
  */
 export function IdentityListItem({
   identity,
@@ -63,9 +63,9 @@ export function IdentityListItem({
         withDefaultRadio ? (
           <Radio
             value={identity.id}
-            // tmail-flutter's ring, filled once it is the default one
+            // The Figma's ring, a check in a disc once it is the default one
             icon={<Icon icon={RadioUnchecked} size={18} />}
-            checkedIcon={<Icon icon={RadioChecked} size={18} />}
+            checkedIcon={<Icon icon={CheckCircle} size={18} />}
             slotProps={{
               input: {
                 'aria-label': t('identities.setDefaultOf', { name: label })
@@ -77,27 +77,35 @@ export function IdentityListItem({
       }
       actions={
         <>
-          <SettingsRowButton
-            label={t('common.edit')}
-            name={editLabel}
-            icon={Pen}
+          <ActionIconButton
+            label={editLabel}
             onClick={() => {
               onEdit(identity)
             }}
             data-testid="identity-edit-button"
-          />
+          >
+            <Icon icon={Pen} size={24} aria-hidden="true" />
+          </ActionIconButton>
           {identity.mayDelete ? (
-            <SettingsRowButton
-              label={t('common.delete')}
-              name={deleteLabel}
-              icon={Trash}
+            <ActionIconButton
+              label={deleteLabel}
               onClick={event => {
                 onDelete(identity, event.currentTarget)
               }}
               data-testid="identity-delete-button"
-            />
+            >
+              <Icon icon={Trash} size={24} aria-hidden="true" />
+            </ActionIconButton>
           ) : null}
         </>
+      }
+      footer={
+        signature === '' ? undefined : (
+          <SettingsListHtml
+            html={signature}
+            data-testid="identity-item-signature"
+          />
+        )
       }
     >
       <SettingsListText variant="name" data-testid="identity-item-name">
@@ -118,15 +126,6 @@ export function IdentityListItem({
           <span className="u-uppercase">{t('email.bcc')}</span>
           {`: ${bcc}`}
         </SettingsListText>
-      )}
-      {signature === '' ? null : (
-        <>
-          <SettingsListText variant="mark">--</SettingsListText>
-          <SettingsListHtml
-            html={signature}
-            data-testid="identity-item-signature"
-          />
-        </>
       )}
     </SettingsListItem>
   )

@@ -16,6 +16,8 @@ import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { isMenuKey } from '@common/features/mailbox/MailboxTreeItem'
 import { useSidebarSections } from '@common/features/mailbox/SidebarSectionsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import {
@@ -38,6 +40,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
   const name = labelDisplayName(label, t)
   const menuLabel = t('labels.menuOf', { name })
   const canChange = label.readOnly !== true
+  const isPhone = useScreenSize() === 'mobile'
 
   return (
     <NavTreeItem
@@ -48,9 +51,24 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       to={labelPath(label.id)}
       isSelected={isSelected}
       data-testid="label-item"
+      onLongPress={isPhone && canChange ? setAnchor : undefined}
+      longPressHint={t('folders.longPressHint')}
       itemProps={{
         'data-label-name': label.displayName,
-        'aria-current': isSelected ? 'page' : undefined
+        'aria-current': isSelected ? 'page' : undefined,
+        ...(canChange
+          ? {
+              onContextMenu: event => {
+                event.preventDefault()
+                setAnchor(event.currentTarget)
+              },
+              onKeyDown: event => {
+                if (!isMenuKey(event)) return
+                event.preventDefault()
+                setAnchor(event.currentTarget)
+              }
+            }
+          : {})
       }}
       actions={
         canChange ? (

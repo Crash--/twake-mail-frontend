@@ -81,6 +81,23 @@ describe('FolderVisibilitySettings', () => {
       within(row('Work')).getByRole('button', { name: 'Collapse' })
     ).toHaveAttribute('aria-expanded', 'true')
 
+    expect(screen.getByRole('region', { name: 'Mailboxes' })).toContainElement(
+      system
+    )
+    expect(
+      within(screen.getByRole('list', { name: 'Personal folders' })).getByText(
+        'Work'
+      )
+    ).toBeVisible()
+
+    // "Personal folders" and "Team-mailboxes" fold on their own
+    const team = screen.getByRole('button', { name: 'Team-mailboxes' })
+    await userEvent.click(team)
+    expect(team).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByTestId('folder-visibility-team')).toBe(null)
+    expect(screen.getByText('Work')).toBeVisible()
+    await userEvent.click(team)
+
     // "Folders" folds the folders of the user and the team mailboxes
     const folders = screen.getByRole('button', { name: 'Folders' })
     expect(folders).toHaveAttribute('aria-expanded', 'true')
@@ -111,10 +128,13 @@ describe('FolderVisibilitySettings', () => {
     expect(within(row('INBOX')).queryByTestId('folder-visibility-toggle')).toBe(
       null
     )
+    expect(within(row('INBOX')).getByText('Always visible')).toBeVisible()
 
-    await userEvent.click(
-      within(row('Work')).getByRole('button', { name: 'Hide Work' })
-    )
+    const toggle = within(row('Work')).getByRole('button', {
+      name: 'Visible: Hide Work'
+    })
+    expect(toggle).toHaveTextContent('Visible')
+    await userEvent.click(toggle)
 
     await waitFor(() => {
       expect(server.mailboxes.find(m => m.id === 'work')?.isSubscribed).toBe(
@@ -125,7 +145,9 @@ describe('FolderVisibilitySettings', () => {
       false
     )
     await userEvent.click(
-      await within(row('Work')).findByRole('button', { name: 'Show Work' })
+      await within(row('Work')).findByRole('button', {
+        name: 'Hidden: Show Work'
+      })
     )
     await waitFor(() => {
       expect(server.mailboxes.find(m => m.id === 'work')?.isSubscribed).toBe(

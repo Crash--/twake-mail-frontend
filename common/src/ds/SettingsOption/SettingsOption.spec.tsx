@@ -4,27 +4,32 @@ import { useState, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { SettingsOption, SettingsSwitchRow } from './SettingsOption'
+import {
+  SettingsOption,
+  SettingsOptionGroup,
+  SettingsSwitchRow
+} from './SettingsOption'
 
 describe('SettingsOption', () => {
-  it('names its switch by its label and describes it by its title and text', async () => {
+  it('names its switch by its label and describes it by its text', async () => {
     const onChange = jest.fn()
     renderDs(
-      <SettingsOption
-        title="Thread"
-        description="View related emails together"
-        toggleLabel="Enable thread"
-        isChecked={false}
-        onChange={onChange}
-      />
+      <SettingsOptionGroup title="Inbox">
+        <SettingsOption
+          description="View related emails together"
+          toggleLabel="Enable thread"
+          isChecked={false}
+          onChange={onChange}
+        />
+      </SettingsOptionGroup>
     )
 
     const toggle = screen.getByRole('switch', { name: 'Enable thread' })
-    expect(toggle).toHaveAccessibleDescription(
-      'Thread View related emails together'
+    expect(toggle).toHaveAccessibleDescription('View related emails together')
+    expect(screen.getByRole('region', { name: 'Inbox' })).toContainElement(
+      toggle
     )
-    expect(screen.getByRole('heading', { name: 'Thread' })).toBeVisible()
-    await userEvent.click(toggle)
+    await userEvent.click(screen.getByText('Enable thread'))
     expect(onChange).toHaveBeenCalledWith(true)
   })
 
@@ -33,7 +38,6 @@ describe('SettingsOption', () => {
       const [isChecked, setChecked] = useState(false)
       return (
         <SettingsOption
-          title="Remote images"
           description="Show them without asking"
           toggleLabel="Show remote images"
           isChecked={isChecked}
@@ -52,7 +56,7 @@ describe('SettingsOption', () => {
     // In the live region kept in the page, so that it is announced
     expect(status).toHaveTextContent('You can be tracked')
     expect(toggle).toHaveAccessibleDescription(
-      'Remote images Show them without asking You can be tracked'
+      'Show them without asking You can be tracked'
     )
 
     await userEvent.click(toggle)

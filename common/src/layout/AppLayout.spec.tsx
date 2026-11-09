@@ -8,6 +8,10 @@ import {
   makeFakeJmapServer,
   makeIdentity
 } from '@common/testing/fakeJmapServer'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeLabels
+} from '@common/testing/fakeLinagora'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -46,7 +50,32 @@ describe('AppLayout', () => {
     ).toBeVisible()
   })
 
-  it('puts the logotype, the search and the account menu in the platform bar, as tmail-flutter', async () => {
+  it('gives the place of the folders and the labels to the folder search, until back', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: null }
+    ])
+    renderWithProviders(<AppLayout />, {
+      path: '/',
+      jmapServer: server,
+      withJmapSession: true,
+      childRoutes: <Route index element={<p>Routed content</p>} />
+    })
+    expect(await screen.findByTestId('labels-section')).toBeVisible()
+
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    expect(
+      screen.getByRole('search', { name: 'Search for folders' })
+    ).toBeVisible()
+    expect(screen.queryByTestId('labels-section')).toBe(null)
+
+    await userEvent.click(screen.getByTestId('mailbox-search-back-button'))
+    expect(screen.getByTestId('labels-section')).toBeVisible()
+  })
+
+  it('puts the logotype and the account menu in the platform bar, and the search in the page', async () => {
     mockViewport({ width: 1440 })
     renderLayout()
 
@@ -54,7 +83,8 @@ describe('AppLayout', () => {
     const bar = screen.getByTestId('twake-bar')
 
     expect(screen.queryByTestId('top-bar')).toBe(null)
-    expect(bar).toContainElement(row)
+    expect(bar).not.toContainElement(row)
+    expect(screen.getByRole('main')).toContainElement(row)
     expect(within(row).getByTestId('search-input')).toBeVisible()
     expect(within(bar).getByRole('img', { name: 'Twake Mail' })).toBeVisible()
     // As tmail-flutter: the settings behind the initial of the user
@@ -324,5 +354,40 @@ describe('AppLayout on a phone', () => {
       expect(screen.queryByRole('dialog')).toBe(null)
     })
     expect(screen.getByTestId('top-bar-folder-name')).toHaveTextContent('Sent')
+  })
+
+  it('shows the labels again in a drawer closed during the folder search', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: null }
+    ])
+    renderWithProviders(<AppLayout />, {
+      route: '/mailbox/mailbox-inbox',
+      path: '*',
+      jmapServer: server,
+      withJmapSession: true,
+      childRoutes: (
+        <Route path="mailbox/:mailboxId" element={<p>Folder content</p>} />
+      )
+    })
+    const menuButton = await screen.findByRole('button', {
+      name: 'Show folders'
+    })
+    await userEvent.click(menuButton)
+    await screen.findByTestId('labels-section')
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    await userEvent.type(screen.getByTestId('mailbox-search-input'), 'Sent')
+    await userEvent.click(
+      within(screen.getByTestId('mailbox-search-results')).getByText('Sent')
+    )
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+
+    await userEvent.click(menuButton)
+
+    expect(await screen.findByTestId('labels-section')).toBeVisible()
   })
 })

@@ -9,6 +9,8 @@ import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { ListItem } from '@mui/material'
 import { NavLink } from '@/ds/NavLink/NavLink'
 import {
+  createContext,
+  use,
   useId,
   useRef,
   useState,
@@ -23,29 +25,38 @@ import {
   FOCUS_RING,
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
-import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { useLongPress } from '@/ds/useLongPress/useLongPress'
 
-/** What each level below the first moves the whole row (tmail-flutter) */
-const LEVEL_STEP = 8
+/** What each level below the first moves the whole row (the design) */
+const LEVEL_STEP = 16
 /** Start padding of the row, before its icon */
 const ROW_PADDING = 8
 /** The icon, and the gap after it */
 const ICON_SIZE = 16
-const ICON_GAP = 8
+const ICON_GAP = 12
 /** Height of the name line and of the second line, and the gap between */
 const NAME_LINE = 18.4
 const SECONDARY_LINE = 16
 const SECONDARY_GAP = 2
-/** The box of the arrow, which sets the height of the name line it is on */
-const TOGGLE_SIZE = 24
+/**
+ * The small `IconButton` of twake-mui around the 12 px arrow (8 px padding),
+ * which sets the height of the name line it is on
+ */
+const TOGGLE_SIZE = 28
+/** The row of the design, on every screen (touch included) */
+const ROW_HEIGHT = 36
 
 /**
- * How far a row of the given level (1 = top) moves in, as tmail-flutter's
- * `LinagoraSidebarSubItem`: 8 px a level, background included, no cap
+ * How far the content of a row of the given level (1 = top) moves in, as the
+ * sidebar item of the design: 16 px a level, no cap. The background of the
+ * row keeps the whole width.
  */
 export function levelIndent(level: number): number {
   return Math.max(0, level - 1) * LEVEL_STEP
 }
+
+/** Levels the rows under it are nested in besides their own (`NavCategory`) */
+export const NavTreeDepth = createContext(0)
 
 type DataAttributes = Record<`data-${string}`, string | boolean | undefined>
 
@@ -90,6 +101,17 @@ export interface NavTreeItemProps {
    * otherwise
    */
   actions?: ReactNode
+  /**
+   * A finger held on the row: opens its menu, anchored to the row, without
+   * following the link
+   */
+  onLongPress?: (row: HTMLElement) => void
+  /**
+   * With `onLongPress`, what a screen reader says of it (e.g. "Long press
+   * for actions"), on what holds the focus, which then has a menu popup.
+   * VoiceOver and TalkBack turn a double tap held into a long press.
+   */
+  longPressHint?: string
   /** Makes the row a drop target */
   drop?: {
     accepts: (types: readonly string[]) => boolean
@@ -125,11 +147,15 @@ export function NavTreeItem({
   meta,
   secondary,
   actions,
+  onLongPress,
+  longPressHint,
   drop,
   itemProps,
   'data-testid': testId,
   nameTestId
 }: NavTreeItemProps): ReactElement {
+  const longPress = useLongPress(onLongPress)
+  const indent = levelIndent(level + use(NavTreeDepth))
   const nameRef = useRef<HTMLSpanElement>(null)
   const linkId = useId()
   const [isTooltipOpen, setIsTooltipOpen] = useState(false)
@@ -139,6 +165,11 @@ export function NavTreeItem({
   // Over a second line, the name line is as high as the arrow on it
   const firstLine = toggle ? TOGGLE_SIZE : NAME_LINE
   const isLink = linkComponent !== undefined && to !== undefined
+  const isTreeItem = itemProps?.role === 'treeitem'
+  const menuHint =
+    onLongPress !== undefined && longPressHint !== undefined
+      ? { 'aria-haspopup': 'menu' as const, 'aria-description': longPressHint }
+      : {}
 
   const handleTooltipOpen = (): void => {
     const name = nameRef.current
@@ -163,7 +194,7 @@ export function NavTreeItem({
         <NavLink
           id={linkId}
           {...(isLink
-            ? { component: linkComponent, to }
+            ? { component: linkComponent, to, ...(isTreeItem ? {} : menuHint) }
             : {
                 // Not a control of its own: the row holds the focus, its
                 // arrow is the control
@@ -181,7 +212,7 @@ export function NavTreeItem({
             flex: '0 1 auto',
             minWidth: 0,
             m: 0,
-            minHeight: 36,
+            minHeight: ROW_HEIGHT,
             height: 'auto',
             // A second line hangs under the name, as tmail-flutter, without
             // pushing the arrow after it: the arrow follows the name
@@ -246,7 +277,7 @@ export function NavTreeItem({
                 className="u-ellipsis"
                 sx={{
                   position: 'absolute',
-                  insetInlineStart: `${ROW_PADDING + (icon === null ? 0 : ICON_SIZE + ICON_GAP)}px`,
+                  insetInlineStart: `${indent + ROW_PADDING + (icon === null ? 0 : ICON_SIZE + ICON_GAP)}px`,
                   insetInlineEnd: '8px',
                   top: `${firstLine + SECONDARY_GAP}px`,
                   color: 'inherit',
@@ -286,31 +317,21 @@ export function NavTreeItem({
             data-testid={toggle['data-testid']}
             // What the Right and Left keys of a tree press
             data-nav-toggle=""
+            size="small"
             sx={{
               position: 'relative',
               zIndex: 1,
               flex: 'none',
-              boxSizing: 'border-box',
-              width: TOGGLE_SIZE,
-              height: TOGGLE_SIZE,
+              // Out of the 44 px minimum of `TouchTargets`: the row stays
+              // 36 px on touch screens, as the design
               minWidth: 0,
               minHeight: 0,
-              p: '4px',
               ml: '4px',
-              color: 'text.secondary',
               // On the name line, when a second line hangs under it
-              alignSelf: hasSecondary ? 'flex-start' : undefined,
-              // A 44 px target on touch screens, without moving the arrow nor
-              // spilling over the actions after it
-              [TOUCH_MEDIA]: {
-                width: TOUCH_TARGET_SIZE,
-                height: TOUCH_TARGET_SIZE,
-                p: '14px',
-                m: '0 0 0 -10px'
-              }
+              alignSelf: hasSecondary ? 'flex-start' : undefined
             }}
           >
-            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={16} />
+            <Icon icon={toggle.isExpanded ? Dropdown : Right} size={12} />
           </IconButton>
         </Tooltip>
       ) : null}
@@ -341,8 +362,19 @@ export function NavTreeItem({
     <ListItem
       disablePadding
       // A row of a tree holds the focus: the buttons inside must not name it
-      aria-labelledby={itemProps?.role === 'treeitem' ? linkId : undefined}
+      aria-labelledby={isTreeItem ? linkId : undefined}
+      {...(isTreeItem ? menuHint : {})}
       {...itemProps}
+      {...longPress.handlers}
+      onContextMenu={event => {
+        // A long press the browser reports as a context menu (Android):
+        // once only, when the timer did not open the menu already
+        if (longPress.cancel()) {
+          event.preventDefault()
+          return
+        }
+        itemProps?.onContextMenu?.(event)
+      }}
       onFocus={event => {
         itemProps?.onFocus?.(event)
         // A row of a tree holds the keyboard focus: a name cut by the width
@@ -366,9 +398,10 @@ export function NavTreeItem({
         height: 'auto',
         minHeight: hasSecondary
           ? `${firstLine + SECONDARY_GAP + SECONDARY_LINE}px`
-          : 36,
+          : ROW_HEIGHT,
         mr: 2,
-        ml: `${16 + levelIndent(level)}px`,
+        ml: '16px',
+        pl: `${indent}px`,
         width: 'auto',
         pr: '8px',
         borderRadius: '8px',
@@ -380,6 +413,12 @@ export function NavTreeItem({
           ? {
               '& [data-nav-actions]': { ml: 'auto' },
               '& [data-nav-count] ~ [data-nav-actions]': { ml: 1 },
+              // Out of the 44 px minimum of `TouchTargets`, as the arrow
+              '& [data-nav-actions] .MuiIconButton-root': {
+                minWidth: 0,
+                minHeight: 0
+              },
+              '& [data-nav-actions] .MuiButton-root': { minHeight: 0 },
               // Without a pointer to hover, the actions are always there. With
               // one, they take no room until the row is hovered or holds the
               // keyboard focus, then replace the counter (they stay focusable)
@@ -403,7 +442,10 @@ export function NavTreeItem({
               }
             }
           : {}),
-        [TOUCH_MEDIA]: { minHeight: TOUCH_TARGET_SIZE }
+        // No callout nor text selection under a finger held for the menu
+        ...(onLongPress
+          ? { WebkitTouchCallout: 'none', userSelect: 'none' }
+          : {})
       }}
     >
       {drop ? (

@@ -277,7 +277,7 @@ describe('ShortcutsProvider', () => {
     expect(dialog).toHaveTextContent('Open new message')
     await userEvent.click(
       within(dialog).getByRole('tab', {
-        name: 'Message Management & Selection'
+        name: 'Message & Selection'
       })
     )
     expect(dialog).toHaveTextContent('Archive message')

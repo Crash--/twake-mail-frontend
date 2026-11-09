@@ -1,5 +1,12 @@
-import { Icon, type IconProps, Reply } from '@linagora/twake-icons'
 import {
+  Icon,
+  type IconProps,
+  Forward,
+  Reply,
+  ReplyAll
+} from '@linagora/twake-icons'
+import {
+  Checkbox,
   Divider,
   ListItemIcon,
   Menu,
@@ -10,12 +17,6 @@ import {
 import type { ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
-import {
-  CheckboxOff,
-  CheckboxOn,
-  Forward,
-  ReplyAll
-} from '@/ds/FlutterIcons/FlutterIcons'
 import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { MenuSubmenuItem } from '@/ds/MenuSubmenu/MenuSubmenu'
 import { useComposer } from '@common/features/composer/ComposerProvider'
@@ -41,9 +42,6 @@ import {
 import type { TargetEmail } from './planEmailChanges'
 import { useRunEmailAction } from './useRunEmailAction'
 
-/** The ticked box is primary, the empty one keeps the colour of a menu icon */
-const LABEL_ON_COLOR = 'var(--twake-palette-primary-main)'
-
 const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   reply: 'reply',
   replyAll: 'reply-all',
@@ -51,7 +49,7 @@ const REPLY_MENU_IDS: Record<ReplyAction, string> = {
   forward: 'forward'
 }
 
-/** The icons of tmail-flutter's answers (`EmailActionType.getIcon`) */
+/** The icons of the answers */
 const REPLY_ICONS: Record<ReplyAction, IconProps['icon']> = {
   reply: Reply,
   replyAll: ReplyAll,
@@ -210,10 +208,15 @@ export function EmailActionsMenu({
               }}
               data-testid="email-action-label-item"
             >
+              {/* The item is the checkbox: this one only shows its state */}
               <ListItemIcon>
-                <Icon
-                  icon={isOn ? CheckboxOn : CheckboxOff}
-                  color={isOn ? LABEL_ON_COLOR : undefined}
+                <Checkbox
+                  checked={isOn}
+                  size="small"
+                  tabIndex={-1}
+                  disableRipple
+                  aria-hidden="true"
+                  slotProps={{ input: { tabIndex: -1 } }}
                 />
               </ListItemIcon>
               <MenuItemLabel label={labelDisplayName(label, t)} />

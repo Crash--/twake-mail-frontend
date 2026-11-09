@@ -3,6 +3,18 @@ import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 
 test.describe('MBX recovery and quota', () => {
+  test('MBX-64 Enter in a field starts the recovery', async ({
+    page,
+    user
+  }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.runFolderAction({ role: 'trash' }, 'recover-deleted-messages')
+    const dialog = page.getByTestId('recovery-dialog')
+    await dialog.getByTestId('recovery-subject-input').fill('by enter')
+    await page.keyboard.press('Enter')
+    await expect(dialog).toBeHidden()
+  })
+
   test('MBX-11 emails emptied from the Trash come back in "Recovered"', async ({
     page,
     user,

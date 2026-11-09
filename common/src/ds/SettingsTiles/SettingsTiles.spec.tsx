@@ -29,9 +29,11 @@ describe('SettingsTiles', () => {
   it('lists the sections as links named by their title and explanation', () => {
     renderDs(
       <>
-        <SettingsAccount avatar={<span>BO</span>}>
-          bob@example.com
-        </SettingsAccount>
+        <SettingsAccount
+          avatar={<span>BO</span>}
+          name="Bob"
+          address="bob@example.com"
+        />
         <SettingsTileList>
           <SettingsTile
             icon={Check}

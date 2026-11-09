@@ -75,7 +75,9 @@ export interface AppBootstrapProps {
  */
 export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
   const [queryClient] = useState(makeQueryClient)
-  const [lang] = useState(() => findPreferredLanguage(config.defaultLanguage))
+  const [lang] = useState(() =>
+    findPreferredLanguage(config.defaultLanguage, config.allowedLanguages)
+  )
   const [embed] = useState(() => findTeamMailboxEmbed(config))
   const [intents] = useState(findIntentsPage)
   // Framed by TwakeSpace, the composer and the dialogs go onto its page
@@ -130,6 +132,7 @@ export function AppBootstrap({ config }: AppBootstrapProps): ReactElement {
   const page = (
     <AppProviders
       lang={lang}
+      allowedLanguages={config.allowedLanguages}
       queryClient={queryClient}
       debug={config.debug}
       overlay={overlay}

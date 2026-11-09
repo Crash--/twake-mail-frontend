@@ -167,8 +167,16 @@ describe('plainTextToHtml', () => {
 })
 
 describe('buildEmailDocument', () => {
+  const textColor = 'rgba(1, 2, 3, 0.9)'
+
+  it('sets the body in the text colour it is given', () => {
+    const document = buildEmailDocument('<p>Hi</p>', { textColor })
+
+    expect(document).toContain(`color: ${textColor};`)
+  })
+
   it('forbids scripts and remote content by Content Security Policy', () => {
-    const document = buildEmailDocument('<p>Hi</p>')
+    const document = buildEmailDocument('<p>Hi</p>', { textColor })
 
     expect(document).toContain(
       "default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; font-src data: http://localhost/fonts/InterVariable.ttf\""
@@ -178,7 +186,7 @@ describe('buildEmailDocument', () => {
   })
 
   it('draws the body with the Inter of the app, by its absolute URL', () => {
-    const document = buildEmailDocument('<p>Hi</p>')
+    const document = buildEmailDocument('<p>Hi</p>', { textColor })
 
     expect(document).toContain(
       '@font-face { font-family: Inter; src: url("http://localhost/fonts/InterVariable.ttf")'
@@ -187,6 +195,7 @@ describe('buildEmailDocument', () => {
 
   it('lets remote images and fonts load once allowed, without referrer', () => {
     const document = buildEmailDocument('<p>Hi</p>', {
+      textColor,
       allowRemoteContent: true
     })
 
@@ -198,7 +207,7 @@ describe('buildEmailDocument', () => {
   })
 
   it('applies the zoom that fits a wide element in the frame (#653)', () => {
-    const document = buildEmailDocument('<p>Hi</p>')
+    const document = buildEmailDocument('<p>Hi</p>', { textColor })
 
     expect(document).toContain(
       '.tmail-fit-scaled { zoom: var(--tmail-fit-zoom) !important; }'

@@ -5,6 +5,7 @@ import {
   joinHtmlValues,
   plainTextToHtml
 } from '@common/features/email/emailBody'
+import { isInlineImageType } from '@common/features/email/attachmentPreview'
 import type { RemoteContentPolicy } from '@common/features/email/remoteContentPolicy'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 import { LIST_POST_HEADER } from '@common/features/email/queries'
@@ -166,7 +167,7 @@ export async function loadReplyContent(
   for (const part of source.attachments) {
     if (!part.blobId) continue
     const cid = part.cid ? normalizeCid(part.cid) : null
-    if (cid !== null && inline.has(cid)) {
+    if (cid !== null && inline.has(cid) && isInlineImageType(part.type)) {
       images.register({
         cid,
         blobId: part.blobId,

@@ -143,5 +143,28 @@ export function imageBlobType(part: PreviewablePart): string {
   )
 }
 
+const INLINE_IMAGE_TYPES: ReadonlySet<string> = new Set(
+  Array.from(SAFE_IMAGE_TYPES).filter(type => type !== 'image/svg+xml')
+)
+
+/**
+ * Whether a part declared with this type may be shown as an inline (`cid:`)
+ * image: raster image types only. The object URL of an inline image lives in
+ * the app document and can be opened in a tab, where an HTML, XML or SVG
+ * blob would be a document of the webmail origin.
+ */
+export function isInlineImageType(type: string): boolean {
+  return INLINE_IMAGE_TYPES.has(type.toLowerCase())
+}
+
+/**
+ * The type given to the blob of an inline image: the declared type when it
+ * is a raster image type, `application/octet-stream` otherwise, so that
+ * neither the sender nor the server can make it a document.
+ */
+export function inlineImageBlobType(type: string): string {
+  return isInlineImageType(type) ? type.toLowerCase() : OCTET_STREAM
+}
+
 /** Previewed text beyond this size is cut: a huge log would freeze the tab */
 export const MAX_TEXT_PREVIEW_BYTES = 1024 * 1024

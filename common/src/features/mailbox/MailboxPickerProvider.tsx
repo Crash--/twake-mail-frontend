@@ -378,7 +378,6 @@ export function MailboxPickerProvider({
         open={view !== null}
         labels={{
           title: view?.title ?? t('mailboxPicker.title'),
-          close: t('common.close'),
           search: t('mailboxPicker.search'),
           empty: t('mailboxPicker.empty'),
           collapsed: t('mailboxPicker.collapsed'),
@@ -399,7 +398,6 @@ export function MailboxPickerProvider({
         }
         testIds={{
           dialog: 'mailbox-picker',
-          close: 'mailbox-picker-close-button',
           create: 'mailbox-picker-new-folder-button',
           input: 'mailbox-picker-search-input',
           listbox: 'mailbox-picker-list',

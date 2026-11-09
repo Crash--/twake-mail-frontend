@@ -368,7 +368,6 @@
     "send": "Senden",
     "saveAsDraft": "Als Entwurf speichern",
     "print": "Drucken",
-    "signature": "Signatur",
     "fields": {
       "to": "An",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Bild wird eingefügt"
-    }
+    },
+    "hideSignature": "Signatur ausblenden",
+    "showSignature": "Signatur anzeigen"
   },
   "layout": {
     "navigation": "Navigation"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Navigation & Schließen",
       "reading": "Lesen & Antworten",
-      "management": "Nachrichtenverwaltung & -auswahl",
+      "management": "Nachrichten & Auswahl",
       "label": "Kategorien von Tastenkürzeln",
       "navigationShort": "Navigation",
       "readingShort": "Lesen",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Einstellungen",
     "manageAccount": "Konto verwalten",
+    "more": "Mehr",
     "sections": {
       "profiles": {
         "title": "Profile",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Unterhaltungen",
       "threadDescription": "Mehrere zusammenhängende E-Mails als Unterhaltung anzeigen",
-      "readReceipts": "Lesebestätigungen für E-Mails",
       "readReceiptsDescription": "Lesebestätigungen sind Benachrichtigungen, die an Ihre Benutzer gesendet und von ihnen empfangen werden können, um zu bestätigen, dass E-Mails gelesen wurden.",
       "readReceiptsToggle": "Immer Lesebestätigungen für ausgehende Nachrichten anfordern",
-      "senderPriority": "Vom Absender gesetzte Wichtig-Markierung",
       "senderPriorityDescription": "Zeigt die Markierung wichtiger E-Mails in Ihrem Posteingang an. Diese Funktion wird vom Absender gesteuert und kann daher missbraucht werden.",
       "senderPriorityToggle": "Vom Absender gesetzte Wichtig-Markierung anzeigen",
-      "remoteImages": "Externe Bilder",
       "remoteImagesDescription": "Bilder und andere Inhalte, die E-Mails aus dem Internet laden, ohne Nachfrage anzeigen. Sie teilen dem Absender mit, wann und wo Sie die E-Mail lesen.",
       "remoteImagesToggle": "Externe Bilder anzeigen",
       "remoteImagesWarning": "Wenn externe Bilder immer angezeigt werden, kann Ihre Aktivität verfolgt werden, was Ihrer Privatsphäre schaden kann.",
       "threadToggle": "Unterhaltungen aktivieren",
-      "spamReports": "Spam-Berichte",
       "spamReportsDescription": "Erinnert Sie daran, Ihre Spam-E-Mails regelmäßig zu prüfen",
       "spamReportsToggle": "Spam-Bericht aktivieren",
-      "labels": "Sichtbarkeit der Labels",
       "labelsDescription": "E-Mails zugewiesene Labels direkt in der Nachrichtenliste anzeigen, um sie leichter einzuordnen.",
       "labelsToggle": "Labels anzeigen",
-      "driveAttachment": "Drive-Anhänge",
       "driveAttachmentDescription": "Die Schaltfläche für Twake-Drive-Anhänge im Editor ein- oder ausblenden",
       "driveAttachmentToggle": "Schaltfläche für Drive-Anhänge aktivieren",
       "accessibility": "Barrierefreiheit",
@@ -857,15 +852,18 @@
       "themeLight": "Hell",
       "themeDark": "Dunkel",
       "themeAuto": "Automatisch",
-      "errorReporting": "Fehlerberichte",
       "errorReportingDescription": "Absturz- und Fehlerberichte senden, damit das Support-Team Probleme diagnostizieren kann, auf die Sie stoßen. Ihre E-Mails, deren Inhalt und deren Empfänger sind niemals enthalten.",
       "errorReportingToggle": "Fehlerberichte senden",
-      "aiLabelCategorization": "Kategorisierung mit Labels",
       "aiLabelCategorizationDescription": "Meine Labels anhand ihrer Beschreibung auf eingehende E-Mails anwenden",
       "aiLabelCategorizationToggle": "Kategorisierung mit Labels aktivieren",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "KI zum Schreiben und Verbessern Ihrer E-Mails verwenden",
-      "aiScribeToggle": "AI Scribe aktivieren"
+      "aiScribeToggle": "AI Scribe aktivieren",
+      "groups": {
+        "privacy": "Datenschutz",
+        "inbox": "Posteingang",
+        "smartFeatures": "Intelligente Funktionen",
+        "writing": "Schreiben"
+      }
     },
     "backToMail": "Zurück zur Mail",
     "language": {
@@ -978,12 +976,14 @@
       "success": "Dieser Ordner wird wieder angezeigt"
     },
     "visibility": {
-      "hide": "Ausblenden",
-      "show": "Anzeigen",
       "personal": "Persönliche Ordner",
       "team": "Team-Postfächer",
       "hideOf": "%{name} ausblenden",
-      "showOf": "%{name} anzeigen"
+      "showOf": "%{name} anzeigen",
+      "visible": "Sichtbar",
+      "hidden": "Ausgeblendet",
+      "alwaysVisible": "Immer sichtbar",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Suche nach Ordnern",
@@ -995,6 +995,7 @@
       "progress": "E-Mails werden verschoben: %{moved} von %{total}"
     },
     "clean": "Bereinigen",
+    "longPressHint": "Lange drücken für Aktionen",
     "progress": {
       "markAsRead": "Alle Nachrichten in „%{folderName}“ werden als gelesen markiert",
       "empty": "„%{folderName}“ wird geleert"
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Neue Regel erstellen",
       "editTitle": "Regel bearbeiten",
-      "create": "Regel erstellen",
+      "create": "Erstellen",
       "name": "Regelname",
       "namePlaceholder": "Geben Sie den Namen der Regel ein",
       "conditions": "Bedingung",
@@ -1199,7 +1200,10 @@
     "externalBanner": "Sie leiten E-Mails an eine andere Domain weiter. Dies könnte ein Sicherheitsrisiko darstellen oder als illegale Datenextraktion angesehen werden.",
     "listLabel": "Weiterleitungsadressen",
     "removeOf": "%{email} entfernen",
-    "inputLabel": "Neuer Empfänger",
+    "inputLabel": "Empfänger hinzufügen",
+    "pasteHint": "Mehrere Adressen einfügen",
+    "emptyTitle": "Weiterleitung ist aus",
+    "emptyText": "Fügen Sie oben eine Adresse hinzu, und jede neue E-Mail wird auch dorthin gesendet.",
     "recipientCount": "%{smart_count} Empfänger |||| %{smart_count} Empfänger",
     "selectAll": "Alles auswählen",
     "selectedCount": "%{count} ausgewählt",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Automatisch auf Nachrichten antworten, wenn sie empfangen werden.",
+    "responder": "Abwesenheitsnotiz",
+    "starts": "Beginn:",
+    "ends": "Ende:",
+    "rightAway": "Sofort",
+    "pickTime": "Zeitpunkt wählen",
+    "untilTurnedOff": "Wenn ich sie ausschalte",
+    "statusOn": "An",
+    "statusOff": "Aus",
     "startDate": "Anfangsdatum",
     "startTime": "Anfangszeit",
-    "stops": "Urlaub endet am",
     "endDate": "Enddatum",
     "endTime": "Endzeit",
     "subject": "Betreff",
@@ -1254,6 +1265,7 @@
       "description": "Beschreibung (optional)",
       "descriptionPlaceholder": "Fügen Sie eine kurze Beschreibung hinzu, wofür dieses Label gedacht ist",
       "color": "Farbe des Labels wählen",
+      "colorCurrent": "Farbe des Labels: %{color}",
       "create": "Label erstellen"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "Keine Farbe",
     "colors": {
       "navyBlue": "Marineblau",
+      "skyBlue": "Himmelblau",
+      "brightBlue": "Leuchtendes Blau",
+      "royalBlue": "Königsblau",
       "purple": "Lila",
       "lavender": "Lavendel",
       "indigo": "Indigo",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Dunkelgrau",
       "grey": "Grau"
     },
-    "colorCustom": "Benutzerdefinierte Farbe",
-    "colorCustomNamed": "Benutzerdefinierte Farbe %{color}",
     "colorHex": "Benutzerdefinierte Farbe (hexadezimal)",
     "colorHexHint": "Format #RRGGBB, zum Beispiel #1A2B3C",
     "colorHexInvalid": "Geben Sie eine Farbe als #RRGGBB ein, zum Beispiel #1A2B3C",
-    "colorPicker": "Farbauswahl öffnen",
     "removeFromEmail": "Label %{name} entfernen",
     "moreNames": "%{smart_count} weiteres Label: %{names} |||| %{smart_count} weitere Labels: %{names}",
     "listLabel": "Labels der E-Mail"

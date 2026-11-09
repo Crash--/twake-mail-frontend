@@ -10,7 +10,11 @@
  * So no run lists a spec its stack cannot pass: none is skipped.
  */
 const SUITE_SPECS = {
-  oidc: ['**/drive.spec.ts', '**/infra-oidc.spec.ts'],
+  oidc: [
+    '**/drive.spec.ts',
+    '**/infra-oidc.spec.ts',
+    '**/platform-help.spec.ts'
+  ],
   chart: ['**/chart-image.spec.ts'],
   'chart-sso': ['**/chart-image-sso.spec.ts']
 } as const satisfies Record<string, readonly string[]>

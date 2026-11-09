@@ -14,9 +14,10 @@ export class LabelModals {
   readonly descriptionInput: Locator
   readonly saveButton: Locator
   readonly colorPicker: Locator
-  readonly customColorSwatch: Locator
+  readonly colorOptions: Locator
+  readonly customColorOption: Locator
+  readonly noColorOption: Locator
   readonly customColorHexInput: Locator
-  readonly customColorNativeInput: Locator
   readonly chooseModal: Locator
   readonly chooseEmpty: Locator
   readonly chooseCreateButton: Locator
@@ -30,13 +31,17 @@ export class LabelModals {
     this.nameInput = this.labelModal.getByTestId('label-name-input')
     this.descriptionInput = this.labelModal.getByTestId('label-description-input')
     this.saveButton = this.labelModal.getByTestId('label-save-button')
+    // The icon button beside the name; it opens the colours in a popover
     this.colorPicker = this.labelModal.getByTestId('label-color-picker')
-    this.customColorSwatch = this.labelModal.getByTestId('label-color-custom')
+    this.colorOptions = page.getByTestId('label-color-picker-popover')
+    this.customColorOption = this.colorOptions.getByRole('radio', {
+      name: 'Custom color (hexadecimal)'
+    })
+    this.noColorOption = this.colorOptions.getByRole('radio', {
+      name: 'No color'
+    })
     this.customColorHexInput = this.labelModal.getByTestId(
       'label-color-hex-input'
-    )
-    this.customColorNativeInput = this.labelModal.getByTestId(
-      'label-color-native-input'
     )
     this.chooseModal = page.getByTestId('choose-label-modal')
     this.chooseEmpty = this.chooseModal.getByTestId('choose-label-empty')
@@ -73,14 +78,19 @@ export class LabelModals {
     await expect(this.labelModal).toBeHidden()
   }
 
-  /** A swatch of the colour picker of the label modal, by its name */
-  colorSwatch(name: string): Locator {
-    return this.colorPicker.getByRole('radio', { name, exact: true })
+  colorOption(name: string): Locator {
+    return this.colorOptions.getByRole('radio', { name, exact: true })
+  }
+
+  async openColors(): Promise<void> {
+    await this.colorPicker.click()
+    await expect(this.colorOptions).toBeVisible()
   }
 
   /** Picks the custom colour by its hexadecimal field */
   async chooseCustomColor(hex: string): Promise<void> {
-    await this.customColorSwatch.check()
+    await this.openColors()
+    await this.customColorOption.click()
     await this.customColorHexInput.fill(hex)
   }
 

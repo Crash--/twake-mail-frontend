@@ -34,6 +34,18 @@ function setup(
   return fake
 }
 
+/** A button of the "Starts:" or "Ends:" choice */
+function choice(group: string, name: string): HTMLElement {
+  return within(screen.getByRole('group', { name: group })).getByRole(
+    'button',
+    { name }
+  )
+}
+
+function pickATime(group: string): HTMLElement {
+  return choice(group, 'Pick a time')
+}
+
 describe('VacationSettings', () => {
   it('turns the vacation response on, from a date until another', async () => {
     const fake = setup()
@@ -43,7 +55,7 @@ describe('VacationSettings', () => {
     ).toHaveAttribute('aria-disabled', 'true')
     await userEvent.click(
       await screen.findByRole('switch', {
-        name: 'Automatically reply to messages when they are received.'
+        name: 'Vacation responder'
       })
     )
     await waitFor(() => {
@@ -55,15 +67,14 @@ describe('VacationSettings', () => {
     expect(screen.getByTestId('vacation-message-editor')).not.toHaveAttribute(
       'aria-disabled'
     )
+    await userEvent.click(pickATime('Starts:'))
     fireEvent.change(screen.getByLabelText(/^Start date/), {
       target: { value: '2026-10-10' }
     })
     fireEvent.change(screen.getByLabelText(/^Start time/), {
       target: { value: '09:00' }
     })
-    await userEvent.click(
-      screen.getByRole('switch', { name: 'Vacation stops at' })
-    )
+    await userEvent.click(pickATime('Ends:'))
     fireEvent.change(screen.getByLabelText('End date'), {
       target: { value: '2026-10-20' }
     })
@@ -91,18 +102,19 @@ describe('VacationSettings', () => {
     })
   })
 
-  it('starts from now when no start is saved, and saves what it shows', async () => {
+  it('starts right away when no start is saved', async () => {
     const fake = setup()
 
     await userEvent.click(
       await screen.findByRole('switch', {
-        name: 'Automatically reply to messages when they are received.'
+        name: 'Vacation responder'
       })
     )
-    const date = screen.getByLabelText<HTMLInputElement>(/^Start date/).value
-    const time = screen.getByLabelText<HTMLInputElement>(/^Start time/).value
-    expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(time).toMatch(/^\d{2}:\d{2}$/)
+    expect(choice('Starts:', 'Right away')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(screen.queryByLabelText(/^Start date/)).toBe(null)
     await userEvent.type(
       screen.getByRole('textbox', { name: 'Message' }),
       'Away'
@@ -115,9 +127,58 @@ describe('VacationSettings', () => {
     // Tests run in UTC (jest.config.ts)
     expect(fake.vacation()).toMatchObject({
       isEnabled: true,
-      fromDate: `${date}T${time}:00Z`,
+      fromDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00Z$/),
       toDate: null
     })
+  })
+
+  it('reopens a saved start that has passed on "Right away"', async () => {
+    setup({
+      isEnabled: true,
+      fromDate: '2020-01-01T09:00:00Z',
+      htmlBody: '<p>Away</p>'
+    })
+
+    await screen.findByTestId('vacation-form')
+    expect(choice('Starts:', 'Right away')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(screen.queryByLabelText(/^Start date/)).toBe(null)
+  })
+
+  it('keeps a saved start that has passed when saving something else', async () => {
+    const fake = setup({
+      isEnabled: true,
+      fromDate: '2020-01-01T09:00:00Z',
+      subject: 'Away',
+      htmlBody: '<p>Away</p>'
+    })
+
+    const subject = await screen.findByRole('textbox', { name: 'Subject' })
+    await userEvent.clear(subject)
+    await userEvent.type(subject, 'Out of office')
+    await userEvent.click(screen.getByTestId('vacation-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Vacation settings saved'
+    )
+    expect(fake.vacation()).toMatchObject({
+      fromDate: '2020-01-01T09:00:00Z',
+      subject: 'Out of office'
+    })
+  })
+
+  it('reopens a saved start to come on "Pick a time"', async () => {
+    setup({
+      isEnabled: true,
+      fromDate: '2999-01-01T09:00:00Z',
+      htmlBody: '<p>Away</p>'
+    })
+
+    await screen.findByTestId('vacation-form')
+    expect(pickATime('Starts:')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText(/^Start date/)).toHaveValue('2999-01-01')
   })
 
   it('fills the end with the start, and refuses an end without a time', async () => {
@@ -127,9 +188,8 @@ describe('VacationSettings', () => {
       htmlBody: '<p>Away</p>'
     })
 
-    await userEvent.click(
-      await screen.findByRole('switch', { name: 'Vacation stops at' })
-    )
+    await screen.findByTestId('vacation-form')
+    await userEvent.click(pickATime('Ends:'))
     expect(screen.getByLabelText('End date')).toHaveValue('2026-10-10')
     expect(screen.getByLabelText('End time')).toHaveValue('09:00')
     fireEvent.change(screen.getByLabelText('End time'), {
@@ -157,9 +217,8 @@ describe('VacationSettings', () => {
       htmlBody: '<p>Away</p>'
     })
 
-    await userEvent.click(
-      await screen.findByRole('switch', { name: 'Vacation stops at' })
-    )
+    await screen.findByTestId('vacation-form')
+    await userEvent.click(pickATime('Ends:'))
     fireEvent.change(screen.getByLabelText('End date'), {
       target: { value: '2026-10-01' }
     })
@@ -195,15 +254,16 @@ describe('VacationSettings', () => {
   it('turns it off, keeping the message for next time', async () => {
     const fake = setup({
       isEnabled: true,
-      fromDate: '2026-10-10T09:00:00Z',
+      fromDate: '2999-10-10T09:00:00Z',
       subject: 'Away',
       htmlBody: '<p>Away</p>'
     })
 
     const form = await screen.findByTestId('vacation-form')
+    expect(screen.getByTestId('vacation-status')).toHaveTextContent('On')
     await userEvent.click(
       within(form).getByRole('switch', {
-        name: 'Automatically reply to messages when they are received.'
+        name: 'Vacation responder'
       })
     )
     expect(screen.getByLabelText(/^Start date/)).toBeDisabled()

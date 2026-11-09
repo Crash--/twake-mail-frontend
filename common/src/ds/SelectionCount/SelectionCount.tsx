@@ -1,12 +1,12 @@
 // Upstream to twake-ui: no, the "N selected" of the selection bar, in
-// twake-mui's `subtitle1` and `text.primary`.
+// twake-mui's `body2` and `text.primary`, 4 px before the cross.
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 const COUNT_SX = {
-  typography: 'subtitle1',
+  typography: 'body2',
   color: 'text.primary',
-  mr: 1
+  mr: 0.5
 } as const
 
 export interface SelectionCountProps {

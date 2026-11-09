@@ -1,8 +1,8 @@
 // Upstream to twake-ui: no. The rows of the lists of the settings: the
 // rules, cards on `background.default` 72 px high, 8 px apart, the name,
 // then in a pill what the row does, and the actions at the end; the
-// recipients of the forwarding, narrower cards with an avatar, under a
-// header selecting them.
+// recipients of the forwarding, rows with an avatar ruled in one outlined
+// list, under a header selecting them.
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -55,19 +55,51 @@ const ACTIONS_SX = {
   flexShrink: 0
 } as const
 
+const OUTLINED_SX = {
+  width: 628,
+  maxWidth: '100%',
+  m: 0,
+  p: 0,
+  listStyle: 'none',
+  border: 1,
+  borderColor: 'divider',
+  borderRadius: '12px',
+  overflow: 'hidden'
+} as const
+
 const RECIPIENT_SX = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  width: 597,
-  maxWidth: '100%',
-  minHeight: 72,
-  mt: '4px',
+  minHeight: 64,
   px: 2,
-  borderRadius: '10px',
-  bgcolor: 'background.default',
+  '& + &': { borderTop: 1, borderColor: 'divider' },
   '&[data-selected="true"]': { bgcolor: 'action.selected' }
 } as const
+
+export interface SettingsRecipientListProps {
+  label: string
+  children: ReactNode
+  'data-testid'?: string
+}
+
+/** The recipients of the forwarding: a 628 px outlined list, rows ruled */
+export function SettingsRecipientList({
+  label,
+  children,
+  'data-testid': testId
+}: SettingsRecipientListProps): ReactElement {
+  return (
+    <Box
+      component="ul"
+      aria-label={label}
+      sx={OUTLINED_SX}
+      data-testid={testId}
+    >
+      {children}
+    </Box>
+  )
+}
 
 const RECIPIENT_NAME_SX = {
   flex: '1 1 auto',
@@ -105,9 +137,9 @@ export interface SettingsRecipientCardProps {
 }
 
 /**
- * A recipient of the forwarding: a card at most 597 px wide, its avatar, the
- * address and a primary status icon, the delete button at the end; on
- * `action.selected` once selected
+ * A recipient of the forwarding, a row of `SettingsRecipientList`: its
+ * avatar, the address and a primary status icon, the delete button at the
+ * end; on `action.selected` once selected
  */
 export function SettingsRecipientCard({
   avatar,

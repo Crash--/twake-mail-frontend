@@ -64,4 +64,20 @@ export class LoginPage {
     await mailbox.expectLoaded()
     return mailbox
   }
+
+  /** The app in OIDC mode (the `oidc` suite): Dex's static alice */
+  async loginWithDex(): Promise<MailboxPage> {
+    await this.page.goto('/')
+    await this.page.waitForURL(url => url.pathname.startsWith('/dex/'))
+    await this.page
+      .getByRole('textbox', { name: /email/i })
+      .fill('alice@example.com')
+    await this.page.getByRole('textbox', { name: /password/i }).fill('secret')
+    await this.page.getByRole('button', { name: /login/i }).click()
+    const grant = this.page.getByRole('button', { name: /grant access/i })
+    if (await grant.isVisible().catch(() => false)) await grant.click()
+    const mailbox = new MailboxPage(this.page)
+    await mailbox.expectLoaded()
+    return mailbox
+  }
 }

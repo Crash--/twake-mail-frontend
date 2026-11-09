@@ -134,14 +134,14 @@ function AppFrame(): ReactElement {
   const isMailboxEmailOpen =
     useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
   const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
-  // As tmail-flutter: the filters of the results above the card of the list
   const isSearchResults = useMatch('/search') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const isSettings = isSettingsPath(location.pathname)
-  // The search is in tmail-flutter's bar without the platform; with it (its
-  // own bar) or framed by the Workplace, it is at the top of the page
+  // Without the platform, the settings are behind the initial of the user
+  // in the bar (`AccountMenu`), not in the search row as well
+  const platformSdk = usePlatformSdk()
   const platformStatus = usePlatformStatus()
-  const hasFlutterBar = usePlatformSdk() !== null && platformStatus === 'public'
+  const hasAccountMenu = platformSdk !== null && platformStatus === 'public'
   // As tmail-flutter, it makes way for the selection
   const isSelectingEmails = useIsSelectingEmails()
   const showComposeFab =
@@ -213,21 +213,24 @@ function AppFrame(): ReactElement {
             onCompose={handleCompose}
           />
         )}
-        <FlatMain
-          inset={isDesktop}
-          header={isDesktop && isSearchResults ? <SearchFiltersHeader /> : null}
-        >
-          {isDesktop && !isSettings && !hasFlutterBar ? (
+        <FlatMain>
+          {/* The search starts the page, level with the compose button */}
+          {isDesktop && !isSettings ? (
             <SearchRow
               search={<MailSearchRow />}
               actions={
                 <>
                   <MailboxSwitcherButton />
-                  <SettingsButton />
+                  {hasAccountMenu ? null : <SettingsButton />}
                 </>
               }
               data-testid="search-row"
             />
+          ) : null}
+          {isDesktop && isSearchResults ? (
+            <Box className="u-ph-1 u-pb-half">
+              <SearchFiltersHeader />
+            </Box>
           ) : null}
           <VacationBanner />
           <RecoveryBanner />

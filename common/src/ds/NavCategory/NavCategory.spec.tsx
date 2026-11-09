@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
+import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { NavCategory } from './NavCategory'
@@ -37,5 +38,32 @@ describe('NavCategory', () => {
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByText('Projects')).not.toBeVisible()
+  })
+
+  it('puts the rows it holds a level deeper, 16 px in, the background at full width', () => {
+    renderDs(
+      <NavCategory
+        title="Personal folders"
+        titleId="title"
+        icon={FolderOutlined}
+        isExpanded
+        onToggle={jest.fn()}
+        controlsId="content"
+      >
+        <ul>
+          <NavTreeItem
+            level={1}
+            icon={null}
+            label="Projects"
+            linkComponent="a"
+            to="/projects"
+          />
+        </ul>
+      </NavCategory>
+    )
+
+    expect(window.getComputedStyle(screen.getByRole('listitem'))).toMatchObject(
+      { marginLeft: '16px', paddingLeft: '16px' }
+    )
   })
 })

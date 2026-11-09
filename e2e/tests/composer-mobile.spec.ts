@@ -158,6 +158,8 @@ test.describe('CMP: the composer on a phone and a tablet (Figma "Composer", mobi
             ]
           : [
               // "Save as draft" is a button of the footer, as tmail-flutter
+              'Insert emoji',
+              'Reply to',
               'Insert template',
               'Save as template',
               'Print',

@@ -41,7 +41,7 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
     expect([root.width, root.height]).toEqual([790, 634])
     expect(await styleOf(composer.root, 'border-top-left-radius')).toBe('8px')
 
-    // Title bar: 44 px high, three 40 px buttons 4 px apart, 16 px from the end
+    // Title bar: 44 px high, three 32 px buttons 4 px apart, 16 px from the end
     const to = await boxOf(composer.root.getByTestId('composer-to-field'))
     expect(to.y - root.y).toBe(44)
     expect(to.height).toBe(37)
@@ -53,12 +53,12 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       ].map(boxOf)
     )
     for (const box of header) {
-      expect([box.width, box.height]).toEqual([40, 40])
+      expect([box.width, box.height]).toEqual([32, 32])
     }
     const [minimize, expand, close] = header as [Box, Box, Box]
-    expect(expand.x - (minimize.x + 40)).toBe(4)
-    expect(close.x - (expand.x + 40)).toBe(4)
-    expect(root.x + root.width - (close.x + 40)).toBe(16)
+    expect(expand.x - (minimize.x + 32)).toBe(4)
+    expect(close.x - (expand.x + 32)).toBe(4)
+    expect(root.x + root.width - (close.x + 32)).toBe(16)
 
     // Formatting toolbar (compact look): boxes 32 px high, 8 px apart
     const toolbar = await boxOf(composer.toolbar)
@@ -77,17 +77,17 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
     const group = await boxOf(composer.toolbarButton('Bold').locator('..'))
     expect([group.width, group.height]).toEqual([114, 32])
 
-    // Footer: 32 px in, 40 px icon buttons 8 px apart, Send a 128 x 40 pill
+    // Footer: 16 px in, 40 px icon buttons 8 px apart, Send a 128 x 40 pill
     const footer = await Promise.all(
       [composer.formattingButton, composer.attachFileButton].map(boxOf)
     )
     for (const box of footer) expect([box.width, box.height]).toEqual([40, 40])
     const [formatting, attach] = footer as [Box, Box]
     expect(attach.x - (formatting.x + 40)).toBe(8)
-    expect(formatting.x - root.x).toBe(32)
+    expect(formatting.x - root.x).toBe(16)
     const send = await boxOf(composer.sendButton)
     expect([send.width, send.height]).toEqual([128, 40])
-    expect(root.x + root.width - (send.x + send.width)).toBe(32)
+    expect(root.x + root.width - (send.x + send.width)).toBe(16)
     expect(root.y + root.height - (send.y + send.height)).toBe(16)
     expect(send.y - (toolbar.y + toolbar.height)).toBe(16)
   })
@@ -102,8 +102,12 @@ test.describe('CMP: geometry of the composer (Figma "Composer_open_dialog_defaul
       const mailbox = await new LoginPage(page).loginAs(user)
       const composer = await mailbox.compose()
       await composer.showFormattingToolbar()
-      const close = await boxOf(composer.closeButton)
-      expect([close.width, close.height]).toEqual([size, size])
+      // A phone: close is in the form's top bar; elsewhere it is a 32 px
+      // button of the title bar (CMP-84)
+      if (testInfo.project.name === 'mobile') {
+        const close = await boxOf(composer.closeButton)
+        expect([close.width, close.height]).toEqual([size, size])
+      }
       for (const button of [
         composer.formattingButton,
         composer.attachFileButton,

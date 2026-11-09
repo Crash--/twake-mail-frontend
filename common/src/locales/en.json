@@ -368,7 +368,6 @@
     "send": "Send",
     "saveAsDraft": "Save as draft",
     "print": "Print",
-    "signature": "Signature",
     "fields": {
       "to": "To",
       "cc": "Cc",
@@ -591,7 +590,9 @@
     },
     "images": {
       "inserting": "Inserting the image"
-    }
+    },
+    "hideSignature": "Hide signature",
+    "showSignature": "Show signature"
   },
   "layout": {
     "navigation": "Navigation"
@@ -774,7 +775,7 @@
     "categories": {
       "navigation": "Navigation & Closing",
       "reading": "Reading & Replying",
-      "management": "Message Management & Selection",
+      "management": "Message & Selection",
       "label": "Categories of shortcuts",
       "navigationShort": "Navigation",
       "readingShort": "Reading",
@@ -784,6 +785,7 @@
   "settings": {
     "title": "Settings",
     "manageAccount": "Manage account",
+    "more": "More",
     "sections": {
       "profiles": {
         "title": "Profiles",
@@ -827,26 +829,19 @@
       }
     },
     "preferences": {
-      "thread": "Thread",
       "threadDescription": "View multiple related emails like a conversation",
-      "readReceipts": "Email read receipts",
       "readReceiptsDescription": "Read receipts are notifications that can be sent to and from your users to verify that mail has been read.",
       "readReceiptsToggle": "Always request read receipts with outgoing messages",
-      "senderPriority": "Sender-set important flag",
       "senderPriorityDescription": "Enables display of important emails flag in your inbox. This feature is controlled by the sender and thus could result in abuses.",
       "senderPriorityToggle": "Display sender-set important flag",
-      "remoteImages": "Remote images",
       "remoteImagesDescription": "Show the images and other content that emails load from the Internet without asking. They tell the sender when and where you read the email.",
       "remoteImagesToggle": "Show remote images",
       "remoteImagesWarning": "Always showing remote images exposes you to activity tracking and thus could harm your privacy.",
       "threadToggle": "Enable thread",
-      "spamReports": "Spam reports",
       "spamReportsDescription": "Reminds you that you need to moderate your spam emails recurringly",
       "spamReportsToggle": "Enable spam report",
-      "labels": "Label visibility",
       "labelsDescription": "Show labels assigned to emails directly in your message list for easier categorization.",
       "labelsToggle": "Display labels",
-      "driveAttachment": "Drive attachment",
       "driveAttachmentDescription": "Show or hide the Twake Drive attachment button in the composer",
       "driveAttachmentToggle": "Enable Drive attachment button",
       "accessibility": "Accessibility",
@@ -857,15 +852,18 @@
       "themeLight": "Light",
       "themeDark": "Dark",
       "themeAuto": "Auto",
-      "errorReporting": "Error reporting",
       "errorReportingDescription": "Send crash and error reports so the support team can diagnose problems you run into. Your emails, their content and their recipients are never included.",
       "errorReportingToggle": "Send error reports",
-      "aiLabelCategorization": "Label categorisation",
       "aiLabelCategorizationDescription": "Apply my labels on incoming emails using their description",
       "aiLabelCategorizationToggle": "Enable label categorisation",
-      "aiScribe": "AI Scribe",
       "aiScribeDescription": "Use AI to help write and improve your emails",
-      "aiScribeToggle": "Enable AI Scribe"
+      "aiScribeToggle": "Enable AI Scribe",
+      "groups": {
+        "privacy": "Privacy",
+        "inbox": "Inbox",
+        "smartFeatures": "Smart features",
+        "writing": "Writing"
+      }
     },
     "backToMail": "Back to mail",
     "language": {
@@ -978,12 +976,14 @@
       "success": "This folder is shown again"
     },
     "visibility": {
-      "hide": "Hide",
-      "show": "Show",
       "personal": "Personal folders",
       "team": "Team-mailboxes",
       "hideOf": "Hide %{name}",
-      "showOf": "Show %{name}"
+      "showOf": "Show %{name}",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "alwaysVisible": "Always visible",
+      "stateAction": "%{state}: %{action}"
     },
     "search": {
       "label": "Search for folders",
@@ -995,6 +995,7 @@
       "progress": "Moving emails: %{moved} of %{total}"
     },
     "clean": "Clean",
+    "longPressHint": "Long press for actions",
     "progress": {
       "markAsRead": "Marking all messages in \"%{folderName}\" as read",
       "empty": "Emptying \"%{folderName}\""
@@ -1092,7 +1093,7 @@
     "form": {
       "createTitle": "Create a New Rule",
       "editTitle": "Edit Rule",
-      "create": "Create Rule",
+      "create": "Create",
       "name": "Rule Name",
       "namePlaceholder": "Enter the rule name",
       "conditions": "Condition",
@@ -1199,7 +1200,10 @@
     "externalBanner": "You are redirecting emails to another domain. This could be a security threat or considered illegal data extraction.",
     "listLabel": "Forwarding addresses",
     "removeOf": "Remove %{email}",
-    "inputLabel": "New recipient",
+    "inputLabel": "Add a recipient",
+    "pasteHint": "Paste several addresses",
+    "emptyTitle": "Forwarding is off",
+    "emptyText": "Add an address above and every new email you receive will also be sent there.",
     "recipientCount": "%{smart_count} recipient |||| %{smart_count} recipients",
     "selectAll": "Select all",
     "selectedCount": "%{count} selected",
@@ -1213,9 +1217,16 @@
   },
   "vacation": {
     "enable": "Automatically reply to messages when they are received.",
+    "responder": "Vacation responder",
+    "starts": "Starts:",
+    "ends": "Ends:",
+    "rightAway": "Right away",
+    "pickTime": "Pick a time",
+    "untilTurnedOff": "When I turn it off",
+    "statusOn": "On",
+    "statusOff": "Off",
     "startDate": "Start date",
     "startTime": "Start time",
-    "stops": "Vacation stops at",
     "endDate": "End date",
     "endTime": "End time",
     "subject": "Subject",
@@ -1254,6 +1265,7 @@
       "description": "Description (optional)",
       "descriptionPlaceholder": "Add a short description to explain what this label is for",
       "color": "Choose a label color",
+      "colorCurrent": "Label color: %{color}",
       "create": "Create label"
     },
     "errors": {
@@ -1295,6 +1307,9 @@
     "colorNone": "No color",
     "colors": {
       "navyBlue": "Navy blue",
+      "skyBlue": "Sky blue",
+      "brightBlue": "Bright blue",
+      "royalBlue": "Royal blue",
       "purple": "Purple",
       "lavender": "Lavender",
       "indigo": "Indigo",
@@ -1315,12 +1330,9 @@
       "darkGrey": "Dark grey",
       "grey": "Grey"
     },
-    "colorCustom": "Custom color",
-    "colorCustomNamed": "Custom color %{color}",
     "colorHex": "Custom color (hexadecimal)",
     "colorHexHint": "Format #RRGGBB, for example #1A2B3C",
     "colorHexInvalid": "Enter a color as #RRGGBB, for example #1A2B3C",
-    "colorPicker": "Open the color picker",
     "removeFromEmail": "Remove the label %{name}",
     "moreNames": "%{smart_count} more label: %{names} |||| %{smart_count} more labels: %{names}",
     "listLabel": "Labels of the email"

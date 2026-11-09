@@ -9,6 +9,18 @@ const PNG = Buffer.from(
 )
 
 test.describe('SET settings', () => {
+  test('SET-60 Enter in a field saves the identity', async ({ page, user }) => {
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const settings = await mailbox.openSettings()
+    await settings.createIdentityButton.click()
+    await settings.identityDialog
+      .getByTestId('identity-name-input')
+      .fill('By enter')
+    await page.keyboard.press('Enter')
+    await expect(settings.identityDialog).toBeHidden()
+    await expect(settings.identity('By enter')).toBeVisible()
+  })
+
   test(
     'SET-02 choosing the default identity with its radio',
     { tag: '@mobile' },
@@ -69,8 +81,7 @@ test.describe('SET settings', () => {
       'Reply to: Help desk <help@example.com>'
     )
     await expect(support).toContainText('Bcc: archive@example.com')
-    // As tmail-flutter: "--", then the signature as it is written
-    await expect(support).toContainText('--')
+    // Under the row, the signature as it is written
     await expect(support.getByTestId('identity-item-signature')).toHaveText(
       'The support team'
     )

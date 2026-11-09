@@ -26,8 +26,8 @@ const COMPACT_TAB_SX = {
   '& .MuiTab-iconWrapper': { m: 0 }
 } as const
 
-/** The list of the tab, 40 px under the bar */
-const PANEL_SX = { pt: '40px' } as const
+/** The list of the tab, 20 px under the bar */
+const PANEL_SX = { pt: '20px' } as const
 
 export interface CategoryTab {
   id: string
@@ -45,6 +45,8 @@ export interface CategoryTabsProps {
   onChange: (id: string) => void
   /** Names the tab list */
   label: string
+  /** On the desktop, the bar this wide at most, the tabs sharing it */
+  barWidth?: number
   /** The panel of the selected tab */
   children: ReactNode
   'data-testid'?: string
@@ -56,11 +58,13 @@ export function CategoryTabs({
   value,
   onChange,
   label,
+  barWidth,
   children,
   'data-testid': testId
 }: CategoryTabsProps): ReactElement {
   const id = useId()
   const isCompact = useScreenSize() !== 'desktop'
+  const isShared = isCompact || barWidth !== undefined
   return (
     <Box data-testid={testId}>
       <Tabs
@@ -69,9 +73,15 @@ export function CategoryTabs({
           onChange(next)
         }}
         aria-label={label}
-        variant={isCompact ? 'fullWidth' : 'scrollable'}
+        variant={isShared ? 'fullWidth' : 'scrollable'}
         scrollButtons={false}
-        sx={isCompact ? COMPACT_TABS_SX : TABS_SX}
+        sx={
+          isCompact
+            ? COMPACT_TABS_SX
+            : barWidth === undefined
+              ? TABS_SX
+              : { ...TABS_SX, maxWidth: barWidth }
+        }
       >
         {tabs.map(tab => (
           <Tab
@@ -86,7 +96,13 @@ export function CategoryTabs({
             iconPosition="top"
             id={`${id}-tab-${tab.id}`}
             aria-controls={`${id}-panel`}
-            sx={isCompact ? COMPACT_TAB_SX : { ...TAB_SX, width: tab.width }}
+            sx={
+              isCompact
+                ? COMPACT_TAB_SX
+                : barWidth === undefined
+                  ? { ...TAB_SX, width: tab.width }
+                  : { minWidth: 0 }
+            }
           />
         ))}
       </Tabs>

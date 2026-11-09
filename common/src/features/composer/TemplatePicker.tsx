@@ -1,4 +1,4 @@
-import { Note } from '@linagora/twake-icons'
+import { Template } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
 import { useMemo, type ReactElement } from 'react'
 
@@ -59,7 +59,7 @@ export function TemplatePicker({
         [teamOf.get(template.mailboxId), template.preview]
           .filter(part => part !== undefined && part !== null && part !== '')
           .join(' · ') || null,
-      icon: Note
+      icon: Template
     }))
   }, [templates.data, mailboxes, t])
 

@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { DRAGGED_EMAILS_TYPE } from '@common/features/thread/useEmailListActions'
 import type { SupportedLanguage } from '@common/i18n/languages'
 import {
@@ -139,12 +140,38 @@ describe('MailboxTree', () => {
     )
   })
 
+  it('keeps ⋮ and Clean in a phone drawer, beside the long press', async () => {
+    mockViewport({ width: 390, touch: true })
+    renderTree('/mailbox/mailbox-inbox', 'en', [
+      makeMailbox({
+        id: 'mailbox-spam',
+        name: 'Spam',
+        role: 'junk',
+        totalEmails: 3
+      })
+    ])
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(
+      within(folder('Spam')).getByRole('button', { name: 'Actions on Spam' })
+    ).toHaveAttribute('aria-haspopup', 'menu')
+    expect(
+      within(folder('Spam')).getByRole('button', { name: 'Clean' })
+    ).toBeInTheDocument()
+    expect(folder('Spam')).toHaveAttribute('aria-haspopup', 'menu')
+    expect(folder('Spam')).toHaveAccessibleDescription('Long press for actions')
+    resetViewport()
+  })
+
   it('says a hidden folder is hidden without a coloured badge', async () => {
     renderTree('/mailbox/mailbox-inbox', 'en', [
       makeMailbox({ id: 'rare', name: 'Rarely used', isSubscribed: false })
     ])
     await screen.findAllByTestId('mailbox-item')
-    await userEvent.click(screen.getByTestId('show-hidden-folders-button'))
+    // Out of the tree: the folder search lists it
+    expect(screen.queryByText('Rarely used')).toBe(null)
+    await userEvent.click(screen.getByTestId('mailbox-search-button'))
+    await userEvent.type(screen.getByTestId('mailbox-search-input'), 'Rarely')
 
     const row = folder('Rarely used')
     expect(row).toHaveAttribute('data-hidden', 'true')
@@ -155,6 +182,30 @@ describe('MailboxTree', () => {
     expect(within(row).getByTestId('mailbox-item-name')).toHaveTextContent(
       'Rarely used'
     )
+  })
+
+  it('shows the hidden folders in the tree on demand, marked hidden', async () => {
+    renderTree('/mailbox/mailbox-inbox', 'en', [
+      makeMailbox({ id: 'rare', name: 'Rarely used', isSubscribed: false })
+    ])
+    await screen.findAllByTestId('mailbox-item')
+    expect(screen.queryByText('Rarely used')).toBe(null)
+
+    const toggle = screen.getByRole('button', { name: 'Show hidden folders' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(folder('Rarely used')).toHaveAttribute('data-hidden', 'true')
+    await userEvent.click(toggle)
+    expect(screen.queryByText('Rarely used')).toBe(null)
+  })
+
+  it('has no hidden folders toggle when no folder is hidden', async () => {
+    renderTree('/mailbox/mailbox-inbox')
+    await screen.findAllByTestId('mailbox-item')
+
+    expect(screen.queryByTestId('show-hidden-folders-button')).toBe(null)
   })
 
   it('lists the system folders first, with their translated name', async () => {

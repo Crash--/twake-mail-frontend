@@ -54,7 +54,7 @@ export function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       startIcon={<Icon icon={icon} size={16} />}
-      endIcon={hasMenu ? <Icon icon={Dropdown} size={18} /> : undefined}
+      endIcon={hasMenu ? <Icon icon={Dropdown} size={16} /> : undefined}
       aria-haspopup={hasPopup}
       aria-controls={controls}
       aria-expanded={expanded}

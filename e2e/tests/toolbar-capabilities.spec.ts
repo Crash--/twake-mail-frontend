@@ -1,7 +1,7 @@
 import { ComposerPage, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
+import { stubCapabilities } from '../support/capabilities'
 import { expect, test } from '../support/fixtures'
-import type { Page } from '@playwright/test'
 
 /**
  * The toolbar and top bar buttons that depend on what the server
@@ -12,40 +12,6 @@ import type { Page } from '@playwright/test'
 
 const VAULT = 'com:linagora:params:jmap:messages:vault'
 const SUPPORT = 'com:linagora:params:jmap:contact:support'
-
-type Capabilities = Record<string, unknown>
-
-/**
- * Sets (a value) or removes (`null`) capabilities in the JMAP session the
- * app reads from /.well-known/jmap, which redirects to /jmap/session
- */
-async function stubCapabilities(
-  page: Page,
-  capabilities: Capabilities
-): Promise<void> {
-  await page.route('**/{jmap/session,.well-known/jmap}', async route => {
-    const response = await route.fetch()
-    const session = (await response.json()) as {
-      capabilities: Capabilities
-      accounts: Record<string, { accountCapabilities: Capabilities }>
-    }
-    for (const [uri, value] of Object.entries(capabilities)) {
-      if (value === null) {
-        delete session.capabilities[uri]
-      } else {
-        session.capabilities[uri] = value
-      }
-      for (const account of Object.values(session.accounts)) {
-        if (value === null) {
-          delete account.accountCapabilities[uri]
-        } else {
-          account.accountCapabilities[uri] = value
-        }
-      }
-    }
-    await route.fulfill({ response, json: session })
-  })
-}
 
 test.describe('TBAR toolbar buttons that depend on the server', () => {
   test('TBAR-01 with the vault, the personal Trash has a button recovering deleted messages', async ({

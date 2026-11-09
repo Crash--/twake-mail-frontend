@@ -77,8 +77,13 @@ describe('ForwardSettings', () => {
   it('adds an address of the domain, then offers to keep a copy', async () => {
     const fake = setup()
 
-    const input = await screen.findByRole('combobox', { name: 'New recipient' })
+    const input = await screen.findByRole('combobox', {
+      name: 'Add a recipient'
+    })
     expect(screen.queryByRole('switch')).toBe(null)
+    expect(screen.getByTestId('forward-empty')).toHaveTextContent(
+      'Forwarding is off'
+    )
     await userEvent.type(input, 'bob@example.com')
     await userEvent.click(screen.getByTestId('forward-add-button'))
 
@@ -106,13 +111,13 @@ describe('ForwardSettings', () => {
     const fake = setup()
 
     await userEvent.type(
-      await screen.findByRole('combobox', { name: 'New recipient' }),
+      await screen.findByRole('combobox', { name: 'Add a recipient' }),
       'not-an-address'
     )
     await userEvent.click(screen.getByTestId('forward-add-button'))
 
     expect(
-      screen.getByRole('combobox', { name: 'New recipient' })
+      screen.getByRole('combobox', { name: 'Add a recipient' })
     ).toHaveAccessibleDescription('Incorrect email format')
     expect(fake.forward()).toMatchObject({ forwards: [] })
   })
@@ -121,13 +126,13 @@ describe('ForwardSettings', () => {
     const fake = setup()
 
     await userEvent.type(
-      await screen.findByRole('combobox', { name: 'New recipient' }),
+      await screen.findByRole('combobox', { name: 'Add a recipient' }),
       FAKE_USERNAME.toUpperCase()
     )
     await userEvent.click(screen.getByTestId('forward-add-button'))
 
     expect(
-      screen.getByRole('combobox', { name: 'New recipient' })
+      screen.getByRole('combobox', { name: 'Add a recipient' })
     ).toHaveAccessibleDescription(
       'You cannot forward your emails to your own address'
     )
@@ -138,7 +143,7 @@ describe('ForwardSettings', () => {
     const fake = setup([], 'Forwarding outside is forbidden by the charter.')
 
     await userEvent.type(
-      await screen.findByRole('combobox', { name: 'New recipient' }),
+      await screen.findByRole('combobox', { name: 'Add a recipient' }),
       'me@gmail.com'
     )
     await userEvent.click(screen.getByTestId('forward-add-button'))
@@ -279,7 +284,7 @@ describe('ForwardSettings', () => {
       fake.server.calledMethods().filter(name => name === 'Forward/set').length
 
     const input = await screen.findByRole('combobox', {
-      name: 'New recipient'
+      name: 'Add a recipient'
     })
     await userEvent.type(input, 'z')
     const listbox = await screen.findByRole('listbox', {
@@ -323,7 +328,7 @@ describe('ForwardSettings', () => {
     const fake = setup()
 
     const input = await screen.findByRole('combobox', {
-      name: 'New recipient'
+      name: 'Add a recipient'
     })
     await userEvent.click(input)
     await userEvent.paste('bob@example.com; not-an-address')

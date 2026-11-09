@@ -34,7 +34,7 @@ export function ChipBackButton({
       className="square"
       clickable
       label={children}
-      icon={<Icon icon={Left} size={9} aria-hidden="true" />}
+      icon={<Icon icon={Left} aria-hidden="true" />}
       onClick={onClick}
       aria-label={label}
       data-testid={testId}

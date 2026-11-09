@@ -62,16 +62,21 @@ describe('LabelChips', () => {
     expect(screen.queryByTestId('label-chip-more')).toBe(null)
   })
 
-  it('writes a label in black or white, whichever reads better on its colour', () => {
+  it('writes a label in white, or in the text colour its palette colour sets', () => {
     renderWithProviders(
       <LabelChips
-        labels={[makeLabel('Light', '#EDC661'), makeLabel('Dark', '#273891')]}
+        labels={[
+          makeLabel('Yellow', '#EDC661'),
+          makeLabel('Navy', '#273891'),
+          makeLabel('Grey', '#E0E0E0')
+        ]}
       />
     )
 
-    const [light, dark] = screen.getAllByTestId('label-chip')
-    expect(light).toHaveStyle({ color: 'rgb(0, 0, 0)' })
-    expect(dark).toHaveStyle({ color: 'rgb(255, 255, 255)' })
+    const [yellow, navy, grey] = screen.getAllByTestId('label-chip')
+    expect(yellow).toHaveStyle({ color: 'rgb(92, 69, 10)' })
+    expect(navy).toHaveStyle({ color: 'rgb(255, 255, 255)' })
+    expect(grey).toHaveStyle({ color: 'rgb(66, 66, 68)' })
   })
 
   it('keeps each label within the width of the list', () => {

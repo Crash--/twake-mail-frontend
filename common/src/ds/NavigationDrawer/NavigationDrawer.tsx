@@ -14,7 +14,6 @@ import {
 } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
-import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /**
@@ -54,11 +53,8 @@ function wideScreenTheme(theme: Theme): Theme {
 const PAPER_SX = {
   maxWidth: `calc(100% - ${DRAWER_GAP}px)`,
   // White, as tmail-flutter's drawer
-  backgroundColor: 'background.paper',
-  // Rows and buttons of the drawer are touch targets (WCAG 2.5.5)
-  [TOUCH_MEDIA]: {
-    '& .MuiListItem-root': { height: TOUCH_TARGET_SIZE }
-  }
+  // Its rows keep the 36 px of the design; its buttons follow `TouchTargets`
+  backgroundColor: 'background.paper'
 } as const
 
 export interface NavigationDrawerProps {

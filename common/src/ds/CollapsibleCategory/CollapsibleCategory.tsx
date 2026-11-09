@@ -1,42 +1,32 @@
-// Upstream to twake-ui: no. The mailbox categories in Settings > Folder
-// visibility ("Folders", "Personal folders", "Team-mailboxes"): a 40 px
-// heading, an optional 20 px icon, the title, the chevron right after it,
-// and what it holds below, shown while expanded. `NavSectionHeader` is the
-// small grey title of the sidebar.
-import { Icon, type IconProps, Bottom, Right } from '@linagora/twake-icons'
+// Upstream to twake-ui: no. The folder groups of Settings > Folder
+// visibility ("Folders", "Personal folders", "Team-mailboxes"): a heading in
+// the small grey caption of the Figma, the chevron right after it, and what
+// it holds below, shown while expanded. twake-mui's `NavDesktopDropdown` is
+// a sidebar row, not a heading.
+import { Icon, Bottom, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { NESTED_LIST_SX } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
-
-const HEADING_SX = {
-  display: 'flex',
-  alignItems: 'center',
-  minHeight: 40,
-  m: 0
-} as const
+import { PlainList } from '@/ds/PlainList/PlainList'
 
 const BUTTON_SX = {
-  gap: 1,
-  minHeight: 32,
+  gap: '4px',
+  minHeight: 24,
   px: '2px',
-  borderRadius: '8px',
-  color: 'text.primary',
-  typography: 'body1',
-  '& .CollapsibleCategory-chevron': { p: '3px', display: 'flex' }
+  borderRadius: '4px',
+  color: 'text.secondary',
+  typography: 'caption'
 } as const
 
 export interface CollapsibleCategoryProps {
   title: string
-  /** Before the title, in `text.icon` */
-  icon?: IconProps['icon'] | null
   isExpanded: boolean
   onToggle: () => void
   /** Id of what the title expands and collapses */
   controlsId: string
-  /** Left padding of the heading in px: 12 for a bar, 10 for a category */
-  inset?: number
-  /** Holds list items (a `ul` named by the title, 10 px in), or blocks */
+  /** `h3` for a category inside another one */
+  headingLevel?: 'h2' | 'h3'
+  /** Holds list items (a list named by the title), or blocks */
   isList?: boolean
   children: ReactNode
   'data-testid'?: string
@@ -46,11 +36,10 @@ export interface CollapsibleCategoryProps {
 /** A heading that expands and collapses what it titles */
 export function CollapsibleCategory({
   title,
-  icon = null,
   isExpanded,
   onToggle,
   controlsId,
-  inset = 12,
+  headingLevel = 'h2',
   isList = false,
   children,
   'data-testid': testId,
@@ -58,7 +47,7 @@ export function CollapsibleCategory({
 }: CollapsibleCategoryProps): ReactElement {
   return (
     <>
-      <Box component="h2" sx={{ ...HEADING_SX, pl: `${inset - 2}px` }}>
+      <Box component={headingLevel} className="u-m-0 u-mt-1 u-mb-half">
         <ButtonBase
           onClick={onToggle}
           aria-expanded={isExpanded}
@@ -66,42 +55,24 @@ export function CollapsibleCategory({
           sx={BUTTON_SX}
           data-testid={toggleTestId}
         >
-          {icon === null ? null : (
-            <Box
-              component="span"
-              className="u-flex"
-              sx={{ color: 'text.icon' }}
-            >
-              <Icon icon={icon} size={20} aria-hidden="true" />
-            </Box>
-          )}
           {title}
-          <span className="CollapsibleCategory-chevron">
-            <Icon
-              icon={isExpanded ? Bottom : Right}
-              size={17}
-              aria-hidden="true"
-            />
-          </span>
+          <Icon
+            icon={isExpanded ? Bottom : Right}
+            size={12}
+            aria-hidden="true"
+          />
         </ButtonBase>
       </Box>
-      {isExpanded ? (
-        isList ? (
-          <Box
-            component="ul"
-            id={controlsId}
-            aria-label={title}
-            sx={NESTED_LIST_SX}
-            data-testid={testId}
-          >
+      {/* Kept in the page, so that `aria-controls` always points to it */}
+      <Box id={controlsId}>
+        {!isExpanded ? null : isList ? (
+          <PlainList label={title} data-testid={testId}>
             {children}
-          </Box>
+          </PlainList>
         ) : (
-          <Box id={controlsId} data-testid={testId}>
-            {children}
-          </Box>
-        )
-      ) : null}
+          <Box data-testid={testId}>{children}</Box>
+        )}
+      </Box>
     </>
   )
 }

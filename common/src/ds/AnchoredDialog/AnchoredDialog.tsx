@@ -1,5 +1,5 @@
-// Upstream to twake-ui: yes. A dialog that opens under an element of the
-// page (the advanced search opens as a card 2 px under the search field)
+// Upstream to twake-ui: yes. A dialog that opens over an element of the
+// page (the advanced search opens as a card in place of the search field)
 // instead of in the middle of the screen with a dimmed backdrop. twake-mui's
 // `Dialog` and `StandardDialog` are always centred; MUI's `Popover` has the
 // placement but is not a dialog (no name, no role).
@@ -9,12 +9,12 @@ import { useId, useRef, type ReactElement, type ReactNode } from 'react'
 
 /** A form does not fit a narrower card, whatever the anchor is */
 const MIN_WIDTH = 560
-/** Room kept above and below the panel on a short screen */
+/** Room kept on the sides of the panel on a narrow screen */
 const SCREEN_MARGIN = 16
 
 export interface AnchoredDialogProps {
   open: boolean
-  /** The element the panel opens under: same left edge, same width */
+  /** The element the panel covers: same top left corner, same width */
   anchorEl: HTMLElement | null
   /** Escape, a click outside */
   onClose: () => void
@@ -25,8 +25,8 @@ export interface AnchoredDialogProps {
 }
 
 /**
- * A modal dialog laid under `anchorEl`: as wide as it (560 px at least), from
- * its bottom left corner, a card, scrolling when the screen is too
+ * A modal dialog laid over `anchorEl`: as wide as it (560 px at least), from
+ * its top left corner, a card, scrolling when the screen is too
  * short. The focus moves into it, Tab cycles inside, Escape and a click
  * outside close it, and the focus goes back to what opened it. Named by
  * `title`.
@@ -62,13 +62,14 @@ export function AnchoredDialog({
       open={open}
       anchorEl={anchorEl}
       onClose={onClose}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       // No shift of the page when the scroll bar goes
       disableScrollLock
       // Pressing on an element of the page to drag it focuses it
       disableEnforceFocus
-      marginThreshold={SCREEN_MARGIN}
+      // No room kept to the edges: the panel covers the search field exactly
+      marginThreshold={0}
       data-testid={testId}
       // A fade: the card keeps its size while it shows (no scale from a corner)
       slots={{ transition: Fade }}
@@ -83,7 +84,6 @@ export function AnchoredDialog({
             width: anchorEl?.offsetWidth,
             minWidth: `min(${MIN_WIDTH}px, calc(100% - ${2 * SCREEN_MARGIN}px))`,
             maxWidth: `calc(100% - ${2 * SCREEN_MARGIN}px)`,
-            mt: '2px',
             pointerEvents: 'auto',
             borderRadius: radius.lg,
             '@media (prefers-reduced-motion: reduce)': {

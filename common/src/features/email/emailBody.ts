@@ -55,20 +55,22 @@ function interFontFace(fontUrl: string): string {
 
 // The stylesheet of the email document, not of the app: twake-mui does not
 // reach inside the iframe. Images never overflow the reading pane, as in
-// tmail-flutter (EML-04). Its text style too (`HtmlTemplate.defaultFontStyle`):
-// Regular 14 in black, the default line height, paragraphs without margins.
-// The document stays light whatever the colour scheme of the app: an email is
-// designed for a white page, and the colours it sets would not read on a dark
-// one.
-const EMAIL_DOCUMENT_CSS = `
+// tmail-flutter (EML-04). Its text style is the design's Regular one,
+// twake-mui's `body3` in the `text.primary` of the light scheme, set on the
+// body only so that any style an email sets wins; paragraphs without margins,
+// as tmail-flutter. The document stays light whatever the colour scheme of
+// the app: an email is designed for a white page, and the colours it sets
+// would not read on a dark one.
+const emailDocumentCss = (textColor: string): string => `
 html, body { margin: 0; padding: 0; }
 html { background: #ffffff; color-scheme: light; }
 body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   font-weight: 400;
-  line-height: normal;
-  color: #000000;
+  line-height: 1.313;
+  letter-spacing: 0.25px;
+  color: ${textColor};
   overflow-wrap: anywhere;
   overflow-y: hidden;
 }
@@ -216,6 +218,8 @@ export function joinHtmlValues(
 }
 
 export interface EmailDocumentOptions {
+  /** The theme does not reach the frame: from `useEmailTextColor` */
+  textColor: string
   /** Lets the CSP load the remote images and fonts the content kept */
   allowRemoteContent?: boolean
   /** The focus indicator the user chose: the theme does not reach the frame */
@@ -233,9 +237,10 @@ function focusCss(focusIndicator: FocusIndicator): string {
 export function buildEmailDocument(
   sanitizedContent: string,
   {
+    textColor,
     allowRemoteContent = false,
     focusIndicator = 'discreet'
-  }: EmailDocumentOptions = {}
+  }: EmailDocumentOptions
 ): string {
   const fontUrl = interFontUrl()
   return [
@@ -243,7 +248,7 @@ export function buildEmailDocument(
     `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(allowRemoteContent, fontUrl)}">`,
     '<meta name="referrer" content="no-referrer">',
     '<base target="_blank">',
-    `<style>${interFontFace(fontUrl)}${EMAIL_DOCUMENT_CSS}${focusCss(focusIndicator)}</style>`,
+    `<style>${interFontFace(fontUrl)}${emailDocumentCss(textColor)}${focusCss(focusIndicator)}</style>`,
     `</head><body><div id="${EMAIL_CONTENT_ID}">${sanitizedContent}</div></body></html>`
   ].join('')
 }

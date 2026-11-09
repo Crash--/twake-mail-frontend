@@ -1,5 +1,5 @@
 import { Icon, Email } from '@linagora/twake-icons'
-import { screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { injectedCss } from '@/ds/testing/injectedCss'
@@ -23,9 +23,21 @@ function renderItem(props: Partial<NavTreeItemProps> = {}): void {
   )
 }
 
+/** jsdom has no PointerEvent: a mouse event that says its pointer type */
+function pointer(
+  element: HTMLElement,
+  type: 'pointerdown' | 'pointermove',
+  pointerType: 'touch' | 'mouse',
+  clientY = 5
+): void {
+  const event = new MouseEvent(type, { bubbles: true, clientX: 5, clientY })
+  Object.defineProperty(event, 'pointerType', { value: pointerType })
+  fireEvent(element, event)
+}
+
 describe('levelIndent', () => {
-  it('moves each level 8 px further in, without a cap', () => {
-    expect([1, 2, 3, 4, 10].map(levelIndent)).toEqual([0, 8, 16, 24, 72])
+  it('moves each level 16 px further in, without a cap', () => {
+    expect([1, 2, 3, 4, 10].map(levelIndent)).toEqual([0, 16, 32, 48, 144])
   })
 })
 
@@ -110,14 +122,68 @@ describe('NavTreeItem', () => {
     expect(injectedCss()).toMatch(/\{min-width:0;[^}]*flex:01000auto;\}/)
   })
 
-  it('keeps the 44 px expand target of touch screens off the actions', () => {
+  it('draws the expand arrow as the small icon button of twake-mui', () => {
     renderItem({
-      toggle: { label: 'Expand', isExpanded: false, onToggle: jest.fn() },
-      actions: <button type="button">Actions on Inbox</button>
+      toggle: { label: 'Expand', isExpanded: false, onToggle: jest.fn() }
     })
 
-    expect(injectedCss()).toMatch(
-      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{width:44px;height:44px;padding:14px;margin:000-10px;\}/
+    expect(screen.getByRole('button', { name: 'Expand' })).toHaveClass(
+      'MuiIconButton-sizeSmall'
+    )
+  })
+
+  it('keeps the 36 px row of the design on touch screens', () => {
+    renderItem()
+
+    expect(injectedCss()).not.toMatch(
+      /@media\(pointer:coarse\),\(max-width:599\.95px\)\{\.css-[\w-]+\{min-height:44px;\}/
+    )
+    expect(injectedCss()).toMatch(/min-height:36px;/)
+  })
+
+  it('tells a screen reader of the long press menu on what holds the focus', () => {
+    renderItem({
+      onLongPress: jest.fn(),
+      longPressHint: 'Long press for actions'
+    })
+
+    const row = screen.getByRole('treeitem')
+    expect(row).toHaveAttribute('aria-haspopup', 'menu')
+    expect(row).toHaveAccessibleDescription('Long press for actions')
+    expect(screen.getByRole('link')).not.toHaveAttribute('aria-haspopup')
+  })
+
+  it('puts the long press hint on the link of a row outside a tree', () => {
+    renderDs(
+      <ul>
+        <NavTreeItem
+          level={1}
+          icon={<Icon icon={Email} />}
+          label="Work"
+          linkComponent="a"
+          to="/label/work"
+          onLongPress={jest.fn()}
+          longPressHint="Long press for actions"
+        />
+      </ul>
+    )
+
+    const link = screen.getByRole('link', { name: 'Work' })
+    expect(link).toHaveAttribute('aria-haspopup', 'menu')
+    expect(link).toHaveAccessibleDescription('Long press for actions')
+  })
+
+  it('gives no long press hint without a long press', () => {
+    renderItem({ longPressHint: 'Long press for actions' })
+
+    expect(screen.getByRole('treeitem')).not.toHaveAttribute('aria-haspopup')
+  })
+
+  it('moves the content of a nested row in, not its background', () => {
+    renderItem({ level: 3 })
+
+    expect(window.getComputedStyle(screen.getByRole('treeitem'))).toMatchObject(
+      { marginLeft: '16px', paddingLeft: '32px' }
     )
   })
 
@@ -127,5 +193,41 @@ describe('NavTreeItem', () => {
     expect(screen.getByRole('link', { name: 'Inbox' })).toHaveClass(
       'Mui-selected'
     )
+  })
+
+  it('opens the menu of a row a finger stays on, without following its link', () => {
+    jest.useFakeTimers()
+    const onLongPress = jest.fn<undefined, [HTMLElement]>()
+    const onClick = jest.fn()
+    renderItem({ onLongPress, itemProps: { role: 'treeitem', onClick } })
+    const row = screen.getByRole('treeitem')
+
+    pointer(row, 'pointerdown', 'touch')
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    fireEvent.pointerUp(row)
+    fireEvent.click(screen.getByRole('link', { name: 'Inbox' }))
+
+    expect(onLongPress).toHaveBeenCalledWith(row)
+    expect(onClick).not.toHaveBeenCalled()
+    jest.useRealTimers()
+  })
+
+  it('leaves a finger that scrolls, or a mouse, to the link', () => {
+    jest.useFakeTimers()
+    const onLongPress = jest.fn<undefined, [HTMLElement]>()
+    renderItem({ onLongPress })
+    const row = screen.getByRole('treeitem')
+
+    pointer(row, 'pointerdown', 'touch')
+    pointer(row, 'pointermove', 'touch', 40)
+    pointer(row, 'pointerdown', 'mouse')
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(onLongPress).not.toHaveBeenCalled()
+    jest.useRealTimers()
   })
 })

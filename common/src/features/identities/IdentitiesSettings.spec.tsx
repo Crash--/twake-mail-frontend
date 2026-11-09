@@ -70,8 +70,8 @@ describe('IdentitiesSettings', () => {
     ])
     const work = item('Alice at work')
     expect(work).toHaveTextContent('Reply to: team@example.com')
-    // As tmail-flutter: "--", then the signature as it is written
-    expect(within(work).getByText('--')).toBeVisible()
+    // Under the row, the signature as it is written
+    expect(within(work).queryByText('--')).toBe(null)
     expect(
       within(work).getByTestId('identity-item-signature')
     ).toHaveTextContent(/^Alice\s*CEO$/)

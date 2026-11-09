@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes. The search filters are twake-mui's filled
-// `Chip` (32 px pill, `action.selected`), with an optional chevron after the
-// label, and the pale primary colour with a small cross once applied.
+// `square` `Chip` (32 px, `action.selected`), with an optional chevron after
+// the label, and the pale primary colour with a small cross once applied.
 // twake-mui's `Chip` has no applied state short of a solid primary colour,
 // and needs `sx` for that tint (docs/twake-mui-gaps.md).
 import { Icon, type IconProps, Dropdown, Cross } from '@linagora/twake-icons'
@@ -8,6 +8,8 @@ import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
 const END_SX = { display: 'flex', color: 'text.secondary' } as const
+/** The cross of an applied filter takes its primary colour */
+const CROSS_SX = { display: 'flex' } as const
 
 const CHIP_SX = (isSelected: boolean): SxProps<Theme> =>
   isSelected
@@ -80,6 +82,7 @@ export function FilterChip({
       label={label}
       clickable
       variant="filled"
+      square
       icon={
         leadingIcon === undefined ? undefined : (
           <Icon icon={leadingIcon} size={16} />
@@ -91,7 +94,7 @@ export function FilterChip({
             <Icon icon={Dropdown} size={16} />
           </Box>
         ) : isSelected ? (
-          <Box component="span" sx={END_SX}>
+          <Box component="span" sx={CROSS_SX}>
             <Icon icon={Cross} size={10} />
           </Box>
         ) : undefined

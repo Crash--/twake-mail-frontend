@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { ComposerPage, MailboxPage } from '../pages'
+import { ComposerPage, LoginPage, MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { env } from '../support/env'
 import { expect, test } from '../support/fixtures'
@@ -30,19 +30,6 @@ async function appRunsInOidcMode(): Promise<boolean> {
   } catch {
     return false
   }
-}
-
-async function signInWithDex(page: Page): Promise<MailboxPage> {
-  await page.goto('/')
-  await page.waitForURL(url => url.pathname.startsWith('/dex/'))
-  await page.getByRole('textbox', { name: /email/i }).fill('alice@example.com')
-  await page.getByRole('textbox', { name: /password/i }).fill('secret')
-  await page.getByRole('button', { name: /login/i }).click()
-  const grant = page.getByRole('button', { name: /grant access/i })
-  if (await grant.isVisible().catch(() => false)) await grant.click()
-  const mailbox = new MailboxPage(page)
-  await mailbox.expectLoaded()
-  return mailbox
 }
 
 async function openDrivePicker(
@@ -102,7 +89,7 @@ test.describe('DRIVE Twake Drive picker', () => {
     'DRIVE-01 "Attach from Drive" opens the picker in a named dialog (full screen on phones); "Add as link" inserts a Drive card, the focus back in the message',
     { tag: '@mobile' },
     async ({ page }) => {
-      const mailbox = await signInWithDex(page)
+      const mailbox = await new LoginPage(page).loginWithDex()
       const composer = await openDrivePicker(page, mailbox)
       await expectNoA11yViolations(page)
       // Both actions, as tmail-flutter: the user chooses in Drive
@@ -134,7 +121,7 @@ test.describe('DRIVE Twake Drive picker', () => {
   test('DRIVE-02 "Add as attachment" downloads the file and attaches it', async ({
     page
   }) => {
-    const mailbox = await signInWithDex(page)
+    const mailbox = await new LoginPage(page).loginWithDex()
     const composer = await openDrivePicker(page, mailbox)
 
     await page
@@ -154,7 +141,7 @@ test.describe('DRIVE Twake Drive picker', () => {
   test('DRIVE-03 The close button of the picker closes it, the message unchanged', async ({
     page
   }) => {
-    const mailbox = await signInWithDex(page)
+    const mailbox = await new LoginPage(page).loginWithDex()
     const composer = await openDrivePicker(page, mailbox)
 
     await page
@@ -192,7 +179,7 @@ test.describe('DRIVE Twake Drive picker', () => {
     'DRIVE-04 The picker fills a centred dialog at the size it asks for, within the screen (full screen on phones); it can ask for the close button of the dialog',
     { tag: '@mobile' },
     async ({ page }) => {
-      const mailbox = await signInWithDex(page)
+      const mailbox = await new LoginPage(page).loginWithDex()
       await openDrivePicker(page, mailbox)
       const dialog = page.getByRole('dialog', { name: 'Twake Drive' })
       const frame = page.getByTestId('drive-picker-frame')

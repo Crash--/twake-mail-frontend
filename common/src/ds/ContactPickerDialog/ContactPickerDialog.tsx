@@ -5,13 +5,13 @@
 // "Done" at the end. twake-mui has no such picker.
 //
 // Accessibility: a dialog named by its title; the contacts are checkboxes
-// (`role="checkbox"`, `aria-checked`) in a list the search field controls;
+// named by their row, in a list the search field controls;
 // the focus goes to the search field and back to what opened it.
 import { Icon, Cross, Magnifier, CrossCircle } from '@linagora/twake-icons'
 import {
   Box,
   Button,
-  ButtonBase,
+  Checkbox,
   Dialog,
   IconButton,
   InputBase,
@@ -21,7 +21,6 @@ import {
 } from '@linagora/twake-mui'
 import { useId, useRef, type ReactElement } from 'react'
 
-import { CheckboxOff, CheckboxOn } from '@/ds/FlutterIcons/FlutterIcons'
 import {
   firstLetterOf,
   GradientAvatar
@@ -125,15 +124,6 @@ const ADDRESS_SX = {
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap'
 } as const
-
-function checkboxSx(isChecked: boolean): Record<string, unknown> {
-  return {
-    display: 'flex',
-    flexShrink: 0,
-    mx: 1.5,
-    color: isChecked ? 'primary.main' : 'text.secondary'
-  }
-}
 
 const FOOTER_SX = {
   display: 'flex',
@@ -293,12 +283,9 @@ export function ContactPickerDialog({
           const label = item.name ?? item.address
           return (
             <Box component="li" key={item.address}>
-              <ButtonBase
-                role="checkbox"
-                aria-checked={isChecked}
-                onClick={() => {
-                  onToggle(item)
-                }}
+              <Box
+                component="label"
+                className="u-c-pointer"
                 sx={ROW_SX}
                 data-testid={testIds.item}
               >
@@ -321,14 +308,13 @@ export function ContactPickerDialog({
                     </Typography>
                   )}
                 </Box>
-                <Box component="span" sx={checkboxSx(isChecked)}>
-                  <Icon
-                    icon={isChecked ? CheckboxOn : CheckboxOff}
-                    size={20}
-                    aria-hidden="true"
-                  />
-                </Box>
-              </ButtonBase>
+                <Checkbox
+                  checked={isChecked}
+                  onChange={() => {
+                    onToggle(item)
+                  }}
+                />
+              </Box>
             </Box>
           )
         })}

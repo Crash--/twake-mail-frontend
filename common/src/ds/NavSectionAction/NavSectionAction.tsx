@@ -1,9 +1,6 @@
-// Upstream to twake-ui: yes, as an `IconButton` size for dense actions
-// (`xsmall` is 26 px and draws a 20 px icon). The actions of the title of a
-// sidebar section are 16.67 px glyphs, 8 px apart (tmail-flutter's
-// `LinagoraSidebarSectionHeaderAction`); the box around them is 24 px, the
-// smallest WCAG 2.2 allows, and 44 px on touch screens, drawn over the gap
-// so the glyphs keep their places.
+// Upstream to twake-ui: yes, as a touch size of `IconButton`. The actions of
+// the title of a sidebar section: twake-mui's `xsmall` button, 44 px on touch
+// screens.
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
@@ -14,7 +11,7 @@ export interface NavSectionActionProps {
   /** Tooltip and accessible name */
   label: string
   icon: IconProps['icon']
-  /** The glyph, 16.67 px by default */
+  /** The glyph, 16 px by default */
   iconSize?: number
   onClick: (event: MouseEvent<HTMLElement>) => void
   buttonRef?: Ref<HTMLButtonElement>
@@ -29,7 +26,7 @@ export interface NavSectionActionProps {
 export function NavSectionAction({
   label,
   icon,
-  iconSize = 16.67,
+  iconSize = 16,
   onClick,
   buttonRef,
   disabled,
@@ -42,7 +39,7 @@ export function NavSectionAction({
     <Tooltip title={label}>
       <IconButton
         ref={buttonRef}
-        size="small"
+        size="xsmall"
         aria-label={label}
         aria-pressed={pressed}
         aria-expanded={expanded}
@@ -51,13 +48,6 @@ export function NavSectionAction({
         onClick={onClick}
         data-testid={testId}
         sx={{
-          width: 24,
-          height: 24,
-          minWidth: 0,
-          minHeight: 0,
-          p: 0,
-          // 16.67 + 8 between two glyphs: the boxes overlap the gap
-          '& + &': { ml: '0.67px' },
           [TOUCH_MEDIA]: {
             width: TOUCH_TARGET_SIZE,
             height: TOUCH_TARGET_SIZE,

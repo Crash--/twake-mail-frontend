@@ -12,8 +12,7 @@ export interface RowDateProps {
 }
 
 /**
- * The date of a list row, as its subject: 12 px, Semi Bold when unread, 20
- * px from the end of the row
+ * The date of a list row, as its subject: 12 px, Semi Bold when unread
  */
 export function RowDate({
   children,
@@ -25,9 +24,8 @@ export function RowDate({
       component="span"
       sx={{
         ...rowDateSx(isStrong),
-        // As tmail-flutter: 8 px after the attachment, 20 px before the edge
+        // As tmail-flutter: 8 px after the attachment
         ml: '8px',
-        mr: '20px',
         whiteSpace: 'nowrap',
         // Cut with an ellipsis when its cell is too narrow
         minWidth: 0,

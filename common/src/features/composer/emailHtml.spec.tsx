@@ -1,3 +1,12 @@
+import { Editor } from '@tiptap/core'
+import StarterKit from '@tiptap/starter-kit'
+
+import { HtmlBlock } from '@/ds/RichTextEditor/htmlBlock'
+import {
+  QuoteBlock,
+  QuoteCite,
+  QuoteKeys
+} from '@/ds/RichTextEditor/quoteBlock'
 import {
   elapsedMs,
   randomTexts,
@@ -76,6 +85,67 @@ describe('fromEmailHtml', () => {
       '<div><img src="blob:a" data-reference="a"></div><div data-html-block="signature"><img src="cid:b"></div><div data-html-block="quote"><img src="blob:c" data-reference="c"></div>'
     )
   })
+
+  it('splits a <pre> around the blocks it holds, outside kept blocks', () => {
+    expect(
+      fromEmailHtml(
+        '<pre>x<blockquote>  a\n  b</blockquote>\n</pre>' +
+          '<div data-html-block="signature"><pre>y<p>z</p></pre></div>',
+        () => null
+      )
+    ).toBe(
+      '<pre>x</pre><blockquote>  a\n  b</blockquote>' +
+        '<div data-html-block="signature"><pre>y<p>z</p></pre></div>'
+    )
+  })
+
+  it('leaves a <pre> holding only text alone', () => {
+    const html = '<pre class="c">  a\n  <b>b</b></pre>'
+
+    expect(fromEmailHtml(html, () => null)).toBe(html)
+  })
+})
+
+/** The editor HTML of `content`, as the composer loads it */
+function loadInEditor(content: string): string {
+  const editor = new Editor({
+    extensions: [
+      StarterKit.configure({ trailingNode: false, link: false }),
+      HtmlBlock,
+      QuoteBlock,
+      QuoteCite,
+      QuoteKeys
+    ],
+    content
+  })
+  const html = editor.getHTML()
+  editor.destroy()
+  return html
+}
+
+describe('a reply quoting a <pre> that holds blocks (#780)', () => {
+  it.each([
+    ['a quote', '<pre>x<blockquote>  a\n  b</blockquote></pre>'],
+    [
+      'a link in a quote',
+      '<pre>x<blockquote><a href="https://twake.app">  pre\n  text</a></blockquote>y</pre>'
+    ],
+    [
+      'a list in a nested <pre>',
+      '<pre>x<pre>y<ul><li>  a\n  b</li></ul></pre></pre>'
+    ],
+    [
+      'a block in an inline element',
+      '<pre>x<span><blockquote>  a\n  b</blockquote></span></pre>'
+    ]
+  ])('gives a stable draft with %s', (_name, quoted) => {
+    const quote =
+      '<div data-html-block="quote"><cite>On Monday, Jane wrote:</cite>' +
+      `<blockquote>${quoted}</blockquote></div>`
+    const first = loadInEditor(fromEmailHtml(`<p></p>${quote}`, () => null))
+
+    expect(loadInEditor(first)).toBe(first)
+  })
 })
 
 describe('htmlToText', () => {
@@ -99,9 +169,9 @@ describe('htmlToText', () => {
     )
   })
 
-  it('keeps the "-- " signature delimiter, quoted or not', () => {
+  it('keeps the "-- " signature delimiter, quoted or not, for the "---" of the HTML', () => {
     const html =
-      '<div>Hi</div><div><span class="tmail_signature_prefix">--&nbsp;</span><br>Alice<br></div>' +
+      '<div>Hi</div><div><span class="tmail_signature_prefix">---</span><br>Alice<br></div>' +
       '<blockquote><div>Old</div><div>--&nbsp;<br>Bob</div></blockquote>' +
       '<div>Spaces   </div><div>--</div>'
 

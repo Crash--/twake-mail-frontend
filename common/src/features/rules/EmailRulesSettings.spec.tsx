@@ -96,6 +96,7 @@ describe('EmailRulesSettings', () => {
 
     const empty = await screen.findByTestId('email-rules-empty')
     expect(empty).toHaveTextContent('No Rules Configured')
+    expect(screen.queryByText('Name of Rules')).toBe(null)
     await userEvent.click(
       within(empty).getByRole('button', { name: 'Create My First Rule' })
     )
@@ -104,12 +105,14 @@ describe('EmailRulesSettings', () => {
     ).toBeVisible()
   })
 
-  it('lists the rules with their first condition', async () => {
+  it('lists the rules with their first condition, and counts them', async () => {
     setup([NEWSLETTERS])
 
     const item = await screen.findByTestId('email-rule-item')
     expect(item).toHaveTextContent('Newsletters')
     expect(item).toHaveTextContent('From, contains: news@')
+    expect(screen.getByText('Name of Rules')).toBeVisible()
+    expect(screen.getByText('1 rule')).toBeVisible()
   })
 
   it('creates a rejecting rule from an address, once confirmed, at the top', async () => {
@@ -346,15 +349,19 @@ describe('EmailRulesSettings', () => {
     await userEvent.click(
       within(picker).getByRole('button', { name: 'New folder' })
     )
+    const folderDialog = screen.getByRole('dialog', {
+      name: 'Create a New Folder'
+    })
     await userEvent.type(
-      within(
-        screen.getByRole('dialog', { name: 'Create a New Folder' })
-      ).getByRole('textbox', { name: 'Folder Name' }),
-      'Receipts{Enter}'
+      within(folderDialog).getByRole('textbox', { name: 'Folder Name' }),
+      'Receipts'
+    )
+    await userEvent.click(
+      within(folderDialog).getByRole('button', { name: 'Create folder' })
     )
 
     expect(
-      await screen.findByRole('button', { name: /Receipts/ })
+      await screen.findByRole('combobox', { name: /Receipts/ })
     ).toHaveAttribute('data-testid', 'rule-action-folder-button')
   })
 
@@ -444,7 +451,7 @@ describe('EmailRulesSettings', () => {
       await userEvent.click(
         within(picker).getByRole('option', { name: /Work/ })
       )
-      const chosen = await within(dialog).findByRole('button', {
+      const chosen = await within(dialog).findByRole('combobox', {
         name: 'Choose a folder: Work'
       })
       expect(chosen).not.toHaveAttribute('aria-invalid')

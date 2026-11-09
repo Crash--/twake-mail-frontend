@@ -102,15 +102,42 @@ test.describe('SBR sidebar rows and compose button', () => {
     'SBR-05 a hidden folder keeps its whole name and says it is hidden without colour',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
+      // Short enough for the search results, narrower than the tree
+      await jmap.createMailbox({ name: 'Rarely used' })
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.runFolderAction({ name: 'Rarely used' }, 'hide')
+      await mailbox.searchFolders('rarely')
+
+      const row = mailbox.folder({ name: 'Rarely used' })
+      await expect(row).toHaveAttribute('data-hidden', 'true')
+      // The word is for assistive technology; the icon is the visible sign
+      await expect(row.getByTestId('mailbox-item-hidden')).toHaveText('hidden')
+      await expect(row.getByRole('link')).toHaveAccessibleName(
+        /Rarely used\s+hidden/
+      )
+      const name = row.getByTestId('mailbox-item-name')
+      const isCut = await name.evaluate(el => el.scrollWidth > el.clientWidth)
+      expect(isCut).toBe(false)
+      await expectNoA11yViolations(page)
+    }
+  )
+
+  test(
+    'SBR-05b a hidden folder listed on demand keeps its whole name in the tree',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
       await jmap.createMailbox({ name: 'A rarely used folder' })
       const mailbox = await new LoginPage(page).loginAs(user)
       await mailbox.runFolderAction({ name: 'A rarely used folder' }, 'hide')
       await mailbox.showFolders()
       await mailbox.showHiddenFoldersButton.click()
+      await expect(mailbox.showHiddenFoldersButton).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
 
       const row = mailbox.folder({ name: 'A rarely used folder' })
       await expect(row).toHaveAttribute('data-hidden', 'true')
-      // The word is for assistive technology; the icon is the visible sign
       await expect(row.getByTestId('mailbox-item-hidden')).toHaveText('hidden')
       await expect(row.getByRole('link')).toHaveAccessibleName(
         /A rarely used folder\s+hidden/

@@ -3,18 +3,15 @@ import { screen } from '@testing-library/react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { CheckboxBlankIcon, MoreVerticalIcon } from './ListIcons'
+import { EditOutlineIcon, MoreVerticalIcon } from './ListIcons'
 
 describe('ListIcons', () => {
-  it('draw a path that Icon can size', () => {
-    renderDs(
-      <>
-        <Icon icon={CheckboxBlankIcon} size={16} data-testid="checkbox" />
-        <Icon icon={MoreVerticalIcon} size={16} data-testid="more" />
-      </>
-    )
+  it.each([
+    ['more', MoreVerticalIcon],
+    ['edit', EditOutlineIcon]
+  ])('draw a path that Icon can size (%s)', (testId, icon) => {
+    renderDs(<Icon icon={icon} size={16} data-testid={testId} />)
 
-    expect(screen.getByTestId('checkbox').querySelector('path')).not.toBeNull()
-    expect(screen.getByTestId('more').querySelector('path')).not.toBeNull()
+    expect(screen.getByTestId(testId).querySelector('path')).not.toBeNull()
   })
 })

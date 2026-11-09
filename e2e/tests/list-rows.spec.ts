@@ -155,26 +155,59 @@ test.describe('LST email list rows', () => {
     const refresh = await box(page.getByTestId('list-refresh-button'))
     const selectAll = await box(page.getByTestId('list-select-all-button'))
     // The toolbar and the rows span the card, 16 px above the buttons (a 32 px
-    // high refresh around its 26 x 24 icon, 32 px text buttons, the select all
-    // one always 250 px wide), 16 px apart
+    // refresh, 32 px text buttons, the select all one always 250 px wide), 16 px
+    // apart
     expect(rowBox.x).toBe(toolbarBox.x)
-    expect(refresh.width).toBeCloseTo(16 + (16 * 26) / 24, 1)
+    expect(refresh.width).toBe(32)
     expect(refresh.height).toBe(32)
     expect(selectAll.height).toBe(32)
     expect(selectAll.width).toBe(250)
     expect(selectAll.y - toolbarBox.y).toBe(16)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
-    // 39.5 px rows (the 32 px checkbox and the 3 px of padding around it, the
-    // 1 px divider), a bare 20 px star
-    expect(rowBox.height).toBeGreaterThanOrEqual(39)
-    expect(rowBox.height).toBeLessThanOrEqual(40)
+    // 44 px rows, the checkbox and the star in 32 px areas
+    expect(rowBox.height).toBe(44)
     const checkbox = await box(row.getByTestId('email-list-item-checkbox'))
-    expect([checkbox.width, checkbox.height]).toEqual([32, 32])
+    expect(checkbox.width).toBeCloseTo(32, 0)
+    expect(checkbox.height).toBeCloseTo(32, 0)
     const star = await box(row.getByTestId('email-list-item-star'))
-    expect([star.width, star.height]).toEqual([20, 20])
+    expect([star.width, star.height]).toEqual([32, 32])
     // The 20 px avatar of the sender
     const avatar = await box(row.getByTestId('email-list-item-avatar'))
     expect([avatar.width, avatar.height]).toEqual([20, 20])
+  })
+
+  test('LST-11 selecting emails keeps the height of the toolbar and the place of the list', async ({
+    page,
+    user,
+    jmap
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'desktop toolbar')
+    await page.setViewportSize({ width: 1440, height: 900 })
+    for (const subject of ['Kept in place', 'Kept in place too']) {
+      await jmap.sendEmail({ to: user.email, subject, text: 'Hi' })
+    }
+    await jmap.waitForEmail({ subject: 'Kept in place too' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Kept in place too')
+    await expect(row).toBeVisible()
+
+    const expectInPlace = async (toolbarId: string): Promise<void> => {
+      const toolbar = await page.getByTestId(toolbarId).boundingBox()
+      const rowBox = await row.boundingBox()
+      expect(toolbar?.height).toBe(65)
+      expect(rowBox?.y).toBe((toolbar?.y ?? 0) + 65)
+    }
+    const clear = page.getByTestId('selection-toolbar-clear')
+
+    await expectInPlace('list-toolbar')
+    await row.getByTestId('email-list-item-checkbox').click()
+    await expectInPlace('selection-toolbar')
+    await clear.click()
+    await expectInPlace('list-toolbar')
+    await page.getByTestId('list-select-all-button').click()
+    await expectInPlace('selection-toolbar')
+    await clear.click()
+    await expectInPlace('list-toolbar')
   })
 })
 
@@ -203,7 +236,8 @@ test.describe('LST labels in the list rows', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
       const row = mailbox.emailRow('Three labels row')
 
-      const isDesktop = (page.viewportSize()?.width ?? 0) >= 1000
+      // The desktop size of the app starts at 1200 px
+      const isDesktop = (page.viewportSize()?.width ?? 0) >= 1200
       if (isDesktop) {
         // As tmail-flutter: up to 3 tags on a desktop
         await expect(row.getByTestId('label-chip')).toHaveText([
@@ -232,8 +266,7 @@ test.describe('LST labels in the list rows', () => {
       const previewBox = await row
         .getByTestId('email-list-item-preview')
         .boundingBox()
-      const viewport = page.viewportSize()
-      if (viewport !== null && viewport.width < 1000) {
+      if (!isDesktop) {
         // Phones and tablets: the chips end the preview line, inside the row
         expect(chipBox?.y ?? 0).toBeGreaterThan(subjectBox?.y ?? 0)
         expect(chipBox?.y ?? 0).toBeGreaterThanOrEqual(previewBox?.y ?? 0)
@@ -250,6 +283,14 @@ test.describe('LST labels in the list rows', () => {
           Math.abs((rowBox?.height ?? 0) - (plainBox?.height ?? 99))
         ).toBeLessThan(1)
         expect(chipBox?.x).toBeLessThan(subjectBox?.x ?? 0)
+        // The three chips stay before the subject, on its line
+        const lastChipBox = await row
+          .getByTestId('label-chip')
+          .last()
+          .boundingBox()
+        expect(
+          (lastChipBox?.x ?? 0) + (lastChipBox?.width ?? 0)
+        ).toBeLessThanOrEqual(subjectBox?.x ?? 0)
       }
       await expectNoA11yViolations(page)
     }
@@ -386,5 +427,27 @@ test.describe('LST list rows at every width', () => {
         ).toBeGreaterThan(150)
       }).toPass()
     }
+  })
+})
+
+test.describe('LST compact rows', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('LST-10 a compact row draws its avatar at 40 px in its 48 px target', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Compact', text: 'Hi' })
+    await jmap.waitForEmail({ subject: 'Compact' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const row = mailbox.emailRow('Compact')
+
+    const avatar = await row.getByTestId('email-list-item-avatar').boundingBox()
+    expect([avatar?.width, avatar?.height]).toEqual([40, 40])
+    const target = await row
+      .getByTestId('email-list-item-checkbox')
+      .boundingBox()
+    expect([target?.width, target?.height]).toEqual([48, 48])
   })
 })

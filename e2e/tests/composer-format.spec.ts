@@ -148,6 +148,7 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     await button.click()
     const picker = page.getByRole('dialog', { name: 'Emoji' })
     await expect(picker).toBeVisible()
+    await expect(button).toHaveAttribute('aria-expanded', 'true')
     await expect(
       picker.getByRole('searchbox', { name: 'Search emoji' })
     ).toBeFocused()
@@ -181,6 +182,9 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
       await expect(
         composer.root.getByTestId('composer-emoji-button')
       ).toHaveCount(0)
+      await composer.openMoreMenu()
+      await expect(page.getByTestId('composer-emoji-item')).toHaveCount(0)
+      await page.keyboard.press('Escape')
       const boxes = await Promise.all(
         [
           composer.formattingButton,

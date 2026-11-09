@@ -31,12 +31,12 @@ export interface HtmlBlockOptions {
   /** `data-testid` of that button */
   editTestId: (kind: string) => string | undefined
   /**
-   * Label of the pill folding and unfolding an `inline` block (a signature:
-   * "Signature"), null for a block without one. The block then shows as a
-   * card under the pill.
+   * Label of the button that folds an `inline` block down to its first
+   * line, up to its first top-level `<br>` (no button without one); null
+   * for none
    */
-  toggleLabel: (kind: string) => string | null
-  /** `data-testid` of that pill */
+  toggleLabel: (kind: string, isFolded: boolean) => string | null
+  /** `data-testid` of that button */
   toggleTestId: (kind: string) => string | undefined
   /**
    * The editable HTML of a block the user unwraps (image URLs to display,

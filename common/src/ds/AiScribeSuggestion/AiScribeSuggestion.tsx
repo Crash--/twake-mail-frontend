@@ -203,12 +203,12 @@ export function AiScribeSuggestion({
         </Typography>
         <Tooltip title={labels.close}>
           <IconButton
+            size="xsmall"
             aria-label={labels.close}
             onClick={onClose}
-            sx={{ p: '3px', color: 'text.icon' }}
             data-testid="ai-scribe-suggestion-close"
           >
-            <Icon icon={icons.close} size={20} aria-hidden="true" />
+            <Icon icon={icons.close} aria-hidden="true" />
           </IconButton>
         </Tooltip>
       </Box>

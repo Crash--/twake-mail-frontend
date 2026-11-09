@@ -32,6 +32,7 @@ import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
 import { ImageToolbar } from './ImageToolbar'
 import { Indent } from './indent'
 import { InlineImage, type InlineImageAttributes } from './inlineImage'
+import { KeptTextStyle } from './keptTextStyle'
 import { LinkDialog, type LinkDialogValue } from './LinkDialog'
 import { toLinkUrl } from './linkUrl'
 import { createPastedDataImages } from './pastedDataImages'
@@ -379,7 +380,8 @@ export function RichTextEditor({
         autolink: true,
         defaultProtocol: 'https'
       }),
-      TextStyleKit.configure({ lineHeight: false }),
+      TextStyleKit.configure({ lineHeight: false, textStyle: false }),
+      KeptTextStyle,
       TextAlign.configure({ types: ['paragraph', 'heading'] }),
       Indent,
       // Tables pasted from a spreadsheet or a page keep their cells

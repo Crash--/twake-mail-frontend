@@ -13,28 +13,145 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the account, of the browser or the one chosen earlier is skipped when it is
   not listed (English if listed, else the first one). Unset, every language
   is offered.
+  
+## [0.9.0] - 2026-11-06
+
+No setting changed since 0.8.0.
+
+### Added
+
+- On a phone, the drawer opens the menus of a folder or a label on a long
+  press, and its settings sit at its foot. The bar of the mail hides while
+  an email or the settings are open.
+- The folder search of the sidebar takes the focus and has a back button.
 
 ### Changed
 
+- The composer follows the Figma: title bar with minimize, full screen and
+  close only, emoji and Reply to in the More menu, filled recipient chips,
+  and the signature in the text after "---".
+- The list rows are 44 px high with 32 px actions, the first label of a row
+  shows with the others behind "+N", and the selection toolbar, the star and
+  the row marks follow the Figma.
+- Every dialog has the frame of the design, and the label, folder, rule and
+  recovery dialogs match the Figma. The label colour is picked from a popover
+  beside its name.
+- The settings menu, its pages (preferences, folders, identities,
+  forwarding, vacation, shortcuts, rules) and the advanced search follow the
+  Figma.
+- The sidebar rows, indents and chevrons are at the design's sizes.
+- Email bodies are set in the Regular text style.
+
+### Fixed
+
+- The initials of a name are taken in any script.
+- The error reporting switch stays while the server settings load.
+- A vacation that has ended shows its status chip off, and a start that has
+  passed can be reopened on "Right away".
+- The sidebar labels come back after the drawer closes during a search.
+
+## [0.8.0] - 2026-11-03
+
+No setting changed since 0.7.0.
+
+### Changed
+
+- The dialogs (confirmations, folder, label, identity and rule editors,
+  recovery, date range and folder picker) are twake-mui's dialogs.
+- The checkboxes are twake-mui's Checkbox, with twake-icons' glyphs for
+  select all.
+- The sidebar, the compose button, the email list, the settings, the
+  vacation and shortcuts switches and the storage card follow the Teammail
+  Figma more closely.
+- The label colour is picked in twake-mui's ColorList, and the advanced
+  search uses twake-mui's fields.
+- twake-mui 19.2.1, twake-sdk 1.2.0 and twake-bar 1.1.2.
+
+### Fixed
+
+- The back chevron of the navigation is drawn at its full size.
+- The swatches of the label colour are named for a screen reader.
+- The toolbar of the list keeps its height when emails are selected.
+
+## [0.7.0] - 2026-10-28
+
+Settings changed since 0.6.0: `TDRIVE_INTENT_URL` (and `config.tdrive.intentUrl`
+of the Helm chart) is no longer read, remove it. `TDRIVE_ENABLED` now needs the
+Drive hosts of the Workplace in `CSP_FRAME_SRC` (`csp.frameSrc`) and the
+Workplace hosts in `CSP_CONNECT_SRC` (`csp.connectSrc`). With an `env.file`
+(the `linagora/tmail-frontend` chart), set `TDRIVE_ENABLED` in the environment
+of the container (`extraEnv`). The AI assistant prompts come from the
+`scribePromptUrl` of the ecosystem document when it has one: add that origin
+to `CSP_CONNECT_SRC`. A server without SSO on another origin whose WebFinger
+404 has no CORS headers needs `AUTH_MODE=basic`.
+
+### Added
+
+- Delegation: manage the delegations of the account, switch to a delegated
+  or team mailbox, and list the team mailboxes in Delegated to me.
+- Italian, German, Mongolian and Spanish, from tmail-flutter.
+- A "Show remote images" preference, with a warning about tracking when the
+  images always show.
+- Rules take header conditions and can be reordered.
+- Sub-addressing can be allowed on a folder from its menu.
+- A folder can be created from the "Move to" and rule folder pickers, and
+  dragged onto another folder to move it.
+- The periods of the recovery pick a custom range on a calendar styled as
+  tmail-flutter's.
+- Forwarding suggests contacts and takes several addresses at once.
+- The composer prints the message, opens or downloads an attached file from
+  its chip, warns before sending more than 10 MB of attachments, and takes
+  the addresses of an open email or of a text file dropped on a field.
+- The S/MIME status of an email shows next to its sender, and its avatar
+  opens the card of the sender.
+- The PDF preview has clickable links, a text layer and Print.
+- A signature editor link button, and SVG signature images accepted as PNG.
+- tmail-flutter's keyboard shortcuts work as aliases.
+- The account menu shows the display name.
+
+### Changed
+
+- The design follows twake-mui 19 and the Teammail Figma, with the
+  twake-icons set updated.
+- "Attach from Drive" (`TDRIVE_ENABLED`) is offered once the app is signed
+  in to the Twake Workplace of the user, with Twake Drive installed there,
+  framed by the Workplace too. The picker creates its intent with the token
+  of the Workplace, without `force_session_id`.
 - Today's emails in the list show their time on the clock of the language
   (9:33 PM in English, 21:33 in French), as the reading view and the event
   card do.
-- "Attach from Drive" (`TDRIVE_ENABLED`) is offered once the app is signed
-  in to the Twake Workplace of the user, as the platform top bar, with Twake
-  Drive installed there, framed by the Workplace too. The picker creates its
-  intent with the token of the Workplace, without `force_session_id`: its
-  frame relies on the session of the user on the Workplace.
-- With an `env.file` (the `linagora/tmail-frontend` chart), the image reads
-  `TDRIVE_ENABLED` from the environment of the container (`extraEnv`).
+- The advanced search lists and custom range, and the actions menu of an
+  email, follow tmail-flutter.
+- A failed SSO lookup shows an error screen with a Retry button, and the
+  Basic form shows only when the server says it has no SSO.
+- The email list follows the push changes until done, and skips the changes
+  our own requests pushed.
+
+### Fixed
+
+- The borders of each side are kept in the CSS of emails, and a wide email
+  fits the reading pane.
+- Email text, quotes and links render more faithfully: URLs written without
+  a scheme, anchors, Outlook meeting links and the line heights of emails.
+- The composer keeps the text typed after a pasted URL out of its link,
+  sends once when Send is clicked twice, and edits a quote in place.
+- Sync requests stay within `maxObjectsInGet` of the server.
+- A conversation keeps its emails on one side of Trash, Spam and Drafts,
+  and moves every email dropped on a folder.
+- Signing out opens the Inbox rather than the address of the previous user,
+  and forgets the recent searches.
+- Many focus and screen reader fixes across the dialogs, lists and error
+  pages.
+
+### Security
+
+- The regexes that run on email content are linear.
 
 ### Removed
 
-- `TDRIVE_INTENT_URL` is no longer read, nor `config.tdrive.intentUrl` of the
-  Helm chart: remove them (leaving them does no harm). The Drive picker and
-  the `/intents` page use the Workplace of the user (the `workplaceFqdn`
-  claim, else `WORKPLACE_FQDN_FALLBACK`). Keep the Drive hosts in
-  `CSP_FRAME_SRC` (`csp.frameSrc`) and the Workplace hosts in
-  `CSP_CONNECT_SRC` (`csp.connectSrc`).
+- `TDRIVE_INTENT_URL` and `config.tdrive.intentUrl` of the Helm chart are
+  no longer read. The Drive picker and the `/intents` page use the Workplace
+  of the user (the `workplaceFqdn` claim, else `WORKPLACE_FQDN_FALLBACK`).
 
 ## [0.6.0] - 2026-10-11
 

@@ -69,12 +69,7 @@ export interface RowLayout {
   paddingTop: number
   paddingBottom: number
   gap: number
-  /** The divider under the row starts after its first cell */
-  insetDivider?: boolean
-  /**
-   * The divider under the row keeps this margin on both sides instead
-   * (tmail-flutter's compact rows), in px
-   */
+  /** The divider under the row keeps this margin on both sides, in px */
   dividerMarginX?: number
   /** With `dividerMarginX`: the room of the divider stays, blank */
   hideDivider?: boolean
@@ -82,9 +77,13 @@ export interface RowLayout {
 
 /** The divider between the rows: the `divider` role, for gradients and borders */
 const ROW_DIVIDER_COLOR = 'var(--twake-palette-divider)'
-/** A selected row: the primary colour at 8 % (the theme's 18 % is heavier) */
+/**
+ * A selected row: the primary colour at the theme's `selectedOpacity`, as
+ * MUI tints a selected `TableRow`, painted on the cells (the row draws the
+ * divider)
+ */
 const ROW_SELECTED_COLOR =
-  'color-mix(in srgb, var(--twake-palette-primary-main) 8%, transparent)'
+  'color-mix(in srgb, var(--twake-palette-primary-main) calc(var(--twake-palette-action-selectedOpacity) * 100%), transparent)'
 
 interface ListTableSettings {
   label: string
@@ -122,12 +121,7 @@ const ROW_SX = {
   '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
   // The theme greys body cells with text.secondary, 3.6:1 on white: below
   // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)
-  '& .MuiTableCell-body': { color: 'text.primary' },
-  // The mock selects a row with the primary colour at 8 %; the theme's
-  // `selectedOpacity` (18 %) is heavier (docs/twake-mui-gaps.md)
-  '&.Mui-selected, &.Mui-selected:hover': {
-    backgroundColor: ROW_SELECTED_COLOR
-  }
+  '& .MuiTableCell-body': { color: 'text.primary' }
 } as const
 
 export function makeRowLayoutSx({
@@ -135,7 +129,6 @@ export function makeRowLayoutSx({
   paddingTop,
   paddingBottom,
   gap,
-  insetDivider = false,
   dividerMarginX,
   hideDivider = false
 }: RowLayout): Record<string, Record<string, string> | string> {
@@ -161,8 +154,7 @@ export function makeRowLayoutSx({
       borderBottomColor: ROW_DIVIDER_COLOR
     },
     '& .MuiTableCell-root:first-of-type': {
-      paddingLeft: `${paddingX}px`,
-      ...(insetDivider ? { borderBottomColor: 'transparent' } : {})
+      paddingLeft: `${paddingX}px`
     },
     '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'transparent' },
     '&.Mui-selected .MuiTableCell-root, &.Mui-selected:hover .MuiTableCell-root':

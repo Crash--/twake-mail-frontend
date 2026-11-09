@@ -1,15 +1,16 @@
 import {
   Archive,
+  FolderOutlined,
   Reply,
   Star,
   StarOutline,
   Trash,
-  Moveto
+  Icon
 } from '@linagora/twake-icons'
-import { Box } from '@linagora/twake-mui'
+import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
-import { IconAction } from '@/ds/IconAction/IconAction'
+import { FAVORITE_COLOR } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -105,6 +106,8 @@ export function EmailViewActions({
   const starLabel = t('email.starred')
   const moreLabel = t('emailActions.menu.more')
   const replyLabel = t('emailActions.reply.reply')
+  // Phones keep larger touch targets
+  const buttonSize = isPhone ? 'medium' : 'small'
 
   const handleRun = (id: EmailActionId): void => {
     void runAction(id, email, mailboxId).then(done => {
@@ -120,66 +123,80 @@ export function EmailViewActions({
       data-testid="email-view-actions"
     >
       {!showsReply || replies.actions.length === 0 ? null : (
-        <IconAction
-          size={36}
-          tone="icon"
-          label={replyLabel}
-          icon={Reply}
-          onClick={() => {
-            replies.open('reply')
-          }}
-          data-testid="email-view-action-reply"
-        />
+        <Tooltip title={replyLabel} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={replyLabel}
+            onClick={() => {
+              replies.open('reply')
+            }}
+            data-testid="email-view-action-reply"
+          >
+            <Icon icon={Reply} />
+          </IconButton>
+        </Tooltip>
       )}
       {!showsShortcuts || move === undefined ? null : (
-        <IconAction
-          size={36}
-          tone="icon"
-          label={t(move.label)}
-          icon={move.id === 'move' ? Moveto : Archive}
-          onClick={() => {
-            handleRun(move.id)
-          }}
-          data-testid={`email-view-action-${move.id}`}
-        />
+        <Tooltip title={t(move.label)} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={t(move.label)}
+            onClick={() => {
+              handleRun(move.id)
+            }}
+            data-testid={`email-view-action-${move.id}`}
+          >
+            <Icon icon={move.id === 'move' ? FolderOutlined : Archive} />
+          </IconButton>
+        </Tooltip>
       )}
       {isMessageCompact ? null : (
-        <IconAction
-          size={36}
-          label={starLabel}
-          icon={isStarred ? Star : StarOutline}
-          tone={isStarred ? 'starred' : 'icon'}
-          aria-pressed={isStarred}
-          onClick={() => {
-            handleRun(isStarred ? 'unstar' : 'star')
-          }}
-          data-testid="email-view-star-button"
-        />
+        <Tooltip title={starLabel} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={starLabel}
+            aria-pressed={isStarred}
+            onClick={() => {
+              handleRun(isStarred ? 'unstar' : 'star')
+            }}
+            data-testid="email-view-star-button"
+          >
+            {isStarred ? (
+              <Icon icon={Star} color={FAVORITE_COLOR} />
+            ) : (
+              <Icon icon={StarOutline} />
+            )}
+          </IconButton>
+        </Tooltip>
       )}
       {!showsShortcuts || deletion === undefined ? null : (
-        <IconAction
-          size={36}
-          tone="icon"
-          label={t(deletion.label)}
-          icon={Trash}
-          onClick={() => {
-            handleRun(deletion.id)
-          }}
-          data-testid={`email-view-action-${deletion.id}`}
-        />
+        <Tooltip title={t(deletion.label)} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={t(deletion.label)}
+            onClick={() => {
+              handleRun(deletion.id)
+            }}
+            data-testid={`email-view-action-${deletion.id}`}
+          >
+            <Icon icon={Trash} />
+          </IconButton>
+        </Tooltip>
       )}
-      <IconAction
-        size={36}
-        tone="icon"
-        label={moreLabel}
-        icon={MoreVerticalIcon}
-        aria-haspopup="menu"
-        aria-expanded={menuAnchor !== null}
-        onClick={event => {
-          setMenuAnchor(event.currentTarget)
-        }}
-        data-testid="email-view-more-button"
-      />
+      <Tooltip title={moreLabel} disableInteractive>
+        <IconButton
+          size={buttonSize}
+          aria-label={moreLabel}
+          aria-haspopup="menu"
+          aria-expanded={menuAnchor !== null}
+          onClick={event => {
+            setMenuAnchor(event.currentTarget)
+          }}
+          data-testid="email-view-more-button"
+        >
+          <Icon icon={MoreVerticalIcon} />
+        </IconButton>
+      </Tooltip>
       <EmailActionsMenu
         anchor={menuAnchor === null ? null : { element: menuAnchor }}
         onClose={() => {

@@ -4,9 +4,10 @@
 // Contacts) needs suggestions under its field; this is the ARIA 1.2
 // combobox pattern around `SearchBar`, with a free header (filters) above
 // the list.
-import { Icon, Magnifier, CrossCircle } from '@linagora/twake-icons'
+import { Icon, Magnifier, Cross } from '@linagora/twake-icons'
 import {
   Box,
+  Divider,
   IconButton,
   Paper,
   Popper,
@@ -410,13 +411,13 @@ export function SearchCombobox({
                 {value === '' ? null : (
                   <Tooltip title={clearLabel}>
                     <IconButton
-                      size="small"
+                      size="medium"
                       aria-label={clearLabel}
                       onClick={handleClear}
                       sx={CLEAR_SX}
                       data-testid={testIds.clear}
                     >
-                      <Icon icon={CrossCircle} size={16} />
+                      <Icon icon={Cross} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -455,6 +456,7 @@ export function SearchCombobox({
           sx={{ borderRadius: PANEL_RADIUS, pt: `${fieldHeight}px` }}
           onMouseDown={keepFocus}
         >
+          <Divider />
           <Box sx={SCROLL_SX}>
             {header}
             {hasOptions ? (
@@ -487,7 +489,7 @@ export function SearchCombobox({
                             component="li"
                             role="presentation"
                             id={`${id}-${group.id}`}
-                            variant="body2"
+                            variant="caption"
                             className={
                               group.isLabelHidden === true
                                 ? 'u-visuallyhidden'

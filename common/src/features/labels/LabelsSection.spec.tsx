@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
@@ -29,9 +30,15 @@ function setup(
   return fake
 }
 
+async function openColors(dialog: HTMLElement): Promise<HTMLElement> {
+  await userEvent.click(within(dialog).getByTestId('label-color-picker'))
+  return screen.findByRole('radiogroup', { name: 'Choose a label color' })
+}
+
 describe('LabelsSection', () => {
   afterEach(() => {
     window.localStorage.clear()
+    resetViewport()
   })
 
   it('lists the labels, each opening its emails', async () => {
@@ -83,8 +90,14 @@ describe('LabelsSection', () => {
       'Travel'
     )
     await userEvent.click(
-      within(dialog).getByRole('radio', { name: 'Magenta' })
+      within(await openColors(dialog)).getByRole('radio', { name: 'Magenta' })
     )
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
+    expect(
+      within(dialog).getByRole('button', { name: 'Label color: Magenta' })
+    ).toHaveFocus()
     await userEvent.click(within(dialog).getByTestId('label-save-button'))
 
     expect(await screen.findByTestId('toast')).toHaveTextContent(
@@ -112,9 +125,11 @@ describe('LabelsSection', () => {
       'Travel'
     )
     await userEvent.click(
-      within(dialog).getByRole('radio', { name: 'Custom color' })
+      within(await openColors(dialog)).getByRole('radio', {
+        name: 'Custom color (hexadecimal)'
+      })
     )
-    const hex = within(dialog).getByRole('textbox', {
+    const hex = await within(dialog).findByRole('textbox', {
       name: 'Custom color (hexadecimal)'
     })
     await userEvent.clear(hex)
@@ -137,6 +152,38 @@ describe('LabelsSection', () => {
     )
   })
 
+  it('opens a label of a palette colour with its check, without the custom field', async () => {
+    setup()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Actions on Work' })
+    )
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+    const dialog = screen.getByRole('dialog', { name: 'Edit label' })
+
+    const colors = await openColors(dialog)
+    expect(
+      within(colors).getByRole('radio', { name: 'Navy blue' })
+    ).toBeChecked()
+    expect(
+      within(colors).getByRole('radio', { name: 'Purple' })
+    ).not.toBeChecked()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(within(colors).getByRole('radio', { name: 'Purple' })).toBeChecked()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
+    expect(
+      within(dialog).getByRole('button', { name: 'Label color: Purple' })
+    ).toHaveFocus()
+    expect(
+      within(dialog).queryByRole('textbox', {
+        name: 'Custom color (hexadecimal)'
+      })
+    ).toBe(null)
+  })
+
   it('edits a custom colour, and offers no "No color" to a coloured label', async () => {
     const server = makeFakeJmapServer({
       capabilities: FAKE_LINAGORA_CAPABILITIES
@@ -156,7 +203,14 @@ describe('LabelsSection', () => {
       await screen.findByRole('button', { name: 'Actions on Plain' })
     )
     await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
-    expect(screen.getByRole('radio', { name: 'No color' })).toBeChecked()
+    const plain = screen.getByRole('dialog', { name: 'Edit label' })
+    expect(
+      within(await openColors(plain)).getByRole('radio', { name: 'No color' })
+    ).toBeChecked()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
     await userEvent.click(screen.getByTestId('label-cancel-button'))
 
     await userEvent.click(
@@ -164,13 +218,19 @@ describe('LabelsSection', () => {
     )
     await userEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
     const dialog = screen.getByRole('dialog', { name: 'Edit label' })
-    expect(within(dialog).queryByRole('radio', { name: 'No color' })).toBe(null)
+    const colors = await openColors(dialog)
+    expect(within(colors).queryByRole('radio', { name: 'No color' })).toBe(null)
     expect(
-      within(dialog).getByRole('radio', { name: 'Custom color #AABBCC' })
+      within(colors).getByRole('radio', { name: 'Custom color (hexadecimal)' })
     ).toBeChecked()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(screen.queryByRole('radiogroup')).toBe(null)
+    })
     const hex = within(dialog).getByRole('textbox', {
       name: 'Custom color (hexadecimal)'
     })
+    expect(hex).toHaveValue('#aabbcc')
     await userEvent.clear(hex)
     await userEvent.type(hex, '#112233')
     await userEvent.click(within(dialog).getByTestId('label-save-button'))
@@ -199,6 +259,24 @@ describe('LabelsSection', () => {
     await waitFor(() => {
       expect(screen.queryByRole('link', { name: 'Work' })).toBe(null)
     })
+  })
+
+  it('opens the menu of a label on a phone from its ⋮ or from the row', async () => {
+    mockViewport({ width: 390, touch: true })
+    setup()
+
+    const link = await screen.findByRole('link', { name: 'Work' })
+    expect(
+      screen.getByRole('button', { name: 'Actions on Work' })
+    ).toHaveAttribute('aria-haspopup', 'menu')
+    expect(link).toHaveAttribute('aria-haspopup', 'menu')
+    expect(link).toHaveAccessibleDescription('Long press for actions')
+    link.focus()
+    await userEvent.keyboard('{Shift>}{F10}{/Shift}')
+
+    expect(
+      await screen.findByRole('menu', { name: 'Actions on Work' })
+    ).toBeVisible()
   })
 
   it('is hidden when the user turned labels off', async () => {

@@ -1,5 +1,5 @@
-// Upstream to twake-ui: no. The header of a settings section: its title
-// (`h3`), and what the section is for in `body1` `text.secondary` under it.
+// Upstream to twake-ui: no. The header of a settings section, as the Figma's:
+// its title (`h3`), and what the section is for in `body1` 16 px under it.
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
@@ -8,21 +8,16 @@ import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 const TITLE_SX = { typography: 'h3', color: 'text.primary' } as const
 
 const DESCRIPTION_SX = {
-  mt: '13px',
+  mt: 2,
   mb: 0,
+  maxWidth: 660,
   typography: 'body1',
-  color: 'text.secondary'
+  color: 'text.primary'
 } as const
 
-/**
- * tmail-flutter's settings content on a desktop: its header 16 px inside a
- * 16 px padded card, the ink of the title 24 px from the side and 35 px
- * from the top of the card
- */
+/** The settings content on a desktop, 32 px inside its area (Figma) */
 const PANE_SX = {
-  px: '22px',
-  pt: '31px',
-  pb: 3,
+  p: 4,
   // Below, as tmail-flutter: what the section is for right under the bar,
   // 32 px in on a tablet, 16 px on a phone
   [`@media ${SCREEN_QUERIES.belowDesktop}`]: { px: '32px', pt: 0 },

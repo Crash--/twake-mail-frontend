@@ -1,4 +1,4 @@
-const LETTER = /[A-Za-z]/
+const LETTER = /\p{L}/u
 
 function firstLetter(word: string): string | null {
   return LETTER.exec(word.trim())?.[0] ?? null
@@ -20,7 +20,7 @@ export function initialsOf(text: string): string {
     const only = first ?? second
     return only === null ? '' : `${only}${only}`.toUpperCase()
   }
-  const letters = text.trim().match(/[A-Za-z]/g) ?? []
+  const letters = text.trim().match(/\p{L}/gu) ?? []
   if (letters.length > 1) return `${letters[0]}${letters[1]}`.toUpperCase()
   return text.slice(0, text.length > 1 ? 2 : 1).toUpperCase()
 }

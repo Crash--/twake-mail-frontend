@@ -91,6 +91,20 @@ describe('sanitizeStyleSheet', () => {
       }
     )
 
+    it.each([
+      ['an http', 'url("http://fonts.example.com/a).woff2")'],
+      ['a data:', 'url("da0 /-o* …r); po:…")'],
+      ['a relative', 'url( "dpr):l" )']
+    ])(
+      'drops a src holding %s url() with a quoted ")", which it cannot read',
+      (_kind, unreadable) => {
+        const css = `@font-face { font-family: X; src: url("https://fonts.example.com/a.woff2"), ${unreadable} }`
+
+        expect(sanitizeStyleSheet(css, BLOCKED).blockedRemoteContent).toBe(0)
+        expect(sanitizeStyleSheet(css, ALLOWED).css).toBe('')
+      }
+    )
+
     it('counts the https fonts of a @media block', () => {
       const css =
         '@media screen { @font-face { font-family: A; src: url(https://fonts.example.com/a.woff2) } @font-face { font-family: B } }'

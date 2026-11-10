@@ -214,6 +214,10 @@ describe('DriveAttachButton', () => {
 
     expect(frame).toHaveAttribute('src', `${PICKER}/#/intents?intent=i1`)
     expect(screen.getByRole('status')).toHaveTextContent('Opening Twake Drive…')
+    // While Drive loads, the focus stays on the dialog, where Escape closes it
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: 'Twake Drive' })).toHaveFocus()
+    })
     const [[, init] = []] = callsTo('/intents')
     expect(new Headers(init?.headers).get('Authorization')).toBe(
       'Bearer drive-token'
@@ -225,7 +229,6 @@ describe('DriveAttachButton', () => {
           attributes: {
             action: 'PICK',
             type: 'io.cozy.files',
-            data: expect.objectContaining({ multiple: true }),
             permissions: ['GET']
           }
         }
@@ -270,7 +273,8 @@ describe('DriveAttachButton', () => {
       type: 'intent-i1:resize',
       dimensions: { width: 640, height: 480 }
     })
-    expect(screen.getByRole('dialog', { name: 'Twake Drive' })).toHaveStyle({
+    // On the box of the frame, which sizes the dialog
+    expect(frame.parentElement).toHaveStyle({
       width: '640px',
       height: '480px'
     })
@@ -334,12 +338,14 @@ describe('DriveAttachButton', () => {
       ]
     })
 
-    expect(onLinks).toHaveBeenCalledWith([
-      expect.objectContaining({
-        name: 'plan.pdf',
-        sharingLink: `${PICKER}/public?sharecode=x`
-      })
-    ])
+    await waitFor(() => {
+      expect(onLinks).toHaveBeenCalledWith([
+        expect.objectContaining({
+          name: 'plan.pdf',
+          sharingLink: `${PICKER}/public?sharecode=x`
+        })
+      ])
+    })
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBe(null)
     })
@@ -369,6 +375,37 @@ describe('DriveAttachButton', () => {
     expect(files.map(file => [file.name, file.type, file.size])).toEqual([
       ['notes.txt', 'text/plain', 5]
     ])
+  })
+
+  it('closes without a file when Drive cancels', async () => {
+    const { onLinks, onAttach } = renderButton()
+    const frame = await openPicker()
+    send(frame, { type: 'intent-i1:ready' })
+    send(frame, { type: 'intent-i1:cancel' })
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    expect(onLinks).not.toHaveBeenCalled()
+    expect(onAttach).not.toHaveBeenCalled()
+  })
+
+  it('says when Drive fails, and tries again', async () => {
+    renderButton()
+    const frame = await openPicker()
+    send(frame, { type: 'intent-i1:ready' })
+    send(frame, {
+      type: 'intent-i1:error',
+      error: { name: 'Error', message: 'Drive failed' }
+    })
+
+    expect(
+      await screen.findByText('Twake Drive could not be opened.')
+    ).toBeVisible()
+    expect(frame).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByTitle('Twake Drive file picker')).toBeVisible()
+    expect(callsTo('/intents')).toHaveLength(2)
   })
 
   it('says when Drive cannot be opened, and tries again', async () => {

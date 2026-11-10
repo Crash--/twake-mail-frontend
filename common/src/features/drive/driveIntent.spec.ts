@@ -1,44 +1,29 @@
-import { pickerData, readIntent, readIntentMessage } from './driveIntent'
+import { pickerData, readPickedFiles, readPickerHref } from './driveIntent'
 
-const INTENT = {
-  id: 'intent-1',
-  origin: 'https://user1-drive.twake.example.com'
-}
-
-function message(
-  type: string,
-  extra: Record<string, unknown> = {}
-): {
-  origin: string
-  data: unknown
-} {
-  return { origin: INTENT.origin, data: { type, ...extra } }
+function intentWith(href: string | null): unknown {
+  return {
+    id: 'intent-1',
+    type: 'io.cozy.intents',
+    attributes: {
+      action: 'PICK',
+      type: 'io.cozy.files',
+      services: href === null ? [] : [{ slug: 'drive', href }]
+    }
+  }
 }
 
 describe('Drive intent', () => {
-  it('reads the intent the stack created, its page in https', () => {
+  it('reads the page of the picker in the intent the stack created, in https', () => {
     expect(
-      readIntent({
-        id: 'intent-1',
-        services: [
-          {
-            slug: 'drive',
-            href: 'https://user1-drive.twake.example.com/#/intents?intent=intent-1'
-          }
-        ]
-      })
-    ).toEqual({
-      id: 'intent-1',
-      href: 'https://user1-drive.twake.example.com/#/intents?intent=intent-1',
-      origin: 'https://user1-drive.twake.example.com'
-    })
-    expect(
-      readIntent({
-        id: 'i',
-        services: [{ slug: 'drive', href: 'http://drive.example.com/' }]
-      })
-    ).toBe(null)
-    expect(readIntent({ id: 'i', services: [] })).toBe(null)
+      readPickerHref(
+        intentWith(
+          'https://user1-drive.twake.example.com/#/intents?intent=intent-1'
+        )
+      )
+    ).toBe('https://user1-drive.twake.example.com/#/intents?intent=intent-1')
+    expect(readPickerHref(intentWith('http://drive.example.com/'))).toBe(null)
+    expect(readPickerHref(intentWith(null))).toBe(null)
+    expect(readPickerHref(null)).toBe(null)
   })
 
   it('asks for several files, a link or an attachment', () => {
@@ -61,69 +46,9 @@ describe('Drive intent', () => {
     })
   })
 
-  it('only hears the picker of this intent, from its origin', () => {
-    expect(readIntentMessage(message('intent-intent-1:ready'), INTENT)).toEqual(
-      {
-        type: 'ready'
-      }
-    )
-    expect(
-      readIntentMessage(
-        {
-          origin: 'https://evil.example.com',
-          data: { type: 'intent-intent-1:ready' }
-        },
-        INTENT
-      )
-    ).toBe(null)
-    expect(readIntentMessage(message('intent-other:ready'), INTENT)).toBe(null)
-    expect(readIntentMessage(message('intent-intent-1:compose'), INTENT)).toBe(
-      null
-    )
-    expect(
-      readIntentMessage(
-        { origin: INTENT.origin, data: 'intent-intent-1:done' },
-        INTENT
-      )
-    ).toBe(null)
-  })
-
   it('keeps the picked files with valid links only', () => {
     expect(
-      readIntentMessage(
-        message('intent-intent-1:done', {
-          document: [
-            {
-              id: 'f1',
-              name: 'report.pdf',
-              size: 1200,
-              mimeType: 'application/pdf',
-              sharingLink:
-                'https://user1-drive.twake.example.com/public?sharecode=x',
-              thumbnail: { link: 'https://user1.twake.example.com/thumb.png' }
-            },
-            {
-              _id: 'f2',
-              filename: 'notes.txt',
-              size: '42',
-              downloadLink:
-                'https://user1.twake.example.com/files/downloads/abc/notes.txt'
-            },
-            { id: 'f3', name: 'evil', sharingLink: 'javascript:alert(1)' },
-            {
-              id: 'f4',
-              name: 'negative',
-              size: -1,
-              sharingLink: 'https://x.example.com/'
-            },
-            { id: 'f5', name: 'local', downloadLink: 'http://localhost:8080/f' }
-          ]
-        }),
-        INTENT
-      )
-    ).toEqual({
-      type: 'done',
-      files: [
+      readPickedFiles([
         {
           id: 'f1',
           name: 'report.pdf',
@@ -131,74 +56,53 @@ describe('Drive intent', () => {
           mimeType: 'application/pdf',
           sharingLink:
             'https://user1-drive.twake.example.com/public?sharecode=x',
-          downloadLink: null,
-          thumbnail: 'https://user1.twake.example.com/thumb.png'
+          thumbnail: { link: 'https://user1.twake.example.com/thumb.png' }
         },
         {
-          id: 'f2',
-          name: 'notes.txt',
-          size: 42,
-          mimeType: null,
-          sharingLink: null,
+          _id: 'f2',
+          filename: 'notes.txt',
+          size: '42',
           downloadLink:
-            'https://user1.twake.example.com/files/downloads/abc/notes.txt',
-          thumbnail: null
+            'https://user1.twake.example.com/files/downloads/abc/notes.txt'
         },
+        { id: 'f3', name: 'evil', sharingLink: 'javascript:alert(1)' },
         {
-          id: 'f5',
-          name: 'local',
-          size: null,
-          mimeType: null,
-          sharingLink: null,
-          downloadLink: 'http://localhost:8080/f',
-          thumbnail: null
-        }
-      ]
-    })
-  })
-  it('reads the size the picker asks for, finite positive numbers only', () => {
-    expect(
-      readIntentMessage(
-        message('intent-intent-1:resize', {
-          dimensions: { width: 700, height: 500, maxHeight: 600 },
-          transition: 'height .2s ease-out'
-        }),
-        INTENT
-      )
-    ).toEqual({
-      type: 'resize',
-      size: {
-        width: 700,
-        height: 500,
-        maxHeight: 600,
-        transition: 'height .2s ease-out'
+          id: 'f4',
+          name: 'negative',
+          size: -1,
+          sharingLink: 'https://x.example.com/'
+        },
+        { id: 'f5', name: 'local', downloadLink: 'http://localhost:8080/f' }
+      ])
+    ).toEqual([
+      {
+        id: 'f1',
+        name: 'report.pdf',
+        size: 1200,
+        mimeType: 'application/pdf',
+        sharingLink: 'https://user1-drive.twake.example.com/public?sharecode=x',
+        downloadLink: null,
+        thumbnail: 'https://user1.twake.example.com/thumb.png'
+      },
+      {
+        id: 'f2',
+        name: 'notes.txt',
+        size: 42,
+        mimeType: null,
+        sharingLink: null,
+        downloadLink:
+          'https://user1.twake.example.com/files/downloads/abc/notes.txt',
+        thumbnail: null
+      },
+      {
+        id: 'f5',
+        name: 'local',
+        size: null,
+        mimeType: null,
+        sharingLink: null,
+        downloadLink: 'http://localhost:8080/f',
+        thumbnail: null
       }
-    })
-    expect(
-      readIntentMessage(
-        message('intent-intent-1:resize', {
-          dimensions: {
-            width: -1,
-            height: Number.POSITIVE_INFINITY,
-            maxWidth: '900',
-            maxHeight: 0
-          },
-          transition: 3
-        }),
-        INTENT
-      )
-    ).toEqual({ type: 'resize', size: {} })
-    expect(
-      readIntentMessage(message('intent-intent-1:resize'), INTENT)
-    ).toEqual({ type: 'resize', size: {} })
-  })
-
-  it('hears the picker hide and show the close button of the dialog', () => {
-    expect(
-      readIntentMessage(message('intent-intent-1:hideCross'), INTENT)
-    ).toEqual({ type: 'hideCross' })
-    expect(
-      readIntentMessage(message('intent-intent-1:showCross'), INTENT)
-    ).toEqual({ type: 'showCross' })
+    ])
   })
 })

@@ -110,7 +110,8 @@ export function DriveAttachButton({
       maxFileSize,
       theme: colorScheme
     },
-    handleFiles
+    handleFiles,
+    t('composer.drive.frameTitle')
   )
 
   const isOpen = picker.state.status !== 'closed'
@@ -142,8 +143,7 @@ export function DriveAttachButton({
       <FramedDialog
         open={isOpen}
         title={t('composer.drive.title')}
-        src={state.status === 'open' ? state.intent.href : null}
-        frameTitle={t('composer.drive.frameTitle')}
+        frameContainerRef={picker.frameContainerRef}
         isReady={state.status === 'open' && state.isReady}
         loadingLabel={t('composer.drive.loading')}
         loadingBrand={{
@@ -153,8 +153,6 @@ export function DriveAttachButton({
         closeLabel={t('common.close')}
         onClose={picker.close}
         showCloseButton={state.status === 'open' && state.showCloseButton}
-        frameSize={state.status === 'open' ? state.size : null}
-        frameRef={picker.frameRef}
         disableRestoreFocus
         message={
           state.status === 'failed' ? (

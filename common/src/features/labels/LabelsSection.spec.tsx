@@ -81,6 +81,11 @@ describe('LabelsSection', () => {
     ).toHaveAccessibleDescription(
       'A tag with this name already exists. Please choose a different name.'
     )
+    expect(
+      within(dialog).getByTestId('label-name-announcement')
+    ).toHaveTextContent(
+      'A tag with this name already exists. Please choose a different name.'
+    )
 
     await userEvent.clear(
       within(dialog).getByRole('textbox', { name: 'Label name' })

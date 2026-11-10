@@ -158,8 +158,23 @@ describe('Folder actions', () => {
     expect(field).toHaveAccessibleDescription(
       'This folder name is already taken'
     )
+    const announcement = within(dialog).getByTestId('mailbox-name-announcement')
+    expect(announcement).toHaveAttribute('role', 'status')
+    expect(announcement).toHaveTextContent('This folder name is already taken')
+    // A refused submit puts the message in again, for it to be said again
+    const announced = announcement.firstElementChild
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Create folder' })
+    )
+    expect(screen.getByRole('dialog', { name: 'Create a New Folder' })).toBe(
+      dialog
+    )
+    expect(field).toHaveFocus()
+    expect(announcement).toHaveTextContent('This folder name is already taken')
+    expect(announcement.firstElementChild).not.toBe(announced)
     await userEvent.clear(field)
     await userEvent.type(field, 'Projects')
+    expect(announcement).toHaveTextContent('')
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Create folder' })
     )

@@ -15,6 +15,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
@@ -39,7 +40,8 @@ export interface MailboxNameDialogProps {
  * Names a folder, to create or rename it, as tmail-flutter's dialog: the
  * name field (selected when renaming), where the folder goes (creating), and
  * the problem with the name under the field once the user typed or
- * submitted, tied to it (`aria-describedby`, `aria-invalid`).
+ * submitted, tied to it (`aria-describedby`, `aria-invalid`) and announced
+ * (a polite live region, again on each refused submit).
  */
 export function MailboxNameDialog({
   title,
@@ -58,6 +60,8 @@ export function MailboxNameDialog({
   const inputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(initialName)
   const [isTouched, setIsTouched] = useState(false)
+  // Each refused submit remounts the announced problem, said again then
+  const [failedSubmits, setFailedSubmits] = useState(0)
   const problem = validate(name)
   // The dialog takes the focus as it opens: the name gets it once there
   useEffect(() => {
@@ -74,6 +78,7 @@ export function MailboxNameDialog({
     event.preventDefault()
     setIsTouched(true)
     if (problem !== null) {
+      setFailedSubmits(count => count + 1)
       inputRef.current?.focus()
       return
     }
@@ -120,6 +125,11 @@ export function MailboxNameDialog({
       onClose={onClose}
       content={
         <form id={formId} onSubmit={handleSubmit} noValidate>
+          <LiveRegion data-testid="mailbox-name-announcement">
+            {shownProblem === null ? null : (
+              <span key={failedSubmits}>{t(shownProblem)}</span>
+            )}
+          </LiveRegion>
           {location === null ? (
             field
           ) : (

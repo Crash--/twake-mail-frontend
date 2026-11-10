@@ -1,8 +1,9 @@
 // Upstream to twake-ui: no, an icon button at the end of the search bar:
 // twake-mui's medium `IconButton`, in primary while what it opens applies.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@mui/material'
 import type { MouseEvent, ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 function buttonSx(
   isActive: boolean,

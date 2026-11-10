@@ -2,8 +2,6 @@
 // RichTextToolbar: tmail-flutter's toolbar of the signature editor
 // (`ToolbarRichTextWidget` in the identity creator).
 import {
-  Icon,
-  type IconProps,
   AlignLeft,
   Highlighter,
   Link,
@@ -26,6 +24,7 @@ import {
   StyleStrikeThrough,
   StyleUnderline
 } from '@/ds/FlutterIcons/FlutterIcons'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 import type { RichTextToolbarItemId } from './types'
 

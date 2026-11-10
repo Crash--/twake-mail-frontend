@@ -1,8 +1,9 @@
 // Upstream to twake-ui: yes, as a round icon-only variant of `Button`, for
 // phones, where the footer has no room for the label (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 export interface PillButtonProps {
   label: string

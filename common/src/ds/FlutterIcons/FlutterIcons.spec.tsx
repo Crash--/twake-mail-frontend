@@ -1,6 +1,5 @@
-import { Icon } from '@linagora/twake-icons'
-
 import { renderDs } from '@/ds/testing/renderDs'
+import { Icon } from '@/ds/Icon/Icon'
 
 import * as FlutterIcons from './FlutterIcons'
 

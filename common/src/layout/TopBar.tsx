@@ -1,4 +1,4 @@
-import { Icon, Cross, Previous } from '@linagora/twake-icons'
+import { Cross, Previous } from '@linagora/twake-icons'
 import { IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { Link, useLocation, useMatch, useNavigate } from 'react-router'
@@ -25,6 +25,7 @@ import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useSelectionBarSlotRef } from '@common/features/thread/ListFilterProvider'
 import { usePlatformStatus } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { MailSearchBar } from './MailSearchBar'
 import { SettingsButton } from './SettingsButton'

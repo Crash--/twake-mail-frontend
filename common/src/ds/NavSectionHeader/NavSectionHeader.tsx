@@ -3,10 +3,11 @@
 // `role="tree"` it is put in) and `NavDesktopDropdown`, whose chevron is
 // pushed to the far end, shown only past `limit` children, with no room for
 // actions, and which renders nothing below `lg`.
-import { Icon, Dropdown, Right } from '@linagora/twake-icons'
+import { Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { Icon } from '@/ds/Icon/Icon'
 import { TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 

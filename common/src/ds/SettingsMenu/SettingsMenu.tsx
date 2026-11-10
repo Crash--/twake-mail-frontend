@@ -3,9 +3,10 @@
 // and the name in `body2`, both in `primary.main` on `action.selected` once
 // selected. twake-mui's `NavigationList` is not used: its rows are not links
 // with `aria-current`.
-import { type IconProps, Icon } from '@linagora/twake-icons'
 import { Box, ButtonBase, List } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 function itemSx(isSelected: boolean): Record<string, unknown> {
   return {

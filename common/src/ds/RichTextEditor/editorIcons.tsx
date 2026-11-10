@@ -3,8 +3,6 @@
 // from it; the others are paths from Material Icons (@mui/icons-material,
 // MIT; Google Material Icons, Apache-2.0), drawn with the MUI SvgIcon.
 import {
-  Icon,
-  type IconProps,
   AlignLeft,
   Dash,
   FormatSize,
@@ -18,6 +16,8 @@ import {
 } from '@linagora/twake-icons'
 import { SvgIcon, type SvgIconProps } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 export type EditorIconName =
   | 'bold'

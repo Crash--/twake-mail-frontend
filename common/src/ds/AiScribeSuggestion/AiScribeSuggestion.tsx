@@ -5,7 +5,6 @@
 // button; while waiting, a pulsing blue sparkle and "Generating response"
 // with dots counting; then the answer in Regular 14 / 22, "Copy" and "Retry"
 // icons, "Improve ⌄" on the left and "Replace", "Insert" pills on the right.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -17,6 +16,8 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useId, type MouseEvent, type ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 const SCREEN_MARGIN = 16
 const ANCHOR_GAP = 8

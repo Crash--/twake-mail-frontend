@@ -1,7 +1,8 @@
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 
 import { renderDs } from '@/ds/testing/renderDs'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { ActionIconButton } from './ActionIconButton'
 

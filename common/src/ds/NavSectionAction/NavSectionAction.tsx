@@ -1,11 +1,11 @@
 // Upstream to twake-ui: yes, as a touch size of `IconButton`. The actions of
 // the title of a sidebar section: twake-mui's `xsmall` button, 44 px on touch
 // screens.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 export interface NavSectionActionProps {
   /** Tooltip and accessible name */

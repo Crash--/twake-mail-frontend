@@ -2,9 +2,11 @@
 // outline calendar in text.secondary (20 px, 18 on a phone), read or unread,
 // centred on the subject it precedes (12 px on a desktop, 8 on a tablet, 4 on
 // a phone).
-import { CalendarToday, Icon } from '@linagora/twake-icons'
+import { CalendarToday } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 const MARK_SX = {
   display: 'inline-flex',

@@ -1,5 +1,4 @@
 // Upstream to twake-ui: with RichTextEditor.
-import { Icon } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -15,6 +14,8 @@ import {
   type ReactElement,
   type SVGAttributes
 } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 import { toLinkUrl } from './linkUrl'
 import type { RichTextLinkDialogLabels } from './types'

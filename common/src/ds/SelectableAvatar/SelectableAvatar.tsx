@@ -3,9 +3,11 @@
 // the glyph of twake-mui's checked `Checkbox`, in the middle of a 48 px touch
 // target. The avatar is a checkbox of its own, reached by keyboard and named by
 // its label.
-import { CheckSquare, Icon } from '@linagora/twake-icons'
+import { CheckSquare } from '@linagora/twake-icons'
 import { ButtonBase } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 /** The avatar of a compact row, in px */
 export const COMPACT_AVATAR_SIZE = 40

@@ -1,5 +1,4 @@
 import {
-  Icon,
   Attachment,
   ClockOutline,
   Star,
@@ -26,6 +25,7 @@ import { FLAGGED } from '@common/features/email/keywords'
 import { formatListDate } from '@common/features/thread/formatListDate'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { AdvancedSearchDialog } from './AdvancedSearchDialog'
 import { HighlightedText } from './HighlightedText'

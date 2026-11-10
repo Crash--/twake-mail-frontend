@@ -1,10 +1,4 @@
-import {
-  Icon,
-  type IconProps,
-  Forward,
-  Reply,
-  ReplyAll
-} from '@linagora/twake-icons'
+import { Forward, Reply, ReplyAll } from '@linagora/twake-icons'
 import {
   Checkbox,
   Divider,
@@ -33,6 +27,7 @@ import { useLabelActions } from '@common/features/labels/LabelActionsProvider'
 import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 import {
   availableEmailActions,

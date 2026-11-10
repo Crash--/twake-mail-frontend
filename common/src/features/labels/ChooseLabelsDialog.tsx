@@ -1,4 +1,4 @@
-import { Icon, Label as LabelGlyph, Plus } from '@linagora/twake-icons'
+import { Label as LabelGlyph, Plus } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -20,6 +20,7 @@ import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'
 import type { TargetEmail } from '@common/features/emailActions/planEmailChanges'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { labelDisplayName } from './labelDisplayName'
 import { LabelDialog } from './LabelDialog'

@@ -1,4 +1,4 @@
-import { Icon, Eye, EyeClosed } from '@linagora/twake-icons'
+import { Eye, EyeClosed } from '@linagora/twake-icons'
 import { IconButton, Link, Tooltip } from '@linagora/twake-mui'
 import {
   useId,
@@ -19,6 +19,7 @@ import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { useAuthService, useAuthState } from './AuthProvider'
 import { sanitizeReturnTo } from './returnTo'

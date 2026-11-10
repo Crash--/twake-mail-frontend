@@ -3,7 +3,7 @@
 // `ConfirmDialog` on a wide screen and its `BottomSheet` on a phone, their
 // content laid out here. twake-mui's `ContactPopover` opens on hover and has
 // fixed actions (see docs/twake-mui-gaps.md).
-import { Icon, Copy } from '@linagora/twake-icons'
+import { Copy } from '@linagora/twake-icons'
 import {
   BottomSheet,
   BottomSheetItem,
@@ -23,6 +23,7 @@ import {
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon } from '@/ds/Icon/Icon'
 import { REDUCED_MOTION_QUERY } from '@/ds/ViewTransition/viewTransition'
 
 export interface ContactCardAction {

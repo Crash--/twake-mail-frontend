@@ -1,10 +1,11 @@
-import { Icon, Left } from '@linagora/twake-icons'
+import { Left } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { searchPath, type SearchFilter } from './searchFilter'
 import { SearchFiltersBar } from './SearchFiltersBar'

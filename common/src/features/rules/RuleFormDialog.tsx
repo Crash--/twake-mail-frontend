@@ -1,4 +1,4 @@
-import { Eye, EyeClosed, Icon, Plus, Trash } from '@linagora/twake-icons'
+import { Eye, EyeClosed, Plus, Trash } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -30,6 +30,7 @@ import { usePickMailbox } from '@common/features/mailbox/MailboxPickerProvider'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import {
   actionDraft,

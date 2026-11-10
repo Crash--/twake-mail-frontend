@@ -1,9 +1,10 @@
-import { Icon, Forward, Reply, ReplyAll } from '@linagora/twake-icons'
+import { Forward, Reply, ReplyAll } from '@linagora/twake-icons'
 import type { ReactElement, ReactNode } from 'react'
 
 import { ActionBar, ActionBarButton } from '@/ds/ActionBar/ActionBar'
 import { useI18n } from '@common/i18n/useI18n'
 import type { ReplyAction } from '@common/features/composer/replyRecipients'
+import { Icon } from '@/ds/Icon/Icon'
 
 import type { EmailDetail } from './queries'
 import {

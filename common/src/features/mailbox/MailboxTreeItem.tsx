@@ -1,4 +1,4 @@
-import { Icon, EyeClosed } from '@linagora/twake-icons'
+import { EyeClosed } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useRef,
@@ -25,6 +25,7 @@ import {
 } from '@common/features/mailboxActions/folderDrag'
 import { useDropFolder } from '@common/features/mailboxActions/useDropFolder'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import {
   getMailboxIcon,

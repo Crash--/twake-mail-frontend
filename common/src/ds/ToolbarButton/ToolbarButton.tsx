@@ -1,9 +1,11 @@
 // Upstream to twake-ui: no, twake-mui's text Button with a menu chevron and a
 // width cap; a `DropdownButton` would bring its own text layout and aria
 // (docs/twake-mui-gaps.md).
-import { Icon, type IconProps, Bottom } from '@linagora/twake-icons'
+import { Bottom } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 const CHEVRON_BOX_SX = { width: 16, height: 16 } as const
 // `Bottom` draws 10 x 6.2 px at 16: at 12.8 it is the Figma's

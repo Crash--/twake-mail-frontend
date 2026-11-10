@@ -3,7 +3,7 @@
 // in a popover, with "no colour" first and a free colour last, as a radio
 // group. twake-mui's `ColorList` has neither and its swatches are buttons.
 import { Box, IconButton, Popover, Tooltip } from '@linagora/twake-mui'
-import { Check, Cross, Icon, Palette } from '@linagora/twake-icons'
+import { Check, Cross, Palette } from '@linagora/twake-icons'
 import {
   useId,
   useRef,
@@ -20,6 +20,7 @@ import {
   sameColor,
   type ColorSwatch
 } from '@/ds/ColorSwatchPicker/ColorSwatchPicker'
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface ColorPopoverPickerProps {
   /** Accessible name and tooltip of the button, saying the colour chosen */

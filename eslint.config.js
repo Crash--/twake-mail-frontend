@@ -32,8 +32,21 @@ const CHECKBOX_GLYPHS_RESTRICTION = {
   message: "A checkbox is twake-mui's Checkbox, as it is."
 }
 
+const ICON_MESSAGE =
+  'Import Icon from @/ds/Icon/Icon: it hides decorative icons from assistive technologies (RGAA 1.2).'
+
+const ICON_RESTRICTIONS = [
+  {
+    name: '@linagora/twake-icons',
+    importNames: ['Icon'],
+    message: ICON_MESSAGE
+  },
+  { name: '@linagora/twake-mui', importNames: ['Icon'], message: ICON_MESSAGE }
+]
+
 const UI_IMPORT_RESTRICTIONS = {
   paths: [
+    ...ICON_RESTRICTIONS,
     {
       name: '@linagora/twake-mui',
       importNames: ['styled'],
@@ -63,6 +76,7 @@ const DS_BUSINESS_MESSAGE =
 /** The design system is UI only: MUI is allowed, business code is not */
 const DS_IMPORT_RESTRICTIONS = {
   paths: [
+    ...ICON_RESTRICTIONS,
     { name: 'jmap-client-ts', message: DS_BUSINESS_MESSAGE },
     { name: 'react-router', message: DS_BUSINESS_MESSAGE },
     { name: 'twake-i18n', message: DS_BUSINESS_MESSAGE },
@@ -93,6 +107,14 @@ const DS_IMPORT_RESTRICTIONS = {
     },
     ...COMMON_IMPORT_PATTERNS
   ]
+}
+
+/** The wrapper itself draws twake-icons' `Icon` */
+const ICON_WRAPPER_IMPORT_RESTRICTIONS = {
+  ...DS_IMPORT_RESTRICTIONS,
+  paths: DS_IMPORT_RESTRICTIONS.paths.filter(
+    path => !ICON_RESTRICTIONS.includes(path)
+  )
 }
 
 const SX_SYNTAX = {
@@ -215,6 +237,13 @@ export default defineConfig(
     rules: {
       'no-restricted-imports': ['error', DS_IMPORT_RESTRICTIONS],
       'no-restricted-syntax': ['error', ...FORBIDDEN_SYNTAX]
+    }
+  },
+
+  {
+    files: ['common/src/ds/Icon/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', ICON_WRAPPER_IMPORT_RESTRICTIONS]
     }
   },
 

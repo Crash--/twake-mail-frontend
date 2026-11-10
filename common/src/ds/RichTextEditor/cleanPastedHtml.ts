@@ -123,6 +123,83 @@ const SEMANTIC_STYLES: {
   }
 ]
 
+/** Elements that hold blocks, list items, rows or cells: not phrasing content */
+const BLOCK_ELEMENTS = new Set([
+  'ADDRESS',
+  'ARTICLE',
+  'ASIDE',
+  'BLOCKQUOTE',
+  'CAPTION',
+  'DD',
+  'DETAILS',
+  'DIV',
+  'DL',
+  'DT',
+  'FIELDSET',
+  'FIGCAPTION',
+  'FIGURE',
+  'FOOTER',
+  'FORM',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'HEADER',
+  'HR',
+  'LI',
+  'MAIN',
+  'NAV',
+  'OL',
+  'P',
+  'PRE',
+  'SECTION',
+  'TABLE',
+  'TBODY',
+  'TD',
+  'TFOOT',
+  'TH',
+  'THEAD',
+  'TR',
+  'UL'
+])
+
+function isBlock(node: Node): node is Element {
+  return node instanceof Element && BLOCK_ELEMENTS.has(node.tagName)
+}
+
+function isBlank(node: Node): boolean {
+  return node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()
+}
+
+function wrapRun(parent: Element, run: Node[], tag: string): void {
+  const first = run[0]
+  if (!first || run.every(isBlank)) return
+  const wrapper = parent.ownerDocument.createElement(tag)
+  parent.insertBefore(wrapper, first)
+  wrapper.append(...run)
+}
+
+/**
+ * Wraps the phrasing content of an element in `tag`. Through the blocks it
+ * holds (list items, rows, cells, paragraphs), so that `<li>` stays in its
+ * list and cells in their row.
+ */
+function wrapContent(element: Element, tag: string): void {
+  let run: Node[] = []
+  Array.from(element.childNodes).forEach(child => {
+    if (!isBlock(child)) {
+      run.push(child)
+      return
+    }
+    wrapRun(element, run, tag)
+    run = []
+    wrapContent(child, tag)
+  })
+  wrapRun(element, run, tag)
+}
+
 function wrapSemantics(element: HTMLElement): void {
   if (
     element.tagName === 'A' ||
@@ -130,12 +207,11 @@ function wrapSemantics(element: HTMLElement): void {
     element.tagName === 'P'
   )
     return
-  for (const { test, tag } of SEMANTIC_STYLES) {
-    if (!test(element.style)) continue
-    const wrapper = element.ownerDocument.createElement(tag)
-    wrapper.append(...Array.from(element.childNodes))
-    element.append(wrapper)
-  }
+  SEMANTIC_STYLES.filter(({ test }) => test(element.style)).forEach(
+    ({ tag }) => {
+      wrapContent(element, tag)
+    }
+  )
   ;[
     'font-weight',
     'font-style',

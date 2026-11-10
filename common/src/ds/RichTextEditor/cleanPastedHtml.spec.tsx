@@ -54,4 +54,43 @@ describe('cleanPastedHtml', () => {
       '<p><strong>Title</strong></p><a href="https://example.com">link</a>'
     )
   })
+
+  it('carries the style of a list into its items', () => {
+    expect(
+      cleanPastedHtml(
+        '<ul style="font-weight:700"><li>One</li><li>Two<ol style="font-style:italic"><li><p>Three</p></li></ol></li></ul>'
+      )
+    ).toBe(
+      '<ul><li><strong>One</strong></li><li><strong>Two</strong><ol><li><p><em><strong>Three</strong></em></p></li></ol></li></ul>'
+    )
+  })
+
+  it('keeps list items directly in their list when the list is bold', () => {
+    const container = document.createElement('div')
+    container.innerHTML = cleanPastedHtml(
+      '<ul style="font-weight:700"><li>One</li><li>Two</li></ul>'
+    )
+    const items = Array.from(container.querySelectorAll('li'))
+    expect(items).toHaveLength(2)
+    items.forEach(item => {
+      expect(item.parentElement?.tagName).toBe('UL')
+    })
+    expect(container.querySelector('ul > strong')).toBe(null)
+  })
+
+  it('carries the style of a table or a row into its cells', () => {
+    const container = document.createElement('div')
+    container.innerHTML = cleanPastedHtml(
+      '<table style="text-decoration:underline"><tbody><tr style="font-weight:bold"><td>A</td>\n<td>B</td></tr></tbody></table>'
+    )
+    const cells = Array.from(container.querySelectorAll('td'))
+    expect(cells).toHaveLength(2)
+    cells.forEach(cell => {
+      expect(cell.parentElement?.tagName).toBe('TR')
+      expect(cell.querySelector('strong u')?.textContent).toBe(cell.textContent)
+    })
+    expect(container.querySelector('table > u, tbody > u, tr > strong')).toBe(
+      null
+    )
+  })
 })

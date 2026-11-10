@@ -25,6 +25,21 @@ function hasKeptStyle(element: HTMLElement): boolean {
   })
 }
 
+/**
+ * Rewrites the span's `style` attribute as the CSSOM serialises it, which is
+ * how ProseMirror writes a mark back (`dom.style.cssText`). The attribute
+ * parsers read the raw text, so `#1F497D` and `#1f497d` were two marks
+ * written identically, merged by the next load: a reopened draft changed
+ * (issue #935). Parsing the serialised value makes the marks equal at once.
+ * The trailing `;` goes: TextStyle prefixes a nested span's style with
+ * `${parentStyle};`, and some CSS parsers (jsdom) drop what follows `;;`.
+ */
+function normaliseStyle(element: HTMLElement): void {
+  if (element.hasAttribute('style')) {
+    element.setAttribute('style', element.style.cssText.replace(/;\s*$/, ''))
+  }
+}
+
 function isTagRule(rule: ParseRule): rule is TagParseRule {
   return 'tag' in rule
 }
@@ -42,8 +57,12 @@ export const KeptTextStyle = TextStyle.extend({
       isTagRule(rule)
         ? {
             ...rule,
-            getAttrs: (element: HTMLElement) =>
-              hasKeptStyle(element) ? (rule.getAttrs?.(element) ?? null) : false
+            getAttrs: (element: HTMLElement) => {
+              normaliseStyle(element)
+              return hasKeptStyle(element)
+                ? (rule.getAttrs?.(element) ?? null)
+                : false
+            }
           }
         : rule
     )

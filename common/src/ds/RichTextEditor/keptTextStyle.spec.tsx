@@ -64,3 +64,32 @@ describe('KeptTextStyle', () => {
     expect(load(first)).toBe(first)
   })
 })
+
+describe('KeptTextStyle with the same style spelled differently', () => {
+  it.each([
+    '<p><span style="color:#1F497D"><b>Hi</b></span><span style="color:#1f497d"><b> there</b></span></p>',
+    '<p><span style="color:#1F497D"><b>Hi</b></span><span style="color: rgb(31, 73, 125)"><b> there</b></span></p>'
+  ])('gives one span, stable when loaded again: %s', html => {
+    const first = load(html)
+    expect(first).toBe(
+      '<p><span style="color: rgb(31, 73, 125);"><strong>Hi there</strong></span></p>'
+    )
+    expect(load(first)).toBe(first)
+  })
+
+  it('gives one span for background colours spelled differently', () => {
+    const first = load(
+      '<p><span style="background-color:#FFFF00">a</span><span style="background-color:#ffff00">b</span></p>'
+    )
+    expect(first).toBe(
+      '<p><span style="background-color: rgb(255, 255, 0);">ab</span></p>'
+    )
+    expect(load(first)).toBe(first)
+  })
+
+  it('drops a span whose only kept style the browser refuses', () => {
+    const first = load('<p><span style="color: notacolour">a</span>b</p>')
+    expect(first).toBe('<p>ab</p>')
+    expect(load(first)).toBe(first)
+  })
+})

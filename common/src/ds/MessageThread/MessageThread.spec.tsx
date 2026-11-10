@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
@@ -56,6 +56,22 @@ describe('MessageThread', () => {
 
     expect(first).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByText('Body of a')).toBeVisible()
+  })
+
+  it('puts the toggle of each message in a level-2 heading', () => {
+    renderDs(<Thread />)
+
+    const headings = screen.getAllByRole('heading', { level: 2 })
+    expect(headings.map(heading => heading.textContent)).toEqual([
+      'Message a',
+      'Message b',
+      'Message c'
+    ])
+    headings.forEach(heading => {
+      expect(within(heading).getByRole('button')).toHaveAttribute(
+        'aria-expanded'
+      )
+    })
   })
 
   it('moves the focus between the messages with the arrows, Home and End', async () => {

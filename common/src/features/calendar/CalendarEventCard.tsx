@@ -266,6 +266,7 @@ export function CalendarEventCard({
   return (
     <>
       <EventCard
+        headingLevel="h3"
         title={title}
         label={t('calendar.eventLabel', { title })}
         date={times ? formatDateBlock(times, lang, timeZone) : null}
@@ -359,7 +360,7 @@ export function CalendarEventCard({
       />
       {description !== '' ? (
         <Box className="u-mt-1" data-testid="calendar-event-description">
-          <Typography component="h3" className="u-fw-bold u-mb-half">
+          <Typography component="h4" className="u-fw-bold u-mb-half">
             {t('calendar.description')}
           </Typography>
           <Typography className="u-breakword">

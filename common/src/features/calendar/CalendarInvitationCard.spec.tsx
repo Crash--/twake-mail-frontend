@@ -116,6 +116,34 @@ function renderView(server: FakeJmapServer): void {
 describe('CalendarInvitationCard', () => {
   listEmailsOneByOne()
 
+  it('nests the headings of the event under the heading of its message', async () => {
+    renderView(makeServer(INVITATION))
+
+    await screen.findByRole('region', { name: 'Event: Weekly sync' })
+    await screen.findByText('Agenda: roadmap', { exact: false })
+
+    const levels = screen
+      .getAllByRole('heading')
+      .map(heading => Number(heading.tagName.slice(1)))
+    expect(levels[0]).toBe(1)
+    expect(levels.filter(level => level === 1)).toHaveLength(1)
+    const messages = screen.getAllByRole('heading', { level: 2 })
+    expect(messages).toHaveLength(1)
+    expect(messages[0]).toHaveTextContent('Olivia')
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Weekly sync' })
+    ).toBeVisible()
+    expect(
+      screen.getByRole('heading', { level: 4, name: 'Description' })
+    ).toBeVisible()
+    // No level is skipped
+    expect(
+      levels.every(
+        (level, index) => index === 0 || level - (levels[index - 1] ?? 0) < 2
+      )
+    ).toBe(true)
+  })
+
   it('shows the event of the .ics attachment', async () => {
     const server = makeServer({
       ...INVITATION,

@@ -12,7 +12,8 @@ export interface InlineGroupProps {
   isWrapping?: boolean
   /** `baseline` aligns texts of different sizes */
   align?: 'center' | 'baseline' | 'flex-start'
-  component?: 'div' | 'span' | 'p'
+  /** `h2`: a heading that looks like the text around it */
+  component?: 'div' | 'span' | 'p' | 'h2'
   className?: string
   /** e.g. `list`, its children being `listitem`s */
   role?: 'list' | 'group'
@@ -44,7 +45,8 @@ export function InlineGroup({
         flexWrap: isWrapping ? 'wrap' : 'nowrap',
         alignItems: align,
         columnGap: gap,
-        m: 0
+        m: 0,
+        ...(component === 'h2' ? { font: 'inherit' } : {})
       }}
     >
       {children}

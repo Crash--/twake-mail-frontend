@@ -202,6 +202,7 @@ function EmailContent({
               <SenderLine
                 sender={sender}
                 cardButtonRef={senderCardRef}
+                isHeading
                 smimeStatus={parseSmimeStatus(email[SMIME_STATUS_HEADER])}
                 onUnsubscribe={
                   canUnsubscribe(email)

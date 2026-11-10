@@ -69,12 +69,36 @@ test.describe('LOGIN login', () => {
     user
   }) => {
     const login = await new LoginPage(page).goto()
+    // The names of the fields stay visible while typing
+    await expect(page.getByText('Email', { exact: true })).toBeVisible()
+    await expect(page.getByText('Password', { exact: true })).toBeVisible()
+
+    // A name without domain is caught before anything is sent
+    const sessionRequests: string[] = []
+    page.on('request', request => {
+      if (request.url().includes('/.well-known/jmap')) {
+        sessionRequests.push(request.url())
+      }
+    })
+    await login.usernameInput.fill('bob')
+    await login.passwordInput.fill('bob')
+    await login.submitButton.click()
+    await expect(login.usernameInput).toHaveAttribute('aria-invalid', 'true')
+    await expect(login.usernameInput).toHaveAccessibleDescription(
+      'Enter your full email address, including the part after @.'
+    )
+    await expect(login.usernameInput).toBeFocused()
+    expect(sessionRequests).toEqual([])
+
     await login.usernameInput.fill(user.email)
     await login.passwordInput.fill(`${user.password}-wrong`)
     await login.submitButton.click()
 
     await expect(login.errorMessage).toHaveRole('alert')
-    await expect(login.errorMessage).toContainText('Bad credentials')
+    await expect(login.errorMessage).toContainText(
+      'Incorrect email address or password.'
+    )
+    await expect(login.passwordInput).toBeFocused()
     await expect(page).toHaveURL(/\/login/)
     await expect(new MailboxPage(page).folderTree).toHaveCount(0)
     await expectNoA11yViolations(page)
@@ -112,6 +136,9 @@ test.describe('LOGIN login', () => {
     // No other tab to ask: the form, then back where the user was
     await second.close()
     await page.reload()
+    await expect(page.getByTestId('login-form')).toContainText(
+      'Twake Mail does not keep your password after a reload'
+    )
     await new LoginPage(page).loginAfterReload(user)
     await expect(page).toHaveURL(sentUrl)
     await mailbox.expectFolderSelected({ role: 'sent' })
@@ -146,9 +173,12 @@ test.describe('LOGIN login', () => {
         await expect(new MailboxPage(tab).folderTree).toHaveCount(0)
       }
 
-      // A deep link shows the form, not the mail
+      // A deep link shows the form, not the mail, and no lost session
       await page.goto(inboxUrl)
       await expect(new LoginPage(page).usernameInput).toBeVisible()
+      await expect(page.getByTestId('login-form')).toContainText(
+        'Enter your credentials to sign in'
+      )
       await expect(page).toHaveURL(/\/login/)
       await expect(mailbox.folderTree).toHaveCount(0)
 

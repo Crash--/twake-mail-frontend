@@ -60,6 +60,8 @@ declare global {
     COZY_INTEGRATION?: boolean | string
     /** The Twake Drive picker of the composer (as Twake Calendar) */
     TDRIVE_ENABLED?: boolean | string
+    /** The basic sign-in form accepts a user name without domain */
+    LOGIN_ALLOW_USERNAME?: boolean | string
 
     APP_VERSION?: string
   }

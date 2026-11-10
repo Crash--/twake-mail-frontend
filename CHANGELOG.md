@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+New setting: `LOGIN_ALLOW_USERNAME`, below.
+
+### Added
+
+- `LOGIN_ALLOW_USERNAME` (`false` by default): in basic authentication, the
+  sign-in form sends a user name without domain (`bob`) to the server. Off,
+  it asks for the full email address before sending anything.
+
+### Changed
+
+- The sign-in form shows "Email" and "Password" above their fields, kept
+  while typing, and the fields have no placeholder any more.
+- A refused sign-in says "Incorrect email address or password." instead of
+  "Bad credentials".
+- A tab that lands on the sign-in form after a reload or a link (basic
+  authentication) says the password is not kept after a reload. Not after a
+  sign-out.
+
 ## [0.10.0] - 2026-11-10
 
 New settings since 0.9.0: `ALLOWED_LANGUAGES` (Helm chart:

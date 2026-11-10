@@ -103,6 +103,36 @@ export function matchesFilter(email: FakeEmail, filter: unknown): boolean {
   return matchesCondition(email, filter)
 }
 
+const MAILBOX_CONDITIONS = ['inMailbox', 'inMailboxOtherThan']
+
+function hasMailboxCondition(filter: unknown): boolean {
+  if (!isRecord(filter)) return false
+  return Array.isArray(filter.conditions)
+    ? filter.conditions.some(hasMailboxCondition)
+    : MAILBOX_CONDITIONS.some(property => property in filter)
+}
+
+function countInMailbox(filters: readonly unknown[]): number {
+  return filters.filter(filter => isRecord(filter) && 'inMailbox' in filter)
+    .length
+}
+
+/**
+ * Whether James accepts the filter (`FilterQuery.validateFilter`): the
+ * mailbox conditions sit at the top, alone or in a top-level `AND`, with one
+ * `inMailbox` at most; under an `OR` or a `NOT` they are refused
+ */
+export function isSupportedFilter(filter: unknown): boolean {
+  if (!isRecord(filter) || !Array.isArray(filter.conditions)) return true
+  if (filter.operator !== 'AND') return !hasMailboxCondition(filter)
+  const nested = filter.conditions.filter(
+    condition => isRecord(condition) && Array.isArray(condition.conditions)
+  )
+  return (
+    !nested.some(hasMailboxCondition) && countInMailbox(filter.conditions) <= 1
+  )
+}
+
 /** The words a filter searches for, to mark them in the snippets */
 export function filterWords(filter: unknown): string[] {
   if (!isRecord(filter)) return []

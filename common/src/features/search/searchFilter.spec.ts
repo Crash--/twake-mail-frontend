@@ -1,3 +1,4 @@
+import { isSupportedFilter } from '@common/testing/fakeEmailQuery'
 import {
   elapsedMs,
   randomTexts,
@@ -20,9 +21,37 @@ import {
 
 const CONTEXT = {
   trashAndSpamIds: ['trash', 'spam'],
-  teamFolderIds: { team: ['team-inbox', 'team-sent'], empty: [] },
+  teamFolderIds: {
+    team: ['team-inbox', 'team-sent'],
+    single: ['single-inbox'],
+    empty: []
+  },
+  mailboxIds: [
+    'inbox',
+    'trash',
+    'spam',
+    'team',
+    'team-inbox',
+    'team-sent',
+    'team-trash',
+    'single',
+    'single-inbox',
+    'empty'
+  ],
   today: '2026-10-04'
 }
+
+/** Every mailbox but the folders of the team mailbox `team` */
+const OUTSIDE_TEAM = [
+  'inbox',
+  'trash',
+  'spam',
+  'team',
+  'team-trash',
+  'single',
+  'single-inbox',
+  'empty'
+]
 
 function filter(overrides: Partial<SearchFilter>): SearchFilter {
   return { ...EMPTY_SEARCH_FILTER, ...overrides }
@@ -130,22 +159,38 @@ describe('toJmapFilter', () => {
         }),
         CONTEXT
       )
-    ).toEqual({
-      operator: 'AND',
-      conditions: [
-        { text: 'TEAM' },
-        {
-          operator: 'OR',
-          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
-        }
-      ]
-    })
+    ).toEqual({ text: 'TEAM', inMailboxOtherThan: OUTSIDE_TEAM })
     expect(
       toJmapFilter(
         filter({ scope: { kind: 'mailbox', mailboxId: 'empty' } }),
         CONTEXT
       )
     ).toEqual({ inMailbox: 'empty' })
+    expect(
+      toJmapFilter(
+        filter({ scope: { kind: 'mailbox', mailboxId: 'single' } }),
+        CONTEXT
+      )
+    ).toEqual({ inMailbox: 'single-inbox' })
+  })
+
+  it('never nests a mailbox condition, which James refuses', () => {
+    expect(
+      isSupportedFilter(
+        toJmapFilter(
+          filter({
+            text: 'TEAM',
+            from: ['alice', 'bob'],
+            to: ['carol'],
+            label: 'work',
+            starred: true,
+            notWords: ['spam'],
+            scope: { kind: 'mailbox', mailboxId: 'team' }
+          }),
+          CONTEXT
+        )
+      )
+    ).toBe(true)
   })
 
   it('maps the quick filters to keywords and attachments', () => {
@@ -340,16 +385,7 @@ describe('toJmapFilter bound to a team mailbox', () => {
   const BOUND = { ...CONTEXT, boundTeamRootId: 'team' }
 
   it('looks in the folders of the team mailbox by default and everywhere', () => {
-    const inTeam = {
-      operator: 'AND',
-      conditions: [
-        { text: 'report' },
-        {
-          operator: 'OR',
-          conditions: [{ inMailbox: 'team-inbox' }, { inMailbox: 'team-sent' }]
-        }
-      ]
-    }
+    const inTeam = { text: 'report', inMailboxOtherThan: OUTSIDE_TEAM }
 
     expect(toJmapFilter(filter({ text: 'report' }), BOUND)).toEqual(inTeam)
     expect(

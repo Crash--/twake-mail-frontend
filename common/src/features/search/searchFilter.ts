@@ -279,6 +279,12 @@ export interface SearchContext {
    * no email, a search in it looks in its folders
    */
   teamFolderIds: Readonly<Record<string, readonly string[]>>
+  /**
+   * Ids of every known mailbox: a search in several folders of a team
+   * mailbox leaves out all the others, since James refuses `inMailbox`
+   * under an `OR`
+   */
+  mailboxIds: readonly string[]
   /** The day the relative date ranges count from, `YYYY-MM-DD` */
   today: string
   /**
@@ -377,7 +383,7 @@ export function toJmapFilter(
   filter: SearchFilter,
   context: SearchContext
 ): Filter<EmailFilterCondition> {
-  const { trashAndSpamIds, teamFolderIds, today } = context
+  const { trashAndSpamIds, teamFolderIds, mailboxIds, today } = context
   const boundRootId = context.boundTeamRootId ?? null
   if (boundRootId !== null) {
     const isInTeam =
@@ -411,6 +417,14 @@ export function toJmapFilter(
       : []
   if (filter.scope.kind === 'mailbox' && teamFolders.length === 0) {
     condition.inMailbox = filter.scope.mailboxId
+  } else if (teamFolders.length === 1) {
+    condition.inMailbox = teamFolders[0]
+  } else if (teamFolders.length > 1) {
+    // James accepts one `inMailbox` at the top only, never under an `OR`:
+    // any folder of the team mailbox is "none of the other mailboxes"
+    condition.inMailboxOtherThan = mailboxIds.filter(
+      id => !teamFolders.includes(id)
+    )
   } else if (filter.scope.kind === 'default' && trashAndSpamIds.length > 0) {
     condition.inMailboxOtherThan = [...trashAndSpamIds]
   }
@@ -418,10 +432,6 @@ export function toJmapFilter(
 
   // `unread` already holds `notKeyword`: the events go in a condition of their own
   const extra: Filter<EmailFilterCondition>[] = [...labelCondition]
-  // A team mailbox: any of its folders (one `inMailbox` per condition)
-  if (teamFolders.length > 0) {
-    extra.push(anyOf(teamFolders.map(inMailbox => ({ inMailbox }))))
-  }
   if (filter.notIncludeEvents) extra.push({ notKeyword: EVENT })
   if (filter.from.length > 1) {
     extra.push(anyOf(filter.from.map(from => ({ from }))))

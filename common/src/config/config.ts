@@ -102,6 +102,12 @@ export interface AppConfig {
    * new version dialog (`RELEASE_NOTES_URL`); no link when null
    */
   releaseNotesUrl: string | null
+  /**
+   * `LOGIN_ALLOW_USERNAME`: the basic sign-in form sends a user name without
+   * a domain (`bob`) to the server. Off by default: the form asks for the
+   * full email address before sending anything
+   */
+  loginAllowUsername: boolean
   appVersion: string
 }
 
@@ -143,6 +149,7 @@ export type RuntimeConfigKey =
   | 'TDRIVE_ENABLED'
   | 'NEW_VERSION_CHECK_ENABLED'
   | 'RELEASE_NOTES_URL'
+  | 'LOGIN_ALLOW_USERNAME'
   | 'APP_VERSION'
 
 /**
@@ -447,6 +454,7 @@ export function resolveConfig(
       appGridAvailable: source.APP_GRID_AVAILABLE === 'supported',
       newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
       releaseNotesUrl: resolveReleaseNotesUrl(source, warn),
+      loginAllowUsername: toBoolean(source.LOGIN_ALLOW_USERNAME),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

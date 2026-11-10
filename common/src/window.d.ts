@@ -64,6 +64,8 @@ declare global {
     NEW_VERSION_CHECK_ENABLED?: boolean | string
     /** Where users read every change, linked under the release notes */
     RELEASE_NOTES_URL?: string
+    /** The basic sign-in form accepts a user name without domain */
+    LOGIN_ALLOW_USERNAME?: boolean | string
 
     APP_VERSION?: string
   }

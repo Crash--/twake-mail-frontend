@@ -25,16 +25,37 @@ describe('emlFileName', () => {
   it('keeps the name short', () => {
     expect(emlFileName('a'.repeat(500), 'b').length).toBe(150 + '.eml'.length)
   })
+
+  it('does not end the name with a dot when the cut falls in a run of dots', () => {
+    expect(emlFileName(`Report${'.'.repeat(160)}v2`, 'blob-1')).toBe(
+      'Report.eml'
+    )
+  })
+
+  it('does not end the name with a space then a dot after the cut', () => {
+    expect(emlFileName(`${'a'.repeat(148)} .xyz`, 'blob-1')).toBe(
+      `${'a'.repeat(148)}.eml`
+    )
+  })
+
+  it('does not keep half of a character cut at the limit', () => {
+    expect(emlFileName(`${'a'.repeat(149)}\ud83d\ude00`, 'blob-1')).toBe(
+      `${'a'.repeat(149)}.eml`
+    )
+  })
 })
 
 describe('emlFileName against ReDoS', () => {
-  it('trims the subject as before', () => {
-    const original = (subject: string): string =>
-      subject.replace(/^[\s.]+|[\s.]+$/g, '')
+  it('trims both edges of the cut subject as a plain trim', () => {
+    const plain = (subject: string): string =>
+      subject
+        .replace(/^[\s.]+/, '')
+        .slice(0, 150)
+        .replace(/[\s.]+$/, '')
     for (const subject of randomTexts(['.', ' ', '\u00a0', 'a', 'b'])) {
       expect([subject, emlFileName(subject, 'blob')]).toEqual([
         subject,
-        `${original(subject).slice(0, 150).trim() || 'blob'}.eml`
+        `${plain(subject) || 'blob'}.eml`
       ])
     }
   })

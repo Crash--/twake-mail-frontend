@@ -109,6 +109,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const end = toLocalInputs(vacation.toDate)
   const [isEnabled, setIsEnabled] = useState(vacation.isEnabled)
   const [isRightAway, setIsRightAway] = useState(wasRightAway)
+  // Only an untouched "Right away" keeps the saved start: choosing it anew
+  // starts the response at the moment of the save
+  const [isStartTouched, setIsStartTouched] = useState(false)
   const [startDate, setStartDate] = useState(start.date)
   const [startTime, setStartTime] = useState(start.time)
   const [hasEnd, setHasEnd] = useState(vacation.toDate !== null)
@@ -141,7 +144,10 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
     const now = startInputs(null, new Date())
     const fromDate = !isRightAway
       ? fromLocalInputs(startDate, startTime)
-      : wasRightAway && vacation.isEnabled && vacation.fromDate !== null
+      : !isStartTouched &&
+          wasRightAway &&
+          vacation.isEnabled &&
+          vacation.fromDate !== null
         ? vacation.fromDate
         : fromLocalInputs(now.date, now.time)
     if (fromDate === null) {
@@ -212,6 +218,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const handleCancel = (): void => {
     setIsEnabled(vacation.isEnabled)
     setIsRightAway(wasRightAway)
+    setIsStartTouched(false)
     setStartDate(start.date)
     setStartTime(start.time)
     setHasEnd(vacation.toDate !== null)
@@ -274,6 +281,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
               // Pressing the chosen one again keeps it
               if (choice === null) return
               setIsRightAway(choice === 'now')
+              setIsStartTouched(true)
               setProblem(null)
             }}
             data-testid="vacation-start-choice"

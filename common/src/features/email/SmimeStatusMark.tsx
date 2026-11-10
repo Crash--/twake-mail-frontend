@@ -1,8 +1,9 @@
-import { Icon, WarningCircle, CheckCircle } from '@linagora/twake-icons'
+import { WarningCircle, CheckCircle } from '@linagora/twake-icons'
 import { Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import type { SmimeStatus } from './smimeStatus'
 

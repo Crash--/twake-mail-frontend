@@ -1,8 +1,10 @@
 // Upstream to twake-ui: yes. A status dot without a number (unread, online,
 // new) is a common need; twake-mui only has the numbered `Badge`.
-import { CircleFilled, Icon } from '@linagora/twake-icons'
+import { CircleFilled } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface StatusDotProps {
   /**

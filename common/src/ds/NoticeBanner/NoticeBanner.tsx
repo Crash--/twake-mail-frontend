@@ -4,10 +4,11 @@
 // actions go on a row of their own under the message when they do not fit
 // beside it, as the Teammail 1.1 design; a close button after the actions
 // (MUI's own goes away with `action`).
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import { Alert, Button, IconButton } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
+import { Icon } from '@/ds/Icon/Icon'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 // TODO: drop once twake-mui's `Alert` can put its action under the message

@@ -1,5 +1,4 @@
 import {
-  type IconProps,
   Cross,
   Checkbox,
   CheckSquare,
@@ -26,6 +25,7 @@ import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import type { EmailSelection } from './useEmailSelection'
 

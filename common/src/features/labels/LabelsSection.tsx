@@ -1,4 +1,4 @@
-import { Icon, Plus } from '@linagora/twake-icons'
+import { Plus } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -24,6 +24,7 @@ import {
   focusTargetsAround,
   keepFocusInPage
 } from '@common/utils/keepFocusInPage'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { LabelIcon } from './LabelIcon'
 import { useLabelActions } from './LabelActionsProvider'

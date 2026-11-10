@@ -1,5 +1,5 @@
 // Upstream to twake-ui: with RecipientField.
-import { Icon, Warning } from '@linagora/twake-icons'
+import { Warning } from '@linagora/twake-icons'
 import { Box, ButtonBase, Chip, Typography } from '@linagora/twake-mui'
 import {
   useCallback,
@@ -11,6 +11,7 @@ import {
 } from 'react'
 
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { RecipientAvatar } from './RecipientAvatar'
 import type { RecipientFieldChip } from './RecipientField'

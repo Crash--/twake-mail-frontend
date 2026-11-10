@@ -1,5 +1,6 @@
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import type { ReactElement, SVGProps } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 import { DEFAULT_LABEL_COLOR } from './queries'
 

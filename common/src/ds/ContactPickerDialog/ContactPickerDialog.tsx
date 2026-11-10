@@ -7,7 +7,7 @@
 // Accessibility: a dialog named by its title; the contacts are checkboxes
 // named by their row, in a list the search field controls;
 // the focus goes to the search field and back to what opened it.
-import { Icon, Cross, Magnifier, CrossCircle } from '@linagora/twake-icons'
+import { Cross, Magnifier, CrossCircle } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -26,6 +26,7 @@ import {
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon } from '@/ds/Icon/Icon'
 
 function paperSx(isPhone: boolean): Record<string, unknown> {
   return isPhone

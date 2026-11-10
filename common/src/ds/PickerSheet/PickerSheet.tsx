@@ -2,7 +2,7 @@
 // its list): a centred dialog on desktop and tablets, a sheet rising from the
 // bottom edge on phones, with a title and a close button in both. twake-mui's
 // `Dialog` is always centred and its `Drawer` has no title.
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import {
   Box,
   Dialog,
@@ -15,6 +15,7 @@ import {
 import { useId, type ReactElement, type ReactNode } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface PickerSheetProps {
   open: boolean

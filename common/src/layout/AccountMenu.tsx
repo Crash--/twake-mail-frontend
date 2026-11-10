@@ -1,4 +1,4 @@
-import { Icon, Logout, Setting } from '@linagora/twake-icons'
+import { Logout, Setting } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
@@ -11,6 +11,7 @@ import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { useLogout } from './useLogout'
 

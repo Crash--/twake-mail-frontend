@@ -1,4 +1,4 @@
-import { Icon, Plus, Trash } from '@linagora/twake-icons'
+import { Plus, Trash } from '@linagora/twake-icons'
 import { Alert, Box, Button, Tab, Tabs, Typography } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
@@ -28,6 +28,7 @@ import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { TEAM_MAILBOXES_CAPABILITY } from '@common/jmap/methodCapabilities'
 import { reloadSession } from '@common/jmap/queries'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { AddDelegatesDialog } from './AddDelegatesDialog'
 import {

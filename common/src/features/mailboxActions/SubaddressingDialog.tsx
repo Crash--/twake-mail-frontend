@@ -1,4 +1,4 @@
-import { Icon, Copy } from '@linagora/twake-icons'
+import { Copy } from '@linagora/twake-icons'
 import {
   Button,
   ConfirmDialog,
@@ -9,6 +9,7 @@ import {
 import { useId, type ReactElement } from 'react'
 
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface SubaddressingDialogProps {
   /** The name of the folder, as the tree shows it */

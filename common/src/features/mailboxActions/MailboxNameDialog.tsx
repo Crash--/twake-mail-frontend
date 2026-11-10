@@ -1,4 +1,4 @@
-import { Icon, FolderOutlined } from '@linagora/twake-icons'
+import { FolderOutlined } from '@linagora/twake-icons'
 import {
   Button,
   FixedDialog,
@@ -18,6 +18,7 @@ import {
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface MailboxNameDialogLocation {
   /** Path of the parent folder, or "Personal folders" for the top level */

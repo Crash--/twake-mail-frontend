@@ -1,9 +1,10 @@
 // Upstream to twake-ui: no. The empty lists of the settings ("No Rules
 // Configured"): twake-mui's `Empty` (icon, title as an `h2`, what to do) and
 // a button to start.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Button, Empty } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 // TODO: drop once twake-mui's `Empty` has these looks
 // (https://github.com/Crash--/twake-ui/issues/25): the illustrations of the

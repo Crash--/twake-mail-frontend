@@ -2,9 +2,11 @@
 // the label of a search): the one chosen is followed by a blue tick, and the
 // menu may be capped in height for the labels. twake-mui's `MenuItem` has no
 // checked mark.
-import { Icon, CheckCircle } from '@linagora/twake-icons'
+import { CheckCircle } from '@linagora/twake-icons'
 import { Box, ListItemText, Menu, MenuItem } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 const MARK_SX = {
   display: 'flex',

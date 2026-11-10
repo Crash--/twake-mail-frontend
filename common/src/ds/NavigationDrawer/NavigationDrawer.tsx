@@ -3,7 +3,7 @@
 // tabs (Cozy apps); a folder tree does not fit in one. Every Twake app with
 // a long navigation (Calendar, Mail) rebuilds a modal drawer instead, and
 // `Nav*` would render as bottom tabs inside it (see docs/twake-mui-gaps.md).
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import {
   Box,
   Drawer,
@@ -15,6 +15,7 @@ import {
 import { useId, type ReactElement, type ReactNode } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon } from '@/ds/Icon/Icon'
 
 /**
  * tmail-flutter's `ResponsiveUtils.mobileLeftMenuSize` on phones and small

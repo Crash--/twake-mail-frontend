@@ -1,4 +1,3 @@
-import { Icon } from '@linagora/twake-icons'
 import {
   ListItemIcon,
   ListItemText,
@@ -17,6 +16,7 @@ import { useMailboxRights } from '@common/features/mailbox/useMailboxRights'
 import { useRecovery } from '@common/features/recovery/RecoveryProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { useFolderActionProgress } from './FolderActionProgress'
 import {

@@ -1,4 +1,4 @@
-import { EyeClosed, Eye, Icon, Lock } from '@linagora/twake-icons'
+import { EyeClosed, Eye, Lock } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
@@ -12,6 +12,7 @@ import { useFolderActions } from '@common/features/mailboxActions/FolderActionsP
 import type { SettingsSection } from '@common/features/settings/sections'
 import { SettingsSectionLayout } from '@common/features/settings/SettingsSectionLayout'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { getMailboxIcon } from './mailboxDisplay'
 import {

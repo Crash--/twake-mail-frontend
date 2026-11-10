@@ -1,4 +1,4 @@
-import { Icon, Setting } from '@linagora/twake-icons'
+import { Setting } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
@@ -7,6 +7,7 @@ import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 /**
  * Opens the settings: in the search row of a desktop, and in the top bar

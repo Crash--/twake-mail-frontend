@@ -1,7 +1,6 @@
 // Upstream to twake-ui: yes, the pressed look as an `IconButton` style bound
 // to `aria-pressed`, and a `label` giving the tooltip and the accessible name
 // (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -9,6 +8,8 @@ import {
   type IconButtonProps
 } from '@linagora/twake-mui'
 import { forwardRef, type ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 /**
  * A twake-icons icon at the size of the Figma toolbar icons (Teammail 1.1):

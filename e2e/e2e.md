@@ -559,6 +559,10 @@ text fields, dialogs and menus, and with Ctrl, Alt or Meta; they can be turned o
 - [x] `KBD-06` `/` moves the focus into the search, unfolding it first on phones, where Escape
   folds it back and gives the focus to the search button. — no Patrol test (issue #45)
   - Spec: `tests/shortcuts.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
+- [x] `KBD-07` The keys typed in the feedback form (its fields are in a shadow root) are text: the
+  letters of the shortcuts, `/`, `#`, `?`, Backspace and Delete reach the field, and no composer,
+  list of shortcuts nor action on the email behind it follows. — web app only
+  - Spec: `tests/error-reporting.spec.ts`.
 
 ## RESP — Phones and tablets (no Patrol counterpart)
 

@@ -249,6 +249,28 @@ describe('ShortcutsProvider', () => {
     expect(onArchive).toHaveBeenCalledTimes(1)
   })
 
+  it('ignores the keys typed in a field of a shadow root, as the feedback form', async () => {
+    const onArchive = jest.fn()
+    renderShortcuts(<Screen onArchive={onArchive} />)
+    const host = document.createElement('div')
+    document.body.append(host)
+    const dialog = document.createElement('dialog')
+    const field = document.createElement('textarea')
+    const send = document.createElement('button')
+    dialog.append(field, send)
+    dialog.setAttribute('open', '')
+    host.attachShadow({ mode: 'open' }).append(dialog)
+
+    field.focus()
+    await userEvent.keyboard('e')
+    send.focus()
+    await userEvent.keyboard('e')
+
+    expect(onArchive).not.toHaveBeenCalled()
+    expect(field.value).toBe('e')
+    host.remove()
+  })
+
   it('gives a key to the last screen that handles it now', () => {
     const first = jest.fn()
     const second = jest.fn()

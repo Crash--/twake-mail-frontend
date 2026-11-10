@@ -37,7 +37,8 @@ function SummaryChip({ chip }: { chip: RecipientFieldChip }): ReactElement {
     <Chip
       component="span"
       size="medium"
-      square
+      // Library Twake: a chip with an avatar is a pill
+      square={chip.isInvalid || chip.avatar === undefined}
       variant={chip.isInvalid ? 'outlined' : 'filled'}
       color={chip.isInvalid ? 'error' : 'default'}
       avatar={

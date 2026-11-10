@@ -27,7 +27,14 @@ export function RecipientAvatar({
       color={nameToColor(colorKey)}
       aria-hidden="true"
       data-letter={letter}
-      sx={{ flexShrink: 0, '&::before': { content: 'attr(data-letter)' } }}
+      sx={{
+        flexShrink: 0,
+        // Library Twake chip "avatar left": 4 px from the edge and the name.
+        // Not through `MuiChip-avatar`, whose grey 12 px letter would win.
+        ml: '4px',
+        mr: '-8px',
+        '&::before': { content: 'attr(data-letter)' }
+      }}
     >
       {/* Without a child, MUI draws its fallback person icon */}
       <Box component="span" />

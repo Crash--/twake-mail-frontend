@@ -75,7 +75,12 @@ step: a feature is not done until it is accessible.
 - **Contrast and colour**: colour contrast is deferred to a dedicated
   theme: until then, use the official Twake palette (Figma "Teammail 1.1")
   as is, without darkening colours, and the e2e axe helper reports
-  `color-contrast` as an annotation instead of failing. No information
+  `color-contrast` as an annotation instead of failing. The opt-in
+  high-contrast mode (`@/ds/HighContrast`, Settings > Preferences >
+  Accessibility, the account menu, the login page, else
+  `prefers-contrast: more`) overrides the palette roles of the light
+  scheme: take palette roles, never hex, so that it reaches your
+  component. No information
   carried by colour alone (an unread email is bold
   and its row says "Unread"; starred is announced through `aria-pressed`
   and the row name).

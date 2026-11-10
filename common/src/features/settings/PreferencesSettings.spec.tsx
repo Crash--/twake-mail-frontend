@@ -11,7 +11,10 @@ import {
 } from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
-import { ACCESSIBILITY_PREFERENCE_STORAGE_KEY } from './accessibilityPreference'
+import {
+  ACCESSIBILITY_PREFERENCE_STORAGE_KEY,
+  HIGH_CONTRAST_PREFERENCE_STORAGE_KEY
+} from './accessibilityPreference'
 import { SPAM_REPORT_PREFERENCE_STORAGE_KEY } from './spamReportPreference'
 import { PreferencesSettings } from './PreferencesSettings'
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections'
@@ -206,9 +209,9 @@ describe('PreferencesSettings', () => {
     expect(
       await screen.findByRole('switch', { name: 'Enable thread' })
     ).toBeInTheDocument()
-    // Thread, spam report and accessibility: no labels, no Drive, no server
-    // settings
-    expect(screen.getAllByRole('switch')).toHaveLength(3)
+    // Thread, spam report, focus and contrast: no labels, no Drive, no
+    // server settings
+    expect(screen.getAllByRole('switch')).toHaveLength(4)
     expect(screen.queryByRole('radiogroup', { name: 'Theme' })).toBe(null)
   })
 
@@ -250,6 +253,31 @@ describe('PreferencesSettings', () => {
       window.localStorage.getItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
     ).toBe('true')
     window.localStorage.removeItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
+  })
+
+  it('turns the high-contrast mode on, kept in this browser', async () => {
+    window.localStorage.removeItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { withJmapSession: true }
+    )
+    try {
+      const toggle = await screen.findByRole('switch', {
+        name: 'High contrast'
+      })
+      expect(toggle).toHaveAccessibleDescription(
+        'Darker text, visible borders and a thick focus outline, everywhere in the app'
+      )
+      expect(toggle).not.toBeChecked()
+      toggle.focus()
+      await userEvent.keyboard(' ')
+      expect(toggle).toBeChecked()
+      expect(
+        window.localStorage.getItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+      ).toBe('true')
+    } finally {
+      window.localStorage.removeItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+    }
   })
 
   it('offers the label categorisation with the AI capability only', async () => {

@@ -847,6 +847,8 @@
       "accessibility": "Accesibilidad",
       "accessibilityDescription": "Mostrar un contorno grueso alrededor del elemento que tiene el foco del teclado, en toda la aplicación",
       "accessibilityToggle": "Resaltar el foco del teclado",
+      "highContrast": "Alto contraste",
+      "highContrastDescription": "Textos más oscuros, bordes visibles y un contorno de foco grueso en toda la aplicación",
       "theme": "Tema",
       "themeDescription": "Los colores de la aplicación. Automático sigue la configuración de su dispositivo.",
       "themeLight": "Claro",

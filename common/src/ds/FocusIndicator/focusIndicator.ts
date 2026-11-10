@@ -63,6 +63,22 @@ const TEXT_FIELDS: Record<FocusIndicator, string> = {
   enhanced: '.MuiInputBase-input'
 }
 
+/** Colour of the outline, as the colour scheme of the theme */
+export const DEFAULT_FOCUS_RING_COLOR = 'var(--twake-palette-primary-main)'
+
+/**
+ * A switch takes the focus on its thumb, which slides over the track: a
+ * ring there, in the colour of a switched-on track, cannot be seen. The ring
+ * goes around the whole switch instead.
+ */
+const SWITCH_FOCUS_CSS: CSSObject = {
+  '.MuiSwitch-root:has(.Mui-focusVisible)': {
+    ...FOCUS_RING,
+    borderRadius: 100
+  },
+  '.MuiSwitch-root .MuiSwitch-switchBase.Mui-focusVisible': { outline: 'none' }
+}
+
 /**
  * The theme options of a focus indicator: one outline on whatever has the
  * keyboard focus, MUI `ButtonBase` components and native elements, set by
@@ -75,7 +91,9 @@ const TEXT_FIELDS: Record<FocusIndicator, string> = {
 export function focusIndicatorThemeOptions(
   focusIndicator: FocusIndicator,
   /** More global CSS, e.g. the scroll bars (one `MuiCssBaseline` per theme) */
-  globalCss: CSSObject = {}
+  globalCss: CSSObject = {},
+  /** Colour of the outline, e.g. black in the high-contrast scheme */
+  ringColor: string = DEFAULT_FOCUS_RING_COLOR
 ): ThemeOptions {
   return {
     components: {
@@ -86,7 +104,7 @@ export function focusIndicatorThemeOptions(
           ':root': {
             '--focus-ring-width': `${String(FOCUS_RING_WIDTH[focusIndicator])}px`,
             // The CSS variable of the theme follows its colour scheme
-            '--focus-ring-color': 'var(--twake-palette-primary-main)',
+            '--focus-ring-color': ringColor,
             '--focus-ring-offset': '2px'
           },
           [INSET_ROWS]: FOCUS_RING_INSET,
@@ -111,6 +129,7 @@ export function focusIndicatorThemeOptions(
                   FOCUS_RING
               }
             : {}),
+          ...SWITCH_FOCUS_CSS,
           ...globalCss
         }
       },

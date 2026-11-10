@@ -847,6 +847,8 @@
       "accessibility": "Barrierefreiheit",
       "accessibilityDescription": "Einen dicken Rahmen um das Element mit dem Tastaturfokus zeigen, überall in der App",
       "accessibilityToggle": "Tastaturfokus hervorheben",
+      "highContrast": "Hoher Kontrast",
+      "highContrastDescription": "Dunklere Texte, sichtbare Rahmen und ein dicker Fokusrahmen in der ganzen App",
       "theme": "Design",
       "themeDescription": "Die Farben der App. Automatisch folgt der Einstellung Ihres Geräts.",
       "themeLight": "Hell",

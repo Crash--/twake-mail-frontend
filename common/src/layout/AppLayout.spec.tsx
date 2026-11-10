@@ -4,6 +4,7 @@ import { Route } from 'react-router'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import type { AuthService } from '@common/features/auth/types'
+import { HIGH_CONTRAST_PREFERENCE_STORAGE_KEY } from '@common/features/settings/accessibilityPreference'
 import {
   makeFakeJmapServer,
   makeIdentity
@@ -136,6 +137,34 @@ describe('AppLayout', () => {
       expect(button).toHaveTextContent('A')
       expect(screen.getByText('alice@example.com')).toBeVisible()
       expect(screen.queryByText('Alice Martin')).toBe(null)
+    })
+
+    it('turns the high-contrast mode on and off, the menu staying open', async () => {
+      window.localStorage.removeItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+      renderWithIdentities([makeIdentity({ id: 'own', name: '' })])
+      try {
+        await userEvent.click(await screen.findByTestId('account-menu-button'))
+        const item = screen.getByRole('menuitemcheckbox', {
+          name: 'High contrast'
+        })
+        expect(item).toHaveAttribute('aria-checked', 'false')
+
+        item.focus()
+        await userEvent.keyboard('{Enter}')
+        expect(item).toHaveAttribute('aria-checked', 'true')
+        expect(
+          window.localStorage.getItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+        ).toBe('true')
+        expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeVisible()
+
+        await userEvent.keyboard(' ')
+        expect(item).toHaveAttribute('aria-checked', 'false')
+        expect(
+          window.localStorage.getItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+        ).toBe('false')
+      } finally {
+        window.localStorage.removeItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+      }
     })
   })
 

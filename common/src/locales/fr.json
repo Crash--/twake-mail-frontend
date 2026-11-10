@@ -847,6 +847,8 @@
       "accessibility": "Accessibilité",
       "accessibilityDescription": "Afficher un contour épais autour de l'élément qui a le focus clavier, partout dans l'application",
       "accessibilityToggle": "Mettre en évidence le focus clavier",
+      "highContrast": "Contraste élevé",
+      "highContrastDescription": "Textes plus foncés, bordures visibles et contour épais du focus, partout dans l'application",
       "theme": "Thème",
       "themeDescription": "Les couleurs de l'application. Automatique suit le réglage de votre appareil.",
       "themeLight": "Clair",

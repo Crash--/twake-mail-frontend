@@ -1,6 +1,8 @@
 import {
   ACCESSIBILITY_PREFERENCE_STORAGE_KEY,
-  accessibilityPreference
+  accessibilityPreference,
+  HIGH_CONTRAST_PREFERENCE_STORAGE_KEY,
+  highContrastPreference
 } from './accessibilityPreference'
 
 function makeStorage(): Pick<Storage, 'getItem' | 'setItem'> {
@@ -27,5 +29,25 @@ describe('accessibility preference', () => {
     const storage = makeStorage()
     storage.setItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY, 'yes')
     expect(accessibilityPreference.read(storage)).toBe(false)
+  })
+})
+
+describe('high-contrast preference', () => {
+  it('is null, the system deciding, until chosen', () => {
+    const storage = makeStorage()
+    expect(highContrastPreference.read(storage)).toBe(null)
+
+    highContrastPreference.write(false, storage)
+    expect(storage.getItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)).toBe('false')
+    expect(highContrastPreference.read(storage)).toBe(false)
+
+    highContrastPreference.write(true, storage)
+    expect(highContrastPreference.read(storage)).toBe(true)
+  })
+
+  it('is null on an unknown value', () => {
+    const storage = makeStorage()
+    storage.setItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY, 'yes')
+    expect(highContrastPreference.read(storage)).toBe(null)
   })
 })

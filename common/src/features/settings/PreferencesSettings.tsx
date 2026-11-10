@@ -20,7 +20,10 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { PreferenceOption } from './PreferenceOption'
 import type { SettingsSection } from './sections'
-import { useAccessibilityPreference } from './accessibilityPreference'
+import {
+  useAccessibilityPreference,
+  useHighContrastPreference
+} from './accessibilityPreference'
 import { SettingsSectionLayout } from './SettingsSectionLayout'
 import {
   canChangeServerSetting,
@@ -64,7 +67,7 @@ export interface PreferencesSettingsProps {
  * spam report, the AI assistant, the labels and the Drive button of the
  * composer (kept in this browser), and, with the AI capability, the label
  * categorisation (setting of the account). Then the accessibility mode
- * (kept in this browser, not in tmail-flutter). First of all, the theme
+ * and the high-contrast mode (kept in this browser, not in tmail-flutter). First of all, the theme
  * (`appearance.theme` of the account, not in tmail-flutter), when the
  * server lets it change. The switches are grouped as the Figma's
  * Preferences: privacy, inbox, smart features, writing, accessibility.
@@ -81,6 +84,7 @@ export function PreferencesSettings({
   const spamReport = useSpamReportPreference()
   const driveAttachment = useDriveAttachmentPreference()
   const accessibility = useAccessibilityPreference()
+  const highContrast = useHighContrastPreference()
   // Without a Drive for the user there is no button to show or hide
   const hasDrive = useDriveSdk() !== null
   const [isLabelVisible, setLabelVisible] = useLabelVisibility()
@@ -283,6 +287,13 @@ export function PreferencesSettings({
           isChecked={accessibility.isEnabled}
           onChange={accessibility.setEnabled}
           data-testid="accessibility-setting-toggle"
+        />
+        <PreferenceOption
+          description={t('settings.preferences.highContrastDescription')}
+          toggleLabel={t('settings.preferences.highContrast')}
+          isChecked={highContrast.isEnabled}
+          onChange={highContrast.setEnabled}
+          data-testid="high-contrast-setting-toggle"
         />
       </SettingsOptionGroup>
     </SettingsSectionLayout>

@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
+import { InlineTextButton } from '@/ds/InlineTextButton/InlineTextButton'
 import { LoginButton } from '@/ds/LoginButton/LoginButton'
 import { LoginFormFrame } from '@/ds/LoginFormFrame/LoginFormFrame'
 import { LoginLayout } from '@/ds/LoginLayout/LoginLayout'
@@ -17,6 +18,7 @@ import { LoginTextField } from '@/ds/LoginTextField/LoginTextField'
 import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useAppConfig } from '@common/config/AppConfigProvider'
+import { useHighContrastPreference } from '@common/features/settings/accessibilityPreference'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -87,6 +89,7 @@ function BasicLoginForm({
   const [loginError, setLoginError] = useState<BasicLoginError | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordShown, setIsPasswordShown] = useState(false)
+  const highContrast = useHighContrastPreference()
   const passwordRef = useRef<HTMLInputElement>(null)
   const config = useAppConfig()
 
@@ -172,15 +175,26 @@ function BasicLoginForm({
           </LoginButton>
         }
         footer={
-          <Link
-            href={PRIVACY_POLICY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${privacyPolicyLabel} (${t('common.opensInNewTab')})`}
-            data-testid="login-privacy-policy-link"
-          >
-            {privacyPolicyLabel}
-          </Link>
+          <>
+            <Link
+              href={PRIVACY_POLICY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${privacyPolicyLabel} (${t('common.opensInNewTab')})`}
+              data-testid="login-privacy-policy-link"
+            >
+              {privacyPolicyLabel}
+            </Link>{' '}
+            <InlineTextButton
+              aria-pressed={highContrast.isEnabled}
+              onClick={() => {
+                highContrast.setEnabled(!highContrast.isEnabled)
+              }}
+              data-testid="login-high-contrast-button"
+            >
+              {t('settings.preferences.highContrast')}
+            </InlineTextButton>
+          </>
         }
         data-testid="login-form"
         data-error-testid="login-error"

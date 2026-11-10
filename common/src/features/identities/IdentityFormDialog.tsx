@@ -542,7 +542,11 @@ export function IdentityFormDialog({
               fieldError(shown(nameProblem)) ?? t('identities.form.nameHelp')
             }
             slotProps={{
-              htmlInput: { 'data-testid': 'identity-name-input' }
+              htmlInput: {
+                'data-testid': 'identity-name-input',
+                // The user's own name: the browser may offer the saved one
+                autoComplete: 'name'
+              }
             }}
           />
           <TextField

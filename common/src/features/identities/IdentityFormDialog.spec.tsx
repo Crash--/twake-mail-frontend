@@ -273,3 +273,31 @@ describe('IdentityFormDialog signature images', () => {
     )
   })
 })
+
+describe('IdentityFormDialog name field', () => {
+  it('lets the browser fill in the name when editing an identity', async () => {
+    renderDialog(makeServer())
+
+    expect(await screen.findByTestId('identity-name-input')).toHaveAttribute(
+      'autocomplete',
+      'name'
+    )
+  })
+
+  it('lets the browser fill in the name when creating an identity', async () => {
+    renderWithProviders(
+      <IdentityFormDialog
+        identity={null}
+        identities={[]}
+        hasSortOrder={false}
+        onClose={jest.fn()}
+      />,
+      { jmapServer: makeServer(), withJmapSession: true }
+    )
+
+    expect(await screen.findByTestId('identity-name-input')).toHaveAttribute(
+      'autocomplete',
+      'name'
+    )
+  })
+})

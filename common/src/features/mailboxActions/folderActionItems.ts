@@ -10,7 +10,6 @@ import {
   Copy,
   Restore,
   Trash,
-  type IconProps,
   FolderMoveto
 } from '@linagora/twake-icons'
 
@@ -26,6 +25,7 @@ import {
 } from '@/ds/FlutterIcons/FlutterIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 export type FolderActionId =
   | 'open-in-new-tab'

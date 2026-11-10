@@ -5,7 +5,7 @@
 // fit on one row, then "Show +N more"; on a phone three of them, one under
 // the other. Meanwhile local, on twake-mui `ButtonBase`, `IconButton` and
 // `Tooltip`.
-import { Icon, Attachment, Download } from '@linagora/twake-icons'
+import { Attachment, Download } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -20,6 +20,8 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 /** `EmailUtils.desktopItemMaxWidth`, `attachmentItemHeight`, `…Spacing` */
 export const ATTACHMENT_CARD_WIDTH = 260

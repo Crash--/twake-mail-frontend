@@ -1,4 +1,4 @@
-import { Icon, HelpOutlined } from '@linagora/twake-icons'
+import { HelpOutlined } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { useMatch } from 'react-router'
@@ -7,6 +7,7 @@ import { useComposer } from '@common/features/composer/ComposerProvider'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 /**
  * "Get help or report a bug" of the top bar, as tmail-flutter: only when the

@@ -1,9 +1,10 @@
-import { Icon, Email } from '@linagora/twake-icons'
+import { Email } from '@linagora/twake-icons'
 import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { levelIndent, NavTreeItem, type NavTreeItemProps } from './NavTreeItem'
 

@@ -1,4 +1,4 @@
-import { Icon, Attachment } from '@linagora/twake-icons'
+import { Attachment } from '@linagora/twake-icons'
 import { Skeleton, Typography } from '@linagora/twake-mui'
 import type { EmailAddress } from 'jmap-client-ts'
 import {
@@ -49,6 +49,7 @@ import { EmailActionRequiredTag } from '@common/features/ai/EmailActionRequiredT
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { CollapsedMessageActions } from './CollapsedMessageActions'
 import { ConversationDraftActions } from './ConversationDraftActions'

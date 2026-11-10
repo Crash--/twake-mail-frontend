@@ -1,4 +1,4 @@
-import { Filter, Icon, Plus } from '@linagora/twake-icons'
+import { Filter, Plus } from '@linagora/twake-icons'
 import { Alert, Button } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
@@ -20,6 +20,7 @@ import {
   focusTargetsAround,
   keepFocusInPage
 } from '@common/utils/keepFocusInPage'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { ruleKeys, rulesQueryOptions, saveRules } from './queries'
 import { RuleFormDialog } from './RuleFormDialog'

@@ -1,8 +1,10 @@
 // Upstream to twake-ui: yes, `iconLook="tile"` of `Empty` in
 // linagora/twake-ui#241. The `sx` below goes once it is published.
-import { EmailOpen, Icon } from '@linagora/twake-icons'
-import { Box, Empty, type SxProps, type Theme } from '@linagora/twake-mui'
+import { EmailOpen } from '@linagora/twake-icons'
+import { Empty, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 // The empty-state tile of the Twake apps: 100 px in place of the 96 to 128 px
 // `Empty` picks by screen width, the glyph in white on `action.selected`
@@ -37,11 +39,7 @@ export function EmptyListView({
 }: EmptyListViewProps): ReactElement {
   return (
     <Empty
-      icon={
-        <Box aria-hidden>
-          <Icon icon={EmailOpen} size={62} />
-        </Box>
-      }
+      icon={<Icon icon={EmailOpen} size={62} />}
       title={title}
       text={text}
       componentsProps={{ title: { component: 'p' } }}

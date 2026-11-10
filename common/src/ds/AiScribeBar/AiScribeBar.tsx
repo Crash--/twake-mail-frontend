@@ -3,7 +3,6 @@
 // pink, orange), a 10 px radius, 48 to 100 px high, the prompt in Regular 14,
 // and a round send button, light blue until something is written, then
 // primary with a white arrow.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, IconButton, InputBase, Tooltip } from '@linagora/twake-mui'
 import {
   useState,
@@ -11,6 +10,8 @@ import {
   type ReactElement,
   type SubmitEvent
 } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 const BAR_WIDTH = 405
 const GRADIENT =

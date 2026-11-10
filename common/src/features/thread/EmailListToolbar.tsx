@@ -1,12 +1,13 @@
 import {
-  type IconProps,
   Cross,
   CheckSquare,
   EmailNotification,
   Star,
   FolderMoveto
 } from '@linagora/twake-icons'
-// Its `Checkbox` glyph, under another name than twake-mui's `Checkbox`
+// Its `Checkbox` glyph, under another name than twake-mui's `Checkbox` (only
+// the glyph: `Icon` still comes from @/ds/Icon/Icon)
+// eslint-disable-next-line no-restricted-imports
 import * as TwakeIcons from '@linagora/twake-icons'
 import { Box, Button, Checkbox, FormControlLabel } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
@@ -28,6 +29,7 @@ import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import type { EmailSelection } from './useEmailSelection'
 

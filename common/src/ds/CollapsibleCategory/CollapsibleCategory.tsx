@@ -3,11 +3,12 @@
 // the small grey caption of the Figma, the chevron right after it, and what
 // it holds below, shown while expanded. twake-mui's `NavDesktopDropdown` is
 // a sidebar row, not a heading.
-import { Icon, Bottom, Right } from '@linagora/twake-icons'
+import { Bottom, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { PlainList } from '@/ds/PlainList/PlainList'
+import { Icon } from '@/ds/Icon/Icon'
 
 const BUTTON_SX = {
   gap: '4px',

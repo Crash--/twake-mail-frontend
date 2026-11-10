@@ -1,7 +1,7 @@
-import { Icon } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { Icon } from '@/ds/Icon/Icon'
 import { TransferDialog } from '@/ds/TransferDialog/TransferDialog'
 import type { DriveUpload } from '@common/features/drive/useDriveUpload'
 import { attachmentIcon } from '@common/features/email/attachmentIcon'

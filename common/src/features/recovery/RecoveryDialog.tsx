@@ -1,4 +1,4 @@
-import { Calendar, Icon } from '@linagora/twake-icons'
+import { Calendar } from '@linagora/twake-icons'
 import {
   Alert,
   Button,
@@ -29,6 +29,7 @@ import {
 } from '@common/features/composer/recipients'
 import { formatDay } from '@common/features/search/searchFilter'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import {
   deletionRanges,

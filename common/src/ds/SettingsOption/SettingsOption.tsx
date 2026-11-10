@@ -4,7 +4,6 @@
 // `Switch` at the end), 24 px between two groups. On a desktop the option
 // starts with its icon, in twake-mui's rounded `Avatar` on palette tokens:
 // twake-mui has no neutral tile with a dark value (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Avatar,
   Box,
@@ -21,6 +20,7 @@ import {
   type ReactNode
 } from 'react'
 
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 // Pending in docs/decisions.md: the token of the tile, #D9D9D9 in the Figma

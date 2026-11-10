@@ -8,11 +8,11 @@ import {
   Paperplane,
   Spam,
   Template,
-  Trash,
-  type IconProps
+  Trash
 } from '@linagora/twake-icons'
 
 import type { TranslationKey } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import {
   isDraftsMailbox,

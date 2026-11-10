@@ -1,10 +1,11 @@
-import { FormatSize, Icon, Image, Link } from '@linagora/twake-icons'
+import { FormatSize, Image, Link } from '@linagora/twake-icons'
 import { useRef, useState, type ReactElement, type RefObject } from 'react'
 
 import {
   ActionIcon,
   ActionIconButton
 } from '@/ds/ActionIconButton/ActionIconButton'
+import { Icon } from '@/ds/Icon/Icon'
 import type { RichTextEditorProps } from '@/ds/RichTextEditor/RichTextEditor'
 import type {
   RichTextEditorActions,
@@ -80,7 +81,7 @@ export function useMessageEditor({
         data-testid={testIds.formattingButton}
       >
         {/* Not an ActionIcon: the viewBox of FormatSize already holds its margin */}
-        <Icon icon={FormatSize} size={isPhone ? 28 : 24} aria-hidden="true" />
+        <Icon icon={FormatSize} size={isPhone ? 28 : 24} />
       </ActionIconButton>
     ),
     imageButton: (

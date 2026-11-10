@@ -1,6 +1,6 @@
-import type { IconProps } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
 
+import type { IconProps } from '@/ds/Icon/Icon'
 import { SettingsOption } from '@/ds/SettingsOption/SettingsOption'
 
 export interface PreferenceOptionProps {

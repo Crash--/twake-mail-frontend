@@ -364,6 +364,24 @@ describe('CalendarInvitationCard', () => {
     expect(server.callsOf('CalendarEventAttendance/get')).toHaveLength(1)
   })
 
+  it('moves the focus to the warning when the answer it held goes away', async () => {
+    const server = makeServer(INVITATION)
+    server.handlers.set('CalendarEvent/accept', args => ({
+      accountId: args.accountId,
+      notAccepted: { 'b-ics': { type: 'eventCancelled' } }
+    }))
+    renderView(server)
+
+    const yes = await screen.findByRole('button', { name: 'Yes' })
+    yes.focus()
+    await userEvent.keyboard('{Enter}')
+
+    const warning = await screen.findByTestId('calendar-event-canceled')
+    await waitFor(() => {
+      expect(warning).toHaveFocus()
+    })
+  })
+
   it('offers only Yes on a counter proposal, which accepts it', async () => {
     const server = makeServer({ ...INVITATION, method: 'COUNTER' })
     server.handlers.set('CalendarEventCounter/accept', args => ({

@@ -7,7 +7,13 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useId, useMemo, type ReactElement } from 'react'
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactElement
+} from 'react'
 
 import {
   EventCard,
@@ -140,6 +146,19 @@ export function CalendarEventCard({
     .filter((text): text is string => text !== null)
   const showsBusy =
     !invitation.isFree && method !== 'REPLY' && method !== 'CANCEL'
+  const canceledRef = useRef<HTMLDivElement>(null)
+  const answersHadFocus = useRef(false)
+
+  // The answers go away when the server finds the event canceled: the
+  // focus they held moves to the warning instead of falling to the body.
+  useLayoutEffect(() => {
+    if (!invitation.isCanceled || !answersHadFocus.current) return
+    answersHadFocus.current = false
+    const focused = document.activeElement
+    if (focused === null || focused === document.body) {
+      canceledRef.current?.focus()
+    }
+  }, [invitation.isCanceled])
 
   const handleCopy = (link: string): void => {
     navigator.clipboard
@@ -254,7 +273,12 @@ export function CalendarEventCard({
       ? ['acceptCounter']
       : [...actions.replies]
   const status = invitation.isCanceled ? (
-    <Alert severity="warning" data-testid="calendar-event-canceled">
+    <Alert
+      ref={canceledRef}
+      severity="warning"
+      tabIndex={-1}
+      data-testid="calendar-event-canceled"
+    >
       {t('calendar.eventCanceled')}
     </Alert>
   ) : !isInvited && method !== 'CANCEL' ? (
@@ -295,6 +319,14 @@ export function CalendarEventCard({
                   role="group"
                   aria-labelledby={attendingId}
                   className="u-flex u-flex-wrap u-flex-items-center u-flex-justify-center"
+                  onFocus={() => {
+                    answersHadFocus.current = true
+                  }}
+                  onBlur={event => {
+                    if (event.relatedTarget !== null) {
+                      answersHadFocus.current = false
+                    }
+                  }}
                   data-testid="calendar-event-replies"
                 >
                   <Typography

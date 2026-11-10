@@ -23,7 +23,7 @@ describe('SendingDialog', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Creating message...')
   })
 
-  it('says the server is slow and closes on its button or Escape', async () => {
+  it('says the server is slow and closes on its button, its cross or Escape', async () => {
     const onClose = jest.fn()
     renderDs(
       <SendingDialog
@@ -35,6 +35,7 @@ describe('SendingDialog', () => {
         slowMessage="It is taking long."
         closeLabel="Close"
         onClose={onClose}
+        data-testid="sending"
       />
     )
 
@@ -43,11 +44,18 @@ describe('SendingDialog', () => {
       'Sending message... It is taking long.'
     )
     expect(screen.getByRole('alert')).toHaveTextContent('It is taking long.')
-    const close = screen.getByRole('button', { name: 'Close' })
+    // The text button and the dialog's close cross
+    expect(screen.getAllByRole('button', { name: 'Close' })).toHaveLength(2)
+    const close = screen.getByTestId('sending-close-button')
     expect(close).toHaveFocus()
     await userEvent.click(close)
     await userEvent.keyboard('{Escape}')
-    expect(onClose).toHaveBeenCalledTimes(2)
+    const cross = screen
+      .getAllByRole('button', { name: 'Close' })
+      .find(button => button !== close)
+    if (cross === undefined) throw new Error('No close cross')
+    await userEvent.click(cross)
+    expect(onClose).toHaveBeenCalledTimes(3)
   })
 
   it('cannot be closed before the server is slow', async () => {

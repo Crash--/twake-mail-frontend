@@ -246,7 +246,7 @@ describe('ComposerForm', () => {
           'The server is taking longer than usual to answer.'
         )
         await userEvent.click(
-          within(dialog).getByRole('button', { name: 'Close' })
+          within(dialog).getByTestId('composer-sending-dialog-close-button')
         )
         await waitFor(() => {
           expect(

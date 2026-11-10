@@ -847,6 +847,8 @@
       "accessibility": "Trợ năng",
       "accessibilityDescription": "Hiển thị viền đậm quanh phần tử đang có tiêu điểm bàn phím, ở mọi nơi trong ứng dụng",
       "accessibilityToggle": "Làm nổi bật tiêu điểm bàn phím",
+      "highContrast": "Độ tương phản cao",
+      "highContrastDescription": "Chữ đậm hơn, viền rõ ràng và khung tiêu điểm dày trong toàn ứng dụng",
       "theme": "Giao diện",
       "themeDescription": "Màu sắc của ứng dụng. Tự động theo cài đặt của thiết bị.",
       "themeLight": "Sáng",

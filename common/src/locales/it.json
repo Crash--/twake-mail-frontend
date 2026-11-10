@@ -847,6 +847,8 @@
       "accessibility": "Accessibilità",
       "accessibilityDescription": "Mostra un contorno spesso intorno all'elemento che ha il focus della tastiera, ovunque nell'app",
       "accessibilityToggle": "Evidenzia il focus della tastiera",
+      "highContrast": "Contrasto elevato",
+      "highContrastDescription": "Testi più scuri, bordi visibili e un contorno di focus spesso in tutta l'app",
       "theme": "Tema",
       "themeDescription": "I colori dell'app. Automatico segue l'impostazione del tuo dispositivo.",
       "themeLight": "Chiaro",

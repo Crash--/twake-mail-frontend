@@ -88,6 +88,30 @@ describe('focusIndicatorThemeOptions', () => {
     expect(textFieldRule(globalStyles('enhanced'))).toBe(undefined)
   })
 
+  it('takes the colour of the scheme, or the one given', () => {
+    expect(globalStyles('discreet')[':root']).toMatchObject({
+      '--focus-ring-color': 'var(--twake-palette-primary-main)'
+    })
+    const styles: unknown = focusIndicatorThemeOptions(
+      'enhanced',
+      {},
+      '#000000'
+    ).components?.MuiCssBaseline?.styleOverrides
+    expect(styles).toMatchObject({
+      ':root': { '--focus-ring-color': '#000000' }
+    })
+  })
+
+  it('outlines the whole switch, not its thumb on the track', () => {
+    const styles = globalStyles('enhanced')
+    expect(styles['.MuiSwitch-root:has(.Mui-focusVisible)']).toMatchObject(
+      FOCUS_RING
+    )
+    expect(
+      styles['.MuiSwitch-root .MuiSwitch-switchBase.Mui-focusVisible']
+    ).toEqual({ outline: 'none' })
+  })
+
   it('leaves alone the headings and regions a script focuses', () => {
     const scriptFocused =
       ':is(h1, h2, h3, h4, h5, h6, [data-focus-target])[tabindex="-1"]'

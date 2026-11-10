@@ -1,6 +1,7 @@
 import { useColorScheme, useTheme } from '@linagora/twake-mui'
 import { useEffect, useLayoutEffect, type ReactElement } from 'react'
 
+import { useHighContrast } from '@common/features/settings/accessibilityPreference'
 import { themePreference } from '@common/features/settings/themePreference'
 
 /**
@@ -9,10 +10,13 @@ import { themePreference } from '@common/features/settings/themePreference'
  * colour scheme of twake-mui follows it, and so do the controls of the
  * browser (`color-scheme` of the document) and the colour of its chrome
  * (`theme-color`). The inline script of `public/index.html` does the same
- * before the app is loaded, so that the page never flashes white.
+ * before the app is loaded, so that the page never flashes white. The
+ * high-contrast mode is a light scheme: on, it wins over the setting, which
+ * applies again once it is off.
  */
 export function ColorSchemeSync(): ReactElement | null {
-  const preference = themePreference.useValue()
+  const themeSetting = themePreference.useValue()
+  const preference = useHighContrast() ? 'light' : themeSetting
   const { setMode, colorScheme } = useColorScheme()
   const theme = useTheme()
 

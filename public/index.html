@@ -11,17 +11,28 @@
       // The colour scheme before the app is loaded, so that the page never
       // flashes white: the copy of the `appearance.theme` setting of the
       // account kept in this browser (see ColorSchemeSync): dark, light (the
-      // default), or `auto`, the one of the system. The app colours itself the same
-      // way once loaded.
+      // default), or `auto`, the one of the system. The high-contrast mode
+      // (its choice kept in this browser, else `prefers-contrast: more`) is
+      // light whatever the theme. The app colours itself the same way once
+      // loaded.
       ;(function () {
         var scheme = 'light'
         try {
           var preference = localStorage.getItem('twake-mail.preferences.theme')
+          var highContrast = localStorage.getItem(
+            'twake-mail.preferences.highContrast'
+          )
+          var isHighContrast =
+            highContrast === 'true' ||
+            (highContrast !== 'false' &&
+              !!window.matchMedia &&
+              window.matchMedia('(prefers-contrast: more)').matches)
           if (
-            preference === 'dark' ||
-            (preference === 'auto' &&
-              window.matchMedia &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches)
+            !isHighContrast &&
+            (preference === 'dark' ||
+              (preference === 'auto' &&
+                window.matchMedia &&
+                window.matchMedia('(prefers-color-scheme: dark)').matches))
           ) {
             scheme = 'dark'
           }

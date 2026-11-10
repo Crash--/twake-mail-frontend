@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
+import { HIGH_CONTRAST_PREFERENCE_STORAGE_KEY } from '@common/features/settings/accessibilityPreference'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
@@ -68,6 +69,24 @@ describe('BasicLoginPage', () => {
     )
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('turns the high-contrast mode on before sign-in', async () => {
+    window.localStorage.removeItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+    renderLoginPage()
+    try {
+      const button = screen.getByRole('button', { name: 'High contrast' })
+      expect(button).toHaveAttribute('aria-pressed', 'false')
+
+      await userEvent.click(button)
+
+      expect(button).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        window.localStorage.getItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+      ).toBe('true')
+    } finally {
+      window.localStorage.removeItem(HIGH_CONTRAST_PREFERENCE_STORAGE_KEY)
+    }
   })
 
   it('asks for the missing fields without calling the server', async () => {

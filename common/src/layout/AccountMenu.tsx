@@ -1,4 +1,4 @@
-import { Icon, Logout, Setting } from '@linagora/twake-icons'
+import { Check, Contrast, Icon, Logout, Setting } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
@@ -7,6 +7,7 @@ import { ProfileMenu } from '@/ds/ProfileMenu/ProfileMenu'
 import { ownName } from '@common/features/identities/ownName'
 import { useIdentities } from '@common/features/identities/useIdentities'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
+import { useHighContrastPreference } from '@common/features/settings/accessibilityPreference'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { isSettingsExitState } from '@common/features/settings/SettingsExitProvider'
 import { useI18n } from '@common/i18n/useI18n'
@@ -18,7 +19,8 @@ import { useLogout } from './useLogout'
  * The account of the user at the end of tmail-flutter's bar, without the
  * platform: its initial, opening its display name (the name of the identity
  * of its own address, tmail-flutter#2756), the address, "Manage account"
- * (the settings) and "Sign out"
+ * (the settings), "High contrast" (a check box that keeps the menu open,
+ * reachable from every page) and "Sign out"
  */
 export function AccountMenu(): ReactElement {
   const { t } = useI18n()
@@ -26,6 +28,7 @@ export function AccountMenu(): ReactElement {
   // The settings of a mailbox delegated to the user are the owner's
   const hasSettings = view.kind !== 'delegated'
   const { notify } = useNotify()
+  const highContrast = useHighContrastPreference()
   const navigate = useNavigate()
   const handleLogout = useLogout()
   const address = session.username
@@ -81,6 +84,21 @@ export function AccountMenu(): ReactElement {
             <ListItemText primary={t('settings.manageAccount')} />
           </MenuItem>
         ) : null,
+        <MenuItem
+          key="high-contrast"
+          role="menuitemcheckbox"
+          aria-checked={highContrast.isEnabled}
+          onClick={() => {
+            highContrast.setEnabled(!highContrast.isEnabled)
+          }}
+          data-testid="high-contrast-menu-item"
+        >
+          <ListItemIcon>
+            <Icon icon={Contrast} />
+          </ListItemIcon>
+          <ListItemText primary={t('settings.preferences.highContrast')} />
+          {highContrast.isEnabled ? <Icon icon={Check} /> : null}
+        </MenuItem>,
         <MenuItem
           key="logout"
           onClick={() => {

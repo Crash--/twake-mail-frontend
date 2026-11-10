@@ -12,6 +12,8 @@ export interface InlineTextButtonProps {
   onClick: () => void
   /** Underlines the label, a link-like action */
   isUnderlined?: boolean
+  /** A toggle button: whether it is on */
+  'aria-pressed'?: boolean
   'data-testid'?: string
 }
 
@@ -20,12 +22,14 @@ export function InlineTextButton({
   children,
   onClick,
   isUnderlined = false,
+  'aria-pressed': isPressed,
   'data-testid': testId
 }: InlineTextButtonProps): ReactElement {
   return (
     <ButtonBase
       type="button"
       onClick={onClick}
+      aria-pressed={isPressed}
       data-testid={testId}
       sx={{
         px: 1,

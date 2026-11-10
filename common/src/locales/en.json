@@ -847,6 +847,8 @@
       "accessibility": "Accessibility",
       "accessibilityDescription": "Show a thick outline around the element that has the keyboard focus, everywhere in the app",
       "accessibilityToggle": "Highlight the keyboard focus",
+      "highContrast": "High contrast",
+      "highContrastDescription": "Darker text, visible borders and a thick focus outline, everywhere in the app",
       "theme": "Theme",
       "themeDescription": "The colours of the app. Auto follows the setting of your device.",
       "themeLight": "Light",

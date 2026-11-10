@@ -92,6 +92,12 @@ export interface AppConfig {
    * than the bundle's (`NEW_VERSION_CHECK_ENABLED`)
    */
   newVersionCheckEnabled: boolean
+  /**
+   * `LOGIN_ALLOW_USERNAME`: the basic sign-in form sends a user name without
+   * a domain (`bob`) to the server. Off by default: the form asks for the
+   * full email address before sending anything
+   */
+  loginAllowUsername: boolean
   appVersion: string
 }
 
@@ -131,6 +137,7 @@ export type RuntimeConfigKey =
   | 'SENTRY_FEEDBACK_ENABLED'
   | 'TDRIVE_ENABLED'
   | 'NEW_VERSION_CHECK_ENABLED'
+  | 'LOGIN_ALLOW_USERNAME'
   | 'APP_VERSION'
 
 /**
@@ -422,6 +429,7 @@ export function resolveConfig(
         toBoolean(source.COZY_INTEGRATION),
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
       newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
+      loginAllowUsername: toBoolean(source.LOGIN_ALLOW_USERNAME),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

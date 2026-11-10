@@ -5,11 +5,11 @@ import { renderDs } from '@/ds/testing/renderDs'
 import { LoginTextField } from './LoginTextField'
 
 describe('LoginTextField', () => {
-  it('is named by its label, shown inside while empty', () => {
+  it('is named by its label, shown above it while typing', () => {
     renderDs(
       <LoginTextField
         label="Email"
-        value=""
+        value="bob@example.com"
         onChange={jest.fn()}
         required
         data-testid="email"
@@ -18,7 +18,8 @@ describe('LoginTextField', () => {
 
     const input = screen.getByLabelText('Email')
     expect(input).toBe(screen.getByTestId('email'))
-    expect(input).toHaveAttribute('placeholder', 'Email')
+    expect(input).not.toHaveAttribute('placeholder')
+    expect(screen.getByText('Email')).toBeVisible()
     expect(input).toBeRequired()
     expect(input).toHaveAttribute('aria-invalid', 'false')
   })

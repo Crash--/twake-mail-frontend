@@ -115,6 +115,11 @@ var TDRIVE_ENABLED = false
 // build than the one running. Off when unset.
 var NEW_VERSION_CHECK_ENABLED = false
 
+// Basic authentication only: the sign-in form sends a user name without
+// domain ("bob") to the server. Off, it asks for the full email address
+// ("bob@example.com") before sending anything.
+var LOGIN_ALLOW_USERNAME = false
+
 // Keys of tmail-flutter that this app ignores: APP_GRID_AVAILABLE (the apps
 // are those of the platform top bar), FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,

@@ -21,6 +21,7 @@ import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { AppTitle } from '@injected/layout/AppTitle'
 
 import { useAuthService, useAuthState } from './AuthProvider'
+import type { LoginReason } from './RequireAuth'
 import { sanitizeReturnTo } from './returnTo'
 import type { BasicAuthService, BasicLoginError } from './types'
 
@@ -45,6 +46,33 @@ function findReturnTo(state: unknown): string {
   )
 }
 
+function findReason(state: unknown): LoginReason | null {
+  return typeof state === 'object' &&
+    state !== null &&
+    'reason' in state &&
+    state.reason === 'session-missing'
+    ? 'session-missing'
+    : null
+}
+
+/** What is wrong with the email field, before anything is sent */
+type UsernameError = 'required' | 'no-domain'
+
+const USERNAME_ERROR_MESSAGES: Record<UsernameError, TranslationKey> = {
+  required: 'login.requiredEmail',
+  'no-domain': 'login.emailNoDomain'
+}
+
+function findUsernameError(
+  username: string,
+  allowUsername: boolean
+): UsernameError | null {
+  const trimmed = username.trim()
+  if (trimmed === '') return 'required'
+  if (!allowUsername && !trimmed.includes('@')) return 'no-domain'
+  return null
+}
+
 /**
  * `/login`: the email and password form of the basic authentication mode,
  * laid out as tmail-flutter's web sign-in page.
@@ -63,20 +91,24 @@ export function BasicLoginPage(): ReactElement {
   // Another tab may hand its session over
   if (state.status === 'restoring') return <FullPageLoader />
 
-  return <BasicLoginForm service={service} />
+  return (
+    <BasicLoginForm service={service} reason={findReason(location.state)} />
+  )
 }
 
 interface FieldErrors {
-  username: boolean
+  username: UsernameError | null
   password: boolean
 }
 
-const NO_FIELD_ERRORS: FieldErrors = { username: false, password: false }
+const NO_FIELD_ERRORS: FieldErrors = { username: null, password: false }
 
 function BasicLoginForm({
-  service
+  service,
+  reason
 }: {
   service: BasicAuthService
+  reason: LoginReason | null
 }): ReactElement {
   const { t } = useI18n()
   useDocumentTitle(t('login.title'))
@@ -87,8 +119,10 @@ function BasicLoginForm({
   const [loginError, setLoginError] = useState<BasicLoginError | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordShown, setIsPasswordShown] = useState(false)
+  const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const config = useAppConfig()
+  const allowUsername = config?.loginAllowUsername ?? false
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setUsername(event.target.value)
@@ -100,11 +134,12 @@ function BasicLoginForm({
 
   const submit = async (): Promise<void> => {
     const errors: FieldErrors = {
-      username: username.trim() === '',
+      username: findUsernameError(username, allowUsername),
       password: password === ''
     }
     setFieldErrors(errors)
-    if (errors.username || errors.password) return
+    if (errors.username === 'no-domain') usernameRef.current?.focus()
+    if (errors.username !== null || errors.password) return
 
     setIsSubmitting(true)
     setLoginError(null)
@@ -157,7 +192,11 @@ function BasicLoginForm({
         titleId={titleId}
         message={
           loginError === null
-            ? t('login.subtitle')
+            ? t(
+                reason === 'session-missing'
+                  ? 'login.sessionMissing'
+                  : 'login.subtitle'
+              )
             : t(LOGIN_ERROR_MESSAGES[loginError])
         }
         isError={loginError !== null}
@@ -193,7 +232,12 @@ function BasicLoginForm({
           inputMode="email"
           autoFocus
           required
-          errorText={fieldErrors.username ? t('login.requiredEmail') : null}
+          errorText={
+            fieldErrors.username === null
+              ? null
+              : t(USERNAME_ERROR_MESSAGES[fieldErrors.username])
+          }
+          inputRef={usernameRef}
           data-testid="login-username-input"
         />
         <LoginTextField

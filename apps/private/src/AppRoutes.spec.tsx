@@ -84,6 +84,9 @@ describe('AppRoutes', () => {
 
     expect(screen.queryByTestId('login-form')).toBeInTheDocument()
     expect(screen.queryByTestId('mailbox-page')).toBe(null)
+    expect(screen.getByTestId('login-form')).toHaveTextContent(
+      'Twake Mail does not keep your password after a reload'
+    )
   })
 
   it('opens the inbox of whoever signs in after a sign-out, not the last address', async () => {
@@ -97,7 +100,9 @@ describe('AppRoutes', () => {
     ).toHaveValue('secret-term')
 
     act(() => authService.clearLocalSession('signed-out'))
-    expect(await screen.findByTestId('login-form')).toBeInTheDocument()
+    expect(await screen.findByTestId('login-form')).toHaveTextContent(
+      'Enter your credentials to sign in'
+    )
     act(() =>
       authService.store.setState({
         status: 'authenticated',

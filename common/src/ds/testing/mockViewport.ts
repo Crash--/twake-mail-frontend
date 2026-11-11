@@ -48,7 +48,10 @@ function makeMatchMedia(viewport: Viewport): MatchMedia {
     onchange: null,
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
+    // The MediaQueryList type still requires the legacy listener methods
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     addListener: () => undefined,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     removeListener: () => undefined,
     dispatchEvent: () => false
   })

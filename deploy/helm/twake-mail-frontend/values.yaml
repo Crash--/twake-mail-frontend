@@ -142,7 +142,8 @@ config:
   # container (allow the container in csp.frameAncestors)
   workplaceEmbedding: false
   # -- TwakeSpace, whose Mail tab frames the facade of a team mailbox
-  # (/embed/team-mailboxes/<id>); allow it in csp.frameAncestors
+  # (/embed/team-mailboxes/<id>): the app answers it alone, and its origin is
+  # added to frame-ancestors
   twakeSpaceUrl: ""
   forwardWarningMessage: ""
   # -- ALLOWED_LANGUAGES: the languages offered, comma-separated and in the

@@ -2,7 +2,7 @@ import type { FrameLocator, Page } from '@playwright/test'
 
 import { ComposerPage } from '../pages'
 import { expect, test } from '../support/fixtures'
-import { SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
+import { nameSpaceHost, SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
 import type { E2ETeamMailbox, E2EUser } from '../support/users'
 import type { WebAdminClient } from '../support/webadmin'
 
@@ -68,6 +68,7 @@ async function openHost(
   await page.route(`**${HOST}`, route =>
     route.fulfill({ contentType: 'text/html', body: hostHtml(path) })
   )
+  await nameSpaceHost(page)
   await page.goto(HOST)
   const facade = page.frameLocator(`iframe[name="${FRAME}"]`)
   await facade.getByTestId('login-username-input').fill(user.email)

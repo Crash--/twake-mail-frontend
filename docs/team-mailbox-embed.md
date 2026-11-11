@@ -153,10 +153,10 @@ centred on it and dimming all of it.
 - Team mailboxes need the ACLs of James: `acl.enabled=true` in
   `cassandra.properties` (`mailRepository.cassandra.aclEnabled` in the Helm
   chart of tmail-backend).
-- `CSP_FRAME_ANCESTORS` must allow the origin of TwakeSpace: it is the only
-  thing that says who may frame the facade, the app takes no other setting for
-  TwakeSpace (`TWAKE_SPACE_URL` is no longer read). The header is the same for
-  every page: the SSO callback is framed too.
+- `TWAKE_SPACE_URL` names the TwakeSpace the facade talks to: the facade
+  answers the greeting of that origin and no other page, and the image adds
+  the origin to `frame-ancestors`, which says who may frame the facade at all.
+  The header is the same for every page: the SSO callback is framed too.
 - TwakeSpace, the app and the SSO portal are served on one registrable
   domain (ADR 010), so that the SSO cookie reaches the frame.
 

@@ -52,7 +52,11 @@ describe('scribe', () => {
       'translate-french',
       'translate-english',
       'translate-russian',
-      'translate-vietnamese'
+      'translate-vietnamese',
+      'translate-mongolian',
+      'translate-german',
+      'translate-spanish',
+      'translate-italian'
     ])
     expect(
       SCRIBE_ACTIONS.every(action => BUILT_IN_PROMPTS.has(action.id))

@@ -153,7 +153,6 @@ function AddressCardDialog({
         address={address.email}
         copyLabel={t('email.address.copy')}
         onCopy={handleCopy}
-        closeLabel={t('email.address.close')}
         actions={actions}
         data-testid="email-address-card"
       />

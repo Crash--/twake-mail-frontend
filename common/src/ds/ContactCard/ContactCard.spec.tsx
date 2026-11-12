@@ -30,7 +30,6 @@ function Harness({
         address="bob@example.com"
         copyLabel="Copy the address"
         onCopy={onCopy}
-        closeLabel="Close"
         actions={actions ?? []}
       />
     </>

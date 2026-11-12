@@ -446,7 +446,7 @@ Differences kept from the design and from tmail-flutter:
 
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
-| `Dialog` + `Drawer` | The card of a contact (avatar, name, address with a copy button, full width action buttons): a centred 383 px dialog on tablets and desktops, a bottom sheet with 12 px top corners on phones, one component for both (`ContactPopover` of twake-mui opens on hover, has fixed actions and no bottom sheet); named by the name of the person, focus trapped, Escape and close button, focus given back | The address of the sender and of the recipients of an email, in the reading view | `ds/ContactCard` (filled by `features/email/EmailAddressCard.tsx`: avatar, actions and their links) | A `ContactCard`, or a `Dialog` variant that turns into a bottom sheet on phones |
+| `ConfirmDialog` + `BottomSheet` | The card of a contact (avatar, name, address with a copy button, full width action buttons): twake-mui's small `ConfirmDialog` on tablets and desktops, its `BottomSheet` with a backdrop and a `DialogCloseButton` on phones, one component for both (`ContactPopover` of twake-mui opens on hover and has fixed actions); named by the name of the person, focus trapped, Escape and close button, focus given back. Only the content is laid out here | The address of the sender and of the recipients of an email, in the reading view | `ds/ContactCard` (filled by `features/email/EmailAddressCard.tsx`: avatar, actions and their links) | A `ContactCard`, or a `Dialog` variant that turns into a bottom sheet on phones |
 
 ## Tree view keyboard (batch D6, issue #102)
 

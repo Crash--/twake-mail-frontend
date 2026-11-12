@@ -57,10 +57,11 @@ function CompactAddressLine({
     )
   // One wrapping row: the addresses start on the line of the label and go
   // to the next line one by one
+  const labelText = <MessageText variant="label">{`${t(label)}:`}</MessageText>
   return (
     <InlineGroup gap={0.5} data-testid={testId}>
-      <MessageText variant="label">{`${t(label)}:`}</MessageText>
       {addresses.map((address, index) => {
+        const isFirst = index === 0
         const isLast = index === addresses.length - 1
         const recipient = (
           <MessageText
@@ -70,24 +71,45 @@ function CompactAddressLine({
           >
             <EmailAddressCard address={address}>
               {isOpen ? formatAddress(address) : formatAddressName(address)}
+              {/* In the button, so it never wraps away from its address */}
+              {isLast ? null : <span aria-hidden="true">,</span>}
             </EmailAddressCard>
-            {isLast ? null : ','}
           </MessageText>
         )
+        const key = `${address.email}-${index}`
         // The chevron goes along with the last address, even to the next
-        // line, rather than on a line of its own
-        return isLast && toggle !== null ? (
+        // line, rather than on a line of its own; on the last line of an
+        // address that breaks (a button is a block: it cannot follow its text)
+        const withToggle =
+          isLast && toggle !== null ? (
+            <InlineGroup
+              key={key}
+              gap={0.5}
+              component="span"
+              isWrapping={false}
+              align="flex-end"
+            >
+              {recipient}
+              {toggle}
+            </InlineGroup>
+          ) : (
+            recipient
+          )
+        // The label stays on the first line of the first address, which
+        // breaks inside itself when it is too long
+        return isFirst ? (
           <InlineGroup
-            key={`${address.email}-${index}`}
+            key={key}
             gap={0.5}
             component="span"
             isWrapping={false}
+            align="flex-start"
           >
-            {recipient}
-            {toggle}
+            {labelText}
+            {withToggle}
           </InlineGroup>
         ) : (
-          recipient
+          withToggle
         )
       })}
     </InlineGroup>

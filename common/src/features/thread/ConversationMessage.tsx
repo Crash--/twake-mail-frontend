@@ -304,7 +304,7 @@ function MessageContent({
     // under the name, and a short text), so that the ones below the one
     // the conversation opened on do not move when it loads; on a phone the
     // recipients are under the date rather than pulled up beside the avatar
-    return <Skeleton variant="rounded" height={isPhone ? 108 : 70} />
+    return <Skeleton variant="rounded" height={isPhone ? 85 : 70} />
   }
   if (query.isError) return errorBanner
   if (query.data === null) return null

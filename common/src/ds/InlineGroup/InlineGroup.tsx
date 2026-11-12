@@ -12,8 +12,11 @@ export interface InlineGroupProps {
   isWrapping?: boolean
   /** Space between the lines once they wrap, in theme spacing units */
   rowGap?: number
-  /** `baseline` aligns texts of different sizes */
-  align?: 'center' | 'baseline' | 'flex-start'
+  /**
+   * `baseline` aligns texts of different sizes; `flex-end` puts a child on
+   * the last line of a text that breaks beside it
+   */
+  align?: 'center' | 'baseline' | 'flex-start' | 'flex-end'
   /** `h2`: a heading that looks like the text around it */
   component?: 'div' | 'span' | 'p' | 'h2'
   className?: string

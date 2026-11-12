@@ -26,6 +26,7 @@ import {
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
+import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
 import type { RecipientFieldActions } from '@/ds/RecipientField/RecipientField'
 import { SelectableAvatar } from '@/ds/SelectableAvatar/SelectableAvatar'
 import {
@@ -322,236 +323,240 @@ export function ForwardSettings({
 
   return (
     <SettingsSectionLayout section={section}>
-      <Box className="u-mb-half">
-        <SettingsFormRowLabel htmlFor={inputId}>
-          {t('forward.inputLabel')}
-        </SettingsFormRowLabel>
-      </Box>
-      <Box
-        component="form"
-        ref={formRef}
-        onSubmit={handleAdd}
-        noValidate
-        // As tmail-flutter: on a phone the field and the button fill the
-        // row, one under the other
-        className={
-          isPhone
-            ? 'u-flex u-flex-column'
-            : 'u-flex u-flex-items-start u-flex-wrap'
-        }
-      >
-        <SettingsFieldSlot
-          isFullWidth={isPhone}
-          className={isPhone ? 'u-mb-1' : 'u-mr-1 u-mb-half'}
+      <NarrowColumn>
+        <Box className="u-mb-half">
+          <SettingsFormRowLabel htmlFor={inputId}>
+            {t('forward.inputLabel')}
+          </SettingsFormRowLabel>
+        </Box>
+        <Box
+          component="form"
+          ref={formRef}
+          onSubmit={handleAdd}
+          noValidate
+          // As tmail-flutter: on a phone the field and the button fill the
+          // row, one under the other
+          className={
+            isPhone
+              ? 'u-flex u-flex-column'
+              : 'u-flex u-flex-items-start u-flex-wrap'
+          }
         >
-          <ForwardRecipientField
-            inputId={inputId}
-            values={pending}
-            onChange={values => {
-              setPending(values)
-              setProblem(null)
-            }}
-            inputValue={typed}
-            onInputChange={value => {
-              setTyped(value)
-              setProblem(null)
-            }}
-            forwards={forwards}
-            hasError={problem !== null}
-            describedBy={problemId}
-            actions={fieldRef}
-          />
-          {problem === null ? (
-            <FormHelperText id={problemId}>
-              {t('forward.pasteHint')}
-            </FormHelperText>
-          ) : (
-            <FormHelperText
-              error
-              id={problemId}
-              data-testid="forward-input-error"
-            >
-              {t(problem)}
-            </FormHelperText>
-          )}
-        </SettingsFieldSlot>
-        <Button
-          type="submit"
-          className={isPhone ? undefined : 'u-flex-shrink-0'}
-          startIcon={<Icon icon={Plus} aria-hidden="true" />}
-          disabled={isSaving}
-          fullWidth={isPhone}
-          data-testid="forward-add-button"
-        >
-          {t('forward.add')}
-        </Button>
-      </Box>
-      <SettingsLabelPill
-        component="h2"
-        id={recipientsTitleId}
-        label={t('forward.recipients')}
-        pill={
-          forwards.length > 0
-            ? t('forward.recipientCount', { smart_count: forwards.length })
-            : null
-        }
-      />
-      {forwards.length > 0 ? (
-        <SettingsSwitchRow
-          title={t('forward.localCopy')}
-          description={t('forward.localCopyDescription')}
-          isChecked={query.data.localCopy}
-          isDisabled={isSaving}
-          onChange={handleLocalCopy}
-          endWidth={628}
-          data-testid="forward-local-copy-toggle"
-        />
-      ) : (
-        <SettingsEmptyState
-          icon={Reply}
-          look="tinted"
-          isIconMirrored
-          title={t('forward.emptyTitle')}
-          text={t('forward.emptyText')}
-          data-testid="forward-empty"
-        />
-      )}
-      {forwards.length > 0 ? (
-        <>
-          {/* As tmail-flutter: "Select all", or once some are selected the
-              cross leaving the selection with how many, and "Remove" */}
-          {/* The number selected, said as it changes (RGAA 7.5) */}
-          <LiveRegion data-testid="forward-selection-status">
-            {selection.length > 0
-              ? t('forward.selectedCount', { count: selection.length })
-              : null}
-          </LiveRegion>
-          <SettingsListHeader>
-            {selection.length > 0 ? (
-              <span ref={selectionFocusFallbackRef}>
-                <SettingsHeaderButton
-                  label={
-                    isAllSelected
-                      ? t('forward.deselectAll', { count: selection.length })
-                      : t('forward.selectedCount', { count: selection.length })
-                  }
-                  icon={<Icon icon={Cross} size={20} aria-hidden="true" />}
-                  onClick={() => {
-                    setSelected([])
-                  }}
-                  data-testid="forward-cancel-selection-button"
-                />
-              </span>
-            ) : null}
-            {isAllSelected ? null : (
-              <SettingsHeaderButton
-                label={t('forward.selectAll')}
-                onClick={() => {
-                  setSelected(forwards)
-                }}
-                data-testid="forward-select-all-button"
-              />
-            )}
-            {selection.length > 0 ? (
-              <span ref={removeSelectedFocusFallbackRef}>
-                <SettingsHeaderButton
-                  label={t('forward.remove')}
-                  tone="danger"
-                  onClick={handleRemoveSelected}
-                  data-testid="forward-remove-selected-button"
-                />
-              </span>
-            ) : null}
-          </SettingsListHeader>
-          <SettingsRecipientList
-            label={t('forward.listLabel')}
-            data-testid="forward-list"
+          <SettingsFieldSlot
+            isFullWidth={isPhone}
+            className={isPhone ? 'u-mb-1' : 'u-mr-1 u-mb-half'}
           >
-            {forwards.map(email => {
-              const removeLabel = t('forward.removeOf', { email })
-              const isSelected = selection.includes(email)
-              return (
-                <SettingsRecipientCard
-                  key={email}
-                  avatar={
-                    <SelectableAvatar
-                      size="small"
-                      checked={isSelected}
-                      label={t('forward.selectOf', { email })}
-                      ref={
-                        email === nextRecipient ? nextRecipientRef : undefined
-                      }
-                      onClick={() => {
-                        setSelected(current =>
-                          current.includes(email)
-                            ? current.filter(other => other !== email)
-                            : [...current, email]
-                        )
-                      }}
-                      avatar={
-                        <GradientAvatar
-                          text={email.slice(0, 2).toUpperCase()}
-                          colorKey={email}
-                          size={32}
-                        />
-                      }
-                      data-testid="forward-select-checkbox"
-                    />
-                  }
-                  name={email}
-                  status={
-                    isExternal(email) ? (
-                      <Tooltip title={t('forward.external')}>
-                        <span className="u-flex">
-                          <Icon
-                            icon={InfoOutlined}
-                            size={20}
-                            role="img"
-                            aria-label={t('forward.external')}
+            <ForwardRecipientField
+              inputId={inputId}
+              values={pending}
+              onChange={values => {
+                setPending(values)
+                setProblem(null)
+              }}
+              inputValue={typed}
+              onInputChange={value => {
+                setTyped(value)
+                setProblem(null)
+              }}
+              forwards={forwards}
+              hasError={problem !== null}
+              describedBy={problemId}
+              actions={fieldRef}
+            />
+            {problem === null ? (
+              <FormHelperText id={problemId}>
+                {t('forward.pasteHint')}
+              </FormHelperText>
+            ) : (
+              <FormHelperText
+                error
+                id={problemId}
+                data-testid="forward-input-error"
+              >
+                {t(problem)}
+              </FormHelperText>
+            )}
+          </SettingsFieldSlot>
+          <Button
+            type="submit"
+            className={isPhone ? undefined : 'u-flex-shrink-0'}
+            startIcon={<Icon icon={Plus} aria-hidden="true" />}
+            disabled={isSaving}
+            fullWidth={isPhone}
+            data-testid="forward-add-button"
+          >
+            {t('forward.add')}
+          </Button>
+        </Box>
+        <SettingsLabelPill
+          component="h2"
+          id={recipientsTitleId}
+          label={t('forward.recipients')}
+          pill={
+            forwards.length > 0
+              ? t('forward.recipientCount', { smart_count: forwards.length })
+              : null
+          }
+        />
+        {forwards.length > 0 ? (
+          <SettingsSwitchRow
+            title={t('forward.localCopy')}
+            description={t('forward.localCopyDescription')}
+            isChecked={query.data.localCopy}
+            isDisabled={isSaving}
+            onChange={handleLocalCopy}
+            endWidth={628}
+            data-testid="forward-local-copy-toggle"
+          />
+        ) : (
+          <SettingsEmptyState
+            icon={Reply}
+            look="tinted"
+            isIconMirrored
+            title={t('forward.emptyTitle')}
+            text={t('forward.emptyText')}
+            data-testid="forward-empty"
+          />
+        )}
+        {forwards.length > 0 ? (
+          <>
+            {/* As tmail-flutter: "Select all", or once some are selected the
+              cross leaving the selection with how many, and "Remove" */}
+            {/* The number selected, said as it changes (RGAA 7.5) */}
+            <LiveRegion data-testid="forward-selection-status">
+              {selection.length > 0
+                ? t('forward.selectedCount', { count: selection.length })
+                : null}
+            </LiveRegion>
+            <SettingsListHeader>
+              {selection.length > 0 ? (
+                <span ref={selectionFocusFallbackRef}>
+                  <SettingsHeaderButton
+                    label={
+                      isAllSelected
+                        ? t('forward.deselectAll', { count: selection.length })
+                        : t('forward.selectedCount', {
+                            count: selection.length
+                          })
+                    }
+                    icon={<Icon icon={Cross} size={20} aria-hidden="true" />}
+                    onClick={() => {
+                      setSelected([])
+                    }}
+                    data-testid="forward-cancel-selection-button"
+                  />
+                </span>
+              ) : null}
+              {isAllSelected ? null : (
+                <SettingsHeaderButton
+                  label={t('forward.selectAll')}
+                  onClick={() => {
+                    setSelected(forwards)
+                  }}
+                  data-testid="forward-select-all-button"
+                />
+              )}
+              {selection.length > 0 ? (
+                <span ref={removeSelectedFocusFallbackRef}>
+                  <SettingsHeaderButton
+                    label={t('forward.remove')}
+                    tone="danger"
+                    onClick={handleRemoveSelected}
+                    data-testid="forward-remove-selected-button"
+                  />
+                </span>
+              ) : null}
+            </SettingsListHeader>
+            <SettingsRecipientList
+              label={t('forward.listLabel')}
+              data-testid="forward-list"
+            >
+              {forwards.map(email => {
+                const removeLabel = t('forward.removeOf', { email })
+                const isSelected = selection.includes(email)
+                return (
+                  <SettingsRecipientCard
+                    key={email}
+                    avatar={
+                      <SelectableAvatar
+                        size="small"
+                        checked={isSelected}
+                        label={t('forward.selectOf', { email })}
+                        ref={
+                          email === nextRecipient ? nextRecipientRef : undefined
+                        }
+                        onClick={() => {
+                          setSelected(current =>
+                            current.includes(email)
+                              ? current.filter(other => other !== email)
+                              : [...current, email]
+                          )
+                        }}
+                        avatar={
+                          <GradientAvatar
+                            text={email.slice(0, 2).toUpperCase()}
+                            colorKey={email}
+                            size={32}
+                          />
+                        }
+                        data-testid="forward-select-checkbox"
+                      />
+                    }
+                    name={email}
+                    status={
+                      isExternal(email) ? (
+                        <Tooltip title={t('forward.external')}>
+                          <span className="u-flex">
+                            <Icon
+                              icon={InfoOutlined}
+                              size={20}
+                              role="img"
+                              aria-label={t('forward.external')}
+                            />
+                          </span>
+                        </Tooltip>
+                      ) : (
+                        <Icon icon={Check} size={20} aria-hidden="true" />
+                      )
+                    }
+                    isSelected={isSelected}
+                    actions={
+                      selection.length > 0 ? null : (
+                        <span ref={focusFallbackRef}>
+                          <IconAction
+                            label={removeLabel}
+                            icon={Trash}
+                            tone="icon"
+                            size={36}
+                            disabled={isSaving}
+                            onClick={() => {
+                              handleRemove(email)
+                            }}
+                            data-testid="forward-remove-button"
                           />
                         </span>
-                      </Tooltip>
-                    ) : (
-                      <Icon icon={Check} size={20} aria-hidden="true" />
-                    )
-                  }
-                  isSelected={isSelected}
-                  actions={
-                    selection.length > 0 ? null : (
-                      <span ref={focusFallbackRef}>
-                        <IconAction
-                          label={removeLabel}
-                          icon={Trash}
-                          tone="icon"
-                          size={36}
-                          disabled={isSaving}
-                          onClick={() => {
-                            handleRemove(email)
-                          }}
-                          data-testid="forward-remove-button"
-                        />
-                      </span>
-                    )
-                  }
-                  data-testid="forward-item"
-                  dataAttributes={{ 'data-email': email }}
-                />
-              )
-            })}
-          </SettingsRecipientList>
-        </>
-      ) : null}
-      {hasExternal ? (
-        <SettingsFormColumn>
-          <Alert
-            severity="warning"
-            className="u-mt-1-half"
-            data-testid="forward-warning-banner"
-          >
-            {configuredWarning ?? t('forward.externalBanner')}
-          </Alert>
-        </SettingsFormColumn>
-      ) : null}
+                      )
+                    }
+                    data-testid="forward-item"
+                    dataAttributes={{ 'data-email': email }}
+                  />
+                )
+              })}
+            </SettingsRecipientList>
+          </>
+        ) : null}
+        {hasExternal ? (
+          <SettingsFormColumn>
+            <Alert
+              severity="warning"
+              className="u-mt-1-half"
+              data-testid="forward-warning-banner"
+            >
+              {configuredWarning ?? t('forward.externalBanner')}
+            </Alert>
+          </SettingsFormColumn>
+        ) : null}
+      </NarrowColumn>
     </SettingsSectionLayout>
   )
 }

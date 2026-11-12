@@ -236,9 +236,10 @@
     },
     "toolbar": {
       "label": "Actions de la liste",
-      "filter": "Filtrer les messages",
+      "filter": "Filtrer",
       "clearFilter": "Effacer le filtre",
-      "selectPage": "Sélectionner tous les messages de cette page",
+      "selectPage": "Tout sélectionner",
+      "selectPageTooltip": "Sélectionner tous les messages de cette page",
       "filterOn": "Vous avez filtré les messages par « %{name} »",
       "filterOff": "Vous avez désactivé les messages filtrés",
       "filters": {

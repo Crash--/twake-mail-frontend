@@ -236,9 +236,10 @@
     },
     "toolbar": {
       "label": "Thao tác với danh sách",
-      "filter": "Lọc thư",
+      "filter": "Lọc",
       "clearFilter": "Xóa bộ lọc",
-      "selectPage": "Chọn tất cả tin nhắn của trang này",
+      "selectPage": "Chọn tất cả",
+      "selectPageTooltip": "Chọn tất cả tin nhắn của trang này",
       "filterOn": "Bạn vừa lọc các email \"%{name}\"",
       "filterOff": "Bộ lọc đã được huỷ bỏ",
       "filters": {

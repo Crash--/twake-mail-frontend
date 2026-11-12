@@ -155,13 +155,13 @@ test.describe('LST email list rows', () => {
     const refresh = await box(page.getByTestId('list-refresh-button'))
     const selectAll = await box(page.getByTestId('list-select-all-button'))
     // The toolbar and the rows span the card, 16 px above the buttons (a 32 px
-    // refresh, 32 px text buttons, the select all one always 250 px wide), 16 px
-    // apart
+    // refresh, 32 px text buttons as wide as "Select all", ~100 px in the
+    // Figma), 16 px apart
     expect(rowBox.x).toBe(toolbarBox.x)
     expect(refresh.width).toBe(32)
     expect(refresh.height).toBe(32)
     expect(selectAll.height).toBe(32)
-    expect(selectAll.width).toBe(250)
+    expect(selectAll.width).toBeLessThan(110)
     expect(selectAll.y - toolbarBox.y).toBe(16)
     expect(selectAll.x - (refresh.x + refresh.width)).toBe(16)
     // 44 px rows, the checkbox and the star in 32 px areas

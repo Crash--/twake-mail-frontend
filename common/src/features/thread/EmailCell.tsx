@@ -513,6 +513,7 @@ export function EmailCell({
   const eventMark = isEvent ? (
     <CalendarEventMark
       gap={screenSize === 'desktop' ? 12 : screenSize === 'mobile' ? 4 : 8}
+      size={screenSize === 'mobile' ? 18 : 20}
       data-testid="email-list-item-event-icon"
     />
   ) : null

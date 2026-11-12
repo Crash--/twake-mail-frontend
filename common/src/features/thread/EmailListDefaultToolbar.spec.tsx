@@ -84,9 +84,12 @@ describe('EmailListDefaultToolbar', () => {
   it('selects the loaded emails of the page', async () => {
     const { selection } = renderToolbar()
 
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Select all messages of this page' })
-    )
+    const button = screen.getByRole('button', {
+      name: 'Select all messages of this page'
+    })
+    // The longer name holds the visible label
+    expect(button).toHaveTextContent('Select all')
+    await userEvent.click(button)
 
     expect(selection.selectLoaded).toHaveBeenCalledTimes(1)
   })

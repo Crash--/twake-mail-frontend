@@ -1,9 +1,18 @@
 // Upstream to twake-ui: no, twake-mui's text Button with a menu chevron and a
 // width cap; a `DropdownButton` would bring its own text layout and aria
 // (docs/twake-mui-gaps.md).
-import { Icon, type IconProps, Dropdown } from '@linagora/twake-icons'
+import { Icon, type IconProps, Bottom } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
+
+// TODO: remove once the common grid of twake-icons
+// (https://github.com/Crash--/twake-ui/pull/20, twake-icons 4.0.0) is merged
+// and published: `Bottom` will then carry its own margin, and only its size
+// will be left to set here.
+const CHEVRON_BOX_SX = { width: 16, height: 16 } as const
+// `Bottom` draws 10 x 6.2 px at 16: at 12.8 it is the Figma's
+// keyboard_arrow_down, 8 x 4.94 px, 4 px from the sides of its 16 px box
+const CHEVRON_SIZE = 12.8
 
 export interface ToolbarButtonProps {
   label: string
@@ -16,12 +25,6 @@ export interface ToolbarButtonProps {
   isActive?: boolean
   /** Takes no click, and no tooltip (a disabled button gets no pointer event) */
   disabled?: boolean
-  /**
-   * Always 250 px wide, the content centred: tmail-flutter's "Select all
-   * messages of this page" (`ElevatedButton.icon`, `maximumSize` 250, whose
-   * label grows to it)
-   */
-  isAtMaxWidth?: boolean
   onClick: (event: MouseEvent<HTMLElement>) => void
   'aria-haspopup'?: 'menu'
   'aria-controls'?: string
@@ -38,7 +41,6 @@ export function ToolbarButton({
   hasMenu = false,
   isActive = false,
   disabled = false,
-  isAtMaxWidth = false,
   onClick,
   'aria-haspopup': hasPopup,
   'aria-controls': controls,
@@ -54,7 +56,17 @@ export function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       startIcon={<Icon icon={icon} size={16} />}
-      endIcon={hasMenu ? <Icon icon={Dropdown} size={16} /> : undefined}
+      endIcon={
+        hasMenu ? (
+          <Box
+            component="span"
+            className="u-flex u-flex-items-center u-flex-justify-center"
+            sx={CHEVRON_BOX_SX}
+          >
+            <Icon icon={Bottom} size={CHEVRON_SIZE} />
+          </Box>
+        ) : undefined
+      }
       aria-haspopup={hasPopup}
       aria-controls={controls}
       aria-expanded={expanded}
@@ -70,7 +82,6 @@ export function ToolbarButton({
         // A label longer than 250 px (French) is cut with an ellipsis rather
         // than spilling over the buttons around
         justifyContent: 'flex-start',
-        ...(isAtMaxWidth ? { width: 250, justifyContent: 'center' } : {}),
         overflow: 'hidden',
         flexShrink: 0,
         '& .MuiButton-startIcon, & .MuiButton-endIcon': { m: 0 },

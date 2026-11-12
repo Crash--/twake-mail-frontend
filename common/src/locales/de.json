@@ -236,9 +236,10 @@
     },
     "toolbar": {
       "label": "Listenaktionen",
-      "filter": "Nachrichten filtern",
+      "filter": "Filtern",
       "clearFilter": "Filter entfernen",
-      "selectPage": "Alle Nachrichten dieser Seite auswählen",
+      "selectPage": "Alles auswählen",
+      "selectPageTooltip": "Alle Nachrichten dieser Seite auswählen",
       "filterOn": "Sie haben die Nachrichten nach „%{name}“ gefiltert",
       "filterOff": "Sie haben gefilterte Nachrichten deaktiviert",
       "filters": {

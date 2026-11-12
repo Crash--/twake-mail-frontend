@@ -65,6 +65,21 @@ describe('sanitizeDraftHtml', () => {
       '<div>Mallory</div><div data-html-block="quote"><div>Old</div></div>'
     )
   })
+
+  it.each([true, false])(
+    'never trusts a marker class written in the content (isForeign: %s)',
+    isForeign => {
+      const html = sanitizeDraftHtml(
+        '<div class="twake-mail-kept-block-signature note"><img src="https://t.example/p"></div>' +
+          '<div class="twake-mail-kept-block-quote">Old</div>',
+        { isForeign }
+      )
+
+      expect(html).not.toContain('data-html-block')
+      expect(html).not.toContain('twake-mail-kept-block-')
+      expect(html).toContain('class="note"')
+    }
+  )
 })
 
 describe('blockDisplay', () => {

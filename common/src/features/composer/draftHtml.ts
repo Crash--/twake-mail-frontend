@@ -39,9 +39,23 @@ function parse(html: string): HTMLElement {
     .body
 }
 
+/** The marker classes the content already carries, removed */
+function removeForgedMarkers(root: HTMLElement): void {
+  root.querySelectorAll('[class]').forEach(element => {
+    Array.from(element.classList)
+      .filter(name => name.startsWith(MARKER_PREFIX))
+      .forEach(name => {
+        element.classList.remove(name)
+      })
+    if (element.classList.length === 0) element.removeAttribute('class')
+  })
+}
+
 /** The HTML with its kept blocks marked by a class, and nothing else */
 function markKeptBlocks(html: string, isForeign: boolean): string {
   const root = parse(html)
+  // A marker comes from this function only, never from the content
+  removeForgedMarkers(root)
   root.querySelectorAll(`[${BLOCK_ATTRIBUTE}]`).forEach(element => {
     const kind = keptKind(element)
     // The blocks of someone else's email are its content (its signature is

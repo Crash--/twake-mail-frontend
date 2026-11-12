@@ -423,6 +423,7 @@ Differences kept from the design and from tmail-flutter:
 | Component | Variant / need | Intended usage | Where | twake-ui change |
 |---|---|---|---|---|
 | `IconButton` | A `label` giving the tooltip and the accessible name, and a pressed look (light blue, dark blue icon) bound to `aria-pressed`; the size is twake-mui's `size="small"` (40 px around a 24 px icon) | Title bar (minimize, expand, close) and footer (formatting, attach, image, link, emoji, Drive, assistant, delete, More) of the composer | `ds/ActionIconButton` | `IconButton` with a `label`, and a `selected` style bound to `aria-pressed` |
+| `@linagora/twake-icons` | Glyphs on the grid of the Figma icons: a 24 px box, the glyph drawn within 20 px and centred; twake-icons crop their viewBox to the glyph, so at 24 px each touches the edge of its box and the row looks uneven | The icons of the composer footer and of the phone top bar, except "Aa" (`FormatSize`, whose viewBox already holds its margin: 24 px, 28 px on a phone), the Material emoji icon and the close cross of the phone top bar | `ActionIcon` of `ds/ActionIconButton`: the glyph at 20 px with 2 px around it | Glyphs on a common grid in twake-icons ([Crash--/twake-ui#18](https://github.com/Crash--/twake-ui/issues/18), [Crash--/twake-ui#20](https://github.com/Crash--/twake-ui/pull/20), twake-icons 4.0.0) |
 
 ## Composer on phones and tablets (batch E5)
 

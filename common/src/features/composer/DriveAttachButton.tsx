@@ -2,7 +2,10 @@ import { Drive, DriveText, Icon, ToTheCloud } from '@linagora/twake-icons'
 import { Button, Typography, useColorScheme } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
-import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import {
+  ActionIcon,
+  ActionIconButton
+} from '@/ds/ActionIconButton/ActionIconButton'
 import { FramedDialog } from '@/ds/FramedDialog/FramedDialog'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import {
@@ -138,7 +141,7 @@ export function DriveAttachButton({
         className="u-ml-half"
         data-testid="composer-drive-button"
       >
-        <Icon icon={ToTheCloud} size={20} aria-hidden="true" />
+        <ActionIcon icon={ToTheCloud} />
       </ActionIconButton>
       <FramedDialog
         open={isOpen}

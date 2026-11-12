@@ -375,14 +375,13 @@ export class ComposerPage {
   }
 
   /** Closes a modified message, answering the "Save message" dialog */
-  async closeAnd(choice: 'save' | 'discard' | 'cancel'): Promise<ComposerPage> {
+  async closeAnd(choice: 'save' | 'discard'): Promise<ComposerPage> {
     await this.closeButton.click()
     const dialog = this.page.getByTestId('confirm-dialog')
     await expect(dialog).toBeVisible()
     const button = {
       save: 'confirm-dialog-confirm-button',
-      discard: 'confirm-dialog-alternative-button',
-      cancel: 'confirm-dialog-cancel-button'
+      discard: 'confirm-dialog-alternative-button'
     }[choice]
     await dialog.getByTestId(button).click()
     await expect(dialog).toBeHidden()

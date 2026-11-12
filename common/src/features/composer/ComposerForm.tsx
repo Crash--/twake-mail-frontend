@@ -784,7 +784,8 @@ function LoadedComposerForm({
       title: t('composer.close.title'),
       message: t('composer.close.message'),
       confirmLabel: t('composer.close.save'),
-      alternativeLabel: t('composer.close.discard')
+      alternativeLabel: t('composer.close.discard'),
+      hasCancelButton: false
     })
     if (choice === 'cancel') return false
     if (choice === 'alternative') return true

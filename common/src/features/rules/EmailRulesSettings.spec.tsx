@@ -199,7 +199,11 @@ describe('EmailRulesSettings', () => {
     )
     await userEvent.click(within(dialog).getByTestId('create-rule-button'))
 
-    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+    expect(within(dialog).getByTestId('rule-form-error')).toHaveAttribute(
+      'role',
+      'alert'
+    )
+    expect(within(dialog).getByTestId('rule-form-error')).toHaveTextContent(
       'You have not added a action to the rule.'
     )
     expect(server.callsOf('Filter/set')).toEqual([])
@@ -492,7 +496,11 @@ describe('EmailRulesSettings', () => {
     await userEvent.type(recipients, 'alice@example.com, bob')
     await userEvent.click(within(dialog).getByTestId('create-rule-button'))
 
-    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+    expect(within(dialog).getByTestId('rule-form-error')).toHaveAttribute(
+      'role',
+      'alert'
+    )
+    expect(within(dialog).getByTestId('rule-form-error')).toHaveTextContent(
       'Incorrect email format'
     )
     expect(recipients).toHaveAttribute('aria-invalid', 'true')

@@ -276,6 +276,7 @@ export function EmailRulesSettings({
       ) : rules.length === 0 ? (
         <SettingsEmptyState
           icon={Filter}
+          look="tile"
           title={t('rules.empty.title')}
           text={t('rules.empty.message')}
           action={{

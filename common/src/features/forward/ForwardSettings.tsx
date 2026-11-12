@@ -2,8 +2,8 @@ import {
   Icon,
   Check,
   Cross,
-  Forward,
   Plus,
+  Reply,
   Trash,
   InfoOutlined
 } from '@linagora/twake-icons'
@@ -408,7 +408,9 @@ export function ForwardSettings({
         />
       ) : (
         <SettingsEmptyState
-          icon={Forward}
+          icon={Reply}
+          look="tinted"
+          isIconMirrored
           title={t('forward.emptyTitle')}
           text={t('forward.emptyText')}
           data-testid="forward-empty"

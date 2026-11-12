@@ -97,8 +97,10 @@ describe('EmailRulesSettings', () => {
     const empty = await screen.findByTestId('email-rules-empty')
     expect(empty).toHaveTextContent('No Rules Configured')
     expect(screen.queryByText('Name of Rules')).toBe(null)
+    // One button creates the first rule, in the empty state
+    expect(screen.queryByTestId('add-rule-button')).toBe(null)
     await userEvent.click(
-      within(empty).getByRole('button', { name: 'Create My First Rule' })
+      within(empty).getByRole('button', { name: 'Create your first rule' })
     )
     expect(
       screen.getByRole('dialog', { name: 'Create a New Rule' })
@@ -554,7 +556,7 @@ describe('EmailRulesSettings', () => {
     const { filter } = setup()
 
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Create My First Rule' })
+      await screen.findByRole('button', { name: 'Create your first rule' })
     )
     const dialog = screen.getByRole('dialog', { name: 'Create a New Rule' })
     await userEvent.type(
@@ -605,6 +607,10 @@ describe('EmailRulesSettings', () => {
     expect(await screen.findByTestId('email-rule-item')).toHaveTextContent(
       'Header List-Id, contains: team.example.com'
     )
+    // The button of the empty state that opened the dialog is gone
+    await waitFor(() => {
+      expect(screen.getByTestId('add-rule-button')).toHaveFocus()
+    })
   })
 
   it('edits a header condition set by another client', async () => {

@@ -2,7 +2,7 @@ import { Filter, Icon, Plus } from '@linagora/twake-icons'
 import { Alert, Button } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Rule } from 'jmap-client-ts/linagora'
-import { useEffect, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { SettingsCardList } from '@/ds/SettingsCards/SettingsCards'
@@ -118,6 +118,15 @@ export function EmailRulesSettings({
   const query = useQuery(rulesQueryOptions(client, accountId))
   const rules = query.data ?? []
   const [form, setForm] = useState<FormState>(null)
+  const addButtonRef = useRef<HTMLButtonElement>(null)
+  // The first rule created, the button of the empty state that opened the
+  // dialog is gone: the focus goes to "Add a rule" instead of the page
+  const [isFocusingAdd, setIsFocusingAdd] = useState(false)
+  useEffect(() => {
+    if (!isFocusingAdd || addButtonRef.current === null) return
+    addButtonRef.current.focus()
+    setIsFocusingAdd(false)
+  }, [isFocusingAdd, rules.length])
   const newRuleFrom = readNewRuleFrom(location.state)
   const [openedFor, setOpenedFor] = useState<string | null>(null)
   if (newRuleFrom !== null && openedFor !== location.key) {
@@ -141,8 +150,12 @@ export function EmailRulesSettings({
   const handleSubmit = async (rule: Rule): Promise<boolean> => {
     if (form === null) return false
     if (form.index === null) {
+      const wasEmpty = rules.length === 0
       const isAdded = await addRule(rule)
-      if (isAdded) setForm(null)
+      if (isAdded) {
+        setForm(null)
+        if (wasEmpty) setIsFocusingAdd(true)
+      }
       return isAdded
     }
     const next = rules.map((other, index) =>
@@ -228,15 +241,18 @@ export function EmailRulesSettings({
     <SettingsSectionLayout
       section={section}
       actions={
-        // As tmail-flutter: there with or without rules
-        <Button
-          className="u-flex-shrink-0"
-          startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
-          onClick={openCreator}
-          data-testid="add-rule-button"
-        >
-          {t('rules.add')}
-        </Button>
+        // Without rules, the empty state has the only button creating one
+        query.isSuccess && rules.length === 0 ? undefined : (
+          <Button
+            ref={addButtonRef}
+            className="u-flex-shrink-0"
+            startIcon={<Icon icon={Plus} size={12} aria-hidden="true" />}
+            onClick={openCreator}
+            data-testid="add-rule-button"
+          >
+            {t('rules.add')}
+          </Button>
+        )
       }
     >
       {query.isPending ? (

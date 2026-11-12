@@ -1068,7 +1068,7 @@
     "empty": {
       "title": "No Rules Configured",
       "message": "Start by creating your first rule to automate email management.",
-      "action": "Create My First Rule"
+      "action": "Create your first rule"
     },
     "delete": {
       "title": "Delete rule",

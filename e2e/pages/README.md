@@ -318,7 +318,7 @@ Conventions:
 | `composer-save-draft-button` | "Save as draft" icon button beside "Delete" in the bottom bar of the composer (not on phones, where it is `composer-save-draft-item`) | `UiKeys.saveDraftButton` |
 | `login-password-toggle` | "Show password" / "Hide password" button of the password field of the basic login, as tmail-flutter's eye | — |
 | `settings-sign-out-button` | "Sign out" at the end of the settings menu of a desktop, after a divider, as tmail-flutter | `AccountMenuItem.signOut` |
-| `create-first-rule-button` | "Create My First Rule" of the empty Email rules; `add-rule-button` ("Add a rule") is now beside the title whether rules exist or not, as tmail-flutter | `createMyFirstRule` |
+| `create-first-rule-button` | "Create your first rule" of the empty Email rules, the only button creating a rule then; `add-rule-button` ("Add a rule") is beside the title once rules exist. `SettingsPage.addRuleButton` finds either | `createMyFirstRule` |
 | `composer-sending-dialog` | "Sending message" modal dialog while a message is built ("Creating message...") then sent ("Sending message..."), as tmail-flutter; the Send button keeps its label | `SendingMessageDialogView` |
 | `shortcuts-categories` | the tabs of the keyboard shortcuts (Settings and the `?` dialog), as tmail-flutter: "Navigation & Closing", "Reading & Replying", "Message Management & Selection" | `ShortcutCategory` |
 | `email-link-tooltip` | the address of the link of the body under the pointer or holding the focus, in a black tooltip under it (decorative, `aria-hidden`), as tmail-flutter | `IframeTooltipOverlay` |

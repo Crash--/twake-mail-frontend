@@ -1068,7 +1068,7 @@
     "empty": {
       "title": "Chưa có bộ lọc nào được tạo",
       "message": "Tạo một bộ lọc thư để tự động phân loại thư",
-      "action": "Tạo bộ lọc thư"
+      "action": "Tạo quy tắc đầu tiên của bạn"
     },
     "delete": {
       "title": "Xoá bộ lọc",

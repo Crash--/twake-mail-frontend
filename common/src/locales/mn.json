@@ -669,7 +669,6 @@
     "wordsHint": "Үгсийг таслалаар тусгаарлана уу",
     "loading": "Санал ачаалж байна",
     "suggestionCount": "%{smart_count} санал |||| %{smart_count} санал",
-    "searchWithFilters": "Эдгээр шүүлтүүрээр хайх",
     "quickFiltersOnly": "Санал алга. Хурдан шүүлтүүрүүд хайлтын талбарын дараа байна.",
     "labels": {
       "all": "Бүх шошго",

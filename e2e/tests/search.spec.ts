@@ -625,9 +625,7 @@ test.describe('SRCH search', () => {
         'aria-pressed',
         'true'
       )
-      await expect(search.showAllSuggestion).toHaveText(
-        'Search with these filters'
-      )
+      await expect(search.showAllSuggestion).toHaveText('Search emails')
       await expect(search.input).toHaveAttribute('aria-expanded', 'true')
       await expectNoA11yViolations(page)
 

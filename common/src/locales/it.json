@@ -669,7 +669,6 @@
     "wordsHint": "Separa le parole con virgole",
     "loading": "Caricamento dei suggerimenti",
     "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
-    "searchWithFilters": "Cerca con questi filtri",
     "quickFiltersOnly": "Nessun suggerimento. I filtri rapidi seguono il campo di ricerca.",
     "labels": {
       "all": "Tutte le etichette",

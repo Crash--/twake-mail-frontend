@@ -669,7 +669,6 @@
     "wordsHint": "Wörter durch Kommas trennen",
     "loading": "Vorschläge werden geladen",
     "suggestionCount": "%{smart_count} Vorschlag |||| %{smart_count} Vorschläge",
-    "searchWithFilters": "Mit diesen Filtern suchen",
     "quickFiltersOnly": "Keine Vorschläge. Die Schnellfilter folgen auf das Suchfeld.",
     "labels": {
       "all": "Alle Labels",

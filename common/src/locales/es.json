@@ -669,7 +669,6 @@
     "wordsHint": "Separe las palabras con comas",
     "loading": "Cargando sugerencias",
     "suggestionCount": "%{smart_count} sugerencia |||| %{smart_count} sugerencias",
-    "searchWithFilters": "Buscar con estos filtros",
     "quickFiltersOnly": "Sin sugerencias. Los filtros rápidos siguen al campo de búsqueda.",
     "labels": {
       "all": "Todas las etiquetas",

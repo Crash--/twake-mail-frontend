@@ -411,9 +411,7 @@ describe('SearchField', () => {
     await userEvent.click(combobox())
 
     await userEvent.click(screen.getByRole('button', { name: 'Starred' }))
-    await userEvent.click(
-      screen.getByRole('option', { name: 'Search with these filters' })
-    )
+    await userEvent.click(screen.getByRole('option', { name: 'Search emails' }))
 
     expect(screen.getByTestId('location')).toHaveTextContent(
       '/search?starred=1&sort=relevance'

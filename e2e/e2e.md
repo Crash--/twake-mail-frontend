@@ -841,6 +841,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-06` The Spam row, with emails, has a "Clean" text button (described by "Delete all spam emails") that empties it after the confirmation; no other row has it. — web app (Figma sidebar, tmail-flutter `clean`)
   - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-06b` On a phone or a tablet (below the desktop size, 1200 px) the rows of the drawer have no ⋮ nor "Clean": a long press on the Spam or the Trash opens its menu with "Empty", on a label its menu (Edit, Delete); the desktop keeps both buttons. — web app (Quentin, phone drawer)
+  - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-07` The folder search field is the flat 40 px pill of the design system (no shadow). — web app (Figma)
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-08` With many folders and labels, at 1440x789 and 1280x650, the scrolling part of the sidebar ends above the footer (no overlap) and the footer stays inside the sidebar. — web app (sidebar D4)
@@ -912,7 +914,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-02` Right expands a collapsed folder (the focus stays on it), then goes to its first child; Left goes from a child to its parent, collapses an expanded folder; Right on a folder without children does nothing; `aria-level`, `aria-posinset`, `aria-setsize` and `aria-expanded` follow; Enter opens the folder and the drawer closes. — web app, WAI-ARIA APG tree view (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
-- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button, on a phone too (Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
+- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button (none in the drawer of a phone or a tablet, below 1200 px, where a long press opens the menu; Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-04` The folders of the user and the team mailboxes are trees of their own (one tab stop each, arrows stopping at their ends); Right and Left work in a team mailbox; from the field of the folder search, Down goes to the first result, a row of a tree. — web app (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.

@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
+import { longPress } from '../support/longPress'
+
 /**
  * The labels: their section of the sidebar, the label modal (create,
  * edit) and the "Label as" modal.
@@ -61,11 +63,16 @@ export class LabelModals {
     await expect(this.page.getByTestId('label-page')).toBeVisible()
   }
 
-  /** Runs Edit or Delete from the ⋮ menu of a label */
+  /** Runs Edit or Delete from the ⋮ menu of a label (a long press on a phone, which has no ⋮) */
   async runMenu(name: string, action: 'edit' | 'delete'): Promise<void> {
-    // The button shows on hover, or on focus
-    await this.item(name).hover()
-    await this.item(name).getByTestId('label-item-menu-button').click()
+    const more = this.item(name).getByTestId('label-item-menu-button')
+    if ((await more.count()) > 0) {
+      // The button shows on hover, or on focus
+      await this.item(name).hover()
+      await more.click()
+    } else {
+      await longPress(this.page, this.item(name).getByRole('link', { name, exact: true }))
+    }
     await this.page.getByTestId(`label-${action}-item`).click()
   }
 

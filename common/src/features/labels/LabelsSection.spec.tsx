@@ -266,23 +266,29 @@ describe('LabelsSection', () => {
     })
   })
 
-  it('opens the menu of a label on a phone from its ⋮ or from the row', async () => {
-    mockViewport({ width: 390, touch: true })
-    setup()
+  it.each([
+    ['a phone', 390],
+    ['a tablet', 820]
+  ])(
+    'opens the menu of a label on %s from the row, which has no ⋮',
+    async (_, width) => {
+      mockViewport({ width, touch: true })
+      setup()
 
-    const link = await screen.findByRole('link', { name: 'Work' })
-    expect(
-      screen.getByRole('button', { name: 'Actions on Work' })
-    ).toHaveAttribute('aria-haspopup', 'menu')
-    expect(link).toHaveAttribute('aria-haspopup', 'menu')
-    expect(link).toHaveAccessibleDescription('Long press for actions')
-    link.focus()
-    await userEvent.keyboard('{Shift>}{F10}{/Shift}')
+      const link = await screen.findByRole('link', { name: 'Work' })
+      expect(screen.queryByRole('button', { name: 'Actions on Work' })).toBe(
+        null
+      )
+      expect(link).toHaveAttribute('aria-haspopup', 'menu')
+      expect(link).toHaveAccessibleDescription('Long press for actions')
+      link.focus()
+      await userEvent.keyboard('{Shift>}{F10}{/Shift}')
 
-    expect(
-      await screen.findByRole('menu', { name: 'Actions on Work' })
-    ).toBeVisible()
-  })
+      expect(
+        await screen.findByRole('menu', { name: 'Actions on Work' })
+      ).toBeVisible()
+    }
+  )
 
   it('is hidden when the user turned labels off', async () => {
     window.localStorage.setItem('twake-mail.preferences.labels', 'false')

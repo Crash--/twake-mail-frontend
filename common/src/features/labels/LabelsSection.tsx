@@ -40,7 +40,8 @@ function LabelItem({ label }: { label: Label }): ReactElement {
   const name = labelDisplayName(label, t)
   const menuLabel = t('labels.menuOf', { name })
   const canChange = label.readOnly !== true
-  const isPhone = useScreenSize() === 'mobile'
+  // A phone or a tablet: the drawer, its rows without buttons
+  const isDrawer = useScreenSize() !== 'desktop'
 
   return (
     <NavTreeItem
@@ -51,7 +52,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       to={labelPath(label.id)}
       isSelected={isSelected}
       data-testid="label-item"
-      onLongPress={isPhone && canChange ? setAnchor : undefined}
+      onLongPress={isDrawer && canChange ? setAnchor : undefined}
       longPressHint={t('folders.longPressHint')}
       itemProps={{
         'data-label-name': label.displayName,
@@ -73,19 +74,22 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       actions={
         canChange ? (
           <>
-            <Tooltip title={menuLabel}>
-              <IconButton
-                size="small"
-                aria-label={menuLabel}
-                aria-haspopup="menu"
-                onClick={event => {
-                  setAnchor(event.currentTarget)
-                }}
-                data-testid="label-item-menu-button"
-              >
-                <Icon icon={MoreVerticalIcon} />
-              </IconButton>
-            </Tooltip>
+            {/* In the drawer the long press opens the menu */}
+            {isDrawer ? null : (
+              <Tooltip title={menuLabel}>
+                <IconButton
+                  size="small"
+                  aria-label={menuLabel}
+                  aria-haspopup="menu"
+                  onClick={event => {
+                    setAnchor(event.currentTarget)
+                  }}
+                  data-testid="label-item-menu-button"
+                >
+                  <Icon icon={MoreVerticalIcon} />
+                </IconButton>
+              </Tooltip>
+            )}
             <Menu
               anchorEl={anchor}
               open={anchor !== null}

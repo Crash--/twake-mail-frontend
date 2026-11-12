@@ -140,28 +140,41 @@ describe('MailboxTree', () => {
     )
   })
 
-  it('keeps ⋮ and Clean in a phone drawer, beside the long press', async () => {
-    mockViewport({ width: 390, touch: true })
-    renderTree('/mailbox/mailbox-inbox', 'en', [
-      makeMailbox({
-        id: 'mailbox-spam',
-        name: 'Spam',
-        role: 'junk',
-        totalEmails: 3
-      })
-    ])
-    await screen.findAllByTestId('mailbox-item')
+  it.each([
+    ['a phone', 390],
+    ['a tablet', 820]
+  ])(
+    'leaves ⋮ and Clean out of the drawer of %s, where a long press opens the menu',
+    async (_, width) => {
+      mockViewport({ width, touch: true })
+      try {
+        renderTree('/mailbox/mailbox-inbox', 'en', [
+          makeMailbox({
+            id: 'mailbox-spam',
+            name: 'Spam',
+            role: 'junk',
+            totalEmails: 3
+          })
+        ])
+        await screen.findAllByTestId('mailbox-item')
 
-    expect(
-      within(folder('Spam')).getByRole('button', { name: 'Actions on Spam' })
-    ).toHaveAttribute('aria-haspopup', 'menu')
-    expect(
-      within(folder('Spam')).getByRole('button', { name: 'Clean' })
-    ).toBeInTheDocument()
-    expect(folder('Spam')).toHaveAttribute('aria-haspopup', 'menu')
-    expect(folder('Spam')).toHaveAccessibleDescription('Long press for actions')
-    resetViewport()
-  })
+        expect(
+          within(folder('Spam')).queryByRole('button', {
+            name: 'Actions on Spam'
+          })
+        ).toBe(null)
+        expect(
+          within(folder('Spam')).queryByRole('button', { name: 'Clean' })
+        ).toBe(null)
+        expect(folder('Spam')).toHaveAttribute('aria-haspopup', 'menu')
+        expect(folder('Spam')).toHaveAccessibleDescription(
+          'Long press for actions'
+        )
+      } finally {
+        resetViewport()
+      }
+    }
+  )
 
   it('says a hidden folder is hidden without a coloured badge', async () => {
     renderTree('/mailbox/mailbox-inbox', 'en', [

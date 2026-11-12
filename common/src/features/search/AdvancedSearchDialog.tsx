@@ -593,6 +593,7 @@ export function AdvancedSearchDialog({
           <Button
             variant="outlined"
             color="inherit"
+            size="large"
             onClick={onClose}
             data-testid="advanced-search-cancel-button"
           >

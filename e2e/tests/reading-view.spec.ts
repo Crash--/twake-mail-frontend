@@ -61,6 +61,49 @@ test.describe('EML the reading view of the new design', () => {
       await email.root.getByTestId('reply-email-button').click()
       await expect(new ComposerPage(page).subjectInput).toHaveValue('Re: newer')
     })
+
+    test(
+      'EML-44 the recipients chevron follows the last address on its line, and a tap at the end of that address opens its card',
+      { tag: '@mobile' },
+      async ({ page, user, jmap }) => {
+        await jmap.sendEmail({
+          to: user.email,
+          cc: [
+            { email: 'quentin@example.com', name: 'Quentin Valmorinovski' },
+            { email: 'frank@example.com', name: 'Frank Garnier-Dupontel' }
+          ],
+          subject: 'Long copy',
+          text: 'Hello'
+        })
+        await jmap.waitForEmail({ subject: 'Long copy' })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const email = await mailbox.openEmail('Long copy')
+
+        const last = email.addressButton(email.cc, 'Frank Garnier-Dupontel')
+        const toggle = email.root.getByTestId('email-view-recipients-toggle')
+        const lastBox = await last.boundingBox()
+        const toggleBox = await toggle.boundingBox()
+        expect(lastBox).not.toBeNull()
+        expect(toggleBox).not.toBeNull()
+        if (lastBox === null || toggleBox === null) return
+        // On the line of the last address, centred on it
+        expect(
+          Math.abs(
+            toggleBox.y +
+              toggleBox.height / 2 -
+              (lastBox.y + lastBox.height / 2)
+          )
+        ).toBeLessThan(2)
+
+        // 3 px from the end of the address: its card, not the recipients
+        // (the click fails if the target of the chevron covers that point)
+        await last.click({
+          position: { x: lastBox.width - 3, y: lastBox.height / 2 }
+        })
+        await expect(email.addressCard).toBeVisible()
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      }
+    )
   })
 
   test('THR-21 a conversation has its answers in a bar at the bottom, and the actions of a collapsed message in its row', async ({

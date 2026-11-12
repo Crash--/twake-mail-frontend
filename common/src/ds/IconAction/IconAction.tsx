@@ -7,6 +7,8 @@ import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
+import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+
 /**
  * The yellow of a filled (favorite) star, in every scheme: twake-mui has no
  * role for it, and `warning` stays for warnings
@@ -23,6 +25,28 @@ const TONE_SX = {
   danger: { color: 'error.main' }
 } as const
 
+/** The space before an inline button, its target never overflows past it */
+const INLINE_GAP = 4
+
+/**
+ * The touch target of an inline button: 44 px high, wider after the button
+ * than before it, so that a tap at the end of the text before still hits
+ * the text (an 18 px button gets a 35 × 44 target). The icon stays where a
+ * mouse sees it, close to the text, not centred in the wider target
+ */
+function inlineTouchTarget(
+  size: number,
+  iconSize: number
+): { minWidth: number; m: string; justifyContent: string; pl: string } {
+  const overflow = (TOUCH_TARGET_SIZE - size) / 2
+  return {
+    minWidth: size + INLINE_GAP + overflow,
+    m: `-${overflow}px -${overflow}px -${overflow}px -${INLINE_GAP}px`,
+    justifyContent: 'flex-start',
+    pl: `${INLINE_GAP + (size - iconSize) / 2}px`
+  }
+}
+
 export interface IconActionProps {
   /** Tooltip and accessible name */
   label: string
@@ -37,6 +61,12 @@ export interface IconActionProps {
   tone?: 'default' | 'starred' | 'muted' | 'icon' | 'secondary' | 'danger'
   /** Width and height of the button in px, 32 by default */
   size?: number
+  /**
+   * After a text, on its line: on touch screens its target, 44 px high,
+   * overflows the button drawn above, below and after it, so that the line
+   * keeps its height, and by `INLINE_GAP` only before it, not over the text
+   */
+  isInline?: boolean
   onClick?: (event: MouseEvent<HTMLElement>) => void
   'aria-pressed'?: boolean
   'aria-haspopup'?: 'menu'
@@ -55,6 +85,7 @@ export function IconAction({
   iconSize = 20,
   tone = 'default',
   size = 32,
+  isInline = false,
   onClick,
   disabled,
   'aria-pressed': pressed,
@@ -76,7 +107,10 @@ export function IconAction({
       width: size,
       height: size,
       p: 0,
-      ...TONE_SX[tone]
+      ...TONE_SX[tone],
+      ...(isInline && size < TOUCH_TARGET_SIZE
+        ? { [TOUCH_MEDIA]: inlineTouchTarget(size, iconSize) }
+        : {})
     }
   } as const
   // A disabled button takes no pointer event, so the tooltip needs a wrapper.

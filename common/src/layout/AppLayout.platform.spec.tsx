@@ -309,28 +309,30 @@ describe('AppLayout with the platform bar', () => {
     expect(await screen.findByText('Settings content')).toBeVisible()
   })
 
-  it('keeps the help of the mail in the bar of the mail on a phone', async () => {
-    mockViewport({ width: 390, touch: true })
-    mockPlatform()
-    renderLayout({
-      route: '/mailbox/mailbox-inbox',
-      jmapServer: makeFakeJmapServer({
-        capabilities: {
-          'com:linagora:params:jmap:contact:support': {
-            httpLink: 'https://support.example.com/help'
+  it.each([
+    ['a phone', 390],
+    ['a tablet', 820]
+  ])(
+    'leaves the help and the filter out of the bar of the mail on %s',
+    async (_, width) => {
+      mockViewport({ width, touch: true })
+      mockPlatform()
+      renderLayout({
+        route: '/mailbox/mailbox-inbox',
+        jmapServer: makeFakeJmapServer({
+          capabilities: {
+            'com:linagora:params:jmap:contact:support': {
+              httpLink: 'https://support.example.com/help'
+            }
           }
-        }
+        })
       })
-    })
 
-    const topBar = await screen.findByTestId('top-bar')
-    expect(
-      await within(topBar).findByRole('link', {
-        name: 'Get help or report a bug'
-      })
-    ).toHaveAttribute('href', 'https://support.example.com/help')
-    expect(screen.getAllByTestId('help-button')).toHaveLength(1)
-  })
+      await screen.findByTestId('top-bar')
+      expect(screen.queryByTestId('help-button')).toBe(null)
+      expect(screen.queryByTestId('list-filter-button')).toBe(null)
+    }
+  )
 
   it('keeps the bar, with a log out button, when the platform refuses the token', async () => {
     jest.spyOn(console, 'warn').mockImplementation(() => undefined)

@@ -645,10 +645,10 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
 - [x] `MBX-33b` The folder search links to Settings > Folder visibility (not in a mailbox delegated to the user). — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
 - [ ] `FBAR-01` The inbox toolbar offers refresh, "Select all messages of this page" and the three
-  filters (menu); selecting all turns it into the selection bar; axe. — also on phones and tablets
+  filters (menu, on a desktop only: below it the search field filters); selecting all turns it into the selection bar; axe. — also on phones and tablets
   - Spec: `tests/folder-toolbar.spec.ts`.
 - [ ] `FBAR-02` A filter narrows the folder in place (same URL), one at a time, with a toast; picking
-  it again or the clear button restores the list. — also on phones and tablets
+  it again or the clear button restores the list. — desktop only (no filter button below it)
   - Spec: `tests/folder-toolbar.spec.ts`.
 - [ ] `FBAR-03` In a filtered folder, an email leaving it (moved to the Trash) leaves the list and a
   new matching email joins it by push.
@@ -702,6 +702,8 @@ finishes issue #112.
 
 - [x] `FBAR-06` In a filtered folder, an email that stops matching the filter (marked as read under "Unread") leaves the list at once, as tmail-flutter's client-side `filterEmail`. — web app (issue #112)
   - Spec: `tests/folder-toolbar.spec.ts`.
+- [x] `FBAR-07` A filter set on a desktop hides nothing once the window narrows to a tablet or a phone, which have no filter button; back on the desktop it is still on, with its clear button. — web app (review of #992)
+  - Spec: `tests/folder-toolbar.spec.ts`.
 - [x] `TBAR-01` With the messages vault, the personal Trash has a button recovering deleted messages, which opens the recovery dialog. The session is rewritten at the network level (`page.route`), the e2e stack being unable to guarantee the capability. Axe. — web app (issue #112)
   - Spec: `tests/toolbar-capabilities.spec.ts`.
 - [x] `TBAR-02` Without the vault, the Trash has no recovery button. — web app (issue #112)
@@ -712,7 +714,7 @@ finishes issue #112.
   - Spec: `tests/toolbar-capabilities.spec.ts`.
 - [x] `TBAR-05` Without a support contact there is no help button. — web app (issue #112)
   - Spec: `tests/toolbar-capabilities.spec.ts`.
-- [x] `TBAR-06` Under the Workplace bar (suite `oidc`), the help button is in that bar on a desktop and in the bar of the mail on a tablet and a phone. Axe. — `chromium`, `mobile`, `tablet`
+- [x] `TBAR-06` Under the Workplace bar (suite `oidc`), the help button is in that bar on a desktop; below the desktop size the bar of the mail has none and the settings have "Contact support". Axe. — `chromium`, `mobile`, `tablet`
   - Spec: `tests/platform-help.spec.ts`.
 - [x] `LST-03` The reply button of a row opens the composer on a reply to it ("Re: subject"). — `chromium`
   - Spec: `tests/list-rows.spec.ts`.

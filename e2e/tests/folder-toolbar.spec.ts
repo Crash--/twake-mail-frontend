@@ -4,7 +4,7 @@ import { expect, test } from '../support/fixtures'
 
 test.describe('FBAR folder action bar', () => {
   test(
-    'FBAR-01 the inbox offers refresh, select all and the three filters (the filter in the bar below the desktop size)',
+    'FBAR-01 the inbox offers refresh, select all and the three filters (on a desktop; below it no filter button, the search field filters)',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
       await jmap.sendEmail({ to: user.email, subject: 'First', text: 'Hi' })
@@ -12,15 +12,11 @@ test.describe('FBAR folder action bar', () => {
       const mailbox = await new LoginPage(page).loginAs(user)
 
       if (['mobile', 'tablet'].includes(test.info().project.name)) {
-        // As tmail-flutter below the desktop size: no toolbar above the
-        // list, the filter in the bar, the avatar selects its row
+        // Below the desktop size: no toolbar above the list, no filter
+        // button (the search field has the filters), the avatar selects its
+        // row
         await expect(page.getByTestId('list-toolbar')).toHaveCount(0)
-        await page.getByTestId('top-bar').getByTestId('list-filter-button').click()
-        await expect(
-          page.getByTestId('list-filter-menu').getByRole('menuitemradio')
-        ).toHaveCount(3)
-        await expectNoA11yViolations(page)
-        await page.keyboard.press('Escape')
+        await expect(page.getByTestId('list-filter-button')).toHaveCount(0)
 
         await mailbox.selectEmail('First')
         await expect(mailbox.selectionToolbar).toContainText('1 selected')
@@ -52,6 +48,10 @@ test.describe('FBAR folder action bar', () => {
     'FBAR-02 a filter narrows the folder in place, one at a time, with a toast and a clear button',
     { tag: '@mobile' },
     async ({ page, user, jmap }) => {
+      test.skip(
+        test.info().project.name !== 'chromium',
+        'below the desktop size the search field filters'
+      )
       await jmap.sendEmail({
         to: user.email,
         subject: 'Already read',
@@ -218,5 +218,36 @@ test.describe('FBAR folder action bar', () => {
     await expect(page.getByTestId('list-filter-button')).toHaveCount(0)
     await expect(page.getByTestId('list-refresh-button')).toBeVisible()
     await expectNoA11yViolations(page)
+  })
+
+  test('FBAR-07 a filter set on a desktop hides nothing once the window narrows to a tablet or a phone, which have no filter button', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'Read one', text: 'Hi' })
+    await jmap.sendEmail({ to: user.email, subject: 'Unread one', text: 'Hi' })
+    const read = await jmap.waitForEmail({ subject: 'Read one' })
+    await jmap.waitForEmail({ subject: 'Unread one' })
+    await jmap.setKeywords(read.id, { $seen: true })
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.applyQuickFilter('unread')
+    await expect(mailbox.emailRow('Read one')).toHaveCount(0)
+
+    // Narrower: no button to clear it, so nothing stays hidden
+    for (const size of [
+      { width: 820, height: 1180 },
+      { width: 390, height: 844 }
+    ]) {
+      await page.setViewportSize(size)
+      await expect(page.getByTestId('list-filter-button')).toHaveCount(0)
+      await expect(mailbox.emailRow('Read one')).toBeVisible()
+    }
+
+    // Back to the desktop: the filter is still there, with its button
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await expect(page.getByTestId('list-filter-clear-button')).toBeVisible()
+    await expect(mailbox.emailRow('Read one')).toHaveCount(0)
   })
 })

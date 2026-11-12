@@ -92,7 +92,6 @@ import {
   EmailListDefaultToolbar,
   type ListToolbarFilter
 } from './EmailListDefaultToolbar'
-import { EmailListFilterMenu } from './EmailListFilterMenu'
 import {
   availableListFilters,
   withListFilter,
@@ -100,7 +99,6 @@ import {
 } from './listFilter'
 import {
   useListFilter,
-  useListFilterSlot,
   useReportSelecting,
   useSelectionBarSlot
 } from './ListFilterProvider'
@@ -274,7 +272,11 @@ export function EmailList(props: EmailListProps): ReactElement {
     mailbox !== null &&
     (mailbox.role === 'trash' || mailbox.role === 'junk') &&
     mailbox.totalEmails <= 0
-  const filter: ListFilter = isEmptyTrashOrSpam ? 'all' : listFilter.filter
+  // Only a desktop has the filter button: one set there would hide emails
+  // with nothing to clear it once the window narrows, so it waits
+  const isDesktopSize = useScreenSize() === 'desktop'
+  const filter: ListFilter =
+    isEmptyTrashOrSpam || !isDesktopSize ? 'all' : listFilter.filter
   const { query, listKey } = useListQuery(props, filter)
   const role = mailbox?.role ?? null
   const getMailboxName = useMailboxName()
@@ -571,8 +573,6 @@ export function EmailList(props: EmailListProps): ReactElement {
   )
 
   const screenSize = useScreenSize()
-  // On phones the filter is in the top bar, as in tmail-flutter's app bar
-  const filterSlot = useListFilterSlot()
   const { refetch } = query
   const queryClient = useQueryClient()
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -783,11 +783,8 @@ export function EmailList(props: EmailListProps): ReactElement {
           onSelect: listFilter.select,
           onClear: listFilter.clear
         }
-  // Below the desktop size the filter is in the bar of the mail, as in
-  // tmail-flutter's app bar
-  const topBarSlot = screenSize === 'desktop' ? null : filterSlot
-  const filterInToolbar = topBarSlot === null
-  // And the selection bar over the app bar
+  // Below the desktop size there is no filter button, the search field
+  // filters; the selection bar goes over the app bar
   const selectionSlot = useSelectionBarSlot()
   const selectionBarSlot = screenSize === 'desktop' ? null : selectionSlot
 
@@ -815,23 +812,12 @@ export function EmailList(props: EmailListProps): ReactElement {
             loadedCount={emails.length}
             isLoading={query.isPending}
             mailbox={mailbox}
-            filter={filterInToolbar ? listToolbarFilter : null}
+            filter={screenSize === 'desktop' ? listToolbarFilter : null}
             end={search?.toolbarEnd}
             isRefreshing={isRefreshing}
             onRefresh={handleRefresh}
           />
         )}
-        {topBarSlot !== null && listToolbarFilter !== null
-          ? createPortal(
-              <EmailListFilterMenu
-                current={listToolbarFilter.current}
-                options={listToolbarFilter.options}
-                onSelect={listToolbarFilter.onSelect}
-                onClear={listToolbarFilter.onClear}
-              />,
-              topBarSlot
-            )
-          : null}
         {isFramed ? (
           // The facade of a team mailbox scrolls its rows 16 px inside the
           // sides and the bottom of the frame, clear of its rounded corner

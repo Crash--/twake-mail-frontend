@@ -19,6 +19,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import {
   SETTINGS_FORM_WIDTH,
@@ -269,7 +270,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
         endWidth={SETTINGS_FORM_WIDTH}
         data-testid="vacation-enable-toggle"
       />
-      {/* As tmail-flutter: a column of labelled rows, 660 px wide at most */}
+      {/* As tmail-flutter: a column of labelled rows, within the page's
+          628 px column */}
       <SettingsFormColumn>
         <SettingsFormRow
           label={t('vacation.starts')}
@@ -551,7 +553,9 @@ export function VacationSettings({
           {t('common.errorOccurredShort')}
         </Alert>
       ) : (
-        <VacationForm key={query.dataUpdatedAt} vacation={query.data} />
+        <NarrowColumn>
+          <VacationForm key={query.dataUpdatedAt} vacation={query.data} />
+        </NarrowColumn>
       )}
     </SettingsSectionLayout>
   )

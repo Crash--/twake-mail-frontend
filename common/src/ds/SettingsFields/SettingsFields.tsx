@@ -2,15 +2,26 @@
 // `TextField`, 48 px high (40 in a form row); a label with a pill after it
 // ("Forward to [2 recipients]"); a form row with its label on the left, in a
 // column of fixed width.
-import { Box, MenuItem, TextField, Typography } from '@linagora/twake-mui'
+import { CalendarToday, ClockOutline, Icon } from '@linagora/twake-icons'
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  TextField,
+  Tooltip,
+  Typography
+} from '@linagora/twake-mui'
 import {
   useId,
+  useRef,
   type ChangeEvent,
   type ReactElement,
   type ReactNode,
   type Ref
 } from 'react'
 
+import { TOUCH_MEDIA } from '@/ds/TouchTargets/TouchTargets'
 import { SCREEN_QUERIES, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 function fieldSx(
@@ -24,6 +35,47 @@ function fieldSx(
     '& .MuiOutlinedInput-input': { px: '12px' },
     '& .MuiFormHelperText-root': { mx: 0 }
   }
+}
+
+// TODO: drop once twake-mui has a date and time field
+// (https://github.com/Crash--/twake-ui/issues/22): the browser draws the
+// picker button of a date or time input in black, its own glyph, so it is
+// hidden and a twake-icons button opens the picker instead
+const PICKER_FIELD_SX: Record<string, unknown> = {
+  '& input::-webkit-calendar-picker-indicator': { display: 'none' },
+  // The 44 px touch target overflows the 32 px button, so that the field
+  // keeps its height and its spacing is twake-mui's, as with a mouse
+  [TOUCH_MEDIA]: {
+    '& .MuiInputAdornment-root .MuiIconButton-root': { m: '-6px' }
+  }
+}
+
+/**
+ * The browser draws no picker button, or lets it be hidden: Chromium hides
+ * it, WebKit draws none. Gecko (Firefox, told by a pseudo-element of its
+ * own) draws one that no CSS hides, and keeps it
+ */
+function canHideNativePicker(): boolean {
+  return !(
+    typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('selector(::-moz-range-thumb)')
+  )
+}
+
+function openPicker(input: HTMLInputElement | null): void {
+  if (input === null) return
+  input.focus()
+  try {
+    input.showPicker()
+  } catch {
+    // Older Safari and Firefox: the focused field takes the typing
+  }
+}
+
+function setRef<T>(ref: Ref<T> | undefined, node: T | null): void {
+  if (typeof ref === 'function') ref(node)
+  else if (ref) ref.current = node
 }
 
 export interface SettingsTextFieldProps {
@@ -45,6 +97,12 @@ export interface SettingsTextFieldProps {
   size?: 'large' | 'form'
   width?: number | string
   type?: string
+  /**
+   * With `type` `date` or `time`: the name of the button opening the
+   * picker of the browser, e.g. "Select the start date". Where the browser
+   * button cannot be hidden (Firefox), it stays and none is added
+   */
+  pickerLabel?: string
   inputMode?: 'email' | 'text'
   inputTestId?: string
   /** Of the input, for the `htmlFor` of a `SettingsFormRow` */
@@ -68,15 +126,50 @@ export function SettingsTextField({
   size = 'large',
   width = 404,
   type,
+  pickerLabel,
   inputMode,
   inputTestId,
   id,
   className,
   'data-testid': testId
 }: SettingsTextFieldProps): ReactElement {
+  const ownInputRef = useRef<HTMLInputElement | null>(null)
+  const hasPicker =
+    (type === 'date' || type === 'time') &&
+    pickerLabel !== undefined &&
+    canHideNativePicker()
+  const handleInputRef = (node: HTMLInputElement | null): void => {
+    ownInputRef.current = node
+    setRef(inputRef, node)
+  }
+  const picker = hasPicker ? (
+    <InputAdornment position="end">
+      <Tooltip title={pickerLabel}>
+        <span>
+          <IconButton
+            size="small"
+            aria-label={pickerLabel}
+            disabled={disabled}
+            onClick={() => {
+              openPicker(ownInputRef.current)
+            }}
+            data-testid={
+              inputTestId === undefined ? undefined : `${inputTestId}-picker`
+            }
+          >
+            <Icon
+              icon={type === 'date' ? CalendarToday : ClockOutline}
+              size={16}
+              aria-hidden="true"
+            />
+          </IconButton>
+        </span>
+      </Tooltip>
+    </InputAdornment>
+  ) : null
   return (
     <TextField
-      inputRef={inputRef}
+      inputRef={handleInputRef}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
@@ -87,8 +180,12 @@ export function SettingsTextField({
       type={type}
       id={id}
       className={className}
-      sx={fieldSx(size === 'form' ? 40 : 48, width)}
+      sx={{
+        ...fieldSx(size === 'form' ? 40 : 48, width),
+        ...(hasPicker ? PICKER_FIELD_SX : {})
+      }}
       slotProps={{
+        ...(picker === null ? {} : { input: { endAdornment: picker } }),
         htmlInput: {
           'aria-label': label,
           ...(describedBy === undefined

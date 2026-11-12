@@ -78,6 +78,11 @@ function invalidPart(
   return fromLocalInputs(date, '00:00') === null ? fields.date : fields.time
 }
 
+/** Room for "02:28 PM" beside the picker button, "2:28:00 PM" in Safari */
+const TIME_FIELD_WIDTH = 160
+/** Room for "11/12/2026" beside the picker button, in Safari too */
+const DATE_FIELD_WIDTH = 172
+
 /** The form, filled with the vacation response of the server */
 function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const { t } = useI18n()
@@ -304,8 +309,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={startDateId}
                   type="date"
+                  pickerLabel={t('vacation.selectStartDate')}
                   size="form"
-                  width={150}
+                  width={DATE_FIELD_WIDTH}
                   label={t('vacation.startDate')}
                   value={startDate}
                   inputRef={startDateRef}
@@ -326,8 +332,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={startTimeId}
                   type="time"
+                  pickerLabel={t('vacation.selectStartTime')}
                   size="form"
-                  width={130}
+                  width={TIME_FIELD_WIDTH}
                   label={t('vacation.startTime')}
                   value={startTime}
                   inputRef={startTimeRef}
@@ -384,8 +391,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={endDateId}
                   type="date"
+                  pickerLabel={t('vacation.selectEndDate')}
                   size="form"
-                  width={150}
+                  width={DATE_FIELD_WIDTH}
                   label={t('vacation.endDate')}
                   value={endDate}
                   inputRef={endDateRef}
@@ -405,8 +413,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={endTimeId}
                   type="time"
+                  pickerLabel={t('vacation.selectEndTime')}
                   size="form"
-                  width={130}
+                  width={TIME_FIELD_WIDTH}
                   label={t('vacation.endTime')}
                   value={endTime}
                   inputRef={endTimeRef}

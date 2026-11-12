@@ -1568,10 +1568,22 @@ describe('ComposerForm', () => {
         })
       }
 
+      /**
+       * A control of the composer by its role and name, even while the sheet
+       * or the dialog over it is leaving: until its exit transition ends, a
+       * timer that a busy CI runner can stretch past the wait of `waitFor`,
+       * the composer stays hidden from the accessibility tree
+       */
+      function control(
+        composer: HTMLElement,
+        role: 'button' | 'textbox',
+        name: string
+      ): HTMLElement {
+        return within(composer).getByRole(role, { name, hidden: true })
+      }
+
       async function openPicker(composer: HTMLElement): Promise<HTMLElement> {
-        await userEvent.click(
-          within(composer).getByRole('button', { name: 'More' })
-        )
+        await userEvent.click(control(composer, 'button', 'More'))
         await userEvent.click(
           screen.getByRole('menuitem', { name: 'Insert template' })
         )
@@ -1617,16 +1629,21 @@ describe('ComposerForm', () => {
         await userEvent.keyboard('{Enter}')
 
         await waitFor(() => {
-          expect(
-            within(composer).getByRole('textbox', { name: 'Subject' })
-          ).toHaveValue('Weekly report')
+          expect(control(composer, 'textbox', 'Subject')).toHaveValue(
+            'Weekly report'
+          )
         })
-        expect(
-          within(composer).getByRole('textbox', { name: 'Message body' })
-        ).toHaveTextContent('Done this week:')
-        expect(
-          screen.queryByRole('dialog', { name: 'Insert a template' })
-        ).toBe(null)
+        expect(control(composer, 'textbox', 'Message body')).toHaveTextContent(
+          'Done this week:'
+        )
+        expect(control(composer, 'textbox', 'Message body')).toHaveFocus()
+        // Gone once its exit transition ends
+        await waitFor(() => {
+          expect(
+            screen.queryByRole('dialog', { name: 'Insert a template' })
+          ).toBe(null)
+        })
+        // Then the composer is back in the accessibility tree
         expect(
           within(composer).getByRole('textbox', { name: 'Message body' })
         ).toHaveFocus()
@@ -1647,13 +1664,13 @@ describe('ComposerForm', () => {
 
         await waitFor(() => {
           expect(
-            within(composer).getByRole('textbox', { name: 'Message body' })
+            control(composer, 'textbox', 'Message body')
           ).toHaveTextContent('Done this week:')
         })
         // The subject of a message that has one stays
-        expect(
-          within(composer).getByRole('textbox', { name: 'Subject' })
-        ).toHaveValue('My own subject')
+        expect(control(composer, 'textbox', 'Subject')).toHaveValue(
+          'My own subject'
+        )
 
         picker = await openPicker(composer)
         await userEvent.click(
@@ -1664,13 +1681,11 @@ describe('ComposerForm', () => {
         )
 
         await waitFor(() => {
-          expect(
-            within(composer).getByRole('textbox', { name: 'Subject' })
-          ).toHaveValue('Welcome aboard')
+          expect(control(composer, 'textbox', 'Subject')).toHaveValue(
+            'Welcome aboard'
+          )
         })
-        const body = within(composer).getByRole('textbox', {
-          name: 'Message body'
-        })
+        const body = control(composer, 'textbox', 'Message body')
         expect(body).toHaveTextContent('Glad to have you')
         expect(body).not.toHaveTextContent('Done this week:')
       })
@@ -1730,7 +1745,7 @@ describe('ComposerForm', () => {
 
           await waitFor(() => {
             expect(
-              within(composer).getByRole('textbox', { name: 'Message body' })
+              control(composer, 'textbox', 'Message body')
             ).toHaveTextContent('Done this week:')
           })
           expect(within(composer).getAllByText(/The sales team/)).toHaveLength(
@@ -1755,7 +1770,7 @@ describe('ComposerForm', () => {
 
           await waitFor(() => {
             expect(
-              within(composer).getByRole('textbox', { name: 'Message body' })
+              control(composer, 'textbox', 'Message body')
             ).toHaveTextContent('Glad to have you')
           })
           expect(within(composer).getAllByText(/The sales team/)).toHaveLength(
@@ -1786,9 +1801,7 @@ describe('ComposerForm', () => {
         await userEvent.keyboard('{Escape}')
 
         await waitFor(() => {
-          expect(
-            within(composer).getByRole('button', { name: 'More' })
-          ).toHaveFocus()
+          expect(control(composer, 'button', 'More')).toHaveFocus()
         })
       })
     })

@@ -364,8 +364,33 @@ describe('sanitizeEmailHtml', () => {
 
       expect(result).toEqual({
         html: '<img src="blob:https://mail.example.com/1"><img>',
-        blockedRemoteContent: 0
+        blockedRemoteContent: 0,
+        declaresColors: false
       })
+    })
+  })
+
+  describe('colours of its own', () => {
+    const declaresColors = (html: string): boolean =>
+      sanitizeEmailHtml(html).declaresColors
+
+    it('sees none in an email with only text, links, images and borders', () => {
+      expect(
+        declaresColors(
+          `<div dir="ltr"><p>Hi <b>there</b></p><a href="https://example.com/">a</a><img src="${PNG}"><blockquote style="border-left: 1px solid #ccc; margin: 0">quote</blockquote></div>`
+        )
+      ).toBe(false)
+    })
+
+    it.each([
+      ['a text colour', '<span style="color: #1f497d">Hi</span>'],
+      ['a background colour', '<div style="background-color: #000">Hi</div>'],
+      ['a background', '<div style="background: #0a84ff">Hi</div>'],
+      ['a bgcolor', '<table><tr><td bgcolor="#111111">Hi</td></tr></table>'],
+      ['a font colour', '<font color="red">Hi</font>'],
+      ['a stylesheet colour', '<style>p { color: #333 }</style><p>Hi</p>']
+    ])('sees %s', (_, html) => {
+      expect(declaresColors(html)).toBe(true)
     })
   })
 

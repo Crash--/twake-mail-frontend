@@ -53,24 +53,37 @@ function interFontFace(fontUrl: string): string {
   return `@font-face { font-family: Inter; src: url("${fontUrl}") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }`
 }
 
+/** The colours of the email document, from `useEmailDocumentColors` */
+export interface EmailDocumentColors {
+  scheme: 'light' | 'dark'
+  background: string
+  text: string
+  quoteBorder: string
+  /** The "•••" of the quoted history */
+  historyButton: string
+  historyButtonHover: string
+  historyDots: string
+  /** The links, null for the browser's blue of the light page */
+  link: string | null
+}
+
 // The stylesheet of the email document, not of the app: twake-mui does not
 // reach inside the iframe. Images never overflow the reading pane, as in
 // tmail-flutter (EML-04). Its text style is the design's Regular one,
-// twake-mui's `body3` in the `text.primary` of the light scheme, set on the
-// body only so that any style an email sets wins; paragraphs without margins,
-// as tmail-flutter. The document stays light whatever the colour scheme of
-// the app: an email is designed for a white page, and the colours it sets
-// would not read on a dark one.
-const emailDocumentCss = (textColor: string): string => `
+// twake-mui's `body3` in `text.primary`, set on the body only so that any
+// style an email sets wins; paragraphs without margins, as tmail-flutter. The
+// colours come from `EmailDocumentColors`: a page of the dark scheme only
+// for an email that sets no colour of its own.
+const emailDocumentCss = (colors: EmailDocumentColors): string => `
 html, body { margin: 0; padding: 0; }
-html { background: #ffffff; color-scheme: light; }
+html { background: ${colors.background}; color-scheme: ${colors.scheme}; }
 body {
   font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 1.313;
   letter-spacing: 0.25px;
-  color: ${textColor};
+  color: ${colors.text};
   overflow-wrap: anywhere;
   overflow-y: hidden;
 }
@@ -88,15 +101,16 @@ p { margin: 0; }
 /* tmail-flutter writes 16 px on phones (the frame is as wide as the screen) */
 @media (max-width: 599px) { body { font-size: 16px; } }
 pre, .tmail-plain-text { white-space: pre-wrap; font-family: inherit; margin: 0; }
-blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid #c4c4c4; }
+blockquote { margin: 0 0 0 8px; padding-left: 8px; border-left: 2px solid ${colors.quoteBorder}; }
 details.tmail-quoted-history > summary {
   display: inline-flex; align-items: center; justify-content: center; gap: 3px;
   width: 32px; height: 20px; margin: 8px 0 8px 4px; border-radius: 10px;
-  background: #e3e7ee; cursor: pointer; list-style: none;
+  background: ${colors.historyButton}; cursor: pointer; list-style: none;
 }
 details.tmail-quoted-history > summary::-webkit-details-marker { display: none; }
-details.tmail-quoted-history > summary:hover { background: #cdd3dc; }
-details.tmail-quoted-history > summary > span { width: 4px; height: 4px; border-radius: 50%; background: #55687d; }
+details.tmail-quoted-history > summary:hover { background: ${colors.historyButtonHover}; }
+details.tmail-quoted-history > summary > span { width: 4px; height: 4px; border-radius: 50%; background: ${colors.historyDots}; }
+${colors.link === null ? '' : `a { color: ${colors.link}; }`}
 `
 
 function escapeHtml(text: string): string {
@@ -154,6 +168,7 @@ export function renderBodyParts(
   options: SanitizeOptions = {}
 ): SanitizedEmailHtml {
   let blockedRemoteContent = 0
+  let declaresColors = false
   const html = parts
     .map(part => {
       const value = part.partId === null ? undefined : bodyValues[part.partId]
@@ -164,6 +179,7 @@ export function renderBodyParts(
           autolink: true
         })
         blockedRemoteContent += sanitized.blockedRemoteContent
+        declaresColors ||= sanitized.declaresColors
         return sanitized.html
       }
       if (part.type.startsWith('text/')) {
@@ -172,7 +188,7 @@ export function renderBodyParts(
       return ''
     })
     .join('')
-  return { html, blockedRemoteContent }
+  return { html, blockedRemoteContent, declaresColors }
 }
 
 /** What the server could not give of the body parts of an email */
@@ -218,8 +234,8 @@ export function joinHtmlValues(
 }
 
 export interface EmailDocumentOptions {
-  /** The theme does not reach the frame: from `useEmailTextColor` */
-  textColor: string
+  /** The theme does not reach the frame: from `useEmailDocumentColors` */
+  colors: EmailDocumentColors
   /** Lets the CSP load the remote images and fonts the content kept */
   allowRemoteContent?: boolean
   /** The focus indicator the user chose: the theme does not reach the frame */
@@ -237,7 +253,7 @@ function focusCss(focusIndicator: FocusIndicator): string {
 export function buildEmailDocument(
   sanitizedContent: string,
   {
-    textColor,
+    colors,
     allowRemoteContent = false,
     focusIndicator = 'discreet'
   }: EmailDocumentOptions
@@ -248,7 +264,7 @@ export function buildEmailDocument(
     `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(allowRemoteContent, fontUrl)}">`,
     '<meta name="referrer" content="no-referrer">',
     '<base target="_blank">',
-    `<style>${interFontFace(fontUrl)}${emailDocumentCss(textColor)}${focusCss(focusIndicator)}</style>`,
+    `<style>${interFontFace(fontUrl)}${emailDocumentCss(colors)}${focusCss(focusIndicator)}</style>`,
     `</head><body><div id="${EMAIL_CONTENT_ID}">${sanitizedContent}</div></body></html>`
   ].join('')
 }

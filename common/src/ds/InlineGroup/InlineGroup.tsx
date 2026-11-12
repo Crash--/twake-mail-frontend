@@ -10,6 +10,8 @@ export interface InlineGroupProps {
   gap?: number
   /** Lets the children go to the next line */
   isWrapping?: boolean
+  /** Space between the lines once they wrap, in theme spacing units */
+  rowGap?: number
   /** `baseline` aligns texts of different sizes */
   align?: 'center' | 'baseline' | 'flex-start'
   /** `h2`: a heading that looks like the text around it */
@@ -26,6 +28,7 @@ export function InlineGroup({
   children,
   gap = 1,
   isWrapping = true,
+  rowGap = 0,
   align = 'center',
   component = 'div',
   className,
@@ -45,6 +48,7 @@ export function InlineGroup({
         flexWrap: isWrapping ? 'wrap' : 'nowrap',
         alignItems: align,
         columnGap: gap,
+        rowGap,
         m: 0,
         ...(component === 'h2' ? { font: 'inherit' } : {})
       }}

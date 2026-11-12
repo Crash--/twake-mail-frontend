@@ -29,9 +29,10 @@ export function RecipientAvatar({
       data-letter={letter}
       sx={{
         flexShrink: 0,
-        // Library Twake chip "avatar left": 4 px from the edge and the name.
-        // Not through `MuiChip-avatar`, whose grey 12 px letter would win.
-        ml: '4px',
+        // 8 px from the edge, as far as the delete cross is drawn from the
+        // other one; 4 px from the name. Not through `MuiChip-avatar`, whose
+        // grey 12 px letter would win.
+        ml: '8px',
         mr: '-8px',
         '&::before': { content: 'attr(data-letter)' }
       }}

@@ -9,10 +9,7 @@ import {
   type RefObject
 } from 'react'
 
-import {
-  firstLetterOf,
-  GradientAvatar
-} from '@/ds/GradientAvatar/GradientAvatar'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { MessageThreadItem } from '@/ds/MessageThread/MessageThreadItem'
@@ -23,7 +20,7 @@ import { StatusDot } from '@/ds/StatusDot/StatusDot'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { AddressLine } from '@common/features/email/AddressLine'
 import {
-  addressDisplayName,
+  addressAvatar,
   formatAddressName
 } from '@common/features/email/addresses'
 import { BodyLoadErrorBanner } from '@common/features/email/BodyLoadErrorBanner'
@@ -78,23 +75,15 @@ function DetailAvatar({ detail }: { detail: EmailDetail }): ReactElement {
   )
 }
 
-/** As tmail-flutter: the first letter on the gradient of the address */
+/** The avatar of the sender, as in the list */
 function SenderAvatar({
   sender
 }: {
   sender: EmailAddress | null
 }): ReactElement {
-  const name = sender === null ? '' : addressDisplayName(sender)
-  const address = sender?.email ?? ''
   // tmail-flutter: 44 px on phones, 32 px elsewhere
   const isPhone = useScreenSize() === 'mobile'
-  return (
-    <GradientAvatar
-      text={firstLetterOf(name === '' ? address : name)}
-      colorKey={address}
-      size={isPhone ? 44 : 32}
-    />
-  )
+  return <GradientAvatar {...addressAvatar(sender)} size={isPhone ? 44 : 32} />
 }
 
 function ExpandedAvatar({

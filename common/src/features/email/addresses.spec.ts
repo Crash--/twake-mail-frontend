@@ -5,6 +5,7 @@ import {
 } from '@common/testing/redos'
 
 import {
+  addressAvatar,
   addressDisplayName,
   formatAddress,
   formatAddressName,
@@ -55,6 +56,31 @@ describe('addressDisplayName', () => {
 describe('formatAddressName', () => {
   it('shows the real address instead of a name holding another one', () => {
     expect(formatAddressName(SPOOFED)).toBe('x@evil.com')
+  })
+})
+
+describe('addressAvatar', () => {
+  it('shows two initials of the name, coloured from the address', () => {
+    expect(
+      addressAvatar({ name: 'Zoé Bellot', email: 'zoe@example.com' })
+    ).toEqual({ text: 'ZB', colorKey: 'zoe@example.com' })
+  })
+
+  it('takes two letters of the address without a name', () => {
+    expect(addressAvatar({ name: null, email: 'bob@example.com' })).toEqual({
+      text: 'BO',
+      colorKey: 'bob@example.com'
+    })
+  })
+
+  it('ignores a name holding another address', () => {
+    expect(
+      addressAvatar({ name: 'boss@bank.test', email: 'mallory@evil.test' })
+    ).toEqual({ text: 'MA', colorKey: 'mallory@evil.test' })
+  })
+
+  it('is empty without an address', () => {
+    expect(addressAvatar(null)).toEqual({ text: '', colorKey: '' })
   })
 })
 

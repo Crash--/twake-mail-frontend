@@ -1,5 +1,6 @@
 import type { EmailAddress } from 'jmap-client-ts'
 
+import { initialsOf } from '@/ds/RecipientField/initials'
 import {
   endOfRun,
   indexOfPattern,
@@ -49,6 +50,22 @@ export function addressDisplayName(address: EmailAddress): string {
 export function formatAddressName(address: EmailAddress): string {
   const name = addressDisplayName(address)
   return name === '' ? address.email : name
+}
+
+/**
+ * The avatar of an address, the same in the list, the reading view and its
+ * card: two initials of its name (of the address without one), the colour
+ * drawn from the address
+ */
+export function addressAvatar(address: EmailAddress | null): {
+  text: string
+  colorKey: string
+} {
+  if (address === null) return { text: '', colorKey: '' }
+  return {
+    text: initialsOf(formatAddressName(address)),
+    colorKey: address.email
+  }
 }
 
 /** `Name <address>`, or the bare address when it has no name */

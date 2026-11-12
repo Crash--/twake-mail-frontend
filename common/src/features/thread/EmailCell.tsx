@@ -19,10 +19,7 @@ import {
 import type { MouseEvent, ReactElement } from 'react'
 import { useHref, useNavigate } from 'react-router'
 
-import {
-  firstLetterOf,
-  GradientAvatar
-} from '@/ds/GradientAvatar/GradientAvatar'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { FAVORITE_COLOR, IconAction } from '@/ds/IconAction/IconAction'
 import {
   AttachmentIcon,
@@ -37,7 +34,6 @@ import {
   CompactRowAside
 } from '@/ds/CompactRowAside/CompactRowAside'
 import { CompactRowLines } from '@/ds/CompactRowLines/CompactRowLines'
-import { initialsOf } from '@/ds/RecipientField/initials'
 import { RowDate } from '@/ds/RowDate/RowDate'
 import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { RowHoverSpace } from '@/ds/RowHoverActions/RowHoverSpace'
@@ -56,7 +52,7 @@ import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
 import {
-  addressDisplayName,
+  addressAvatar,
   formatAddressNames
 } from '@common/features/email/addresses'
 import { isMarkedImportant } from '@common/features/email/importance'
@@ -267,17 +263,12 @@ export function EmailCell({
       ? names
       : t(showRecipients ? 'thread.row.noRecipient' : 'thread.row.noSender')
 
-  // Decorative: the name of the sender is the text next to it. The first
-  // letter of the name (two initials on a phone), coloured from the address
+  // Decorative: the name of the sender is the text next to it. The same
+  // avatar as in the reading view
   const avatarAddress = (showRecipients ? email.to : email.from)?.[0] ?? null
-  const avatarName =
-    avatarAddress === null ? '' : addressDisplayName(avatarAddress)
-  const avatarEmail = avatarAddress?.email ?? ''
-  const avatarText = avatarName === '' ? avatarEmail : avatarName
   const avatar = (
     <GradientAvatar
-      text={isPhone ? initialsOf(avatarText) : firstLetterOf(avatarText)}
-      colorKey={avatarEmail}
+      {...addressAvatar(avatarAddress)}
       size={column.id === 'select' ? COMPACT_AVATAR_SIZE : ROW_AVATAR_SIZE}
       data-testid="email-list-item-avatar"
     />

@@ -16,7 +16,6 @@ import {
   type ContactCardAction
 } from '@/ds/ContactCard/ContactCard'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
-import { initialsOf } from '@/ds/RecipientField/initials'
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -26,7 +25,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { writeAddressDrag } from './addressDrag'
-import { addressDisplayName } from './addresses'
+import { addressAvatar, addressDisplayName } from './addresses'
 import { contactLinks } from './contactLinks'
 
 export interface EmailAddressCardProps {
@@ -139,16 +138,12 @@ function AddressCardDialog({
     onClick: handleCompose,
     'data-testid': 'email-address-compose-item'
   })
-  const initials = initialsOf(name === '' ? address.email : name)
-
   return (
     <>
       <ContactCard
         open={isOpen}
         onClose={onClose}
-        avatar={
-          <GradientAvatar text={initials} colorKey={initials} size={67} />
-        }
+        avatar={<GradientAvatar {...addressAvatar(address)} size={67} />}
         name={name}
         address={address.email}
         copyLabel={t('email.address.copy')}

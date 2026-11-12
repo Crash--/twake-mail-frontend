@@ -93,6 +93,13 @@ const ICON_BOX_SX = {
   color: 'text.icon'
 } as const
 
+// TODO: resize once the common grid of twake-icons
+// (https://github.com/Crash--/twake-ui/pull/20, twake-icons 4.0.0) is merged
+// and published: this size compensates for the cropped viewBox of `Right`.
+// `Right` draws 9.8 x 16.7 px at 24: at 17.2 it is 12 px high, as the
+// Figma's keyboard_arrow_right (7.41 x 12 px)
+const CHEVRON_SIZE = 17.2
+
 const TEXT_SX = {
   display: 'flex',
   flexDirection: 'column',
@@ -231,7 +238,7 @@ export function SettingsTile({
           )}
         </Box>
         <Box component="span" sx={ICON_BOX_SX}>
-          <Icon icon={Right} size={24} aria-hidden="true" />
+          <Icon icon={Right} size={CHEVRON_SIZE} aria-hidden="true" />
         </Box>
       </ButtonBase>
     </Box>

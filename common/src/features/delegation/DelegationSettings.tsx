@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react'
 
 import { IconAction } from '@/ds/IconAction/IconAction'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   PeopleColumn,
   PeopleEmptyCard,
@@ -84,6 +85,7 @@ export function DelegationSettings({
   const { ownAccountId, session } = useJmapSession()
   const { notify } = useNotify()
   const tabsId = useId()
+  const isPhone = useScreenSize() === 'mobile'
   const [tab, setTab] = useState<DelegationTab>('delegates')
   const delegates = useQuery(delegatesQueryOptions(client, ownAccountId))
   const delegated = useQuery(
@@ -428,10 +430,12 @@ export function DelegationSettings({
   return (
     <SettingsSectionLayout section={section}>
       <PeopleColumn>
-        {/* Its tabs as wide as their labels, as the maquette */}
-        <Box className="u-flex u-mb-1">
+        {/* Its tabs as wide as their labels, as the maquette; on a phone
+            they share the width, so that each label stays on one line */}
+        <Box className={isPhone ? 'u-mb-1' : 'u-flex u-mb-1'}>
           <Tabs
             segmented
+            variant={isPhone ? 'fullWidth' : 'standard'}
             value={tab}
             onChange={(_, value: DelegationTab) => {
               setTab(value)

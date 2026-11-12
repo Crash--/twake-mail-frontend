@@ -31,13 +31,16 @@ describe('RowLine', () => {
     renderDs(
       <RowLine
         primary={<span data-testid="title">Subject</span>}
-        secondary="Preview"
+        secondary={<span data-testid="preview">Preview</span>}
         isStrong
         data-testid="line"
       />
     )
 
     expect(screen.getByTestId('title').parentElement).toHaveStyle({
+      fontWeight: '600'
+    })
+    expect(screen.getByTestId('preview').parentElement).toHaveStyle({
       fontWeight: '600'
     })
   })

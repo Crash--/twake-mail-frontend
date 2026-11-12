@@ -21,8 +21,8 @@ export interface RowLineProps {
   /** After the preview, never cut (where the email is found) */
   trailing?: ReactNode
   /**
-   * The row stands out (an unread email): the title is Semi Bold rather than
-   * Regular; the preview stays secondary
+   * The row stands out (an unread email): the title and the preview are
+   * Semi Bold in the primary text colour, rather than Regular and secondary
    */
   isStrong?: boolean
   'data-testid'?: string
@@ -68,8 +68,9 @@ export function RowLine({
           component="span"
           className="u-ellipsis"
           sx={{
-            ...rowTextSx(false),
-            color: ROW_MUTED_COLOR,
+            ...(isStrong
+              ? rowTextSx(true)
+              : { ...rowTextSx(false), color: ROW_MUTED_COLOR }),
             flex: '1 1 0',
             minWidth: 0,
             marginLeft: '12px'

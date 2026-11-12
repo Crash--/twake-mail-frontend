@@ -7,8 +7,16 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { useAuthService, useAuthState } from './AuthProvider'
 
+/**
+ * Why the login form shows: `session-missing` when a tab that did not sign
+ * out lands on a page of the app (a reload, a link, a new tab no other tab
+ * handed a session to). Never set after a sign-out.
+ */
+export type LoginReason = 'session-missing'
+
 export interface LoginRouteState {
   returnTo: string
+  reason?: LoginReason
 }
 
 export interface RequireAuthProps {
@@ -65,7 +73,10 @@ export function RequireAuth({
   if (mustLeaveAddress) return <Navigate to="/" replace />
 
   if (service.mode === 'basic') {
-    const loginState: LoginRouteState = { returnTo }
+    const isSessionMissing = state.signedOut !== true && returnTo !== '/'
+    const loginState: LoginRouteState = isSessionMissing
+      ? { returnTo, reason: 'session-missing' }
+      : { returnTo }
     return <Navigate to="/login" replace state={loginState} />
   }
 

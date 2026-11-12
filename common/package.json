@@ -35,7 +35,7 @@
     "@tiptap/starter-kit": "^3.31.4",
     "cozy-external-bridge": "1.3.0",
     "cozy-intent": "^2.29.1",
-    "cozy-interapp": "0.21.0",
+    "cozy-interapp": "0.24.1",
     "dompurify": "^3.4.17",
     "emojibase-data": "^18.0.0",
     "jmap-client-ts": "git+https://github.com/Crash--/jmap-client-ts.git#63e9e154222acd832287e7de3608521c91ea4416",

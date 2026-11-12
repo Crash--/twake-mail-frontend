@@ -1,4 +1,4 @@
-import type { IntentService } from 'cozy-interapp'
+import type { IntentServiceAPI } from 'cozy-interapp'
 import { useEffect, useRef, type ReactElement } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
@@ -83,7 +83,7 @@ export function IntentMessageScreen({
 }
 
 /** The client gets the error; called again, it is ignored */
-function failIntent(service: IntentService, error: Error): void {
+function failIntent(service: IntentServiceAPI, error: Error): void {
   try {
     service.throw(error)
   } catch {
@@ -92,7 +92,7 @@ function failIntent(service: IntentService, error: Error): void {
 }
 
 /** Cancels the intent; called again, it is ignored */
-function cancelIntent(service: IntentService): void {
+function cancelIntent(service: IntentServiceAPI): void {
   try {
     service.cancel()
   } catch {
@@ -101,7 +101,7 @@ function cancelIntent(service: IntentService): void {
 }
 
 interface RejectedIntentProps {
-  service: IntentService
+  service: IntentServiceAPI
   message: 'unsupported' | 'invalidData' | 'untrustedFrame'
   /** What the client gets; null: the intent is cancelled */
   error: string | null

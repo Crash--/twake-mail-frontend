@@ -1,4 +1,4 @@
-import { Intents, type IntentService } from 'cozy-interapp'
+import { Intents, type IntentServiceAPI } from 'cozy-interapp'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'
@@ -35,7 +35,7 @@ export const CLIENT_ANSWER_TIMEOUT_MS = 30_000
 
 export type IntentServiceState =
   | { status: 'loading' }
-  | { status: 'ready'; service: IntentService }
+  | { status: 'ready'; service: IntentServiceAPI }
   | { status: 'failed'; error: IntentServiceError }
 
 /** The ID token traded for a token of the stack, once more after a refresh */
@@ -128,7 +128,6 @@ export function useIntentService(intentId: string): IntentServiceState {
         fetch: makeIntentsFetch(cozyStackUrl, token.value)
       })
       try {
-        // The id given: cozy-interapp would read the first parameter only
         const intentService = await withTimeout(
           intents.createService(intentId, window),
           CLIENT_ANSWER_TIMEOUT_MS

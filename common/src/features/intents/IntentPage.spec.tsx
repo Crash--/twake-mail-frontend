@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { IntentService, IntentsFetch } from 'cozy-interapp'
+import type { FetchJSON, IntentServiceAPI } from 'cozy-interapp'
 
 import { resolveConfig, type AppConfig } from '@common/config/config'
 import { makeFakeOidcAuthService } from '@common/testing/makeFakeAuthService'
@@ -16,8 +16,8 @@ import { CLIENT_ANSWER_TIMEOUT_MS } from './useIntentService'
 const STACK = 'https://alice.twake.example.com'
 
 interface FakeIntents {
-  fetch: IntentsFetch | null
-  service: IntentService & {
+  fetch: FetchJSON | null
+  service: IntentServiceAPI & {
     terminate: jest.Mock
     cancel: jest.Mock
     throw: jest.Mock
@@ -44,27 +44,30 @@ function makeService(
 ): FakeIntents['service'] {
   return {
     getIntent: () => ({
+      id: 'intent-1',
       _id: 'intent-1',
       attributes: { action, type, client: CHAT, frameAncestors }
     }),
     getData: () => data,
+    onData: () => () => undefined,
     terminate: jest.fn(),
     cancel: jest.fn(),
     throw: jest.fn(),
+    compose: () => Promise.resolve(null),
+    resizeClient: () => undefined,
     notifyReadyToUse: jest.fn(),
     hideCross: jest.fn(),
-    showCross: jest.fn()
+    showCross: jest.fn(),
+    sendResult: () => undefined
   }
 }
 
 // The boundary: the protocol with the client app is cozy-interapp's
 jest.mock('cozy-interapp', () => ({
-  Intents: jest
-    .fn()
-    .mockImplementation(({ fetch }: { fetch: IntentsFetch }) => {
-      fake.fetch = fetch
-      return { createService: fake.createService }
-    })
+  Intents: jest.fn().mockImplementation(({ fetch }: { fetch: FetchJSON }) => {
+    fake.fetch = fetch
+    return { createService: fake.createService }
+  })
 }))
 
 // The saves are tested with the real delay in draftPolicy.spec.tsx

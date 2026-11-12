@@ -55,8 +55,8 @@ const fadeIn = (keyframes: string): string =>
 /**
  * The view transitions of a navigation run with `prepareViewTransition`:
  * - one view at a time below `slideBreakpoint` (900 px: phones, small
- *   tablets; 600 px under `WithoutTablets`): a swipe, the item coming in
- *   from the end while the list moves aside, the reverse when going back;
+ *   tablets; 600 px under `WithoutTablets`): the item shows at once, and
+ *   going back swipes it out to the end while the list comes back;
  * - otherwise (the item pane beside the list from 900 px, the item replacing
  *   the whole width on desktops): a lighter effect, the old view fading
  *   out, then the new one fading in with a short slide;
@@ -67,12 +67,6 @@ const fadeIn = (keyframes: string): string =>
  */
 function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
   return {
-    '@keyframes list-detail-out-start': {
-      to: { transform: 'translateX(-30%)', opacity: 0.6 }
-    },
-    '@keyframes list-detail-in-end': {
-      from: { transform: 'translateX(100%)' }
-    },
     '@keyframes list-detail-out-end': { to: { transform: 'translateX(100%)' } },
     '@keyframes list-detail-in-start': {
       from: { transform: 'translateX(-30%)', opacity: 0.6 }
@@ -104,12 +98,8 @@ function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
     // The pane leaving on top when going back
     [`${backward}::view-transition-old(${PANE_TRANSITION})`]: { zIndex: 1 },
     [`@media (max-width:${slideBreakpoint - 0.05}px)`]: {
-      [`${forward}::view-transition-old(${PANE_TRANSITION})`]: {
-        animation: slide('list-detail-out-start')
-      },
-      [`${forward}::view-transition-new(${PANE_TRANSITION})`]: {
-        animation: slide('list-detail-in-end')
-      },
+      [`${forward}::view-transition-old(${PANE_TRANSITION}), ${forward}::view-transition-new(${PANE_TRANSITION})`]:
+        { animation: 'none' },
       [`${backward}::view-transition-old(${PANE_TRANSITION})`]: {
         animation: slide('list-detail-out-end')
       },

@@ -415,14 +415,13 @@ function sanitizeRules(
   let blockedRemoteContent = 0
   for (const { prelude, body } of blocks) {
     const selector = prelude.trim()
-    if (selector === '' || /[<{}]/.test(selector)) continue
+    // A CSS escape (`\3c`) is read back as a raw `<` by whoever parses the
+    // sheet and serializes it again (CSSOM): it never survives
+    if (selector === '' || /[<{}\\]/.test(selector)) continue
     // A string, a comment or a url( the browser reads differently from
     // readBlocks could swallow the `{` of the rule and let its `}` close the
     // @scope
-    if (
-      options.scope !== undefined &&
-      /["'\\]|\/\*|\*\/|url\(/i.test(selector)
-    ) {
+    if (options.scope !== undefined && /["']|\/\*|\*\/|url\(/i.test(selector)) {
       continue
     }
     if (/^@media\b/i.test(selector)) {

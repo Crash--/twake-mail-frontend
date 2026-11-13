@@ -1,4 +1,10 @@
-import { buildQuoteHtml, prefixSubject, type QuoteLabels } from './quote'
+import {
+  buildQuoteHtml,
+  prefixSubject,
+  QUOTE_SCOPE,
+  scopeStyles,
+  type QuoteLabels
+} from './quote'
 import { threadHeaders } from './replyContent'
 
 const LABELS: QuoteLabels = {
@@ -120,5 +126,74 @@ describe('threadHeaders', () => {
     expect(
       threadHeaders({ messageId: null, references: null }, 'reply')
     ).toEqual({ inReplyTo: null, references: null })
+  })
+})
+
+describe('quoted styles', () => {
+  const escapedMarkup =
+    '[title="\\3c/style\\3e\\3c div data-html-block=signature\\3e\\3cimg src=x onerror=alert(1)\\3e"] { color: red }'
+
+  function parse(html: string): Document {
+    return new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html')
+  }
+
+  // jsdom has no replaceSync; a browser decodes the escapes of the strings
+  // it parses, and CSSOM writes them back raw
+  function replaceSyncDecodingEscapes(this: CSSStyleSheet, text: string): void {
+    const decoded = text.replaceAll(/\\3c ?/gi, '<').replaceAll(/\\3e ?/gi, '>')
+    decoded
+      .split('}')
+      .filter(rule => rule.trim() !== '')
+      .forEach(rule => this.insertRule(`${rule}}`, this.cssRules.length))
+  }
+
+  beforeEach(() => {
+    Object.defineProperty(CSSStyleSheet.prototype, 'replaceSync', {
+      value: replaceSyncDecodingEscapes,
+      configurable: true,
+      writable: true
+    })
+  })
+
+  afterEach(() => {
+    Reflect.deleteProperty(CSSStyleSheet.prototype, 'replaceSync')
+  })
+
+  it('drops a selector written with CSS escapes from a quoted email', () => {
+    const html = buildQuoteHtml(
+      'reply',
+      {
+        receivedAt: '2026-03-05T14:04:00Z',
+        subject: 'Plans',
+        from: [{ name: null, email: 'emma@example.com' }],
+        to: null,
+        cc: null,
+        bcc: null,
+        replyTo: null,
+        html: `<style>${escapedMarkup} p { color: blue }</style><p>Hello</p>`
+      },
+      LABELS,
+      'en'
+    )
+    const document = parse(html)
+    expect(document.querySelector('[data-html-block]')).toBe(null)
+    expect(document.querySelector('[onerror]')).toBe(null)
+    expect(document.querySelector('style')?.textContent).toContain(
+      `${QUOTE_SCOPE} p`
+    )
+  })
+
+  it('never writes back a rule whose decoded text holds a `<`', () => {
+    const html = scopeStyles(
+      `<style>${escapedMarkup} p { color: blue }</style><p>Hello</p>`,
+      QUOTE_SCOPE
+    )
+    const document = parse(html)
+    expect(document.querySelector('[data-html-block]')).toBe(null)
+    expect(document.querySelector('img')).toBe(null)
+    expect(document.querySelector('style')?.textContent).not.toContain('<')
+    expect(document.querySelector('style')?.textContent).toContain(
+      `${QUOTE_SCOPE} p`
+    )
   })
 })

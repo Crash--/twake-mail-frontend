@@ -851,6 +851,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-08` With many folders and labels, at 1440x789 and 1280x650, the scrolling part of the sidebar ends above the footer (no overlap) and the footer stays inside the sidebar. — web app (sidebar D4)
   - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-09` On a phone the title row of a section ("Folders") is 26 px high as on a desktop: the 44 px touch targets of its actions spill over its margins, and the last row of the target of the "+" of Labels is its own; "Folders" and "Labels" are both 12 px above their first row (Figma Teammail 1.1). Tablets (44 px title rows) and desktops keep 16 px under "Folders" and 8 under "Labels". — web app (Swann, phone drawer)
+  - Spec: `tests/sidebar.spec.ts`.
 - [x] `SRCH-16` Given an invitation ("event" keyword) and a plain email matching "report", the "Don't include events" chip above the results leaves the invitation out (`aria-pressed`), and the "From" chip adds a sender nobody has: the chip "From: nobody@x.org" shows, the empty view follows, and removing it brings the email back. axe on the results. — web app (search design D2)
   - Spec: `tests/search.spec.ts`.
 - [x] `SRCH-17` At 1440 px every chip of the filters above the results, "Clear filter" included, shares one line (nothing wraps; the row may scroll, the main pane of the platform bar layout leaving it a little short), and the order of the results is a "Relevance" button of the list toolbar (`aria-haspopup="menu"`, menu of orders) rather than a chip: picking "Oldest" shows it on the button. axe on the results. — web app (search design D2)

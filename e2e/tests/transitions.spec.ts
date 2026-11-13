@@ -81,6 +81,44 @@ test.describe('EML opening an email with a view transition', () => {
     }
   )
 
+  test(
+    'EML-32b on a phone or a small tablet, closing an email slides it down over the list, which stays still',
+    { tag: '@touch-only' },
+    async ({ page, user, jmap }) => {
+      const inbox = await jmap.findMailboxByRole('inbox')
+      await jmap.createEmailIn(inbox.id, { subject: 'Slide down' })
+      const mailbox = await new LoginPage(page).loginAs(user)
+      test.skip(
+        !(await hasViewTransitionApi(page)),
+        'a browser without the View Transitions API: EML-33'
+      )
+      const email = await mailbox.openEmail('Slide down')
+      await expect(email.subject).toBeFocused()
+
+      // Slowed down, the slide is still running when it is read
+      const cdp = await page.context().newCDPSession(page)
+      await cdp.send('Animation.enable')
+      await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.05 })
+      await email.backButton.click()
+      const paneAnimations = (): Promise<string[]> =>
+        page.evaluate(() =>
+          document
+            .getAnimations()
+            .filter(animation => animation instanceof CSSAnimation)
+            .map(animation => {
+              const effect = animation.effect as KeyframeEffect
+              return `${effect.pseudoElement ?? ''} ${animation.animationName}`
+            })
+            .filter(name => name.includes('(list-detail-pane)'))
+        )
+      // Only the email moves: neither the list nor its group (which would
+      // carry the list from the rectangle of the email to its own)
+      await expect
+        .poll(paneAnimations)
+        .toEqual(['::view-transition-old(list-detail-pane) list-detail-out-down'])
+    }
+  )
+
   test.describe('with reduced motion', () => {
     test.use({ reducedMotion: 'reduce' })
 

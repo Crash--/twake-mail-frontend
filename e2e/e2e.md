@@ -1032,6 +1032,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-111` From the More menu of a reply with folded recipients, Reply to unfolds them and takes the focus, and leaves the menu. — web app only, no Patrol test
   - Spec: `tests/composer-reply.spec.ts`.
+- [x] `CMP-112` A double click (a double tap on phones and tablets) on "New message" opens one composer; on a desktop, full screen, no other window stays docked under it (issue #1003). — web app only, no Patrol test
+  - Spec: `tests/composer.spec.ts`.
 - [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
 - [x] `DLG-01` Settings → Delegation opens on "My delegates", empty ("No one has access yet", axe); "+ Add" opens "Delegate access", "Add" disabled; a contact of the domain picked by its name (the suggestions whole, below the field, not cut by the dialog) becomes a chip (axe), "Add", in one step, says "<name> has been added", lists the delegate, and the account is in the JMAP session of the delegate. — tmail-flutter#4977

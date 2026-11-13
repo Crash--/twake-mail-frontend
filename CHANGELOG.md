@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-13
+
+No setting changed since 0.11.1.
+
+### Added
+
+- The create dialog of a label starts with a colour drawn at random among the
+  ones no label has yet.
+
+### Changed
+
+- The card of a recipient tag in the composer is the contact card of the
+  reading view: twake-mui's dialog on tablets and desktops, its bottom sheet on
+  phones.
+- The colour button of a label without colour shows a palette.
+- The unticked checkbox of a list row is drawn in the hint grey.
+- On a phone, the drawer keeps the spacing of the desktop around "Folders" and
+  "Labels", and both titles sit 12 px above their first row.
+
+### Fixed
+
+- An email leaves the Starred view once it is unstarred.
+- On a phone, a closing email slides down over the list.
+- A double click on New message opens one composer.
+
+### Security
+
+- A quoted style rebuilt for a reply or a forward can no longer carry escaped
+  markup into the composer.
+
 ## [0.11.1] - 2026-11-12
 
 No setting changed since 0.11.0.

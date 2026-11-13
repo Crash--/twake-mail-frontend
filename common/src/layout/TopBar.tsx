@@ -26,6 +26,7 @@ import { useSelectionBarSlotRef } from '@common/features/thread/ListFilterProvid
 import { usePlatformStatus } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { AssistantButton } from './AssistantButton'
 import { MailSearchBar } from './MailSearchBar'
 import { SettingsButton } from './SettingsButton'
 
@@ -120,8 +121,12 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
       }
       actions={
         // The search field filters and the settings have the support: no
-        // button doubles them
-        hasSettingsButton ? <SettingsButton /> : null
+        // button doubles them. The assistant opens over the mail on a phone
+        // too, though the phone bar of the design has no button
+        <>
+          {isPlatformActive ? <AssistantButton /> : null}
+          {hasSettingsButton ? <SettingsButton /> : null}
+        </>
       }
       menu={{
         label: t('topbar.showFolders'),

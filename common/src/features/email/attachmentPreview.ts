@@ -116,17 +116,19 @@ export function previewKind(part: PreviewablePart): PreviewKind | null {
   return null
 }
 
-const IMAGE_TYPES: Readonly<Record<string, string>> = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  gif: 'image/gif',
-  bmp: 'image/bmp',
-  svg: 'image/svg+xml',
-  webp: 'image/webp',
-  avif: 'image/avif'
-}
-const SAFE_IMAGE_TYPES = new Set(Object.values(IMAGE_TYPES))
+// A Map, not an object literal: the extension comes from the sender, and a
+// name like `photo.constructor` must not find an `Object.prototype` member
+const IMAGE_TYPES: ReadonlyMap<string, string> = new Map([
+  ['jpg', 'image/jpeg'],
+  ['jpeg', 'image/jpeg'],
+  ['png', 'image/png'],
+  ['gif', 'image/gif'],
+  ['bmp', 'image/bmp'],
+  ['svg', 'image/svg+xml'],
+  ['webp', 'image/webp'],
+  ['avif', 'image/avif']
+])
+const SAFE_IMAGE_TYPES: ReadonlySet<string> = new Set(IMAGE_TYPES.values())
 
 /**
  * The type given to the blob of an image preview: never the one the sender
@@ -139,7 +141,8 @@ export function imageBlobType(part: PreviewablePart): string {
   if (SAFE_IMAGE_TYPES.has(declared)) return declared
   const extension = extensionOf(part.name)
   return (
-    (extension !== null ? IMAGE_TYPES[extension] : undefined) ?? OCTET_STREAM
+    (extension !== null ? IMAGE_TYPES.get(extension) : undefined) ??
+    OCTET_STREAM
   )
 }
 

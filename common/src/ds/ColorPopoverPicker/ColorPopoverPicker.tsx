@@ -217,7 +217,7 @@ export function ColorPopoverPicker({
           data-testid={testId}
         >
           {value === null ? (
-            <NoneMark />
+            <Icon icon={Palette} aria-hidden="true" />
           ) : (
             <Box
               component="span"

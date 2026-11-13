@@ -35,6 +35,13 @@ export default defineConfig({
   source: {
     entry: {
       index: './src/index.tsx'
+    },
+    // The build of this bundle, also in /version.json (Dockerfile): a tab
+    // that reads another one there offers a reload
+    define: {
+      'process.env.BUILD_VERSION': JSON.stringify(
+        process.env.BUILD_VERSION ?? 'dev'
+      )
     }
   },
   output: {

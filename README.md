@@ -74,6 +74,8 @@ The configuration is read at runtime, so one image serves every deployment:
   `common/src/config/config.ts`. An invalid configuration shows an explicit
   screen listing the problems.
 - `version.js`: the released version, written by the Docker build.
+- `version.json`: the build served, written by the Docker build too. A tab
+  whose bundle names another build offers a reload.
 
 None of them is cached by nginx.
 

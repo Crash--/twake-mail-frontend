@@ -214,6 +214,25 @@ test.describe('CMP composer', () => {
     ).toBeVisible()
   })
 
+  test(
+    'CMP-112 a double click or a double tap on "New message" opens one composer, which goes full screen alone',
+    { tag: '@mobile' },
+    async ({ page, user }, testInfo) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+
+      await mailbox.composeButton.dblclick()
+      const composer = new ComposerPage(page)
+      await expect(composer.root).toBeVisible()
+      await expect(page.getByTestId('composer')).toHaveCount(1)
+      // Phones and tablets open it full screen, without the button
+      if (testInfo.project.name === 'chromium') {
+        await composer.fullscreenButton.click()
+        await composer.expectMode('fullscreen')
+        await expect(page.getByTestId('composer')).toHaveCount(1)
+      }
+    }
+  )
+
   test('CMP-49 composers the screen has no room for stay reachable from a menu', async ({
     page,
     user

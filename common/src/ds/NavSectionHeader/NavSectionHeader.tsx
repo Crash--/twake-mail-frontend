@@ -7,6 +7,13 @@ import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
+
+/** twake-mui's `xsmall` icon button, the size of the actions off touch */
+const ACTION_SIZE = 26
+const PHONE_MEDIA = `@media ${SCREEN_QUERIES.mobile}`
+
 export interface NavSectionToggle {
   isExpanded: boolean
   onToggle: () => void
@@ -37,7 +44,8 @@ const TITLE_SX = {
 /**
  * The title of a section of a sidebar ("Folders", "Labels"), a heading in the
  * caption variant, in secondary text, outside the list it titles, and its actions, 24 px high
- * with 24 px above (what comes under it sets its own gap). With `toggle`,
+ * with 24 px above (what comes under it sets its own gap, 12 px on phones
+ * as in the Figma). With `toggle`,
  * the title is a button holding the arrow of the section, in a 24 px box
  * right after the text, that expands and collapses it.
  */
@@ -53,7 +61,23 @@ export function NavSectionHeader({
       className="u-flex u-flex-items-center"
       // The actions are 26 px boxes around 16 px glyphs: their glyphs end
       // 17 px before the edge
-      sx={{ minHeight: 24, mt: '24px', pl: 2, pr: '12px' }}
+      sx={{
+        minHeight: 24,
+        mt: '24px',
+        pl: 2,
+        pr: '12px',
+        // Phones: the 44 px touch targets of the actions spill over the
+        // margins, above the next row, instead of growing the title row
+        [PHONE_MEDIA]: {
+          '& .MuiIconButton-root': {
+            my: `${(ACTION_SIZE - TOUCH_TARGET_SIZE) / 2}px`,
+            position: 'relative',
+            zIndex: 1
+          },
+          // Over the twake-css padding the list sets for larger screens
+          '& + *': { paddingTop: '12px !important' }
+        }
+      }}
     >
       <Typography
         id={titleId}

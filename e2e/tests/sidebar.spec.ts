@@ -238,6 +238,66 @@ test.describe('SBR sidebar rows and compose button', () => {
     await expect(field).toHaveCSS('height', '40px')
   })
 
+  test(
+    'SBR-09 on a phone the title of a section is as high as on a desktop and 12 px above its first row, its actions keep their touch size; tablets and desktops keep their spacing',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }, testInfo) => {
+      await jmap.createMailbox({ name: 'Projects' })
+      await jmap.createLabel('Design', '#21B930')
+      const mailbox = await new LoginPage(page).loginAs(user)
+      await mailbox.showFolders()
+      const isPhone = testInfo.project.name === 'mobile'
+      const isDesktop = testInfo.project.name === 'chromium'
+
+      const title = page.getByTestId('mailbox-tree-title').locator('xpath=..')
+      const titleBox = await title.boundingBox()
+      const addBox = await mailbox.addFolderButton.boundingBox()
+      // A tablet grows the row to the 44 px of its touch targets
+      expect(titleBox?.height).toBe(isPhone || isDesktop ? 26 : 44)
+      expect(addBox?.height).toBe(isDesktop ? 26 : 44)
+
+      // Phones: the same 12 px under both titles (Figma); else 16 and 8
+      await expect(page.getByTestId('labels-section')).toContainText('Design')
+      const gaps = await page.evaluate(() => {
+        const visible = (selector: string): Element | undefined =>
+          Array.from(document.querySelectorAll(selector)).find(
+            element => element.getClientRects().length > 0
+          )
+        const gap = (title: string, row: string): number =>
+          (visible(row)?.getBoundingClientRect().top ?? 0) -
+          (visible(title)?.parentElement?.getBoundingClientRect().bottom ?? 0)
+        return [
+          gap(
+            '[data-testid="mailbox-tree-title"]',
+            '[data-testid="personal-folders-section-toggle"]'
+          ),
+          gap(
+            '[data-testid="labels-section"] h2',
+            '[data-testid="label-item"]'
+          )
+        ]
+      })
+      expect(gaps).toEqual(isPhone ? [12, 12] : [16, 8])
+
+      // The last row of the target of "+" stays its own, over the label row
+      const addLabel = page.getByTestId('add-new-label-button')
+      await expect(page.getByTestId('labels-section')).toContainText('Design')
+      // Polled: the drawer may still be sliding in
+      await expect
+        .poll(() =>
+          addLabel.evaluate(button => {
+            const box = button.getBoundingClientRect()
+            const hit = document.elementFromPoint(
+              box.left + box.width / 2,
+              box.bottom - 0.5
+            )
+            return button.contains(hit)
+          })
+        )
+        .toBe(true)
+    }
+  )
+
   for (const size of [
     { width: 1440, height: 789 },
     { width: 1280, height: 650 }

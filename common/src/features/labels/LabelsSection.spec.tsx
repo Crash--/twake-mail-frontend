@@ -118,6 +118,32 @@ describe('LabelsSection', () => {
     expect(await screen.findByRole('link', { name: 'Travel' })).toBeVisible()
   })
 
+  it('creates a label with a colour drawn among the free ones', async () => {
+    // The first swatch, navy blue, is taken by Work: the draw starts after it
+    jest.spyOn(Math, 'random').mockReturnValue(0)
+    const fake = setup()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'New label' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Create a new label' })
+    expect(
+      within(dialog).getByRole('button', { name: 'Label color: Purple' })
+    ).toBeVisible()
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Label name' }),
+      'Travel'
+    )
+    await userEvent.click(within(dialog).getByTestId('label-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You successfully created the Travel label'
+    )
+    expect(fake.labels()).toContainEqual(
+      expect.objectContaining({ displayName: 'Travel', color: '#7E57E3' })
+    )
+  })
+
   it('creates a label with a custom colour, refusing an invalid one', async () => {
     const fake = setup()
 

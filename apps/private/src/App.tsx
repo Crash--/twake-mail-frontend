@@ -4,6 +4,9 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter, createRoutesFromElements } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
+import { NewVersionDialog } from '@linagora/twake-react-new-version'
+
+import { failedChunk } from '@common/app/failedChunk'
 import { reportRenderError } from '@common/app/sentry'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import type { AppConfig } from '@common/config/config'
@@ -24,7 +27,7 @@ import {
 
 // Its own chunk: the webmail does not load the intents page
 const IntentsApp = lazy(async () => {
-  const module = await import('./IntentsApp')
+  const module = await import('./IntentsApp').catch(failedChunk)
   return { default: module.IntentsApp }
 })
 
@@ -69,6 +72,10 @@ export function App({ config, embed, intents = null }: AppProps): ReactElement {
             createClient={createClient}
             sessionUrl={config.jmapSessionUrl}
           >
+            <NewVersionDialog
+              running={process.env.BUILD_VERSION ?? 'dev'}
+              appName="Twake Mail"
+            />
             {intents !== null ? (
               <Suspense fallback={<FullPageLoader />}>
                 <IntentsApp page={intents} />

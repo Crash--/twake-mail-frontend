@@ -23,6 +23,7 @@ import {
   FilePreviewDialog,
   FilePreviewSurface
 } from '@/ds/FilePreviewDialog/FilePreviewDialog'
+import { failedChunk } from '@common/app/failedChunk'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { parseMailto } from '@common/features/composer/mailto'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -48,7 +49,7 @@ import { useEmailTextColor } from './useEmailTextColor'
 
 // pdf.js and its worker load with the first PDF only
 const PdfPreview = lazy(async () => {
-  const module = await import('./PdfPreview')
+  const module = await import('./PdfPreview').catch(failedChunk)
   return { default: module.PdfPreview }
 })
 

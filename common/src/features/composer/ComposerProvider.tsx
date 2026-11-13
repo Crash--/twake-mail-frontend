@@ -29,6 +29,7 @@ import {
   type WindowOverflowItem
 } from '@/ds/DockedWindow/WindowOverflowMenu'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { failedChunk } from '@common/app/failedChunk'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   useSuspendShortcuts,
@@ -70,7 +71,7 @@ let loadedComposerForm: typeof ComposerFormType | null = null
 const loadComposerForm = async (): Promise<{
   default: typeof ComposerFormType
 }> => {
-  const module = await import('./ComposerForm')
+  const module = await import('./ComposerForm').catch(failedChunk)
   loadedComposerForm = module.ComposerForm
   return { default: module.ComposerForm }
 }

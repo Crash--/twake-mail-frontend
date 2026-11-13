@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish:
-    uses: linagora/twake-workflows/.github/workflows/publish-manifest.yml@v1
+    uses: linagora/twake-workflows/.github/workflows/publish-manifest.yml@7326a5a8138df3df8548f0b0500ffc12b113788b # v1.6.0
     secrets:
       REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
       DOWNCLOUD_SSH_KEY: ${{ secrets.DOWNCLOUD_SSH_KEY }}

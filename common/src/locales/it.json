@@ -133,8 +133,7 @@
       "invite": "Invita a un evento",
       "chat": "Chat",
       "copy": "Copia l'indirizzo e-mail",
-      "copied": "Indirizzo email copiato",
-      "close": "Chiudi"
+      "copied": "Indirizzo email copiato"
     },
     "actionRequired": "Azione richiesta",
     "removeActionRequired": "Rimuovi l'etichetta Azione richiesta",

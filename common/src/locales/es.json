@@ -133,8 +133,7 @@
       "invite": "Invitar a un evento",
       "chat": "Chat",
       "copy": "Copiar dirección de correo electrónico",
-      "copied": "Dirección de correo copiada",
-      "close": "Cerrar"
+      "copied": "Dirección de correo copiada"
     },
     "actionRequired": "Acción requerida",
     "removeActionRequired": "Quitar la etiqueta Acción requerida",

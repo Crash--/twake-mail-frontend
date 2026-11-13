@@ -5,10 +5,6 @@ import { Icon, type IconProps, Bottom } from '@linagora/twake-icons'
 import { Box, Button, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 
-// TODO: remove once the common grid of twake-icons
-// (https://github.com/Crash--/twake-ui/pull/20, twake-icons 4.0.0) is merged
-// and published: `Bottom` will then carry its own margin, and only its size
-// will be left to set here.
 const CHEVRON_BOX_SX = { width: 16, height: 16 } as const
 // `Bottom` draws 10 x 6.2 px at 16: at 12.8 it is the Figma's
 // keyboard_arrow_down, 8 x 4.94 px, 4 px from the sides of its 16 px box

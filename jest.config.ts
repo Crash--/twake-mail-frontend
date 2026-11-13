@@ -14,6 +14,7 @@ const ESM_PACKAGES = [
   '@linagora/twake-embed',
   '@linagora/twake-feedback',
   '@linagora/twake-oidc',
+  '@linagora/twake-react-new-version',
   'openid-client',
   'oauth4webapi',
   'jose',

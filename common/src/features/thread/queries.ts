@@ -141,7 +141,7 @@ export interface SearchRequest {
   mailboxId?: string
   /**
    * The list is narrowed by a filter of the toolbar (unread, starred,
-   * attachments), or is a label view: an email that stops matching it
+   * attachments), or is a label or the Starred view: an email that stops matching it
    * leaves the list, as tmail-flutter's client-side `filterEmail`. Search
    * results keep it
    */

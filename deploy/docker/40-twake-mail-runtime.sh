@@ -316,6 +316,16 @@ esac
 
 frame_src=${CSP_FRAME_SRC:-}
 frame_ancestors=${CSP_FRAME_ANCESTORS:-"'self'"}
+# The TwakeSpace of TWAKE_SPACE_URL frames the team mailboxes: its origin is
+# allowed, once
+space_origin=$(origin_of "$(env_js_value TWAKE_SPACE_URL)")
+if [ -n "$space_origin" ]; then
+  case " $frame_ancestors " in
+    *" $space_origin "*) ;;
+    *) frame_ancestors="$frame_ancestors $space_origin" ;;
+  esac
+  log "TwakeSpace origin $space_origin added to frame-ancestors"
+fi
 # COZY_INTEGRATION / WORKPLACE_EMBEDDING: the app is framed by Twake Workplace,
 # at an address this image cannot guess (one per user)
 if [ -z "${CSP_FRAME_ANCESTORS:-}" ]; then

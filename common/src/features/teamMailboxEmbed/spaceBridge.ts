@@ -56,15 +56,25 @@ function isTeamMailboxId(id: string): boolean {
 
 /**
  * The bridge to TwakeSpace (the contract of `@linagora/twake-embed`), null
- * outside a frame. The facade does not know where TwakeSpace is: it posts
- * nothing until TwakeSpace greets the frame, then talks to the origin of that
- * greeting only. `frame-ancestors` says who may frame the facade.
+ * outside a frame or without a TwakeSpace listed. `hosts` is the TwakeSpace
+ * of the deployment (`TWAKE_SPACE_URL`, as URLs or origins): the facade posts
+ * nothing until it greets the frame, and talks to no other page.
+ * `frame-ancestors` says who may frame the facade at all.
  */
 export function connectToSpace(
-  _target: TeamMailboxEmbedTarget
+  _target: TeamMailboxEmbedTarget,
+  hosts: readonly string[]
 ): SpaceBridge | null {
+  const hostOrigins = hosts.flatMap(host => {
+    try {
+      return [new URL(host).origin]
+    } catch {
+      return []
+    }
+  })
   const connection = connectToTwakeSpace({
     embedPrefix: TEAM_MAILBOX_EMBED_PREFIX,
+    hostOrigins,
     isResourceId: isTeamMailboxId
   })
   if (connection === null) return null

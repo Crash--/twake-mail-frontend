@@ -60,6 +60,8 @@ declare global {
     COZY_INTEGRATION?: boolean | string
     /** The Twake Drive picker of the composer (as Twake Calendar) */
     TDRIVE_ENABLED?: boolean | string
+    /** TwakeSpace, the one page the team mailbox facade talks to (its origin) */
+    TWAKE_SPACE_URL?: string
 
     APP_VERSION?: string
   }

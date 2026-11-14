@@ -3,7 +3,7 @@ import type { Frame, Page } from '@playwright/test'
 import { ComposerPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
-import { SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
+import { nameSpaceHost, SPACE_GREETING_SCRIPT } from '../support/spaceGreeting'
 import type { E2ETeamMailbox, E2EUser } from '../support/users'
 import type { WebAdminClient } from '../support/webadmin'
 
@@ -60,6 +60,7 @@ test.describe('TMB team mailbox facade', () => {
       route.fulfill({ contentType: 'text/html', body: spaceHostHtml(path) })
     )
 
+    await nameSpaceHost(page)
     await page.goto(SPACE_HOST)
     const frame = page.frameLocator('iframe')
     const scope = page
@@ -108,6 +109,7 @@ test.describe('TMB team mailbox facade', () => {
     // A large tablet in the webmail: the list beside the reading pane
     await page.setViewportSize({ width: 1000, height: 800 })
 
+    await nameSpaceHost(page)
     await page.goto(SPACE_HOST)
     const frame = page.frameLocator('iframe')
     const scope = page

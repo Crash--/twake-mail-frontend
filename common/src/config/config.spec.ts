@@ -65,6 +65,7 @@ describe('resolveConfig', () => {
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveEnabled: false,
+        twakeSpaceUrl: null,
         appVersion: 'dev'
       })
     })
@@ -88,6 +89,18 @@ describe('resolveConfig', () => {
     expect(
       resolveConfig({ ...FLUTTER_ENV_FILE, ALLOWED_LANGUAGES: '' }, ORIGIN)
     ).toMatchObject({ value: { allowedLanguages: SUPPORTED_LANGUAGES } })
+  })
+
+  it('reads the TwakeSpace of TWAKE_SPACE_URL', () => {
+    expect(
+      resolveConfig(
+        { ...OIDC_SOURCE, TWAKE_SPACE_URL: 'https://space.example.com/' },
+        ORIGIN
+      )
+    ).toMatchObject({ value: { twakeSpaceUrl: 'https://space.example.com/' } })
+    expect(resolveConfig(OIDC_SOURCE, ORIGIN)).toMatchObject({
+      value: { twakeSpaceUrl: null }
+    })
   })
 
   it('turns the Drive picker on with TDRIVE_ENABLED', () => {

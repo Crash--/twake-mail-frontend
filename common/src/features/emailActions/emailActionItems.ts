@@ -1,5 +1,4 @@
 import {
-  type IconProps,
   Archive,
   Download,
   Email,
@@ -31,6 +30,7 @@ import { NotSpam } from '@/ds/FlutterIcons/FlutterIcons'
 import { EditOutlineIcon } from '@/ds/ListIcons/ListIcons'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import type { TranslationKey } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import type { TargetEmail } from './planEmailChanges'
 import { mayOnEmails, rightForItem } from './emailRights'

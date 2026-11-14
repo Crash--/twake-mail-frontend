@@ -3,9 +3,11 @@
 // initials, the name in 16 px black and the address in 13 px grey, what is
 // typed in bold; one already among the recipients sits in a grey rounded
 // box with a blue tick.
-import { Icon, CheckCircle } from '@linagora/twake-icons'
+import { CheckCircle } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 import { initialsOf, splitMatches } from './initials'
 

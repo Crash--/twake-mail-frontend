@@ -1,4 +1,4 @@
-import { Icon, Plus } from '@linagora/twake-icons'
+import { Plus } from '@linagora/twake-icons'
 import { Alert, Button, RadioGroup } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type ChangeEvent, type ReactElement } from 'react'
@@ -16,6 +16,7 @@ import {
   focusTargetsAround,
   keepFocusInPage
 } from '@common/utils/keepFocusInPage'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { defaultIdentityId, publicAssetIdsIn } from './identityForm'
 import { IdentityFormDialog } from './IdentityFormDialog'

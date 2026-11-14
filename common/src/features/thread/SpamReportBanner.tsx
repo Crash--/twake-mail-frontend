@@ -1,4 +1,4 @@
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import { Alert, Button, IconButton } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
@@ -12,6 +12,7 @@ import {
   useSpamReportPreference
 } from '@common/features/settings/spamReportPreference'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface SpamReportBannerProps {
   /** The folder the list shows, null from search results */

@@ -9,7 +9,7 @@ import {
   type ReactNode
 } from 'react'
 
-import { FolderOutlined, type IconProps } from '@linagora/twake-icons'
+import { FolderOutlined } from '@linagora/twake-icons'
 
 import {
   FolderPicker,
@@ -20,6 +20,7 @@ import { validateFolderName } from '@common/features/mailboxActions/folderName'
 import { MailboxNameDialog } from '@common/features/mailboxActions/MailboxNameDialog'
 import { useCreateFolder } from '@common/features/mailboxActions/useCreateFolder'
 import { useI18n } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import { getMailboxIcon } from './mailboxDisplay'
 import {

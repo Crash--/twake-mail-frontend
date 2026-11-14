@@ -5,7 +5,7 @@
 // a 56 px row (a 32 px avatar, the name, the address under it), the one
 // shown on the selected tint with a tick at its end. While another mailbox than
 // the user's is shown, a cross beside the pill goes back to theirs.
-import { Icon, Check, CrossSmall, Dropdown } from '@linagora/twake-icons'
+import { Check, CrossSmall, Dropdown } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -23,6 +23,7 @@ import {
   firstLetterOf,
   GradientAvatar
 } from '@/ds/GradientAvatar/GradientAvatar'
+import { Icon } from '@/ds/Icon/Icon'
 
 const PILL_SX = {
   display: 'inline-flex',

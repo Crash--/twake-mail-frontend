@@ -4,7 +4,7 @@
 // pausing on focus, and has no notion of a polite message. A notification
 // region with both live regions always mounted, pause on hover and focus,
 // and an action button would serve every Twake app.
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -28,6 +28,8 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 /** `error` is announced at once (`role="alert"`), the others politely */
 export type ToastSeverity = 'info' | 'success' | 'error'

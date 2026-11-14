@@ -1,4 +1,4 @@
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
 import type { IntentServiceAPI } from 'cozy-interapp'
 import {
@@ -21,6 +21,7 @@ import {
 import type { MailtoFields } from '@common/features/composer/mailto'
 import { PlatformProvider } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import type { ComposeIntentResult } from './composeIntent'
 

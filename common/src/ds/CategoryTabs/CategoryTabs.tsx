@@ -2,11 +2,11 @@
 // tab as wide as its label on one line, a divider under the bar. Below the
 // desktop size, as wide as the screen, each tab its share: an icon over a
 // shorter label.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Box, Tab, Tabs } from '@linagora/twake-mui'
 import { useId, type ReactElement, type ReactNode } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 const TABS_SX = {
   borderBottom: '1px solid',

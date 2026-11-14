@@ -5,7 +5,7 @@
 // primary band, today on `action.selected`. A grid of days as the APG date
 // picker dialog: arrows, Home / End, Page Up / Page Down (a year with Shift),
 // Enter or Space picks.
-import { Icon, Left, Right } from '@linagora/twake-icons'
+import { Left, Right } from '@linagora/twake-icons'
 import { Box, IconButton, type Theme, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
@@ -15,6 +15,8 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 import {
   addDays,

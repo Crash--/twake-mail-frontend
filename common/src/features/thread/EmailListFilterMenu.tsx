@@ -1,6 +1,4 @@
 import {
-  Icon,
-  type IconProps,
   Attachment,
   Cross,
   EmailNotification,
@@ -24,6 +22,7 @@ import { IconAction } from '@/ds/IconAction/IconAction'
 import { ToolbarButton } from '@/ds/ToolbarButton/ToolbarButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 import type { ListFilter, ListFilterOption } from './listFilter'
 import { listFilterLabelKey } from './ListFilterProvider'

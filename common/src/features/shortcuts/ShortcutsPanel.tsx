@@ -1,9 +1,4 @@
-import {
-  Email,
-  Paperplane,
-  FileOutline,
-  type IconProps
-} from '@linagora/twake-icons'
+import { Email, Paperplane, FileOutline } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
@@ -13,6 +8,7 @@ import { SettingsSubheading } from '@/ds/SettingsHeading/SettingsHeading'
 import { SettingsSwitchRow } from '@/ds/SettingsOption/SettingsOption'
 import { SHORTCUTS_WIDTH, ShortcutList } from '@/ds/ShortcutList/ShortcutList'
 import { useI18n } from '@common/i18n/useI18n'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import {
   COMPOSER_SHORTCUTS,

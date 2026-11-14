@@ -560,3 +560,11 @@ in the app). What is missing around it:
 | `List` | An outlined list of the Figma: 628 px, 12 px corners, rows ruled by `divider` | Settings > Forwarding, the recipients | `ds/SettingsCards` (`SettingsRecipientList`) | An `outlined` variant of `List` |
 | `TableRow` (compact rows) | A control at the end of a row whose stretched link covers the row: the link must not hold the button, and the button must sit above the link's `::after` at the edge of the date | The star toggle of a phone row of the list | `ds/CompactRowAside` (the control out of the link, no width of its own), `ds/CompactRowLines` `previewEndRoom` keeps the room on the last line | A list row with a trailing secondary action beside a primary link |
 | `ListItem` (long press) | No long press: iOS sends no `contextmenu` for a finger held on a row | The menu of a folder or a label in the drawer of a phone or a tablet, which has no ⋮ | `ds/useLongPress`, through the `onLongPress` prop of `ds/NavTreeItem` | A long press (or `onContextMenu` on touch) on list items |
+| `ListItem` (long press) | No long press: iOS sends no `contextmenu` for a finger held on a row | The menu of a folder or a label in the phone drawer, besides its ⋮ | `ds/useLongPress`, through the `onLongPress` prop of `ds/NavTreeItem` | A long press (or `onContextMenu` on touch) on list items |
+
+## Decorative icons (issue #931)
+
+| Component | Variant / need | Intended usage | Where | twake-ui change |
+|---|---|---|---|---|
+| `Icon` (`@linagora/twake-icons`) | An unlabelled icon is decorative but its `svg` is not hidden: screen readers other than Chromium's may stop on an empty graphic or read it twice next to the text of its button (RGAA 1.2.4) | Every icon of the app (buttons, menus, rows, folders) | `ds/Icon` (`aria-hidden="true"` and `focusable="false"` unless the icon has an `aria-label`); ESLint forbids importing `Icon` from twake-icons or twake-mui elsewhere | `Icon` should default to `aria-hidden` when unlabelled |
+| `SearchBar` | The search icon it draws itself (`.SearchBar-icon > svg.twake-icon`) is not hidden from assistive technologies, and the app cannot reach it | The search field of the top bar | Not followed: left as twake-mui draws it | `SearchBar` icon not hidden: draw it with `aria-hidden="true"` |

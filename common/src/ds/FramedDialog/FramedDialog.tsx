@@ -6,7 +6,7 @@
 // The frame is cozy-interapp's: it appends it to the frame box and styles
 // that box as the framed page asks (`resize`). twake-mui's Dialog has no
 // such variant.
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import {
   Box,
   CircularProgress,
@@ -25,6 +25,7 @@ import {
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon } from '@/ds/Icon/Icon'
 
 /**
  * Size of the dialog when the framed page asks for none: 900 wide as Twake

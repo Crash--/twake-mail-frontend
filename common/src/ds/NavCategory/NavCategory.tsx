@@ -2,11 +2,12 @@
 // ("Personal folders", "Team-mailboxes" under "Folders"): a 36 px row like a
 // folder (a 16 px icon, the name, the chevron right after it) that expands
 // and collapses the tree under it, its rows one level deeper (16 px in).
-import { Icon, type IconProps, Dropdown, Right } from '@linagora/twake-icons'
+import { Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, radius } from '@linagora/twake-mui'
 import { use, type ReactElement, type ReactNode } from 'react'
 
 import { NavTreeDepth } from '@/ds/NavTreeItem/NavTreeItem'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 const BUTTON_SX = {
   display: 'flex',

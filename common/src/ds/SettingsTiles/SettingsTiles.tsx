@@ -4,9 +4,11 @@
 // full-width rows on paper, each a 20 px icon in a 32 px box, the name in
 // body1, its explanation in caption under it, a 24 px chevron at the end,
 // the dividers starting under the name.
-import { Icon, type IconProps, Right } from '@linagora/twake-icons'
+import { Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography } from '@linagora/twake-mui'
 import type { ElementType, ReactElement, ReactNode } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 /** The icon box (32 px) and the gaps around it: where the dividers start */
 const TEXT_INSET = 16 + 32 + 16

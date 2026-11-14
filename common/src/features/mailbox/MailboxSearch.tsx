@@ -1,4 +1,4 @@
-import { Icon, Cross, Eye, Left } from '@linagora/twake-icons'
+import { Cross, Eye, Left } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -24,6 +24,7 @@ import type { FolderMenuAnchor } from '@common/features/mailboxActions/FolderAct
 import { settingsSectionPath } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { isTeamRoot } from './mailboxTree'
 import { MailboxTreeItem } from './MailboxTreeItem'

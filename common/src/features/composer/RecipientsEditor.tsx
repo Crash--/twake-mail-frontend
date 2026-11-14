@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Icon, Bottom, Cross } from '@linagora/twake-icons'
+import { Bottom, Cross } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import {
   useEffect,
@@ -34,6 +34,7 @@ import {
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { isAddressFile, parseAddressFile } from './addressFile'
 import { RecipientInput } from './RecipientInput'

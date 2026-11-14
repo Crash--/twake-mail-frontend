@@ -1,4 +1,4 @@
-import { Icon, Bottom, Top, Trash, Pen } from '@linagora/twake-icons'
+import { Bottom, Top, Trash, Pen } from '@linagora/twake-icons'
 import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useRef, useState, type ReactElement } from 'react'
@@ -9,6 +9,7 @@ import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SettingsCard } from '@/ds/SettingsCards/SettingsCards'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { ruleComparatorLabel, ruleConditions, ruleFieldText } from './rules'
 

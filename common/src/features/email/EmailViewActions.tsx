@@ -4,8 +4,7 @@ import {
   Reply,
   Star,
   StarOutline,
-  Trash,
-  Icon
+  Trash
 } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
@@ -21,6 +20,7 @@ import { EmailActionsMenu } from '@common/features/emailActions/EmailActionsMenu
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import { useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { FLAGGED, hasKeyword } from './keywords'
 import type { EmailDetail } from './queries'

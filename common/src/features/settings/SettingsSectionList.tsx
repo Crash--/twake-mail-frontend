@@ -1,10 +1,4 @@
-import {
-  Copy,
-  HelpOutlined,
-  Icon,
-  Logout,
-  Previous
-} from '@linagora/twake-icons'
+import { Copy, HelpOutlined, Logout, Previous } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip, Typography } from '@linagora/twake-mui'
 import { useEffect, useId, useRef, type ReactElement } from 'react'
 import { Link } from 'react-router'
@@ -26,6 +20,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { useLogout } from '@common/layout/useLogout'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { settingsSectionPath } from './sections'
 import {

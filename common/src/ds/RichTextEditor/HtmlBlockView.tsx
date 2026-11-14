@@ -1,8 +1,10 @@
 // Upstream to twake-ui: with HtmlBlock (see htmlBlock.ts).
-import { Icon, Bottom, Top } from '@linagora/twake-icons'
+import { Bottom, Top } from '@linagora/twake-icons'
 import { Box, Button, IconButton, Tooltip } from '@linagora/twake-mui'
 import { NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 import type { HtmlBlockOptions } from './htmlBlock'
 

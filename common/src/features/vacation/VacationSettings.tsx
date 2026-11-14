@@ -1,4 +1,4 @@
-import { CircleFilled, Icon } from '@linagora/twake-icons'
+import { CircleFilled } from '@linagora/twake-icons'
 import {
   Alert,
   Box,
@@ -39,6 +39,7 @@ import { SettingsSectionLayout } from '@common/features/settings/SettingsSection
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 import {
   disabledVacation,

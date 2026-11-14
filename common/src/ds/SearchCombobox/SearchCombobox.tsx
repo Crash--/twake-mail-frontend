@@ -4,7 +4,7 @@
 // Contacts) needs suggestions under its field; this is the ARIA 1.2
 // combobox pattern around `SearchBar`, with a free header (filters) above
 // the list.
-import { Icon, Magnifier, Cross } from '@linagora/twake-icons'
+import { Magnifier, Cross } from '@linagora/twake-icons'
 import {
   Box,
   Divider,
@@ -33,6 +33,8 @@ import {
   type ReactNode,
   type Ref
 } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 const POPUP_SX = { zIndex: 'modal' } as const
 /** The field stays above the popup that starts behind it */

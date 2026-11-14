@@ -2,7 +2,7 @@
 // `TextField`, 48 px high (40 in a form row); a label with a pill after it
 // ("Forward to [2 recipients]"); a form row with its label on the left, in a
 // column of fixed width.
-import { CalendarToday, ClockOutline, Icon } from '@linagora/twake-icons'
+import { CalendarToday, ClockOutline } from '@linagora/twake-icons'
 import {
   Box,
   IconButton,
@@ -21,6 +21,7 @@ import {
   type Ref
 } from 'react'
 
+import { Icon } from '@/ds/Icon/Icon'
 import { TOUCH_MEDIA } from '@/ds/TouchTargets/TouchTargets'
 import { SCREEN_QUERIES, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 

@@ -1,9 +1,10 @@
-import { Icon, ClockOutline } from '@linagora/twake-icons'
+import { ClockOutline } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
 import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 /** Path of the emails needing an action, a virtual folder */
 export const ACTION_REQUIRED_PATH = '/action-required'

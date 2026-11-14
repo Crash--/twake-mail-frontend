@@ -1,6 +1,8 @@
-import { Icon, Left } from '@linagora/twake-icons'
+import { Left } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface BackButtonProps {
   /** What it shows, e.g. the folder it returns to */

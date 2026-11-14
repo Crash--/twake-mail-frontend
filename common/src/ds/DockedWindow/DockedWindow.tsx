@@ -2,7 +2,7 @@
 // the bottom of the screen that can be minimized or put full screen while
 // the page stays usable (Gmail's composer, chat windows): Mail needs them
 // for the composer, Chat could for conversations.
-import { Icon, Dash, Cross, Narrow, OpenInFull } from '@linagora/twake-icons'
+import { Dash, Cross, Narrow, OpenInFull } from '@linagora/twake-icons'
 import {
   Backdrop,
   Box,
@@ -26,6 +26,7 @@ import {
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
+import { Icon } from '@/ds/Icon/Icon'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
 export type DockedWindowMode = 'normal' | 'minimized' | 'fullscreen'

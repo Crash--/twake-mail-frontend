@@ -1,9 +1,10 @@
 // Upstream to twake-ui: no. The "Visible" / "Hidden" button (Settings >
 // Folder visibility): twake-mui's extra small primary ghost button, its icon
 // before the state it shows.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 const BUTTON_SX = { flexShrink: 0 } as const
 

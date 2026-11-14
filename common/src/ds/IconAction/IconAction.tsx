@@ -3,10 +3,10 @@
 // design has 32 px round icon buttons holding a 20 px icon in rows and
 // toolbars; twake-mui draws 16 px icons in them. The starred tone is the
 // yellow of a filled star, the muted one a faint row icon, darker on hover.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { IconButton, Tooltip } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 
 /**

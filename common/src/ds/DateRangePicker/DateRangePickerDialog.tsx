@@ -4,7 +4,7 @@
 // small arrow, and at the bottom "Cancel" and "Set date". On a phone it is a
 // sheet at the bottom with the quick ranges and the two fields only, each
 // opening a one month calendar sheet from its calendar icon.
-import { Icon, Calendar, Cross, Next } from '@linagora/twake-icons'
+import { Calendar, Cross, Next } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -26,6 +26,7 @@ import {
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon } from '@/ds/Icon/Icon'
 
 import {
   formatDayText,

@@ -1,5 +1,4 @@
 import {
-  Icon,
   EmailNotification,
   EmailOpen,
   FolderMoveto,
@@ -71,6 +70,7 @@ import { ActionRequiredTag } from '@common/features/ai/ActionRequiredTag'
 import { LabelChips, labelsOfEmail } from '@common/features/labels/LabelChips'
 import type { Label } from 'jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
+import { Icon } from '@/ds/Icon/Icon'
 
 import type { ConversationOpenState } from './conversationTarget'
 import {

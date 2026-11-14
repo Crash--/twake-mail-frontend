@@ -108,6 +108,26 @@ export interface SanitizedEmailHtml {
   html: string
   /** Remote images, backgrounds and fonts left out */
   blockedRemoteContent: number
+  /** The email sets a text or background colour of its own (`declaresColors`) */
+  declaresColors: boolean
+}
+
+const COLOR_DECLARATION =
+  /(?:^|[\s;{])(?:color|background(?:-color|-image)?)\s*:/i
+const COLOR_ATTRIBUTES = ['bgcolor', 'color', 'background']
+
+/**
+ * Whether the email sets a text colour, a background colour or a background
+ * image, in a style, a stylesheet or an attribute: its colours were chosen
+ * for a white page, a dark one would leave some of them unreadable
+ */
+function declaresColors(container: Element): boolean {
+  return Array.from(container.querySelectorAll('*')).some(element =>
+    element.tagName.toLowerCase() === 'style'
+      ? COLOR_DECLARATION.test(element.textContent)
+      : COLOR_ATTRIBUTES.some(name => element.hasAttribute(name)) ||
+        COLOR_DECLARATION.test(element.getAttribute('style') ?? '')
+  )
 }
 
 /** The Content-ID a `cid:` URL points at */
@@ -387,7 +407,8 @@ export function sanitizeEmailHtml(
     container.append(content)
     return {
       html: container.innerHTML,
-      blockedRemoteContent: run.blockedRemoteContent
+      blockedRemoteContent: run.blockedRemoteContent,
+      declaresColors: declaresColors(container)
     }
   } finally {
     run = null

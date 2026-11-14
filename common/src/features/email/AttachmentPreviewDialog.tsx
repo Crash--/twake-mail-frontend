@@ -44,7 +44,7 @@ import { formatSize } from './formatSize'
 import { MAX_PDF_PREVIEW_BYTES, MAX_PRINT_PAGES } from './pdfLimits'
 import { printPdf } from './printPdf'
 import { sanitizeEmailHtml } from './sanitizeEmailHtml'
-import { useEmailTextColor } from './useEmailTextColor'
+import { useEmailDocumentColors } from './useEmailDocumentColors'
 
 // pdf.js and its worker load with the first PDF only
 const PdfPreview = lazy(async () => {
@@ -165,14 +165,14 @@ export function AttachmentPreviewDialog({
     [imageUrl]
   )
 
-  const textColor = useEmailTextColor()
+  const documentColors = useEmailDocumentColors()
   const htmlDocument = useMemo(() => {
     if (loaded.status !== 'ready' || kind !== 'html') return null
     const { html } = sanitizeEmailHtml(decodeText(loaded.bytes, part.charset), {
       autolink: true
     })
-    return buildEmailDocument(html, { textColor })
-  }, [loaded, kind, part.charset, textColor])
+    return buildEmailDocument(html, { colors: documentColors.light })
+  }, [loaded, kind, part.charset, documentColors])
 
   const handleDownload = (event: MouseEvent<HTMLElement>): void => {
     // The dialog may be on the overlay of TwakeSpace, not in this document

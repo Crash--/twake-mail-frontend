@@ -2,7 +2,9 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 import type { EmailBodyPart, EmailBodyValue } from 'jmap-client-ts'
+import { theme as defaultTheme } from '@linagora/twake-mui'
 
+import { THEME_PREFERENCE_STORAGE_KEY } from '@common/features/settings/themePreference'
 import {
   makeBodyPart,
   makeEmail,
@@ -264,5 +266,53 @@ describe('EmailMessageBody, when the server cannot give the body (tf#3487, #654)
     expect(await findBodyDocument()).toContain('Caf� cr�me')
     expect(screen.queryByTestId('email-body-error')).toBe(null)
     expect(screen.queryByTestId('email-body-truncated')).toBe(null)
+  })
+})
+
+describe('EmailMessageBody, in the dark scheme', () => {
+  listEmailsOneByOne()
+
+  beforeEach(() => {
+    window.localStorage.setItem(THEME_PREFERENCE_STORAGE_KEY, 'dark')
+  })
+
+  afterEach(() => {
+    window.localStorage.removeItem(THEME_PREFERENCE_STORAGE_KEY)
+  })
+
+  /** Shows an email of this HTML body once the page is dark */
+  async function renderDarkBody(html: string): Promise<void> {
+    renderView(
+      makeFakeJmapServer({
+        emails: [emailWith([HTML_PART], { '1': value(html) })]
+      })
+    )
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    })
+  }
+
+  async function bodyScheme(): Promise<string> {
+    return /color-scheme: (\w+);/.exec(await findBodyDocument())?.[1] ?? ''
+  }
+
+  it('draws an email that sets no colour on a dark page, its links in primary.light', async () => {
+    await renderDarkBody('<p>Hello, colleagues</p>')
+
+    await waitFor(async () => {
+      expect(await bodyScheme()).toBe('dark')
+    })
+    const darkPrimaryLight =
+      defaultTheme.colorSchemes.dark?.palette.primary.light ?? ''
+    expect(darkPrimaryLight).not.toBe('')
+    expect(await findBodyDocument()).toContain(
+      `a { color: ${darkPrimaryLight}; }`
+    )
+  })
+
+  it('keeps the white page of an email that sets colours', async () => {
+    await renderDarkBody('<p style="color: #1f497d">Hello, colleagues</p>')
+
+    expect(await bodyScheme()).toBe('light')
   })
 })

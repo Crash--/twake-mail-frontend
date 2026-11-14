@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A tab opened before a new version was deployed offers to reload the page
+  ("New version available"). "Not now" declines that version: the dialog
+  comes back with the next one. The image serves `/version.json`, never
+  cached.
+
 ## [0.12.0] - 2026-11-13
 
 No setting changed since 0.11.1.

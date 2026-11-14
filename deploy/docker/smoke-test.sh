@@ -86,6 +86,8 @@ expect 'index.html is never cached' "$(header / Cache-Control)" 'no-store*'
 expect '/.env.js is the mounted one' "$(body "$BASE/.env.js")" '*jmap.example.com*'
 expect '/.env.js is never cached' "$(header /.env.js Cache-Control)" 'no-store*'
 expect '/version.js is written by the build' "$(body "$BASE/version.js")" 'var APP_VERSION = *'
+expect '/version.json names the build' "$(body "$BASE/version.json")" '{"build":"*"}'
+expect '/version.json is never cached' "$(header /version.json Cache-Control)" 'no-store*'
 script="$(body "$BASE/" | grep -o 'src="/static/js/index[^"]*"' | head -1 | cut -d'"' -f2)"
 expect 'hashed assets are cached for a year' "$(header "$script" Cache-Control)" '*immutable*'
 worker="$(docker exec "$NAME" sh -c 'cd /usr/share/nginx/html && ls static/assets/pdf.worker*.mjs | head -1')"

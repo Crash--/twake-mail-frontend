@@ -5,6 +5,7 @@ import {
   joinHtmlValues,
   plainTextToHtml
 } from '@common/features/email/emailBody'
+import { isInlineImageType } from '@common/features/email/attachmentPreview'
 import type { IdentitySummary } from '@common/features/identities/queries'
 import { normalizeCid } from '@common/features/email/sanitizeEmailHtml'
 
@@ -364,7 +365,12 @@ export async function loadDraftContent(
   const attachments: ComposerAttachment[] = []
   for (const part of email.attachments) {
     const cid = part.cid ? normalizeCid(part.cid) : null
-    if (cid !== null && inline.has(cid) && part.blobId) {
+    if (
+      cid !== null &&
+      inline.has(cid) &&
+      part.blobId &&
+      isInlineImageType(part.type)
+    ) {
       images.register({
         cid,
         blobId: part.blobId,

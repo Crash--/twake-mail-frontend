@@ -1,4 +1,26 @@
-import { imageBlobType, previewKind } from './attachmentPreview'
+import {
+  imageBlobType,
+  inlineImageBlobType,
+  isInlineImageType,
+  previewKind
+} from './attachmentPreview'
+
+const OCTET_STREAM = 'application/octet-stream'
+
+describe('inlineImageBlobType', () => {
+  it.each([
+    ['image/png', 'image/png'],
+    ['IMAGE/JPEG', 'image/jpeg'],
+    ['image/gif', 'image/gif'],
+    ['image/svg+xml', 'application/octet-stream'],
+    ['text/html', 'application/octet-stream'],
+    ['application/xml', 'application/octet-stream'],
+    ['image/x-unknown', 'application/octet-stream']
+  ] as const)('types an inline %s blob as %s', (declared, expected) => {
+    expect(inlineImageBlobType(declared)).toBe(expected)
+    expect(isInlineImageType(declared)).toBe(expected !== OCTET_STREAM)
+  })
+})
 
 describe('previewKind', () => {
   it.each([

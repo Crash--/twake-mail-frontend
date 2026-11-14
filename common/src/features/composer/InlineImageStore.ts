@@ -1,5 +1,7 @@
 import type { EmailBodyPartCreate, JmapClient } from 'jmap-client-ts'
 
+import { inlineImageBlobType } from '@common/features/email/attachmentPreview'
+
 /** An image of the message, stored as a JMAP blob */
 export interface StoredImage {
   cid: string
@@ -146,16 +148,20 @@ export class InlineImageStore {
       Array.from(this.#images.values())
         .filter(image => image.url === null)
         .map(async image => {
-          const blob = await this.#client.download(
+          const type = inlineImageBlobType(image.type)
+          const downloaded = await this.#client.download(
             {
               accountId: this.#accountId,
               blobId: image.blobId,
-              type: image.type,
+              type,
               name: image.name
             },
             { signal }
           )
-          image.url = URL.createObjectURL(blob)
+          // Re-typed whatever the server answered: never a document type
+          image.url = URL.createObjectURL(
+            downloaded.slice(0, downloaded.size, type)
+          )
         })
     )
   }

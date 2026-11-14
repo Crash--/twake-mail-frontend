@@ -2,7 +2,7 @@ import {
   CheckCircle,
   Icon,
   Trash,
-  Pen,
+  PenOutlined,
   RadioUnchecked
 } from '@linagora/twake-icons'
 import { Radio } from '@linagora/twake-mui'
@@ -84,7 +84,7 @@ export function IdentityListItem({
             }}
             data-testid="identity-edit-button"
           >
-            <Icon icon={Pen} size={24} aria-hidden="true" />
+            <Icon icon={PenOutlined} size={18} aria-hidden="true" />
           </ActionIconButton>
           {identity.mayDelete ? (
             <ActionIconButton
@@ -94,7 +94,7 @@ export function IdentityListItem({
               }}
               data-testid="identity-delete-button"
             >
-              <Icon icon={Trash} size={24} aria-hidden="true" />
+              <Icon icon={Trash} size={18} aria-hidden="true" />
             </ActionIconButton>
           ) : null}
         </>

@@ -130,8 +130,6 @@
     "address": {
       "createRule": "Tạo một quy tắc với email này",
       "compose": "Soạn thư",
-      "invite": "Mời tham gia sự kiện",
-      "chat": "Trò chuyện",
       "copy": "Sao chép địa chỉ email",
       "copied": "Đã sao chép địa chỉ email"
     },

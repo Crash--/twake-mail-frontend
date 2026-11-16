@@ -45,14 +45,15 @@ describe('EmailAddressCard', () => {
     await user.click(await screen.findByRole('button', { name: 'Bob' }))
     await user.click(
       within(screen.getByRole('dialog')).getByRole('button', {
-        name: 'Copy the email address'
+        name: 'Copy email'
       })
     )
 
     expect(await navigator.clipboard.readText()).toBe('bob@example.com')
-    expect(await screen.findByTestId('toast')).toHaveTextContent(
-      'Email address copied'
-    )
+    // In the card, a modal: what is outside it is hidden from screen readers
+    expect(
+      await within(screen.getByRole('dialog')).findByTestId('toast')
+    ).toHaveTextContent('Email address copied')
   })
 
   it('opens the rule creator for the address when the server has rules', async () => {
@@ -171,21 +172,7 @@ describe('EmailAddressCard', () => {
     })
   })
 
-  it('offers neither an invitation nor a chat without their integration', async () => {
-    renderWithProviders(
-      <EmailAddressCard address={BOB}>Bob</EmailAddressCard>,
-      { withJmapSession: true, config: makeConfig({}) }
-    )
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Bob' }))
-
-    expect(screen.queryByRole('link', { name: 'Invite to an event' })).toBe(
-      null
-    )
-    expect(screen.queryByRole('link', { name: 'Chat' })).toBe(null)
-  })
-
-  it('invites to an event and chats when Calendar and Chat are configured', async () => {
+  it('offers neither an invitation nor a chat, even with Calendar and Chat configured', async () => {
     renderWithProviders(
       <EmailAddressCard address={BOB}>Bob</EmailAddressCard>,
       {
@@ -199,16 +186,9 @@ describe('EmailAddressCard', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Bob' }))
 
-    const invite = screen.getByRole('link', { name: 'Invite to an event' })
-    expect(invite).toHaveAttribute(
-      'href',
-      'https://calendar.example.com/newEvent?attendee=bob%40example.com'
-    )
-    expect(invite).toHaveAttribute('target', '_blank')
-    expect(screen.getByRole('link', { name: 'Chat' })).toHaveAttribute(
-      'href',
-      'https://chat.example.com/#/chat/@bob'
-    )
+    expect(
+      within(await screen.findByRole('dialog')).queryAllByRole('link')
+    ).toEqual([])
   })
 
   it('is a mailto link opening the card, not the mail program, in running text', async () => {

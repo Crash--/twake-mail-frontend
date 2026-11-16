@@ -939,7 +939,7 @@ describe('ConversationView, an expanded message', () => {
 
     const card = await screen.findByRole('dialog', { name: /Dan/ })
     expect(
-      within(card).getByRole('button', { name: 'Copy the email address' })
+      within(card).getByRole('button', { name: 'Copy email' })
     ).toBeVisible()
     expect(
       within(card).getByRole('button', { name: 'Compose email' })

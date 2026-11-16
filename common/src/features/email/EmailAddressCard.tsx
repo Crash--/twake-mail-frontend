@@ -15,8 +15,6 @@ import {
   ContactCard,
   type ContactCardAction
 } from '@/ds/ContactCard/ContactCard'
-import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
-import { useAppConfig } from '@common/config/AppConfigProvider'
 import { useComposer } from '@common/features/composer/ComposerProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import type { NewRuleLocationState } from '@common/features/rules/EmailRulesSettings'
@@ -25,8 +23,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { writeAddressDrag } from './addressDrag'
-import { addressAvatar, addressDisplayName } from './addresses'
-import { contactLinks } from './contactLinks'
+import { addressDisplayName } from './addresses'
 
 export interface EmailAddressCardProps {
   address: EmailAddress
@@ -43,11 +40,11 @@ export interface EmailAddressCardProps {
 
 function AddressCardDialog({
   address,
-  isOpen,
+  anchorEl,
   onClose
 }: {
   address: EmailAddress
-  isOpen: boolean
+  anchorEl: HTMLElement | null
   onClose: () => void
 }): ReactElement {
   const { t } = useI18n()
@@ -55,24 +52,13 @@ function AddressCardDialog({
   const { notify } = useNotify()
   const { openComposer } = useComposer()
   const { session } = useJmapSession()
-  const config = useAppConfig()
   const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
   const name = addressDisplayName(address)
 
   const handleClose = onClose
 
-  // The clipboard of the window clicked in: the card may be on the overlay of
-  // TwakeSpace, and a window without the focus may not write to it
-  const handleCopy = (event: MouseEvent<HTMLElement>): void => {
-    const view = event.currentTarget.ownerDocument.defaultView ?? window
-    view.navigator.clipboard
-      .writeText(address.email)
-      .then(() => {
-        notify({ message: t('email.address.copied'), severity: 'success' })
-      })
-      .catch((error: unknown) => {
-        console.warn('[email] Cannot copy the address', error)
-      })
+  const handleCopy = (): void => {
+    notify({ message: t('email.address.copied'), severity: 'success' })
   }
 
   const handleCompose = (): void => {
@@ -95,15 +81,8 @@ function AddressCardDialog({
     })
   }
 
-  const links = contactLinks(address.email, {
-    calendarSpaUrl: config?.calendarSpaUrl ?? null,
-    chatSpaUrl: config?.chatSpaUrl ?? null,
-    workplaceFqdnFallback: config?.workplaceFqdnFallback ?? null,
-    username: session.username
-  })
   // As tmail-flutter: "Create a rule with this email", then "Compose
-  // email", the main action, last; between them what Twake adds (an event,
-  // a chat)
+  // email", the main action, last
   const actions: ContactCardAction[] = []
   if (hasRules) {
     actions.push({
@@ -111,24 +90,6 @@ function AddressCardDialog({
       label: t('email.address.createRule'),
       onClick: handleCreateRule,
       'data-testid': 'email-address-create-rule-item'
-    })
-  }
-  if (links.invite !== null) {
-    actions.push({
-      id: 'invite',
-      label: t('email.address.invite'),
-      href: links.invite,
-      onClick: handleClose,
-      'data-testid': 'email-address-invite-item'
-    })
-  }
-  if (links.chat !== null) {
-    actions.push({
-      id: 'chat',
-      label: t('email.address.chat'),
-      href: links.chat,
-      onClick: handleClose,
-      'data-testid': 'email-address-chat-item'
     })
   }
   actions.push({
@@ -139,29 +100,23 @@ function AddressCardDialog({
     'data-testid': 'email-address-compose-item'
   })
   return (
-    <>
-      <ContactCard
-        open={isOpen}
-        onClose={onClose}
-        avatar={<GradientAvatar {...addressAvatar(address)} size={67} />}
-        name={name}
-        address={address.email}
-        copyLabel={t('email.address.copy')}
-        onCopy={handleCopy}
-        actions={actions}
-        data-testid="email-address-card"
-      />
-    </>
+    <ContactCard
+      anchorEl={anchorEl}
+      onClose={onClose}
+      name={name}
+      address={address.email}
+      onCopy={handleCopy}
+      actions={actions}
+      data-testid="email-address-card"
+    />
   )
 }
 
 /**
- * An address of an email header, as a button opening its contact card, as
- * tmail-flutter's address dialog (a dialog, a bottom sheet on phones): the
- * avatar, the name, the address with a button copying it, and the actions
- * "Compose email" and, when the server has filtering rules, "Create a rule
- * with this email". As in Twake Calendar's attendees, "Invite to an event"
- * and "Chat" appear when `CALENDAR_SPA_URL` and `CHAT_SPA_URL` are set.
+ * An address of an email header, as a button opening its contact card next
+ * to it (twake-mui's `ContactCard`): the avatar, the name, the address with
+ * a button copying it, and the actions "Compose email" and, when the server
+ * has filtering rules, "Create a rule with this email".
  *
  * The address can be dragged to a recipient field of a message being
  * written, which adds it there.
@@ -172,19 +127,19 @@ export function EmailAddressCard({
   isInline = false,
   buttonRef
 }: EmailAddressCardProps): ReactElement {
-  const [isOpen, setIsOpen] = useState(false)
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   // Mounted at the first opening: a long conversation has many addresses
   const [hasOpened, setHasOpened] = useState(false)
 
-  const handleOpen = (event: MouseEvent): void => {
+  const handleOpen = (event: MouseEvent<HTMLElement>): void => {
     // A link: the card, not the mail program
     event.preventDefault()
     setHasOpened(true)
-    setIsOpen(true)
+    setAnchorEl(event.currentTarget)
   }
 
   const handleClose = (): void => {
-    setIsOpen(false)
+    setAnchorEl(null)
   }
 
   const handleDragStart = (event: DragEvent<HTMLElement>): void => {
@@ -196,7 +151,7 @@ export function EmailAddressCard({
     underline: 'hover',
     className: 'u-ta-left',
     'aria-haspopup': 'dialog',
-    'aria-expanded': isOpen,
+    'aria-expanded': anchorEl !== null,
     onClick: handleOpen,
     draggable: true,
     onDragStart: handleDragStart,
@@ -214,7 +169,7 @@ export function EmailAddressCard({
       {hasOpened ? (
         <AddressCardDialog
           address={address}
-          isOpen={isOpen}
+          anchorEl={anchorEl}
           onClose={handleClose}
         />
       ) : null}

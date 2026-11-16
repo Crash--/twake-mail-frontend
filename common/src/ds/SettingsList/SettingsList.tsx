@@ -6,6 +6,7 @@
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
+import { RowHoverActions } from '@/ds/RowHoverActions/RowHoverActions'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const LIST_SX = {
@@ -93,6 +94,11 @@ export interface SettingsListItemProps {
   children: ReactNode
   /** At the end of the row, e.g. "Edit" and "Delete" */
   actions?: ReactNode
+  /**
+   * Shows the actions only while the row is hovered or holds the focus,
+   * always on a screen without hover (`RowHoverActions`)
+   */
+  isActionsOnHover?: boolean
   /** Under the row, e.g. the signature */
   footer?: ReactNode
   'data-testid'?: string
@@ -105,16 +111,29 @@ export function SettingsListItem({
   leading,
   children,
   actions,
+  isActionsOnHover = false,
   footer,
   'data-testid': testId,
   dataAttributes
 }: SettingsListItemProps): ReactElement {
+  const actionsBox =
+    actions === undefined ? null : <Box sx={ACTIONS_SX}>{actions}</Box>
   return (
-    <Box component="li" sx={ITEM_SX} data-testid={testId} {...dataAttributes}>
+    <Box
+      component="li"
+      sx={ITEM_SX}
+      data-testid={testId}
+      data-settings-item=""
+      {...dataAttributes}
+    >
       <Box sx={ROW_SX}>
         {leading}
         <Box sx={CONTENT_SX}>{children}</Box>
-        {actions === undefined ? null : <Box sx={ACTIONS_SX}>{actions}</Box>}
+        {isActionsOnHover && actionsBox !== null ? (
+          <RowHoverActions in="settingsItem">{actionsBox}</RowHoverActions>
+        ) : (
+          actionsBox
+        )}
       </Box>
       {footer === undefined ? null : <Box sx={FOOTER_SX}>{footer}</Box>}
     </Box>

@@ -106,9 +106,10 @@ describe('IdentitiesSettings', () => {
     expect(screen.getByTestId('identity-item-name')).toHaveTextContent(
       'alice@example.com'
     )
+    // Shown on hover or focus only: SET-19 checks when it shows
     expect(
       screen.getByRole('button', { name: 'Delete alice@example.com' })
-    ).toBeVisible()
+    ).toBeInTheDocument()
   })
 
   it('makes another identity the default one', async () => {

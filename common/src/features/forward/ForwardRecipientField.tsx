@@ -93,13 +93,12 @@ export function ForwardRecipientField({
         return {
           id: contact.emailAddress,
           label: name === '' ? contact.emailAddress : name,
-          ...(name === '' ? {} : { secondary: contact.emailAddress }),
-          isAdded: isAdded(contact.emailAddress)
+          ...(name === '' ? {} : { secondary: contact.emailAddress })
         }
       }),
       inputValue,
-      email => ({ id: email, label: email, isAdded: isAdded(email) })
-    )
+      email => ({ id: email, label: email })
+    ).filter(suggestion => !isAdded(suggestion.id))
   }, [contacts, values, forwards, inputValue])
 
   /** The tag taken back into the input, and where it stood */
@@ -119,7 +118,6 @@ export function ForwardRecipientField({
       labels={{
         field: t('forward.inputLabel'),
         suggestions: t('composer.recipients.suggestions'),
-        alreadyAdded: t('composer.recipients.alreadyAdded'),
         invalid: t('composer.recipients.invalid'),
         chipHelp: t('search.addresses.chipHelp'),
         removed: address => t('composer.recipients.removed', { address }),

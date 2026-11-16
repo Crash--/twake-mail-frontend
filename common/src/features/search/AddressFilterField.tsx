@@ -87,18 +87,13 @@ export function AddressFilterField({
           return {
             id: contact.emailAddress,
             label: name === '' ? contact.emailAddress : name,
-            ...(name === '' ? {} : { secondary: contact.emailAddress }),
-            isAdded: values.some(value =>
-              sameEntry(value, contact.emailAddress)
-            )
+            ...(name === '' ? {} : { secondary: contact.emailAddress })
           }
         }),
         input,
-        email => ({
-          id: email,
-          label: email,
-          isAdded: values.some(value => sameEntry(value, email))
-        })
+        email => ({ id: email, label: email })
+      ).filter(
+        suggestion => !values.some(value => sameEntry(value, suggestion.id))
       ),
     [contacts, values, input]
   )
@@ -120,7 +115,6 @@ export function AddressFilterField({
       labels={{
         field: label,
         suggestions: t('composer.recipients.suggestions'),
-        alreadyAdded: t('composer.recipients.alreadyAdded'),
         invalid: t('composer.recipients.invalid'),
         chipHelp: `${t('search.addresses.chipHelp')} ${t('composer.recipients.moveHelp')}`,
         removed: address => t('composer.recipients.removed', { address }),

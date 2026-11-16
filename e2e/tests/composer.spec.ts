@@ -425,8 +425,7 @@ test.describe('CMP composer', () => {
             text: luminance(
               parse(
                 getComputedStyle(
-                  element.querySelector('span:not([aria-hidden]) > span') ??
-                    element
+                  element.querySelector('.MuiListItemText-primary') ?? element
                 ).color
               )
             )

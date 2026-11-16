@@ -81,15 +81,17 @@ export function DelegateRecipientField({
           return {
             id: contact.emailAddress,
             label: name === '' ? contact.emailAddress : name,
-            ...(name === '' ? {} : { secondary: contact.emailAddress }),
-            isAdded: isAdded(contact.emailAddress)
+            ...(name === '' ? {} : { secondary: contact.emailAddress })
           }
         }),
       inputValue,
-      email => ({ id: email, label: email, isAdded: isAdded(email) })
+      email => ({ id: email, label: email })
     )
     return all.filter(
-      suggestion => inDomain(suggestion.id) && !isExcluded(suggestion.id)
+      suggestion =>
+        inDomain(suggestion.id) &&
+        !isExcluded(suggestion.id) &&
+        !isAdded(suggestion.id)
     )
   }, [contacts, values, excluded, inputValue, domain])
 
@@ -120,7 +122,6 @@ export function DelegateRecipientField({
       labels={{
         field: t('delegation.add.field'),
         suggestions: t('composer.recipients.suggestions'),
-        alreadyAdded: t('composer.recipients.alreadyAdded'),
         invalid: t('composer.recipients.invalid'),
         chipHelp: t('search.addresses.chipHelp'),
         removed: address => t('composer.recipients.removed', { address }),

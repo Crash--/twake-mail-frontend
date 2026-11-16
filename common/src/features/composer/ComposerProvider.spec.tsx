@@ -289,7 +289,7 @@ describe('ComposerProvider', () => {
     expect(within(composer).getByRole('combobox', { name: 'Cc' })).toBeVisible()
   })
 
-  it('suggests the contacts of the server, the ones already there ticked, as tmail-flutter', async () => {
+  it('suggests the contacts of the server but not the recipients already in the field', async () => {
     renderComposer(
       makeFakeJmapServer({
         capabilities: {
@@ -319,15 +319,23 @@ describe('ComposerProvider', () => {
     const option = await within(composer).findByRole('option', {
       name: /Zelda Contact/
     })
-    expect(
-      within(composer).getByRole('option', { name: /Zoe.*already added/ })
-    ).toHaveAttribute('aria-disabled', 'true')
+    expect(within(composer).getAllByRole('option')).toEqual([option])
     await userEvent.click(option)
     expect(
       within(composer)
         .getAllByTestId('recipient-chip')
         .map(chip => chip.getAttribute('title'))
     ).toEqual(['zoe@example.com', 'Zelda Contact <zelda@example.com>'])
+
+    // Another field still suggests them, as twake-mui's MemberAutocomplete
+    await userEvent.click(
+      within(composer).getByTestId('composer-show-cc-button')
+    )
+    await userEvent.keyboard('z')
+    await within(composer).findByRole('option', { name: /Zoe Other/ })
+    expect(
+      within(composer).getByRole('option', { name: /Zelda Contact/ })
+    ).toBeVisible()
   })
 
   it('suggests a contact collected from a sent email once, by its name (issue #741)', async () => {

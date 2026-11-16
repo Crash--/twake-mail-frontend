@@ -14,7 +14,6 @@ import {
 const LABELS = {
   field: 'To',
   suggestions: 'Suggestions',
-  alreadyAdded: 'already added',
   invalid: 'invalid address',
   chipHelp: 'Delete removes, Enter edits',
   removed: (label: string) => `${label} removed`,
@@ -52,10 +51,7 @@ function Harness({
     input.length >= 2
       ? CONTACTS.filter(contact =>
           contact.label.toLowerCase().startsWith(input)
-        ).map(contact => ({
-          ...contact,
-          isAdded: chips.some(chip => chip.id === contact.id)
-        }))
+        )
       : []
   const add = (texts: string[]): void => {
     setChips(current => [
@@ -251,10 +247,14 @@ describe('RecipientField', () => {
       'aria-activedescendant',
       screen.getByRole('option', { name: /Alice/ }).id
     )
-    // What is typed is in bold
-    expect(
-      screen.getByRole('option', { name: /Alice/ }).querySelector('b')
-    ).toHaveTextContent('Al')
+    // What is typed is in bold; the initials of the avatar are not read
+    const alice = screen.getByRole('option', { name: /Alice/ })
+    expect(alice.querySelector('b')).toHaveTextContent('Al')
+    expect(alice).toHaveAccessibleName('Alice, alice@example.com')
+    expect(alice.querySelector('.MuiAvatar-root')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    )
     await userEvent.keyboard('{ArrowDown}')
     expect(input).toHaveAttribute(
       'aria-activedescendant',
@@ -279,17 +279,6 @@ describe('RecipientField', () => {
     expect(getComputedStyle(popup).backgroundColor).toBe(
       'var(--twake-palette-background-paper)'
     )
-  })
-
-  it('lists a suggestion already entered with a tick, and does not add it twice', async () => {
-    renderDs(<Harness initial={['alice@example.com']} />)
-    const input = screen.getByRole('combobox', { name: 'To' })
-
-    await userEvent.type(input, 'al')
-    const alice = screen.getByRole('option', { name: /Alice.*already added/ })
-    expect(alice).toHaveAttribute('aria-disabled', 'true')
-    await userEvent.click(alice)
-    expect(chipNames()).toEqual(['alice@example.com'])
   })
 
   it('closes the suggestions with Escape before letting Escape go', async () => {

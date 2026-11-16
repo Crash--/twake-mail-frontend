@@ -19,7 +19,12 @@ import {
   type UseInfiniteQueryResult
 } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
-import { useLocation, useMatch } from 'react-router'
+import {
+  NavigationType,
+  useLocation,
+  useMatch,
+  useNavigationType
+} from 'react-router'
 
 import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
@@ -30,6 +35,7 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
   type ListTableRange,
+  type ListTableScroll,
   type RowAttributes
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 import { FLAGGED, hasKeyword, SEEN } from '@common/features/email/keywords'
@@ -103,6 +109,7 @@ import {
   useReportSelecting,
   useSelectionBarSlot
 } from './ListFilterProvider'
+import { useEmailListScrollMemory } from './EmailSelectionMemoryProvider'
 import { EmailSelectionContext, useEmailSelection } from './useEmailSelection'
 import { EmailListSkeleton } from './EmailListSkeleton'
 import { useNewEmailCount } from './useNewEmailCount'
@@ -382,6 +389,26 @@ export function EmailList(props: EmailListProps): ReactElement {
           0,
           emails.findIndex(email => email.id === focusEmailId)
         )
+  // Back from an email (its back button, or the browser's), the list shows
+  // where it was; opened again from the sidebar, its most recent emails.
+  // Read once, then forgotten: back from another list shows the top too
+  const scrollMemory = useEmailListScrollMemory()
+  const navigationType = useNavigationType()
+  const [kept] = useState(() =>
+    focusEmailId !== null || navigationType === NavigationType.Pop
+      ? { listKey, scroll: scrollMemory?.read(listKey) ?? null }
+      : null
+  )
+  const savedScroll = kept?.listKey === listKey ? kept.scroll : null
+  useEffect(() => {
+    scrollMemory?.clear()
+  }, [scrollMemory])
+  const handleLeave = useCallback(
+    (scroll: ListTableScroll): void => {
+      scrollMemory?.write(listKey, scroll)
+    },
+    [scrollMemory, listKey]
+  )
   // Beside the list on large tablets: its row is highlighted like the
   // selected ones
   const openMailboxEmailId =
@@ -755,6 +782,8 @@ export function EmailList(props: EmailListProps): ReactElement {
           getRowProps={getRowProps}
           isSelectedItem={isHighlightedRow}
           focusedRowIndex={focusedIndex}
+          savedScroll={savedScroll}
+          onLeave={handleLeave}
           endReached={handleEndReached}
           rangeChanged={handleRangeChanged}
           increaseViewportBy={OVERSCAN_PX}

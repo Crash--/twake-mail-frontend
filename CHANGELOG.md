@@ -6,6 +6,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-16
+
+No setting changed since 0.12.0.
+
+### Added
+
+- In a mailbox delegated to the user, or a team mailbox picked in the
+  switcher, a banner names whose mailbox it is and whose name emails go out
+  in, with "Back to your mailbox". The list names the owner of a delegated
+  mailbox instead of "Me", and the composer shows the From line at once.
+
+### Changed
+
+- The recipient suggestions of the composer are twake-mui list rows.
+
+### Fixed
+
+- The list keeps its scroll position when coming back from an email.
+- The hover of an expanded message header covers its recipients.
+- A recipient keeps its avatar colour in the folded summary of the composer.
+- Toasts shown while a dialog or the drawer is open are announced and
+  reachable with Tab.
+- A reply whose quote holds a `<pre>` with images no longer changes once
+  reopened.
+- An image attachment named `.constructor` or `.__proto__` gets a plain file
+  type.
+- The demo stack sends a `wss://` push prefix behind https.
+
 ## [0.12.0] - 2026-11-13
 
 No setting changed since 0.11.1.

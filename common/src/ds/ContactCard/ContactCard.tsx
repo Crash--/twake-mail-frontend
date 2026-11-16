@@ -1,18 +1,19 @@
 // Upstream to twake-ui: yes. The card of a person or an address (avatar,
-// name, address with a copy button, a few actions): a centred dialog on a
-// wide screen and a bottom sheet on a phone. twake-mui's `ContactPopover`
-// opens on hover, has fixed actions and no bottom sheet (see
-// docs/twake-mui-gaps.md).
-import { Icon, Cross, Copy } from '@linagora/twake-icons'
+// name, address with a copy button, a few actions): twake-mui's small
+// `ConfirmDialog` on a wide screen and its `BottomSheet` on a phone, their
+// content laid out here. twake-mui's `ContactPopover` opens on hover and has
+// fixed actions (see docs/twake-mui-gaps.md).
+import { Icon, Copy } from '@linagora/twake-icons'
 import {
-  Box,
+  BottomSheet,
+  BottomSheetItem,
   Button,
-  Dialog,
-  Drawer,
+  ConfirmDialog,
+  DialogCloseButton,
   IconButton,
-  radius,
   Tooltip,
-  Typography
+  Typography,
+  useMediaQuery
 } from '@linagora/twake-mui'
 import {
   useId,
@@ -22,27 +23,7 @@ import {
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-
-const CARD_WIDTH = 383
-
-const CONTENT_SX = {
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  px: 4,
-  py: 3
-} as const
-
-const CLOSE_SX = {
-  position: 'absolute',
-  top: 0,
-  right: 0,
-  p: '10px',
-  color: 'text.secondary'
-} as const
-
-const NAME_SX = { mt: 3, mb: 1 } as const
+import { REDUCED_MOTION_QUERY } from '@/ds/ViewTransition/viewTransition'
 
 export interface ContactCardAction {
   id: string
@@ -68,17 +49,23 @@ export interface ContactCardProps {
   copyLabel: string
   /** The click's event tells which document the card is rendered in */
   onCopy: (event: MouseEvent<HTMLElement>) => void
-  closeLabel: string
   actions: readonly ContactCardAction[]
   'data-testid'?: string
 }
 
-/** A 48 px pill as wide as the card: filled for the main action */
-function ActionButton({ action }: { action: ContactCardAction }): ReactElement {
+/** A pill as wide as the card: filled for the main action */
+function ActionButton({
+  action,
+  className
+}: {
+  action: ContactCardAction
+  className?: string
+}): ReactElement {
   return (
     <Button
       size="large"
       fullWidth
+      className={className}
       variant={action.isPrimary === true ? 'contained' : 'outlined'}
       {...(action.href === undefined
         ? {}
@@ -98,42 +85,26 @@ function Content({
   address,
   copyLabel,
   onCopy,
-  closeLabel,
-  onClose,
   actions
-}: Omit<ContactCardProps, 'open' | 'data-testid'> & {
+}: Omit<ContactCardProps, 'open' | 'onClose' | 'data-testid'> & {
   titleId: string
 }): ReactElement {
   const hasName = name.trim() !== ''
   return (
-    <Box sx={CONTENT_SX}>
-      <Tooltip title={closeLabel}>
-        <IconButton
-          aria-label={closeLabel}
-          onClick={onClose}
-          sx={CLOSE_SX}
-          data-testid="contact-card-close"
-        >
-          <Icon icon={Cross} size={24} aria-hidden="true" />
-        </IconButton>
-      </Tooltip>
+    <div className="u-flex u-flex-column u-flex-items-center">
       {avatar}
       {hasName ? (
         <Typography
           variant="h3"
           component="h2"
           id={titleId}
-          className="u-breakword u-ta-center"
-          sx={NAME_SX}
+          className="u-breakword u-ta-center u-mt-1"
           data-testid="contact-card-name"
         >
           {name}
         </Typography>
       ) : null}
-      <Box
-        className="u-flex u-flex-items-center u-flex-justify-center"
-        sx={{ maxWidth: '100%', ...(hasName ? {} : { mt: 3 }) }}
-      >
+      <div className="u-flex u-flex-items-center u-flex-justify-center u-maw-100 u-mt-half">
         <Typography
           variant="body2"
           component={hasName ? 'p' : 'h2'}
@@ -147,91 +118,78 @@ function Content({
         <Tooltip title={copyLabel} placement="top" disableInteractive>
           <IconButton
             aria-label={copyLabel}
+            size="small"
             onClick={onCopy}
-            sx={{ p: '5px', color: 'text.secondary' }}
             data-testid="contact-card-copy"
           >
-            <Icon icon={Copy} size={20} aria-hidden="true" />
+            <Icon icon={Copy} aria-hidden="true" />
           </IconButton>
         </Tooltip>
-      </Box>
+      </div>
       {actions.length > 0 ? (
-        <Box
-          className="u-flex u-flex-column u-w-100"
-          sx={{ gap: '14px', mt: 3 }}
+        <div
+          className="u-flex u-flex-column u-w-100 u-mt-1-half"
           data-testid="contact-card-actions"
         >
-          {actions.map(action => (
-            <ActionButton key={action.id} action={action} />
+          {actions.map((action, index) => (
+            <ActionButton
+              key={action.id}
+              action={action}
+              className={index === 0 ? undefined : 'u-mt-1'}
+            />
           ))}
-        </Box>
+        </div>
       ) : null}
-    </Box>
+    </div>
   )
 }
 
 /**
- * The card of a contact: a modal dialog (centred, 383 px wide) on tablets
- * and desktops, a bottom sheet on phones. It is named by the name of the
- * person (their address when there is none), traps the focus, closes on
- * Escape, the close button and a click outside, and gives the focus back to
- * what opened it.
+ * The card of a contact: a small dialog on tablets and desktops, a sheet
+ * rising from the bottom on phones. It is named by the name of the person
+ * (their address when there is none), traps the focus, closes on Escape,
+ * the close button and a click outside, and gives the focus back to what
+ * opened it.
  */
 export function ContactCard({
   open,
   onClose,
   'data-testid': testId,
   ...content
-}: ContactCardProps): ReactElement {
+}: ContactCardProps): ReactElement | null {
   const titleId = useId()
   const isPhone = useScreenSize() === 'mobile'
-  const body = <Content titleId={titleId} onClose={onClose} {...content} />
+  // The sheet animates whatever the preference: twake-mui reads none
+  const isMotionReduced = useMediaQuery(REDUCED_MOTION_QUERY)
+  const body = <Content titleId={titleId} {...content} />
   if (isPhone) {
+    if (!open) return null
     return (
-      <Drawer
-        anchor="bottom"
-        open={open}
+      <BottomSheet
+        backdrop
         onClose={onClose}
-        slotProps={{
-          paper: {
-            role: 'dialog',
-            'aria-modal': true,
-            'aria-labelledby': titleId,
-            sx: {
-              borderTopLeftRadius: radius.lg,
-              borderTopRightRadius: radius.lg,
-              maxHeight: '90%',
-              '@media (prefers-reduced-motion: reduce)': {
-                transition: 'none !important'
-              }
-            }
-          }
-        }}
-        data-testid={testId}
+        skipAnimation={isMotionReduced}
+        aria-labelledby={titleId}
       >
-        {body}
-      </Drawer>
+        <BottomSheetItem
+          className="u-pos-relative"
+          disableElevation
+          data-testid={testId}
+        >
+          <DialogCloseButton onClick={onClose} />
+          {body}
+        </BottomSheetItem>
+      </BottomSheet>
     )
   }
   return (
-    <Dialog
+    <ConfirmDialog
+      size="small"
       open={open}
       onClose={onClose}
       aria-labelledby={titleId}
-      maxWidth={false}
-      slotProps={{
-        paper: {
-          sx: {
-            '&&': {
-              width: CARD_WIDTH,
-              maxWidth: 'calc(100% - 32px)'
-            }
-          }
-        }
-      }}
+      content={body}
       data-testid={testId}
-    >
-      {body}
-    </Dialog>
+    />
   )
 }

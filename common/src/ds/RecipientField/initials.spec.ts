@@ -12,6 +12,12 @@ describe('initialsOf', () => {
     expect(initialsOf('Иван Петров')).toBe('ИП')
     expect(initialsOf('Élise Dupont')).toBe('ÉD')
   })
+
+  it('splits the words on any white space', () => {
+    expect(initialsOf('Alice  Martin')).toBe('AM')
+    expect(initialsOf('Alice Martin')).toBe('AM')
+    expect(initialsOf(' Alice Martin ')).toBe('AM')
+  })
 })
 
 describe('splitMatches', () => {

@@ -152,6 +152,7 @@ const OWNED_BY_CONTROL = [
   '[contenteditable]:not([contenteditable="false"])',
   '[role="textbox"]',
   '[role="combobox"]',
+  'dialog',
   '[role="dialog"]',
   '[role="menu"]',
   '[role="listbox"]'
@@ -220,7 +221,8 @@ export function isShortcutEvent(event: KeyboardEvent): boolean {
   if (event.metaKey || ((event.ctrlKey || event.altKey) && !isAltGraph)) {
     return false
   }
-  const target = event.target
+  // In a shadow root (the feedback form), `target` is its host
+  const target = event.composedPath().at(0) ?? event.target
   if (
     target instanceof Element &&
     (target.closest(OWNED_BY_CONTROL) !== null || isFocusLostUnderModal(target))

@@ -6,6 +6,171 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-13
+
+No setting changed since 0.11.1.
+
+### Added
+
+- The create dialog of a label starts with a colour drawn at random among the
+  ones no label has yet.
+
+### Changed
+
+- The card of a recipient tag in the composer is the contact card of the
+  reading view: twake-mui's dialog on tablets and desktops, its bottom sheet on
+  phones.
+- The colour button of a label without colour shows a palette.
+- The unticked checkbox of a list row is drawn in the hint grey.
+- On a phone, the drawer keeps the spacing of the desktop around "Folders" and
+  "Labels", and both titles sit 12 px above their first row.
+
+### Fixed
+
+- An email leaves the Starred view once it is unstarred.
+- On a phone, a closing email slides down over the list.
+- A double click on New message opens one composer.
+
+### Security
+
+- A quoted style rebuilt for a reply or a forward can no longer carry escaped
+  markup into the composer.
+
+## [0.11.1] - 2026-11-12
+
+No setting changed since 0.11.0.
+
+### Changed
+
+- On phones and tablets, the drawer shows no menu button on its rows nor
+  Clean on Spam: a long press on a folder or a label opens its menu, Clean
+  included.
+- On phones and tablets, the top bar of the list has neither the filter icon
+  nor the help: the search field opens the filters, and the help is in
+  Settings.
+
+## [0.11.0] - 2026-11-12
+
+No setting changed since 0.10.0. The image is built on Node 26.
+
+### Added
+
+- The AI assistant speaks Mongolian, German, Spanish and Italian.
+- Folders another user shares show under "Other users", below the team
+  mailboxes, with the address of their owner, instead of passing for a team
+  mailbox.
+- The card of an invitation tells when it is one occurrence of a series.
+
+### Changed
+
+- The Drive picker is opened by cozy-interapp (0.24.2), in the Space overlay
+  too.
+- A sender has the same avatar in the list, the reading view and the contact
+  card: two initials, the colour drawn from the address.
+- The contact card is twake-mui's dialog on wide screens and its bottom sheet
+  on phones.
+- The notices of Trash, Spam and hidden remote images are grey alerts with
+  text actions.
+- The preview of an unread email is written like its subject.
+- The list toolbar reads "Select all" and "Filter", with the chevron of the
+  design; the composer toolbar icons sit on the grid of the design icons.
+- The close dialog of the composer has no Cancel button: the close button and
+  Escape keep the message open.
+- On a phone, an email opens at once, its labels sit under the subject, the
+  delegation tabs and the settings chevrons are smaller, and Cancel is as high
+  as Search in the advanced search.
+- The empty Email rules page has one button, and the rules and forwarding
+  empty states have the design's illustrations.
+- The vacation and forwarding pages sit in the 628 px column of the other
+  settings, and the vacation date and time fields open their pickers with
+  twake-icons buttons.
+
+### Fixed
+
+- A search scoped to a whole team mailbox no longer fails.
+- A long name or address wraps inside itself, its comma stays beside it, and
+  the recipients chevron stays with the last address.
+- An EML file name cut to its maximum length no longer ends in a dot.
+- An email with a `__proto__` or `constructor` attribute opens instead of
+  crashing the reader.
+- Pasting a styled list or table keeps its items and cells in place, and a
+  reopened reply keeps the colours of its quote.
+- Choosing "Right away" again for a vacation starts it now.
+- An invitation with a UID of "." or ".." has no event link.
+- Accessibility: each message of the reading view has a heading, the name
+  errors of the folder and label dialogs are announced, the focus moves to the
+  warning when a canceled event drops the answers, and the name of an identity
+  can be filled in by the browser.
+
+### Security
+
+- Email bodies are sanitized in standards mode, the way the reader parses
+  them.
+- An `@font-face` source holding a `url()` the checker cannot read is dropped.
+- Drafts, templates and emails edited as new are sanitized when loaded, and
+  the composer never trusts a kept-block marker coming from the content.
+
+## [0.10.0] - 2026-11-10
+
+New settings since 0.9.0: `ALLOWED_LANGUAGES` (Helm chart:
+`config.allowedLanguages`) and the Helm chart's `logotype.configMap`, both
+below.
+
+### Added
+
+- The logotype is a file the image serves at the path of tmail-flutter's
+  (`/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg`, plus
+  `ic_logo_with_text_dark.svg` for the dark scheme): mounting another SVG
+  over it changes the logo without a rebuild. Helm chart:
+  `logotype.configMap`. See `docs/deployment.md`.
+- `ALLOWED_LANGUAGES` (tmail-flutter's key, e.g. `mn,en`) limits the
+  languages of Settings > Language and region, in its order; the language of
+  the account, of the browser or the one chosen earlier is skipped when it is
+  not listed (English if listed, else the first one). Unset, every language
+  is offered.
+- On a phone, the rows of the drawer keep their menu button and Clean.
+- The Folders header of the sidebar shows the hidden folders in place, the
+  folder search links to Settings > Folder visibility, and the folder groups
+  of that page fold.
+- The rules settings count the rules above their list.
+
+### Changed
+
+- The composer has its More menu on desktop and tablet again, the emoji
+  button of its footer, the Reply to button on the To line and the Signature
+  pill, which folds the signature (so does its separator line).
+- A desktop row of the list shows up to three labels again.
+- Recipient chips with an avatar are pills, the avatar 4 px from the edge and
+  from the name, as in the design library.
+- The sending dialog leaves 24 px under its progress bar, has a divider under
+  its title, and a close cross beside its Close button when the server is
+  slow.
+
+### Fixed
+
+- Typing in the feedback form no longer triggers the keyboard shortcuts of
+  the mail, and the form stays inside the screen when its button sits at the
+  top (`@linagora/twake-feedback` 1.1.2).
+- A contact's address is suggested once, under the contact's name.
+- On tablets and phones, the top bar cannot be reached under the selection
+  bar.
+- Search results name a team mailbox folder with its team mailbox, and a date
+  bound the server cannot express is dropped from the search.
+- The list stays in place after deleting a selection.
+- "Label as" sends its choice in one request.
+- An invitation tells it was canceled when the server refuses the answer.
+- A team mailbox root is recognised by its namespace.
+- In a reply, a quoted `<pre>` is split around the blocks it holds, and
+  quoted spans without a colour, font or size are dropped.
+- The link dialog refuses a bare host that does not parse as a URL.
+- On a phone, the rows of the drawer stay 36 px high with their actions, and
+  the help of the mail stays under the Workplace in the bar.
+- Saving a vacation keeps a start that has passed.
+
+### Security
+
+- DOMPurify, which cleans every received email, is at least 3.4.17.
+
 ## [0.9.0] - 2026-11-06
 
 No setting changed since 0.8.0.

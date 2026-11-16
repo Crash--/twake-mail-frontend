@@ -119,7 +119,8 @@ export function SearchField({
                 }
               : {
                   id: SHOW_ALL,
-                  label: t('search.searchWithFilters'),
+                  label: t('search.placeholder'),
+                  isAction: true,
                   'data-testid': 'search-suggestion-show-all'
                 }
           ]

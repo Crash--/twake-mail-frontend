@@ -5,6 +5,9 @@
 // src/frontend/src/features/blocknote/paste-sanitizer.ts, MIT, © DINUM):
 // a color the user cannot see while composing must not reach the sent HTML.
 
+import { HTML_BLOCK_ATTRIBUTE } from './htmlBlock'
+import { QUOTE_BLOCK_KIND } from './quoteBlock'
+
 /** The only inline styles a paste keeps, the ones the toolbar can set */
 const KEPT_STYLES = new Set([
   'color',
@@ -123,6 +126,83 @@ const SEMANTIC_STYLES: {
   }
 ]
 
+/** Elements that hold blocks, list items, rows or cells: not phrasing content */
+const BLOCK_ELEMENTS = new Set([
+  'ADDRESS',
+  'ARTICLE',
+  'ASIDE',
+  'BLOCKQUOTE',
+  'CAPTION',
+  'DD',
+  'DETAILS',
+  'DIV',
+  'DL',
+  'DT',
+  'FIELDSET',
+  'FIGCAPTION',
+  'FIGURE',
+  'FOOTER',
+  'FORM',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'HEADER',
+  'HR',
+  'LI',
+  'MAIN',
+  'NAV',
+  'OL',
+  'P',
+  'PRE',
+  'SECTION',
+  'TABLE',
+  'TBODY',
+  'TD',
+  'TFOOT',
+  'TH',
+  'THEAD',
+  'TR',
+  'UL'
+])
+
+function isBlock(node: Node): node is Element {
+  return node instanceof Element && BLOCK_ELEMENTS.has(node.tagName)
+}
+
+function isBlank(node: Node): boolean {
+  return node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()
+}
+
+function wrapRun(parent: Element, run: Node[], tag: string): void {
+  const first = run[0]
+  if (!first || run.every(isBlank)) return
+  const wrapper = parent.ownerDocument.createElement(tag)
+  parent.insertBefore(wrapper, first)
+  wrapper.append(...run)
+}
+
+/**
+ * Wraps the phrasing content of an element in `tag`. Through the blocks it
+ * holds (list items, rows, cells, paragraphs), so that `<li>` stays in its
+ * list and cells in their row.
+ */
+function wrapContent(element: Element, tag: string): void {
+  let run: Node[] = []
+  Array.from(element.childNodes).forEach(child => {
+    if (!isBlock(child)) {
+      run.push(child)
+      return
+    }
+    wrapRun(element, run, tag)
+    run = []
+    wrapContent(child, tag)
+  })
+  wrapRun(element, run, tag)
+}
+
 function wrapSemantics(element: HTMLElement): void {
   if (
     element.tagName === 'A' ||
@@ -130,12 +210,11 @@ function wrapSemantics(element: HTMLElement): void {
     element.tagName === 'P'
   )
     return
-  for (const { test, tag } of SEMANTIC_STYLES) {
-    if (!test(element.style)) continue
-    const wrapper = element.ownerDocument.createElement(tag)
-    wrapper.append(...Array.from(element.childNodes))
-    element.append(wrapper)
-  }
+  SEMANTIC_STYLES.filter(({ test }) => test(element.style)).forEach(
+    ({ tag }) => {
+      wrapContent(element, tag)
+    }
+  )
   ;[
     'font-weight',
     'font-style',
@@ -288,7 +367,8 @@ function rebuildWordLists(root: HTMLElement): void {
  * - only the styles the toolbar can set stay, minus the default text and
  *   page colours of the source (spam filters dislike `color:#000000` on
  *   every span);
- * - classes and ids go.
+ * - classes and ids go, and so do the markers of kept HTML blocks (but the
+ *   editable quote's).
  *
  * The editor schema drops everything else it does not know.
  */
@@ -354,6 +434,12 @@ export function cleanPastedHtml(html: string): string {
   })
 
   body.querySelectorAll<HTMLElement>('*').forEach(element => {
+    // A pasted block of kept HTML would skip the schema: its content is
+    // parsed as the rest (an editable quote has nothing raw)
+    if (element.getAttribute(HTML_BLOCK_ATTRIBUTE) !== QUOTE_BLOCK_KIND) {
+      element.removeAttribute(HTML_BLOCK_ATTRIBUTE)
+    }
+    element.removeAttribute('data-html-block-display')
     element.removeAttribute('class')
     element.removeAttribute('id')
     element.removeAttribute('lang')

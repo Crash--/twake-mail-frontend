@@ -34,4 +34,21 @@ describe('imageBlobType', () => {
       'application/octet-stream'
     )
   })
+
+  it('never returns an inherited Object.prototype member', () => {
+    const names = [
+      'photo.constructor',
+      'photo.__proto__',
+      'photo.toString',
+      'photo.hasOwnProperty'
+    ]
+    for (const name of names) {
+      expect(imageBlobType({ type: 'image/x-foo', name })).toBe(
+        'application/octet-stream'
+      )
+      expect(imageBlobType({ type: 'application/octet-stream', name })).toBe(
+        'application/octet-stream'
+      )
+    }
+  })
 })

@@ -44,16 +44,20 @@ const GLOBAL_ATTRIBUTES = [
   'public-asset-id', 'data-mimetype'
 ] // prettier-ignore
 
-/** Attributes allowed on some tags only (tmail-flutter `AttributePolicy`) */
-const TAG_ATTRIBUTES: Readonly<Record<string, readonly string[]>> = {
-  href: ['a'],
-  src: ['img'],
-  longdesc: ['img'],
-  srcset: ['img'],
-  cite: ['blockquote', 'del', 'ins', 'q'],
-  itemscope: ['div'],
-  itemtype: ['div']
-}
+/**
+ * Attributes allowed on some tags only (tmail-flutter `AttributePolicy`).
+ * A `Map`, not an object literal: the attribute names come from the email,
+ * and `__proto__` or `constructor` would otherwise hit `Object.prototype`.
+ */
+const TAG_ATTRIBUTES: ReadonlyMap<string, readonly string[]> = new Map([
+  ['href', ['a']],
+  ['src', ['img']],
+  ['longdesc', ['img']],
+  ['srcset', ['img']],
+  ['cite', ['blockquote', 'del', 'ins', 'q']],
+  ['itemscope', ['div']],
+  ['itemtype', ['div']]
+])
 
 /** Removed with their content */
 const FORBIDDEN_TAGS = [
@@ -184,7 +188,7 @@ function currentRun(): Run {
 }
 
 function isAllowedOnTag(attribute: string, tagName: string): boolean {
-  const tags = TAG_ATTRIBUTES[attribute]
+  const tags = TAG_ATTRIBUTES.get(attribute)
   return tags === undefined || tags.includes(tagName)
 }
 
@@ -323,20 +327,32 @@ purifier.addHook('afterSanitizeAttributes', finishElement)
 
 const CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = {
   RETURN_DOM_FRAGMENT: true,
-  // Keeps the <style> elements of the <head> and those before any content
-  FORCE_BODY: true,
   ALLOWED_TAGS,
-  ALLOWED_ATTR: [
-    ...GLOBAL_ATTRIBUTES,
-    ...Object.keys(TAG_ATTRIBUTES),
-    'id',
-    'class'
-  ],
+  ALLOWED_ATTR: [...GLOBAL_ATTRIBUTES, ...TAG_ATTRIBUTES.keys(), 'id', 'class'],
   FORBID_TAGS: FORBIDDEN_TAGS,
   FORBID_CONTENTS: FORBIDDEN_CONTENTS,
   ALLOW_DATA_ATTR: false,
   ALLOW_ARIA_ATTR: false,
   ALLOW_UNKNOWN_PROTOCOLS: false
+}
+
+/**
+ * Parses the email as the reader frame does (`buildEmailDocument`): in
+ * standards mode, `<!doctype html>`, so that the tree DOMPurify checks is the
+ * one the frame builds from the output. Without a doctype the parser would be
+ * in quirks mode, where a `<table>` stays inside an open `<p>`: the output
+ * would then parse into another tree. Starting in the body keeps the `<style>`
+ * elements of the `<head>` and those before any content. A `DOMParser`
+ * document is inert: nothing runs, nothing loads.
+ */
+function parseEmailHtml(html: string): DocumentFragment {
+  const parsed = new DOMParser().parseFromString(
+    `<!doctype html><body>${html}`,
+    'text/html'
+  )
+  const content = parsed.createDocumentFragment()
+  content.append(...Array.from(parsed.body.childNodes))
+  return content
 }
 
 /**
@@ -364,7 +380,7 @@ export function sanitizeEmailHtml(
     blockedRemoteContent: 0
   }
   try {
-    const content = purifier.sanitize(html, CONFIG)
+    const content = purifier.sanitize(parseEmailHtml(html), CONFIG)
     // On the sanitized DOM: the links it adds are built, never parsed
     if (withAutolink) autolink(content)
     const container = document.createElement('div')

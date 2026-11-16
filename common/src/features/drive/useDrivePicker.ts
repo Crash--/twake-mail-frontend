@@ -1,4 +1,5 @@
 import type { Sdk } from '@linagora/twake-sdk'
+import { Intents } from 'cozy-interapp'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'
@@ -6,11 +7,9 @@ import { useWorkplaceSdk } from '@common/features/platform/PlatformProvider'
 
 import {
   pickerData,
-  readIntent,
-  readIntentMessage,
+  readPickedFiles,
+  readPickerHref,
   type DriveFile,
-  type DriveFrameSize,
-  type DriveIntent,
   type DrivePickerOptions
 } from './driveIntent'
 
@@ -25,10 +24,7 @@ export type DrivePickerState =
   | { status: 'opening' }
   | {
       status: 'open'
-      intent: DriveIntent
       isReady: boolean
-      /** The size the picker asked for (`resize`), null for the default */
-      size: DriveFrameSize | null
       /**
        * The picker asked the dialog to show its close button (`showCross`,
        * undone by `hideCross`). False by default: Drive has its own, in its
@@ -73,158 +69,130 @@ export function useDriveSdk(): Sdk | null {
 
 export interface DrivePicker {
   state: DrivePickerState
-  /** The frame of the picker, whose messages are listened to */
-  frameRef: React.RefObject<HTMLIFrameElement | null>
+  /** Gets the box the frame of the picker goes in */
+  frameContainerRef: (element: HTMLElement | null) => void
   open: () => void
   close: () => void
 }
 
 /**
- * The Twake Drive picker: creates the intent with the client of the
- * Workplace (its token, renewed by the client), then listens to the messages of its frame only: from the origin of the
- * intent, from its window, with its id, while it is open. The picked files
- * go to `onFiles`; Cancel closes it. The picker may ask for a size
- * (`resize`) and for the close button of the dialog (`showCross`,
- * `hideCross`), as cozy-interapp lets it.
+ * The Twake Drive picker, a cozy-interapp intent created with the client
+ * of the Workplace (its token, renewed by the client) and shown in the box
+ * of `frameContainerRef` once the dialog has it. The picked files go to
+ * `onFiles`; Cancel closes it. The picker may ask for a size (`resize`,
+ * set by cozy-interapp on the box) and for the close button of the dialog
+ * (`showCross`, `hideCross`).
  *
- * Closing or unmounting removes the `message` listener and the frame (its
- * `src` goes, so the dialog drops it), and a late answer of the stack is
- * ignored: what cozy-interapp's `destroy` does (Twake Calendar misses it,
+ * Closing or unmounting stops the intent (its frame and its listener go),
+ * and a late answer of the stack is ignored (Twake Calendar misses it,
  * linagora/twake-calendar-frontend#1498).
  */
 export function useDrivePicker(
   sdk: Sdk | null,
   options: DrivePickerOptions,
-  onFiles: (files: DriveFile[]) => void
+  onFiles: (files: DriveFile[]) => void,
+  /** Title of the frame, for screen readers */
+  frameTitle: string
 ): DrivePicker {
   const [state, setState] = useState<DrivePickerState>({ status: 'closed' })
-  const frameRef = useRef<HTMLIFrameElement | null>(null)
+  const [container, setContainer] = useState<HTMLElement | null>(null)
   const runRef = useRef(0)
-  // The latest labels and callback, read by the message handler
+  // The run whose intent is being created or shown: started once
+  const startedRunRef = useRef<number | null>(null)
+  const stopRef = useRef<(() => void) | null>(null)
+  // The latest labels and callback, read when the picker answers
   const optionsRef = useRef(options)
   const onFilesRef = useRef(onFiles)
+  const frameTitleRef = useRef(frameTitle)
   useEffect(() => {
     optionsRef.current = options
     onFilesRef.current = onFiles
+    frameTitleRef.current = frameTitle
   })
 
-  const close = useCallback((): void => {
+  const stop = useCallback((): void => {
     runRef.current += 1
-    setState({ status: 'closed' })
+    stopRef.current?.()
+    stopRef.current = null
   }, [])
+
+  const close = useCallback((): void => {
+    stop()
+    setState({ status: 'closed' })
+  }, [stop])
+
+  const fail = useCallback((): void => {
+    stop()
+    setState({ status: 'failed' })
+  }, [stop])
 
   const open = useCallback((): void => {
     if (sdk === null) return
-    const run = runRef.current + 1
-    runRef.current = run
+    stop()
     setState({ status: 'opening' })
+  }, [sdk, stop])
+
+  const isOpening = state.status === 'opening'
+
+  useEffect(() => {
+    const run = runRef.current
+    if (!isOpening || sdk === null || container === null) return
+    if (startedRunRef.current === run) return
+    startedRunRef.current = run
+    const isCurrent = (): boolean => runRef.current === run
+    const update =
+      (patch: { isReady?: boolean; showCloseButton?: boolean }) => (): void => {
+        if (!isCurrent()) return
+        setState(current =>
+          current.status === 'open' ? { ...current, ...patch } : current
+        )
+      }
     const start = async (): Promise<void> => {
-      const intent = readIntent(
-        await sdk.createIntent({
-          action: 'PICK',
-          type: 'io.cozy.files',
-          data: pickerData(optionsRef.current),
-          permissions: ['GET']
-        })
+      const intent = new Intents({ client: sdk }).create(
+        'PICK',
+        'io.cozy.files',
+        pickerData(optionsRef.current),
+        ['GET']
       )
-      if (runRef.current !== run) return
-      setState(
-        intent === null
-          ? { status: 'failed' }
-          : {
-              status: 'open',
-              intent,
-              isReady: false,
-              size: null,
-              showCloseButton: false
-            }
-      )
+      // Framed only when the picker is an https page
+      if (readPickerHref(await intent) === null) {
+        throw new Error('No picker in the intent')
+      }
+      if (!isCurrent()) return
+      const started = intent.start(container, {
+        title: frameTitleRef.current,
+        // The dialog keeps it, Escape working, until the picker is ready
+        focus: false,
+        onReadyToUse: update({ isReady: true }),
+        onShowCross: update({ showCloseButton: true }),
+        onHideCross: update({ showCloseButton: false })
+      })
+      stopRef.current = () => {
+        started.stop()
+      }
+      setState({ status: 'open', isReady: false, showCloseButton: false })
+      const document = await started
+      if (!isCurrent()) return
+      close()
+      if (document !== null) onFilesRef.current(readPickedFiles(document))
     }
     start().catch((error: unknown) => {
       console.warn('[drive] The picker could not open', error)
-      if (runRef.current === run) setState({ status: 'failed' })
+      if (isCurrent()) fail()
     })
-  }, [sdk])
+  }, [isOpening, sdk, container, close, fail])
 
-  const intent = state.status === 'open' ? state.intent : null
-  const isReady = state.status === 'open' && state.isReady
+  // Unmounted: a pending intent creation is ignored, a shown one stopped
+  useEffect(() => stop, [stop])
 
+  const isLoading = state.status === 'open' && !state.isReady
   useEffect(() => {
-    if (intent === null) return undefined
-    const handleMessage = (event: MessageEvent): void => {
-      const frame = frameRef.current?.contentWindow ?? null
-      if (frame === null || event.source !== frame) return
-      const message = readIntentMessage(event, intent)
-      if (message === null) return
-      switch (message.type) {
-        case 'ready':
-          // Only to the origin of the intent, never '*'
-          frame.postMessage(pickerData(optionsRef.current), intent.origin)
-          return
-        case 'readyToUse':
-          setState(current =>
-            current.status === 'open' ? { ...current, isReady: true } : current
-          )
-          return
-        case 'resize':
-          setState(current =>
-            current.status === 'open'
-              ? { ...current, size: message.size }
-              : current
-          )
-          return
-        case 'hideCross':
-        case 'showCross': {
-          const showCloseButton = message.type === 'showCross'
-          setState(current =>
-            current.status === 'open'
-              ? { ...current, showCloseButton }
-              : current
-          )
-          return
-        }
-        case 'done':
-          close()
-          onFilesRef.current(message.files)
-          return
-        case 'cancel':
-          close()
-          return
-        case 'error':
-          setState({ status: 'failed' })
-      }
-    }
-    // The picker posts to its parent: the window its frame is rendered in,
-    // which is the overlay of TwakeSpace when the dialog shows there
-    const host = frameRef.current?.ownerDocument.defaultView ?? window
-    const hosts = host === window ? [window] : [window, host]
-    hosts.forEach(target => {
-      target.addEventListener('message', handleMessage)
-    })
-    return () => {
-      hosts.forEach(target => {
-        target.removeEventListener('message', handleMessage)
-      })
-    }
-  }, [intent, close])
-
-  // Unmounted: a pending token exchange or intent creation is ignored
-  useEffect(
-    () => () => {
-      runRef.current += 1
-    },
-    []
-  )
-
-  useEffect(() => {
-    if (intent === null || isReady) return undefined
-    const timer = window.setTimeout(() => {
-      setState({ status: 'failed' })
-    }, DRIVE_READY_TIMEOUT_MS)
+    if (!isLoading) return undefined
+    const timer = window.setTimeout(fail, DRIVE_READY_TIMEOUT_MS)
     return () => {
       window.clearTimeout(timer)
     }
-  }, [intent, isReady])
+  }, [isLoading, fail])
 
-  return { state, frameRef, open, close }
+  return { state, frameContainerRef: setContainer, open, close }
 }

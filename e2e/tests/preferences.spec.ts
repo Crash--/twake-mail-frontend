@@ -206,6 +206,14 @@ test.describe('SET preferences', () => {
     ).toHaveCount(0)
     await expectNoA11yViolations(page)
 
+    // "Folders" folds the personal folders and the team mailboxes
+    const foldersToggle = page.getByTestId('folder-visibility-folders-toggle')
+    await foldersToggle.click()
+    await expect(foldersToggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByTestId('folder-visibility-folders')).toHaveCount(0)
+    await foldersToggle.click()
+    await expect(page.getByTestId('folder-visibility-folders')).toBeVisible()
+
     await page.getByRole('button', { name: 'Hide Projects' }).click()
     await expect(
       page.getByRole('button', { name: 'Show Projects' })

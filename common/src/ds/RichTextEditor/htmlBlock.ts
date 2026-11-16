@@ -22,6 +22,12 @@ import { HtmlBlockView } from './HtmlBlockView'
 export type HtmlBlockDisplay = 'frame' | 'inline'
 
 export interface HtmlBlockOptions {
+  /**
+   * How a block of `kind` parsed from HTML shows: set by the app, never
+   * read from the HTML (anyone can write the marker of an inline block);
+   * `frame` by default
+   */
+  displayOf: (kind: string) => HtmlBlockDisplay
   /** The whole document of the frame showing `html` (CSP, base styles…) */
   buildFrameDocument: (html: string) => string
   /** Title of the frame, for screen readers, by block kind */
@@ -30,6 +36,14 @@ export interface HtmlBlockOptions {
   editLabel: (kind: string) => string | null
   /** `data-testid` of that button */
   editTestId: (kind: string) => string | undefined
+  /**
+   * Label of the button that folds an `inline` block down to its first
+   * line, up to its first top-level `<br>` (no button without one); null
+   * for none
+   */
+  toggleLabel: (kind: string, isFolded: boolean) => string | null
+  /** `data-testid` of that button */
+  toggleTestId: (kind: string) => string | undefined
   /**
    * The editable HTML of a block the user unwraps (image URLs to display,
    * content to block…), sanitized; the block's own HTML by default
@@ -54,8 +68,14 @@ declare module '@tiptap/core' {
 
 export const HTML_BLOCK_ATTRIBUTE = 'data-html-block'
 
+/**
+ * Parsed in a document of its own, which loads nothing and runs nothing:
+ * the live one would fetch the block's images on every `getHTML()`
+ */
 function buildBlockElement(kind: string, html: string): HTMLElement {
-  const element = document.createElement('div')
+  const element = document.implementation
+    .createHTMLDocument('')
+    .createElement('div')
   element.setAttribute(HTML_BLOCK_ATTRIBUTE, kind)
   element.innerHTML = html
   return element
@@ -113,10 +133,13 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
 
   addOptions() {
     return {
+      displayOf: () => 'frame',
       buildFrameDocument: (html: string) => html,
       frameTitle: (kind: string) => kind,
       editLabel: () => null,
       editTestId: () => undefined,
+      toggleLabel: () => null,
+      toggleTestId: () => undefined,
       editableHtml: (_kind: string, html: string) => html
     }
   },
@@ -130,16 +153,16 @@ export const HtmlBlock = Node.create<HtmlBlockOptions>({
   },
 
   parseHTML() {
+    const { displayOf } = this.options
     return [
       {
         tag: `div[${HTML_BLOCK_ATTRIBUTE}]`,
         // Before paragraphs, tables and lists eat its children
         priority: 1000,
-        getAttrs: element => ({
-          html: element.innerHTML,
-          kind: element.getAttribute(HTML_BLOCK_ATTRIBUTE) ?? 'block',
-          display: element.getAttribute('data-html-block-display') ?? 'frame'
-        })
+        getAttrs: element => {
+          const kind = element.getAttribute(HTML_BLOCK_ATTRIBUTE) ?? 'block'
+          return { html: element.innerHTML, kind, display: displayOf(kind) }
+        }
       }
     ]
   },

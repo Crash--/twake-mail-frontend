@@ -21,6 +21,7 @@ const ACTION_RIGHTS: Record<EmailActionName, EmailRight> = {
   markUnsubscribed: 'maySetKeywords',
   addLabel: 'maySetKeywords',
   removeLabel: 'maySetKeywords',
+  setLabels: 'maySetKeywords',
   setKeyword: 'maySetKeywords'
 }
 

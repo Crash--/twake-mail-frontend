@@ -19,6 +19,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import {
   SETTINGS_FORM_WIDTH,
@@ -78,6 +79,11 @@ function invalidPart(
   return fromLocalInputs(date, '00:00') === null ? fields.date : fields.time
 }
 
+/** Room for "02:28 PM" beside the picker button, "2:28:00 PM" in Safari */
+const TIME_FIELD_WIDTH = 160
+/** Room for "11/12/2026" beside the picker button, in Safari too */
+const DATE_FIELD_WIDTH = 172
+
 /** The form, filled with the vacation response of the server */
 function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const { t } = useI18n()
@@ -109,6 +115,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const end = toLocalInputs(vacation.toDate)
   const [isEnabled, setIsEnabled] = useState(vacation.isEnabled)
   const [isRightAway, setIsRightAway] = useState(wasRightAway)
+  // Only an untouched "Right away" keeps the saved start: choosing it anew
+  // starts the response at the moment of the save
+  const [isStartTouched, setIsStartTouched] = useState(false)
   const [startDate, setStartDate] = useState(start.date)
   const [startTime, setStartTime] = useState(start.time)
   const [hasEnd, setHasEnd] = useState(vacation.toDate !== null)
@@ -141,7 +150,10 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
     const now = startInputs(null, new Date())
     const fromDate = !isRightAway
       ? fromLocalInputs(startDate, startTime)
-      : wasRightAway && vacation.isEnabled && vacation.fromDate !== null
+      : !isStartTouched &&
+          wasRightAway &&
+          vacation.isEnabled &&
+          vacation.fromDate !== null
         ? vacation.fromDate
         : fromLocalInputs(now.date, now.time)
     if (fromDate === null) {
@@ -212,6 +224,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
   const handleCancel = (): void => {
     setIsEnabled(vacation.isEnabled)
     setIsRightAway(wasRightAway)
+    setIsStartTouched(false)
     setStartDate(start.date)
     setStartTime(start.time)
     setHasEnd(vacation.toDate !== null)
@@ -257,7 +270,8 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
         endWidth={SETTINGS_FORM_WIDTH}
         data-testid="vacation-enable-toggle"
       />
-      {/* As tmail-flutter: a column of labelled rows, 660 px wide at most */}
+      {/* As tmail-flutter: a column of labelled rows, within the page's
+          628 px column */}
       <SettingsFormColumn>
         <SettingsFormRow
           label={t('vacation.starts')}
@@ -274,6 +288,7 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
               // Pressing the chosen one again keeps it
               if (choice === null) return
               setIsRightAway(choice === 'now')
+              setIsStartTouched(true)
               setProblem(null)
             }}
             data-testid="vacation-start-choice"
@@ -296,8 +311,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={startDateId}
                   type="date"
+                  pickerLabel={t('vacation.selectStartDate')}
                   size="form"
-                  width={150}
+                  width={DATE_FIELD_WIDTH}
                   label={t('vacation.startDate')}
                   value={startDate}
                   inputRef={startDateRef}
@@ -318,8 +334,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={startTimeId}
                   type="time"
+                  pickerLabel={t('vacation.selectStartTime')}
                   size="form"
-                  width={130}
+                  width={TIME_FIELD_WIDTH}
                   label={t('vacation.startTime')}
                   value={startTime}
                   inputRef={startTimeRef}
@@ -376,8 +393,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={endDateId}
                   type="date"
+                  pickerLabel={t('vacation.selectEndDate')}
                   size="form"
-                  width={150}
+                  width={DATE_FIELD_WIDTH}
                   label={t('vacation.endDate')}
                   value={endDate}
                   inputRef={endDateRef}
@@ -397,8 +415,9 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
                 <SettingsTextField
                   id={endTimeId}
                   type="time"
+                  pickerLabel={t('vacation.selectEndTime')}
                   size="form"
-                  width={130}
+                  width={TIME_FIELD_WIDTH}
                   label={t('vacation.endTime')}
                   value={endTime}
                   inputRef={endTimeRef}
@@ -534,7 +553,9 @@ export function VacationSettings({
           {t('common.errorOccurredShort')}
         </Alert>
       ) : (
-        <VacationForm key={query.dataUpdatedAt} vacation={query.data} />
+        <NarrowColumn>
+          <VacationForm key={query.dataUpdatedAt} vacation={query.data} />
+        </NarrowColumn>
       )}
     </SettingsSectionLayout>
   )

@@ -126,6 +126,7 @@ configuration serves both apps. The values of an `env.file` are strings
 | `OIDC_SCOPES` | Scopes separated by commas, default `openid,profile,email,offline_access` | Same; spaces work too. Former `SSO_SCOPE` (spaces) still read |
 | `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | Ignored: the apps are those of the Workplace, in the [platform top bar](#platform-top-bar) |
 | `FORWARD_WARNING_MESSAGE` | Warning of Settings > Forwarding | Same |
+| `ALLOWED_LANGUAGES` | Comma-separated languages offered on the web (`mn,en`), in the order of the picker; a language not listed is skipped at start-up (English if listed, else the first one); unset or no known code: every language | Same; the language of the account is never overwritten |
 | `SENTRY_FEEDBACK_ENABLED` | Not in tmail-flutter | `true` offers the draggable user feedback button (position kept per browser, moved from the keyboard with Shift+F10) to the users who opted in to error reporting (off by default; Sentry 24.4.2 or later). See [sentry.md](sentry.md) |
 | `SENTRY_ENABLED`, `SENTRY_DSN`, `SENTRY_ENVIRONMENT` | Sentry starts with `SENTRY_ENABLED=true` and a DSN and an environment; a reporting preference, and the ecosystem as a fallback | Same sources: one filled key makes the configuration come from the environment (even off), none leaves it to the ecosystem of the server. Starts with `SENTRY_ENABLED=true` and a DSN, and **never before the user opted in** (Settings > Preferences, stored in the account). Without `SENTRY_ENABLED` a DSN alone still starts it, with a console warning. See [sentry.md](sentry.md) |
 | `FCM_AVAILABLE`, `IOS_FCM`, `FIREBASE_*` | Push notifications of the mobile apps | Ignored |
@@ -219,6 +220,49 @@ environment of the container (`extraEnv` of the chart). It is added to the
 generated `/.env.js` when the `env.file` has no such key, as are
 `TWAKE_SPACE_URL` and `TDRIVE_ENABLED` (the
 [Twake Drive picker](#twake-drive-picker)).
+
+### Custom logotype
+
+The Twake Mail logotype of the top bar, the folder drawer, the login page
+and the bar without a Workplace is a file served by the image, at the path
+of tmail-flutter's image: mounting another SVG over it changes the logo, with
+no rebuild. A deployment that customised its logo with tmail-flutter keeps
+its mount.
+
+| File in the image | Shown |
+|---|---|
+| `/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg` | In the light scheme (same file as tmail-flutter) |
+| `/usr/share/nginx/html/assets/assets/images/ic_logo_with_text_dark.svg` | In the dark scheme (no counterpart in tmail-flutter, which has no dark scheme) |
+
+```yaml
+services:
+  web:
+    volumes:
+      - ./my-logo.svg:/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg:ro
+      - ./my-logo-dark.svg:/usr/share/nginx/html/assets/assets/images/ic_logo_with_text_dark.svg:ro
+```
+
+- Mount both: a deployment that mounts only the light logotype keeps the
+  Twake Mail one in the dark scheme. Mount the same file twice when it reads
+  well on both backgrounds. tmail-flutter's `ic_logo_with_text_beta.svg`
+  (`PLATFORM=saas`) has no counterpart here.
+- The logotype is drawn 32 px high, as twake-mui's `AppTitle`, its width
+  following the `viewBox` of the SVG (about 184×32 for the default one,
+  twake-mui's `AppTitle`; 1131×221 for tmail-flutter's). Its accessible name
+  stays "Twake Mail", translated.
+- Both files are served with `Cache-Control: no-cache` (revalidated, never
+  pre-compressed): a new mount shows after a reload.
+- The SVG is drawn as an image (`<img>`): browsers run none of its scripts
+  and load none of the files it links (fonts, images), so keep it
+  self-contained (paths, or fonts converted to outlines).
+- With the Helm chart of this repository, put both files in a ConfigMap and
+  set `logotype.configMap` (see its README). With `linagora/tmail-frontend`,
+  mount them as for tmail-web.
+
+The platform top bar of Twake Workplace keeps its own icons (the Mail app
+icon and the "Mail" wordmark, `/assets/images/svg/app-mail.svg` and
+`mail-text.svg`), as the other Twake apps do: only the bar without a
+Workplace shows the logotype.
 
 ## Docker Compose
 

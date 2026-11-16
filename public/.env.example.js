@@ -87,6 +87,12 @@ var CHAT_SPA_URL =
 // button instead of its account menu.
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.example.com'
 
+// [tmail-flutter] Optional. The languages offered in Settings > Language and
+// region, in that order, e.g. 'mn,en' (case and region ignored, unknown codes
+// skipped). A language that is not listed is never applied: English if
+// listed, else the first one. Empty or unset: every language.
+var ALLOWED_LANGUAGES = ''
+
 // [tmail-flutter] Optional. Shown in Settings > Forwarding, e.g. the rules of
 // your organisation on forwarding emails outside.
 var FORWARD_WARNING_MESSAGE = ''

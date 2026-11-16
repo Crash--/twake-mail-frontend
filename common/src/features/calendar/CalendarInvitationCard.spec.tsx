@@ -116,6 +116,34 @@ function renderView(server: FakeJmapServer): void {
 describe('CalendarInvitationCard', () => {
   listEmailsOneByOne()
 
+  it('nests the headings of the event under the heading of its message', async () => {
+    renderView(makeServer(INVITATION))
+
+    await screen.findByRole('region', { name: 'Event: Weekly sync' })
+    await screen.findByText('Agenda: roadmap', { exact: false })
+
+    const levels = screen
+      .getAllByRole('heading')
+      .map(heading => Number(heading.tagName.slice(1)))
+    expect(levels[0]).toBe(1)
+    expect(levels.filter(level => level === 1)).toHaveLength(1)
+    const messages = screen.getAllByRole('heading', { level: 2 })
+    expect(messages).toHaveLength(1)
+    expect(messages[0]).toHaveTextContent('Olivia')
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Weekly sync' })
+    ).toBeVisible()
+    expect(
+      screen.getByRole('heading', { level: 4, name: 'Description' })
+    ).toBeVisible()
+    // No level is skipped
+    expect(
+      levels.every(
+        (level, index) => index === 0 || level - (levels[index - 1] ?? 0) < 2
+      )
+    ).toBe(true)
+  })
+
   it('shows the event of the .ics attachment', async () => {
     const server = makeServer({
       ...INVITATION,
@@ -325,6 +353,63 @@ describe('CalendarInvitationCard', () => {
     jest.restoreAllMocks()
   })
 
+  it('tells the event was canceled and drops the answers', async () => {
+    const server = makeServer(INVITATION)
+    server.handlers.set('CalendarEvent/maybe', args => {
+      // tmail-backend reports the refused answer as given
+      server.handlers.set('CalendarEventAttendance/get', attendanceArgs => ({
+        accountId: attendanceArgs.accountId,
+        list: [
+          {
+            blobId: 'b-ics',
+            eventAttendanceStatus: 'tentativelyAccepted',
+            isFree: true
+          }
+        ]
+      }))
+      return {
+        accountId: args.accountId,
+        notMaybe: {
+          'b-ics': {
+            type: 'eventCancelled',
+            description: 'The event you reply to has been cancelled'
+          }
+        }
+      }
+    })
+    renderView(server)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Maybe' }))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'This event was canceled'
+    )
+    expect(screen.getByTestId('calendar-event-canceled')).toHaveTextContent(
+      'This event was canceled'
+    )
+    expect(screen.queryByRole('group', { name: 'Attending?' })).toBe(null)
+    expect(screen.queryByRole('button', { name: 'Maybe' })).toBe(null)
+    expect(server.callsOf('CalendarEventAttendance/get')).toHaveLength(1)
+  })
+
+  it('moves the focus to the warning when the answer it held goes away', async () => {
+    const server = makeServer(INVITATION)
+    server.handlers.set('CalendarEvent/accept', args => ({
+      accountId: args.accountId,
+      notAccepted: { 'b-ics': { type: 'eventCancelled' } }
+    }))
+    renderView(server)
+
+    const yes = await screen.findByRole('button', { name: 'Yes' })
+    yes.focus()
+    await userEvent.keyboard('{Enter}')
+
+    const warning = await screen.findByTestId('calendar-event-canceled')
+    await waitFor(() => {
+      expect(warning).toHaveFocus()
+    })
+  })
+
   it('offers only Yes on a counter proposal, which accepts it', async () => {
     const server = makeServer({ ...INVITATION, method: 'COUNTER' })
     server.handlers.set('CalendarEventCounter/accept', args => ({
@@ -416,6 +501,80 @@ describe('CalendarInvitationCard', () => {
 
     const text = await screen.findByTestId('calendar-event-description')
     expect(text).toHaveTextContent(/^Description\s*Agenda: roadmap$/)
+  })
+
+  it('tells an update of one occurrence of a recurring event', async () => {
+    const server = makeServer({
+      ...INVITATION,
+      title: 'Weekly sync (moved once)',
+      method: 'REQUEST',
+      sequence: 1,
+      utcStart: '2026-11-03T10:00:00Z',
+      utcEnd: '2026-11-03T11:00:00Z',
+      timeZone: 'Europe/Paris',
+      recurrenceRules: []
+    })
+    server.blobs.set(
+      'b-ics',
+      [
+        'BEGIN:VCALENDAR',
+        'METHOD:REQUEST',
+        'BEGIN:VEVENT',
+        'UID:weekly-sync',
+        'RECURRENCE-ID;TZID=Europe/Paris:20261103T090000',
+        'DTSTART;TZID=Europe/Paris:20261103T110000',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n')
+    )
+    renderView(server)
+
+    const occurrence = await screen.findByTestId('calendar-event-occurrence')
+    // 09:00 in Paris, in the UTC of the tests
+    expect(occurrence).toHaveTextContent(
+      'This occurrence only (originally Tuesday, November 3, 2026 at 8:00 AM)'
+    )
+    expect(screen.queryByTestId('calendar-event-recurrence')).toBe(null)
+  })
+
+  it('says nothing of an occurrence for a one-off event', async () => {
+    const server = makeServer({ ...INVITATION, recurrenceRules: [] })
+    server.blobs.set(
+      'b-ics',
+      'BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:weekly-sync\r\nEND:VEVENT\r\nEND:VCALENDAR'
+    )
+    renderView(server)
+
+    expect(await screen.findByTestId('calendar-event-card')).toBeVisible()
+    expect(screen.queryByTestId('calendar-event-occurrence')).toBe(null)
+  })
+
+  it('takes a recurring event for the whole series', async () => {
+    const server = makeServer(INVITATION)
+    server.blobs.set(
+      'b-ics',
+      'BEGIN:VEVENT\r\nRECURRENCE-ID:20261012T080000Z\r\nEND:VEVENT'
+    )
+    renderView(server)
+
+    expect(await screen.findByTestId('calendar-event-recurrence')).toBeVisible()
+    expect(screen.queryByTestId('calendar-event-occurrence')).toBe(null)
+  })
+
+  it('reads the recurrence id the server gives', async () => {
+    renderView(
+      makeServer({
+        ...INVITATION,
+        recurrenceRules: [],
+        recurrenceId: '20261012T080000Z'
+      })
+    )
+
+    expect(
+      await screen.findByTestId('calendar-event-occurrence')
+    ).toHaveTextContent(
+      'This occurrence only (originally Monday, October 12, 2026 at 8:00 AM)'
+    )
   })
 
   it('reads no event without the capability', async () => {

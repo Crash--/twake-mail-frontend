@@ -99,6 +99,31 @@ describe('EmailView', () => {
     expect(screen.queryByTestId('email-view-bcc')).toBe(null)
   })
 
+  it('keeps the comma in the button of the address before it, out of its name', async () => {
+    renderView(
+      makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'e1',
+              to: [
+                { name: 'Alice Martin', email: 'alice@example.com' },
+                { name: 'Carol Dupont', email: 'carol@example.com' }
+              ]
+            },
+            { text: 'Hello' }
+          )
+        ]
+      })
+    )
+
+    const to = await screen.findByTestId('email-view-to')
+    const [alice, carol] = within(to).getAllByTestId('email-address')
+    expect(alice).toHaveTextContent(/^Alice Martin,$/)
+    expect(alice).toHaveAccessibleName('Alice Martin')
+    expect(carol).toHaveTextContent(/^Carol Dupont$/)
+  })
+
   it.each([
     [
       'Good signature',

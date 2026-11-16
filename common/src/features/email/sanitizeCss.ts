@@ -239,18 +239,28 @@ function judgeUrl(url: string): UrlVerdict {
   return 'unsafe'
 }
 
+/**
+ * Every `url()` argument of a value, or `null` when a `url(` could not be
+ * read (e.g. unbalanced quotes, or a quoted `)`): the browser would still
+ * load it, so the caller must treat the value as unsafe
+ */
+function readAllUrls(value: string): string[] | null {
+  const urls = urlArguments(value)
+  const urlCount = (value.match(URL_OPENING) ?? []).length
+  return urlCount === urls.length ? urls : null
+}
+
 /** The verdict of the worst `url()` of a value */
 function judgeUrls(value: string): UrlVerdict {
   let verdict: UrlVerdict = 'safe'
-  const urls = urlArguments(value)
+  const urls = readAllUrls(value)
+  if (urls === null) return 'unsafe'
   for (const url of urls) {
     const urlVerdict = judgeUrl(url)
     if (urlVerdict === 'unsafe') return 'unsafe'
     if (urlVerdict === 'remote') verdict = 'remote'
   }
-  // A url( the pattern could not read, e.g. unbalanced quotes
-  const urlCount = (value.match(/url\(/gi) ?? []).length
-  return urlCount === urls.length ? verdict : 'unsafe'
+  return verdict
 }
 
 /** Bounded and anchored, after ADR 0069 (ReDoS) */
@@ -405,14 +415,13 @@ function sanitizeRules(
   let blockedRemoteContent = 0
   for (const { prelude, body } of blocks) {
     const selector = prelude.trim()
-    if (selector === '' || /[<{}]/.test(selector)) continue
+    // A CSS escape (`\3c`) is read back as a raw `<` by whoever parses the
+    // sheet and serializes it again (CSSOM): it never survives
+    if (selector === '' || /[<{}\\]/.test(selector)) continue
     // A string, a comment or a url( the browser reads differently from
     // readBlocks could swallow the `{` of the rule and let its `}` close the
     // @scope
-    if (
-      options.scope !== undefined &&
-      /["'\\]|\/\*|\*\/|url\(/i.test(selector)
-    ) {
+    if (options.scope !== undefined && /["']|\/\*|\*\/|url\(/i.test(selector)) {
       continue
     }
     if (/^@media\b/i.test(selector)) {
@@ -479,7 +488,7 @@ function sanitizeFontFace(body: string): string {
     }
     if (FORBIDDEN_VALUE.test(value) || /[<>{}]/.test(value)) continue
     if (property === 'src') {
-      const urls = urlArguments(value).map(url => url.trim())
+      const urls = readAllUrls(value)?.map(url => url.trim()) ?? []
       if (urls.length === 0 || !urls.every(url => /^https:\/\//i.test(url))) {
         continue
       }

@@ -36,6 +36,8 @@ export type Confirm = (options: ConfirmOptions) => Promise<boolean>
 export interface ChoiceOptions extends ConfirmOptions {
   /** Label of the other way out, e.g. "Discard changes" */
   alternativeLabel: string
+  /** Shows a Cancel button, true by default; Escape and Close still cancel */
+  hasCancelButton?: boolean
 }
 
 /** What the user chose; `cancel` for Cancel, Escape or a click outside */
@@ -62,6 +64,7 @@ const ConfirmContext = createContext<ConfirmApi | null>(null)
 
 interface PendingConfirm extends ConfirmOptions {
   alternativeLabel: string | null
+  hasCancelButton?: boolean
   /** An alert: its one button acknowledges */
   isAlert: boolean
   resolve: (choice: Choice) => void
@@ -153,6 +156,7 @@ export function ConfirmProvider({
   }
   const isChoice = (pending?.alternativeLabel ?? null) !== null
   const isAlert = pending?.isAlert ?? false
+  const hasCancelButton = !isAlert && pending?.hasCancelButton !== false
 
   return (
     <ConfirmContext.Provider value={api}>
@@ -169,7 +173,7 @@ export function ConfirmProvider({
         }
         actions={
           <>
-            {isAlert ? null : (
+            {hasCancelButton ? (
               <Button
                 variant="outlined"
                 onClick={handleCancel}
@@ -178,7 +182,7 @@ export function ConfirmProvider({
               >
                 {pending?.cancelLabel ?? t('common.cancel')}
               </Button>
-            )}
+            ) : null}
             {isChoice ? (
               <Button
                 variant="outlined"

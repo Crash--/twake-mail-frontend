@@ -8,6 +8,19 @@ function clean(html: string): string {
 }
 
 describe('sanitizeEmailHtml', () => {
+  it.each(['__proto__', 'constructor', 'toString', 'hasOwnProperty'])(
+    'drops an attribute named %s instead of throwing',
+    name => {
+      expect(clean(`<p ${name}="x">Hello</p>`)).toBe('<p>Hello</p>')
+    }
+  )
+
+  it('keeps an attribute allowed on its tag only', () => {
+    expect(clean('<a href="https://example.com/">a</a><p href="x">b</p>')).toBe(
+      '<a href="https://example.com/" target="_blank" rel="noopener noreferrer">a</a><p>b</p>'
+    )
+  })
+
   describe('autolink', () => {
     it('leaves bare URLs as text by default (composer quote)', () => {
       expect(clean('<p>https://example.com</p>')).toBe(
@@ -131,6 +144,21 @@ describe('sanitizeEmailHtml', () => {
           '<form action="https://evil.example.com"><p>Your password:</p><input name="password"><select><option>secret</option></select></form>'
         )
       ).toBe('<p>Your password:</p>')
+    })
+
+    it('parses the email in standards mode, as the reader frame does (#763)', () => {
+      // In quirks mode, the <table> would stay inside the open <p>
+      expect(clean('<p>a<table><tr><td>b</td></tr></table>')).toBe(
+        '<p>a</p><table><tbody><tr><td>b</td></tr></tbody></table>'
+      )
+    })
+
+    it('gives HTML that parses back into the tree it sanitized (#763)', () => {
+      const html =
+        '<p><table><i>a<b>b</b>c<table><i>d<b>e</b>f<img><b>g<b/>h<table><i>i<b>j</b>k<tr>l<tr>m</p>'
+      const once = clean(html)
+
+      expect(clean(once)).toBe(once)
     })
   })
 

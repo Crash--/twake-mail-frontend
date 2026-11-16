@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { resolveConfig, type AppConfig } from '@common/config/config'
 import { makeFakeJmapServer } from '@common/testing/fakeJmapServer'
 import {
   FAKE_LINAGORA_CAPABILITIES,
@@ -16,6 +17,20 @@ function languageSection(): SettingsSection {
   const section = SETTINGS_SECTIONS.find(({ id }) => id === 'language-region')
   if (!section) throw new Error('No Language section')
   return section
+}
+
+function makeConfig(allowedLanguages: string): AppConfig {
+  const result = resolveConfig(
+    {
+      SERVER_URL: 'https://jmap.example.com',
+      AUTH_MODE: 'basic',
+      ALLOWED_LANGUAGES: allowedLanguages
+    },
+    'https://mail.example.com',
+    () => undefined
+  )
+  if (!result.ok) throw new Error(result.errors.join(', '))
+  return result.value
 }
 
 describe('LanguageSettings', () => {
@@ -85,6 +100,60 @@ describe('LanguageSettings', () => {
       await screen.findByRole('heading', { level: 1, name: 'Хэл' })
     ).toBeVisible()
     expect(document.documentElement.lang).toBe('mn')
+  })
+
+  it('offers only the languages of ALLOWED_LANGUAGES, in their order', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeSettings(server)
+    renderWithProviders(<LanguageSettings section={languageSection()} />, {
+      jmapServer: server,
+      withJmapSession: true,
+      config: makeConfig('mn,en')
+    })
+
+    await userEvent.click(
+      await screen.findByRole('combobox', { name: /^Language/ })
+    )
+    expect(
+      screen.getAllByRole('option').map(option => option.textContent)
+    ).toEqual(['Mongolian - Монгол', 'English - English'])
+  })
+
+  it('keeps its language when the account has one not offered', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    const settings = installFakeSettings(server, { language: 'fr' })
+    renderWithProviders(
+      <>
+        <ServerLanguageSync />
+        <LanguageSettings section={languageSection()} />
+      </>,
+      {
+        jmapServer: server,
+        withJmapSession: true,
+        config: makeConfig('mn,en')
+      }
+    )
+
+    expect(
+      await screen.findByRole('combobox', { name: /^Language/ })
+    ).toHaveTextContent('English')
+    // Once the settings of the account are read
+    await waitFor(() => {
+      expect(
+        server.requests.some(({ methodCalls }) =>
+          methodCalls.some(([method]) => method === 'Settings/get')
+        )
+      ).toBe(true)
+    })
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Language' })
+    ).toBeVisible()
+    // The setting of the account is not overwritten
+    expect(settings.settings()).toEqual({ language: 'fr' })
   })
 
   it('follows the language of the account', async () => {

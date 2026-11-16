@@ -313,6 +313,8 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/actions.spec.ts`. Passes in CI.
 - [x] `EML-32` Opening the oldest email of a scrolled list and going back each run one view transition (a slide on phones and tablets, a fade through wider); the subject takes the focus (axe on the email), then the row again, still in view; opening a search result runs one too. — web app only, no Patrol test (issue #12)
   - Spec: `tests/transitions.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
+- [x] `EML-32b` On a phone or a small tablet, closing an email slides the reading view down off the screen over the list, which does not slide in. — web app only, no Patrol test (issue #1002)
+  - Spec: `tests/transitions.spec.ts`, on `mobile` and `tablet` (`@touch-only`).
 - [x] `EML-33` With `prefers-reduced-motion: reduce`, or in a browser without the View Transitions API, the same path runs no transition and keeps the focus and the scroll. — web app only, no Patrol test (issue #12)
   - Spec: `tests/transitions.spec.ts`, reduced motion on `chromium`, `mobile` and `tablet`, without the API on `chromium`. Passes in CI.
 - [x] `EML-34` The bare `https://` URLs, `www.` hosts and email addresses of a text/plain and of an HTML email are links (new tab, `noopener noreferrer`, trailing punctuation left out, `www.` opened in https); a link already there is not doubled, code is left as is; following an address with the keyboard opens a composer to it. — web app only, no Patrol test (issue #70)
@@ -392,7 +394,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
   - Spec: `tests/search.spec.ts`, on `chromium`, `mobile` and `tablet`. Read from the row toggle; archived through JMAP until the email actions land (phase 2, lot A), push showing the row in Archive. Passes in CI.
 - [x] `SRCH-14` On the dashboard, the search field is not focused on load, and a right-click (secondary mouse button) on it gives it focus. — `search/right_click_focus_search_field_test.dart` · tags: `web`
   - Spec: `tests/search.spec.ts`. Passes in CI.
-- [x] `SRCH-15` With an empty query, focusing the field shows the quick filters only: no empty listbox, the combobox collapsed (`aria-expanded="false"`, no `aria-controls`) and the live region saying the quick filters follow the field, also after typing then clearing; a quick filter picked there adds "Search with these filters", which runs it. The advanced search opened from the empty query has the picked filter checked, its "Folder" label naming the select, and its submit button in view; on a desktop and a tablet it is the card laid over the search field (700 px wide under the desktop search) that Escape closes, on a phone a full screen dialog with its title and a Cancel button in view (the only way out there). axe on the dropdown and on the dialog. — web app only, no Patrol test (issue #13)
+- [x] `SRCH-15` With an empty query, focusing the field shows the quick filters only: no empty listbox, the combobox collapsed (`aria-expanded="false"`, no `aria-controls`) and the live region saying the quick filters follow the field, also after typing then clearing; a quick filter picked there adds "Search emails", which runs it. The advanced search opened from the empty query has the picked filter checked, its "Folder" label naming the select, and its submit button in view; on a desktop and a tablet it is the card laid over the search field (700 px wide under the desktop search) that Escape closes, on a phone a full screen dialog with its title and a Cancel button in view (the only way out there). axe on the dropdown and on the dialog. — web app only, no Patrol test (issue #13)
   - Spec: `tests/search.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`). Passes in CI.
 
 ## LBL — Labels (12)
@@ -434,7 +436,7 @@ seeded through JMAP. Everything else needs actions, the composer, search or sett
 - [x] `SET-06` "Settings" in the account menu opens Profiles beside the sections on a desktop, the list of the sections (with what each is for) on phones and tablets; a section opens with its title focused and in the page title, the back buttons return to the list and to the mail. — web app only, no Patrol test
 - [x] `SET-07` In Settings → Forwarding, an address of the domain is added (no warning), "Keep a copy in Inbox" appears and is turned off, a new email reaches the address; an outside address asks first with the deployment's `FORWARD_WARNING_MESSAGE` (declined, then accepted) and the banner shows it, the address marked "External domain"; both are removed after confirmation. — web app only, no Patrol test
 - [x] `SET-08` In Settings → Vacation, turning the response on with a past start date first refuses an empty message, then saves it (subject and rich message stored); the past start reopens on "Right away" and saving another change keeps it as saved; the banner "Your vacation responder is enabled." shows in the settings and over the mail, and its "End now" turns the response off and hides it. While the response is off, the message editor is disabled like the other fields (`aria-disabled`, not editable, issue #61). — web app only, no Patrol test (tmail-flutter's `VacationNotificationMessageWidget`)
-- [x] `SET-09` In Settings → Folder visibility, system folders have no button; "Hide" on a personal folder takes it out of the folder tree, "Show" brings it back. — web app only, no Patrol test
+- [x] `SET-09` In Settings → Folder visibility, system folders have no button; the "Folders" heading folds and unfolds the personal folders and the team mailboxes; "Hide" on a personal folder takes it out of the folder tree, "Show" brings it back. — web app only, no Patrol test
 
 ## RULE — Email rules (3)
 
@@ -559,6 +561,10 @@ text fields, dialogs and menus, and with Ctrl, Alt or Meta; they can be turned o
 - [x] `KBD-06` `/` moves the focus into the search, unfolding it first on phones, where Escape
   folds it back and gives the focus to the search button. — no Patrol test (issue #45)
   - Spec: `tests/shortcuts.spec.ts`, on `chromium`, `mobile` and `tablet` (`@mobile`).
+- [x] `KBD-07` The keys typed in the feedback form (its fields are in a shadow root) are text: the
+  letters of the shortcuts, `/`, `#`, `?`, Backspace and Delete reach the field, and no composer,
+  list of shortcuts nor action on the email behind it follows. — web app only
+  - Spec: `tests/error-reporting.spec.ts`.
 
 ## RESP — Phones and tablets (no Patrol counterpart)
 
@@ -641,10 +647,10 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
 - [x] `MBX-33b` The folder search links to Settings > Folder visibility (not in a mailbox delegated to the user). — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
 - [ ] `FBAR-01` The inbox toolbar offers refresh, "Select all messages of this page" and the three
-  filters (menu); selecting all turns it into the selection bar; axe. — also on phones and tablets
+  filters (menu, on a desktop only: below it the search field filters); selecting all turns it into the selection bar; axe. — also on phones and tablets
   - Spec: `tests/folder-toolbar.spec.ts`.
 - [ ] `FBAR-02` A filter narrows the folder in place (same URL), one at a time, with a toast; picking
-  it again or the clear button restores the list. — also on phones and tablets
+  it again or the clear button restores the list. — desktop only (no filter button below it)
   - Spec: `tests/folder-toolbar.spec.ts`.
 - [ ] `FBAR-03` In a filtered folder, an email leaving it (moved to the Trash) leaves the list and a
   new matching email joins it by push.
@@ -698,6 +704,8 @@ finishes issue #112.
 
 - [x] `FBAR-06` In a filtered folder, an email that stops matching the filter (marked as read under "Unread") leaves the list at once, as tmail-flutter's client-side `filterEmail`. — web app (issue #112)
   - Spec: `tests/folder-toolbar.spec.ts`.
+- [x] `FBAR-07` A filter set on a desktop hides nothing once the window narrows to a tablet or a phone, which have no filter button; back on the desktop it is still on, with its clear button. — web app (review of #992)
+  - Spec: `tests/folder-toolbar.spec.ts`.
 - [x] `TBAR-01` With the messages vault, the personal Trash has a button recovering deleted messages, which opens the recovery dialog. The session is rewritten at the network level (`page.route`), the e2e stack being unable to guarantee the capability. Axe. — web app (issue #112)
   - Spec: `tests/toolbar-capabilities.spec.ts`.
 - [x] `TBAR-02` Without the vault, the Trash has no recovery button. — web app (issue #112)
@@ -708,7 +716,7 @@ finishes issue #112.
   - Spec: `tests/toolbar-capabilities.spec.ts`.
 - [x] `TBAR-05` Without a support contact there is no help button. — web app (issue #112)
   - Spec: `tests/toolbar-capabilities.spec.ts`.
-- [x] `TBAR-06` Under the Workplace bar (suite `oidc`), the help button is in that bar on a desktop and in the bar of the mail on a tablet and a phone. Axe. — `chromium`, `mobile`, `tablet`
+- [x] `TBAR-06` Under the Workplace bar (suite `oidc`), the help button is in that bar on a desktop; below the desktop size the bar of the mail has none and the settings have "Contact support". Axe. — `chromium`, `mobile`, `tablet`
   - Spec: `tests/platform-help.spec.ts`.
 - [x] `LST-03` The reply button of a row opens the composer on a reply to it ("Re: subject"). — `chromium`
   - Spec: `tests/list-rows.spec.ts`.
@@ -813,7 +821,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`, uploads held by a route.
 - [x] `CMP-73` A failed upload says "Upload failed" (icon and words) and its Retry button sends the same file again. — web app only, no Patrol test
   - Spec: `tests/composer-attachments-ui.spec.ts`.
-- [x] `CMP-74` The signature is shown in the text of the message, without a pill. — web app only, no Patrol test (Figma "Signature")
+- [x] `CMP-74` The signature shows after its `---` line, whose chevron button ("Hide signature" / "Show signature", `aria-expanded`, Enter keeps the focus on it) folds it in the view only: the `---` line stays and the message still carries it. — web app only, no Patrol test (Figma "Signature")
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-75` The recipients folded (focus on the subject or the body) show their chips with a "+N" counter for those that do not fit, in one button named after every recipient; a click unfolds them and focuses To, whose chips stay out of the tab order (ArrowLeft reaches them). — web app only, no Patrol test (`RecipientsCollapsedComposerWidget`)
   - Spec: `tests/composer-attachments-ui.spec.ts`.
@@ -837,9 +845,13 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-06` The Spam row, with emails, has a "Clean" text button (described by "Delete all spam emails") that empties it after the confirmation; no other row has it. — web app (Figma sidebar, tmail-flutter `clean`)
   - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-06b` On a phone or a tablet (below the desktop size, 1200 px) the rows of the drawer have no ⋮ nor "Clean": a long press on the Spam or the Trash opens its menu with "Empty", on a label its menu (Edit, Delete); the desktop keeps both buttons. — web app (Quentin, phone drawer)
+  - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-07` The folder search field is the flat 40 px pill of the design system (no shadow). — web app (Figma)
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-08` With many folders and labels, at 1440x789 and 1280x650, the scrolling part of the sidebar ends above the footer (no overlap) and the footer stays inside the sidebar. — web app (sidebar D4)
+  - Spec: `tests/sidebar.spec.ts`.
+- [x] `SBR-09` On a phone the title row of a section ("Folders") is 26 px high as on a desktop: the 44 px touch targets of its actions spill over its margins, and the last row of the target of the "+" of Labels is its own; "Folders" and "Labels" are both 12 px above their first row (Figma Teammail 1.1). Tablets (44 px title rows) and desktops keep 16 px under "Folders" and 8 under "Labels". — web app (Swann, phone drawer)
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SRCH-16` Given an invitation ("event" keyword) and a plain email matching "report", the "Don't include events" chip above the results leaves the invitation out (`aria-pressed`), and the "From" chip adds a sender nobody has: the chip "From: nobody@x.org" shows, the empty view follows, and removing it brings the email back. axe on the results. — web app (search design D2)
   - Spec: `tests/search.spec.ts`.
@@ -908,7 +920,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-02` Right expands a collapsed folder (the focus stays on it), then goes to its first child; Left goes from a child to its parent, collapses an expanded folder; Right on a folder without children does nothing; `aria-level`, `aria-posinset`, `aria-setsize` and `aria-expanded` follow; Enter opens the folder and the drawer closes. — web app, WAI-ARIA APG tree view (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
-- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button (none on a phone, where a long press opens the menu; Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
+- [x] `TRE-03` The actions of the focused folder stay reachable: Tab goes to its expand arrow then its menu button (none in the drawer of a phone or a tablet, below 1200 px, where a long press opens the menu; Shift+Tab back to the row), Shift+F10 and the menu key open its menu with the focus in it, Escape gives the focus back to the row, the arrows work again. — web app (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
 - [x] `TRE-04` The folders of the user and the team mailboxes are trees of their own (one tab stop each, arrows stopping at their ends); Right and Left work in a team mailbox; from the field of the folder search, Down goes to the first result, a row of a tree. — web app (issue #102)
   - Spec: `tests/folder-tree-keyboard.spec.ts`.
@@ -1022,6 +1034,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-format.spec.ts`.
 - [x] `CMP-111` From the More menu of a reply with folded recipients, Reply to unfolds them and takes the focus, and leaves the menu. — web app only, no Patrol test
   - Spec: `tests/composer-reply.spec.ts`.
+- [x] `CMP-112` A double click (a double tap on phones and tablets) on "New message" opens one composer; on a desktop, full screen, no other window stays docked under it (issue #1003). — web app only, no Patrol test
+  - Spec: `tests/composer.spec.ts`.
 - [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
 - [x] `DLG-01` Settings → Delegation opens on "My delegates", empty ("No one has access yet", axe); "+ Add" opens "Delegate access", "Add" disabled; a contact of the domain picked by its name (the suggestions whole, below the field, not cut by the dialog) becomes a chip (axe), "Add", in one step, says "<name> has been added", lists the delegate, and the account is in the JMAP session of the delegate. — tmail-flutter#4977
@@ -1042,3 +1056,5 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/attachments.spec.ts`.
 - [x] `EML-43` The body of an email is drawn with the Inter the app serves (`/fonts/InterVariable.ttf`), a web font and not a font of the system (`CSS.getPlatformFontsForNode`: `InterVariable`, `isCustomFont`), so it does not change on a machine without Inter. — web app only, no Patrol test
   - Spec: `tests/email.spec.ts`.
+- [ ] `SHM-01` A folder another user shares (`Mailbox/set` `sharedWith`, namespace `Delegated[<owner>]`) shows in an "Other users" category below the team mailboxes, with the address of its owner, shown although the user is not subscribed to it; it opens and lists its emails, which have neither Archive nor Spam, and its menu offers neither move, rename, hide, delete nor filter. axe. CI to confirm. — web app only (issue #714), no Patrol test
+  - Spec: `tests/shared-mailboxes.spec.ts`.

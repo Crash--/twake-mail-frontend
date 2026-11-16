@@ -121,7 +121,12 @@ const ROW_SX = {
   '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
   // The theme greys body cells with text.secondary, 3.6:1 on white: below
   // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)
-  '& .MuiTableCell-body': { color: 'text.primary' }
+  '& .MuiTableCell-body': { color: 'text.primary' },
+  // The unticked box in the hint grey of the design, the text colour at 38 %.
+  // TODO: text.hint and a discreet Checkbox in twake-mui (Crash--/twake-ui#32)
+  '& .MuiCheckbox-root:not(.Mui-checked):not(.MuiCheckbox-indeterminate)': {
+    color: 'rgb(var(--twake-palette-text-primaryChannel) / 0.38)'
+  }
 } as const
 
 export function makeRowLayoutSx({
@@ -169,10 +174,25 @@ export function makeRowLayoutSx({
 }
 
 /**
+ * The first row whose top is in view in `table`, else the first one
+ * rendered. Virtuoso renders rows above the viewport too: focusing one of
+ * them would scroll the list up (after a selection is deleted, say).
+ */
+function firstRowInView(table: Element): Element | null {
+  const rows = [...table.querySelectorAll(`tr [${ROW_FOCUS_ATTRIBUTE}]`)]
+    .map(control => control.closest('tr'))
+    .filter(row => row !== null)
+  const top = table.getBoundingClientRect().top
+  return (
+    rows.find(row => row.getBoundingClientRect().top >= top) ?? rows[0] ?? null
+  )
+}
+
+/**
  * Moves the focus to the `ROW_FOCUS_ATTRIBUTE` control of the row after
  * (`1`) or before (`-1`) the row holding `from`; from outside the rows, to
- * the first row. Virtuoso renders rows beyond the viewport, and focusing
- * one scrolls it into view. Returns whether the focus moved.
+ * the first row in view. Virtuoso renders rows beyond the viewport, and
+ * focusing one scrolls it into view. Returns whether the focus moved.
  */
 export function moveRowFocus(
   table: Element,
@@ -182,7 +202,7 @@ export function moveRowFocus(
   const row = from?.closest('tr') ?? null
   const sibling =
     row === null || !table.contains(row)
-      ? table.querySelector(`tr [${ROW_FOCUS_ATTRIBUTE}]`)?.closest('tr')
+      ? firstRowInView(table)
       : direction === 1
         ? row.nextElementSibling
         : row.previousElementSibling

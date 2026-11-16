@@ -105,15 +105,15 @@ export function LabelActionsProvider({
       emails: readonly TargetEmail[],
       mailboxId: string | null
     ): Promise<boolean> => {
-      const results = await Promise.all([
-        ...added.map(label =>
-          run({ action: 'addLabel', label, emails, mailboxId, silent: true })
-        ),
-        ...removed.map(label =>
-          run({ action: 'removeLabel', label, emails, mailboxId, silent: true })
-        )
-      ])
-      const isDone = results.every(Boolean)
+      // One `Email/set` for the whole choice: concurrent ones on the same
+      // email would overwrite each other's keywords on the server
+      const isDone = await run({
+        action: 'setLabels',
+        labels: { added, removed },
+        emails,
+        mailboxId,
+        silent: true
+      })
       const [only] = [...added, ...removed]
       notify(
         !isDone

@@ -1,6 +1,6 @@
-import { Alert, Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { NoticeBanner } from '@/ds/NoticeBanner/NoticeBanner'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { isTrashMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
@@ -43,30 +43,24 @@ export function EmptyFolderBanner({
   }
 
   return (
-    <Alert
+    <NoticeBanner
       ref={focusFallbackRef}
-      severity="warning"
-      // Part of the screen, not an event: no live announcement
-      role="note"
       className="u-m-half"
-      action={
-        <Button
-          color="inherit"
-          size="small"
-          disabled={isLongActionRunning}
-          onClick={handleEmpty}
-          data-testid="empty-trash-banner-button"
-        >
-          {t(
+      actions={[
+        {
+          label: t(
             isTrash
               ? 'emptyFolder.emptyTrashNow'
               : 'emptyFolder.deleteAllSpamNow'
-          )}
-        </Button>
-      }
+          ),
+          disabled: isLongActionRunning,
+          onClick: handleEmpty,
+          'data-testid': 'empty-trash-banner-button'
+        }
+      ]}
       data-testid="empty-trash-banner"
     >
       {t(isTrash ? 'emptyFolder.trashBanner' : 'emptyFolder.spamBanner')}
-    </Alert>
+    </NoticeBanner>
   )
 }

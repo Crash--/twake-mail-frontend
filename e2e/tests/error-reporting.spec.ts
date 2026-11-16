@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { LoginPage } from '../pages'
+import { ComposerPage, LoginPage, MailboxPage, SettingsPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test, type E2EUser } from '../support/fixtures'
 import { openAccountMenuIfAny } from '../support/accountMenu'
@@ -323,5 +323,34 @@ test.describe('SET error reporting', () => {
     await errorReportingSwitch(page).click()
     await expect(errorReportingSwitch(page)).not.toBeChecked()
     await expect(button).toHaveCount(0)
+  })
+
+  test('KBD-07 the keys typed in the feedback form are text, not shortcuts of the mailbox behind it', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.sendEmail({ to: user.email, subject: 'stays here', text: 'one' })
+    await jmap.waitForEmail({ subject: 'stays here' })
+    await stubIngest(page)
+    await openPreferences(page, user)
+    await errorReportingSwitch(page).click()
+    await new SettingsPage(page).backToMail()
+    const mailbox = new MailboxPage(page)
+    await expect(mailbox.emailRow('stays here')).toBeVisible()
+
+    await page.getByTestId('twake-feedback-button').click()
+    const field = page.getByRole('textbox', { name: 'What happened?' })
+    await field.click()
+    const typed = 'Can not reply: c n / j k e # s q u z r R f ? x'
+    await page.keyboard.type(typed)
+    await page.keyboard.press('Backspace')
+    await page.keyboard.press('Delete')
+
+    await expect(field).toHaveValue(typed.slice(0, -1))
+    await expect(field).toBeFocused()
+    await expect(mailbox.shortcutsDialog).toBeHidden()
+    await expect(mailbox.emailRow('stays here')).toBeVisible()
+    await expect(new ComposerPage(page).root).toHaveCount(0)
   })
 })

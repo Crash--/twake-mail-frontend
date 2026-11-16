@@ -10,7 +10,7 @@ import {
 
 /** The sections of the sidebar that collapse */
 export type SidebarSectionId =
-  'folders' | 'personalFolders' | 'teamMailboxes' | 'labels'
+  'folders' | 'personalFolders' | 'teamMailboxes' | 'otherUsers' | 'labels'
 
 export interface SidebarSections {
   isExpanded: (id: SidebarSectionId) => boolean

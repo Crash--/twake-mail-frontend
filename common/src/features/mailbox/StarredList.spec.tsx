@@ -1,5 +1,5 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import {
@@ -36,7 +36,7 @@ describe('StarredList', () => {
     ).toBeInTheDocument()
   })
 
-  it('lists the starred emails of every folder, and drops one unstarred', async () => {
+  it('lists the starred emails of every folder', async () => {
     const server = makeFakeJmapServer({
       emails: [
         makeEmail({
@@ -60,6 +60,27 @@ describe('StarredList', () => {
     expect(screen.queryByText('Not starred')).toBe(null)
     expect(screen.getByRole('table', { name: 'Starred' })).toBeVisible()
     expect(document.title).toBe('Starred - Twake Mail')
+  })
+
+  it('drops an email once it is unstarred from the list', async () => {
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmail({
+          id: 'a',
+          subject: 'Unstar me',
+          keywords: { $flagged: true }
+        })
+      ]
+    })
+    renderStarred(server)
+    expect(await screen.findByText('Unstar me')).toBeVisible()
+
+    await userEvent.click(screen.getByTestId('email-list-item-star'))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Unstar me')).toBe(null)
+    })
+    expect(server.emails[0]?.keywords).toEqual({})
   })
 
   it('shows the empty view without starred emails', async () => {

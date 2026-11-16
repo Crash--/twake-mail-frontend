@@ -9,6 +9,7 @@ import {
   findTeamFolderId,
   findTeamHomeId,
   isPersonalMailbox,
+  isTeamMailbox,
   mailboxPath
 } from '@common/features/mailbox/mailboxTree'
 import {
@@ -55,6 +56,7 @@ export type EmailActionName =
   | 'deletePermanently'
   | 'addLabel'
   | 'removeLabel'
+  | 'setLabels'
   | 'setKeyword'
 
 export interface EmailActionRequest {
@@ -66,6 +68,14 @@ export interface EmailActionRequest {
   destinationId?: string
   /** The label `addLabel` and `removeLabel` set or take off */
   label?: { keyword: string; displayName: string }
+  /**
+   * The labels `setLabels` puts on and takes off, in one `Email/set`:
+   * concurrent ones on the same email would overwrite each other
+   */
+  labels?: {
+    added: readonly { keyword: string }[]
+    removed: readonly { keyword: string }[]
+  }
   /** The keyword `setKeyword` sets (no label, no toast of its own) */
   keyword?: string
   /**
@@ -102,21 +112,25 @@ const DESTINATION_ROLES: Partial<Record<EmailActionName, string>> = {
 export function findActionDestination(
   mailboxes: readonly MailboxSummary[],
   action: EmailActionName,
-  /** The folder the emails are in: a team mailbox has its own Trash */
+  /**
+   * The folder the emails are in: a team mailbox has its own Trash, a
+   * folder shared by another user goes to the user's Trash
+   */
   fromMailboxId: string | null = null
 ): string | null {
   const role = DESTINATION_ROLES[action]
   if (role === undefined) return null
   const from = mailboxes.find(mailbox => mailbox.id === fromMailboxId)
-  if (role === 'trash' && from !== undefined && !isPersonalMailbox(from)) {
+  if (role === 'trash' && from !== undefined && isTeamMailbox(from)) {
     return findTeamFolderId(mailboxes, from.id, 'trash')
   }
   return findMailboxIdByRole(mailboxes, role)
 }
 
 /**
- * The actions team mailboxes do not have, as their menus (they have neither
- * Archive nor Spam): refused here too, for the shortcuts that run them
+ * The actions team mailboxes and the folders other users share do not
+ * have, as their menus (they have neither Archive nor Spam): refused here
+ * too, for the shortcuts that run them
  */
 const PERSONAL_ONLY_ACTIONS: readonly EmailActionName[] = [
   'archive',
@@ -188,7 +202,14 @@ export function inStartFolder(
 }
 
 function toOperation(
-  { action, mailboxId, destinationId, label, keyword }: EmailActionRequest,
+  {
+    action,
+    mailboxId,
+    destinationId,
+    label,
+    labels,
+    keyword
+  }: EmailActionRequest,
   mailboxes: readonly MailboxSummary[]
 ): EmailOperation | null {
   switch (action) {
@@ -210,6 +231,16 @@ function toOperation(
             kind: 'keyword',
             keyword: label.keyword,
             isSet: action === 'addLabel'
+          }
+    case 'setLabels':
+      return labels === undefined
+        ? null
+        : {
+            kind: 'keywords',
+            keywords: Object.fromEntries([
+              ...labels.added.map(({ keyword }) => [keyword, true] as const),
+              ...labels.removed.map(({ keyword }) => [keyword, false] as const)
+            ])
           }
     case 'setKeyword':
       return keyword === undefined
@@ -435,6 +466,8 @@ export function useEmailActions(): EmailActions {
           return t('labels.toasts.removedFromEmail', {
             labelName: request.label ? labelDisplayName(request.label, t) : ''
           })
+        case 'setLabels':
+          return t('labels.toasts.updated')
         case 'markUnsubscribed':
           return t('unsubscribe.done')
         case 'setKeyword':

@@ -25,6 +25,8 @@ export interface SenderLineProps {
   children?: ReactNode
   /** The button of the card of the sender, that its avatar opens too */
   cardButtonRef?: Ref<HTMLButtonElement>
+  /** The line is the level-2 heading of its message */
+  isHeading?: boolean
   'data-testid': string
 }
 
@@ -39,13 +41,18 @@ export function SenderLine({
   onUnsubscribe = null,
   children,
   cardButtonRef,
+  isHeading = false,
   'data-testid': testId
 }: SenderLineProps): ReactElement {
   const { t } = useI18n()
   const isPhone = useScreenSize() === 'mobile'
   const hasName = sender !== null && addressDisplayName(sender) !== ''
   return (
-    <InlineGroup gap={1} data-testid={testId}>
+    <InlineGroup
+      gap={1}
+      component={isHeading ? 'h2' : 'div'}
+      data-testid={testId}
+    >
       {sender ? (
         <EmailAddressCard address={sender} buttonRef={cardButtonRef}>
           <MessageText variant={isPhone ? 'phoneName' : 'name'}>

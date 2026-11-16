@@ -40,9 +40,8 @@ function LabelItem({ label }: { label: Label }): ReactElement {
   const name = labelDisplayName(label, t)
   const menuLabel = t('labels.menuOf', { name })
   const canChange = label.readOnly !== true
-  // A phone has no ⋮: a long press, the menu key or Shift+F10 open the menu
-  const hasMenuButton = useScreenSize() !== 'mobile'
-  const opensFromRow = canChange && !hasMenuButton
+  // A phone or a tablet: the drawer, its rows without buttons
+  const isDrawer = useScreenSize() !== 'desktop'
 
   return (
     <NavTreeItem
@@ -53,12 +52,12 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       to={labelPath(label.id)}
       isSelected={isSelected}
       data-testid="label-item"
-      onLongPress={opensFromRow ? setAnchor : undefined}
+      onLongPress={isDrawer && canChange ? setAnchor : undefined}
       longPressHint={t('folders.longPressHint')}
       itemProps={{
         'data-label-name': label.displayName,
         'aria-current': isSelected ? 'page' : undefined,
-        ...(opensFromRow
+        ...(canChange
           ? {
               onContextMenu: event => {
                 event.preventDefault()
@@ -75,7 +74,8 @@ function LabelItem({ label }: { label: Label }): ReactElement {
       actions={
         canChange ? (
           <>
-            {hasMenuButton ? (
+            {/* In the drawer the long press opens the menu */}
+            {isDrawer ? null : (
               <Tooltip title={menuLabel}>
                 <IconButton
                   size="small"
@@ -89,7 +89,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
                   <Icon icon={MoreVerticalIcon} />
                 </IconButton>
               </Tooltip>
-            ) : null}
+            )}
             <Menu
               anchorEl={anchor}
               open={anchor !== null}

@@ -121,6 +121,26 @@ export const SCRIBE_ACTIONS: readonly ScribeAction[] = [
     id: 'translate-vietnamese',
     category: 'translate',
     label: 'composer.scribe.vietnamese'
+  },
+  {
+    id: 'translate-mongolian',
+    category: 'translate',
+    label: 'composer.scribe.mongolian'
+  },
+  {
+    id: 'translate-german',
+    category: 'translate',
+    label: 'composer.scribe.german'
+  },
+  {
+    id: 'translate-spanish',
+    category: 'translate',
+    label: 'composer.scribe.spanish'
+  },
+  {
+    id: 'translate-italian',
+    category: 'translate',
+    label: 'composer.scribe.italian'
   }
 ]
 

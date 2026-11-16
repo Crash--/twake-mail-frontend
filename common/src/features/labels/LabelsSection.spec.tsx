@@ -81,6 +81,11 @@ describe('LabelsSection', () => {
     ).toHaveAccessibleDescription(
       'A tag with this name already exists. Please choose a different name.'
     )
+    expect(
+      within(dialog).getByTestId('label-name-announcement')
+    ).toHaveTextContent(
+      'A tag with this name already exists. Please choose a different name.'
+    )
 
     await userEvent.clear(
       within(dialog).getByRole('textbox', { name: 'Label name' })
@@ -111,6 +116,32 @@ describe('LabelsSection', () => {
       })
     )
     expect(await screen.findByRole('link', { name: 'Travel' })).toBeVisible()
+  })
+
+  it('creates a label with a colour drawn among the free ones', async () => {
+    // The first swatch, navy blue, is taken by Work: the draw starts after it
+    jest.spyOn(Math, 'random').mockReturnValue(0)
+    const fake = setup()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'New label' })
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Create a new label' })
+    expect(
+      within(dialog).getByRole('button', { name: 'Label color: Purple' })
+    ).toBeVisible()
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Label name' }),
+      'Travel'
+    )
+    await userEvent.click(within(dialog).getByTestId('label-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You successfully created the Travel label'
+    )
+    expect(fake.labels()).toContainEqual(
+      expect.objectContaining({ displayName: 'Travel', color: '#7E57E3' })
+    )
   })
 
   it('creates a label with a custom colour, refusing an invalid one', async () => {
@@ -261,21 +292,29 @@ describe('LabelsSection', () => {
     })
   })
 
-  it('opens the menu of a label from the keyboard on a phone, which has no ⋮', async () => {
-    mockViewport({ width: 390, touch: true })
-    setup()
+  it.each([
+    ['a phone', 390],
+    ['a tablet', 820]
+  ])(
+    'opens the menu of a label on %s from the row, which has no ⋮',
+    async (_, width) => {
+      mockViewport({ width, touch: true })
+      setup()
 
-    const link = await screen.findByRole('link', { name: 'Work' })
-    expect(screen.queryByRole('button', { name: 'Actions on Work' })).toBe(null)
-    expect(link).toHaveAttribute('aria-haspopup', 'menu')
-    expect(link).toHaveAccessibleDescription('Long press for actions')
-    link.focus()
-    await userEvent.keyboard('{Shift>}{F10}{/Shift}')
+      const link = await screen.findByRole('link', { name: 'Work' })
+      expect(screen.queryByRole('button', { name: 'Actions on Work' })).toBe(
+        null
+      )
+      expect(link).toHaveAttribute('aria-haspopup', 'menu')
+      expect(link).toHaveAccessibleDescription('Long press for actions')
+      link.focus()
+      await userEvent.keyboard('{Shift>}{F10}{/Shift}')
 
-    expect(
-      await screen.findByRole('menu', { name: 'Actions on Work' })
-    ).toBeVisible()
-  })
+      expect(
+        await screen.findByRole('menu', { name: 'Actions on Work' })
+      ).toBeVisible()
+    }
+  )
 
   it('is hidden when the user turned labels off', async () => {
     window.localStorage.setItem('twake-mail.preferences.labels', 'false')

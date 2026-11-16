@@ -147,6 +147,52 @@ describe('ScribeMenu', () => {
     expect(screen.getByRole('textbox', { name: 'Help me write' })).toBeVisible()
   })
 
+  it('offers to translate to the languages of tmail-flutter', async () => {
+    renderMenu({ text: 'Hello Bob', isSelection: false })
+    await openAssistant()
+
+    const menu = screen.getByRole('menu', { name: 'AI assistant' })
+    await userEvent.click(
+      within(menu).getByRole('menuitem', { name: 'Translate' })
+    )
+    const submenu = await screen.findByRole('menu', { name: 'Translate' })
+    expect(
+      within(submenu)
+        .getAllByRole('menuitem')
+        .map(item => item.textContent)
+    ).toEqual([
+      'French',
+      'English',
+      'Russian',
+      'Vietnamese',
+      'Mongolian',
+      'German',
+      'Spanish',
+      'Italian'
+    ])
+  })
+
+  it('translates the selection to German', async () => {
+    renderMenu({ text: 'Hello Bob', isSelection: true })
+    const dialog = await runAction('Translate', 'German')
+
+    expect(dialog).toHaveAccessibleName('Translate > German')
+    const [, init] = fetchMock.mock.calls[0] ?? []
+    const body: unknown = JSON.parse(
+      typeof init?.body === 'string' ? init.body : ''
+    )
+    expect(body).toMatchObject({
+      messages: [
+        { role: 'system' },
+        {
+          role: 'user',
+          content:
+            'INSTRUCTION:\nTranslate the text to German.\n\nTEXT:\nHello Bob\n'
+        }
+      ]
+    })
+  })
+
   it('translates the selection, which the answer can replace', async () => {
     const { onReplace } = renderMenu({
       text: 'Hello Bob, thanks!',

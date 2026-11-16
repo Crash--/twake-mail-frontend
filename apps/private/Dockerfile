@@ -19,7 +19,7 @@
 # ---------------------------------------------------------------- build
 # On the platform of the builder: the bundle is the same for every target
 # architecture, only the nginx stage is multi-platform.
-FROM --platform=$BUILDPLATFORM node:24-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 # git: jmap-client-ts is installed from GitHub
 RUN apk add --no-cache git
 WORKDIR /src
@@ -41,7 +41,8 @@ WORKDIR /src/apps/private/dist
 # The runtime configuration is mounted at deploy time: never ship the one of a
 # development checkout, which the build copies from public/.
 # Hashes of the inline scripts of index.html, allowed by the CSP.
-# Assets pre-compressed for gzip_static.
+# Assets pre-compressed for gzip_static, but the logotypes, which a deployment
+# replaces by a mount (nginx.conf).
 # Source maps are never shipped: those of a build that uploads them to Sentry
 # are deleted by the plugin already, this removes any other.
 RUN rm -f .env.js \
@@ -49,7 +50,8 @@ RUN rm -f .env.js \
  && echo "var APP_VERSION = \"${BUILD_VERSION}\";" > version.js \
  && node /src/scripts/csp-script-hashes.mjs index.html > /src/csp-script-hashes \
  && find . -type f ! -name '.env.js' ! -name 'version.js' \
-      ! -name '.env.example.js' -exec gzip -k -9 {} +
+      ! -name '.env.example.js' ! -name 'ic_logo_with_text*.svg' \
+      -exec gzip -k -9 {} +
 
 # ---------------------------------------------------------------- runtime
 FROM nginxinc/nginx-unprivileged:1.31-alpine

@@ -19,7 +19,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { MailboxPickerProvider } from './MailboxPickerProvider'
 import { MailboxTree } from './MailboxTree'
 
-const TEAM = 'TeamMailbox[team@example.com]'
+const TEAM = 'TeamMailbox[clients-team@example.com]'
 
 function Screen(): ReactElement {
   return (
@@ -51,7 +51,7 @@ function makeServer(): FakeJmapServer {
         parentId: 'taxes',
         isSubscribed: false
       }),
-      makeMailbox({ id: 'team', name: 'Clients team', namespace: TEAM }),
+      makeMailbox({ id: 'team', name: 'clients-team', namespace: TEAM }),
       makeMailbox({
         id: 'team-inbox',
         name: 'Clients INBOX',
@@ -143,16 +143,16 @@ describe('Folder search of the sidebar', () => {
     expect(results()).toEqual([
       'Old clients',
       'Clients',
-      'Clients team',
+      'clients-team',
       'Clients INBOX'
     ])
     expect(within(result('Clients')).getByText('Work/Clients')).toBeVisible()
     // The root of a team mailbox says whose it is, its folders their path
     expect(
-      within(result('Clients team')).getByText('team@example.com')
+      within(result('clients-team')).getByText('clients-team@example.com')
     ).toBeVisible()
     expect(
-      within(result('Clients INBOX')).getByText('Clients team/Clients INBOX')
+      within(result('Clients INBOX')).getByText('clients-team/Clients INBOX')
     ).toBeVisible()
   })
 

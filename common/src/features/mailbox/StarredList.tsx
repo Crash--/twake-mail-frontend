@@ -31,7 +31,9 @@ export function StarredList(): ReactElement {
     (): EmailListSearch => ({
       request: {
         filter: { hasKeyword: FLAGGED },
-        sort: [{ property: 'receivedAt', isAscending: false }]
+        sort: [{ property: 'receivedAt', isAscending: false }],
+        // An unstarred email leaves the view
+        isListFiltered: true
       },
       emailPath: starredEmailPath,
       openEmailId,

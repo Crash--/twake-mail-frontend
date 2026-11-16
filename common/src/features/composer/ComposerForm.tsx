@@ -40,7 +40,10 @@ import {
   type ReactNode
 } from 'react'
 
-import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import {
+  ActionIcon,
+  ActionIconButton
+} from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
 import {
   FileDropZone,
@@ -136,6 +139,7 @@ import { TemplatePicker } from './TemplatePicker'
 import { chooseTemplatesTarget, templatesTargetKey } from './templatesFolder'
 import { EDITOR_TEST_IDS } from './editorTestIds'
 import { showBlockedImages } from './editorImages'
+import { blockDisplay } from './draftHtml'
 import { InlineImageStore, resizeImage } from './InlineImageStore'
 import { isLargeMessage } from './largeMessage'
 import type { MailtoFields } from './mailto'
@@ -785,7 +789,8 @@ function LoadedComposerForm({
       title: t('composer.close.title'),
       message: t('composer.close.message'),
       confirmLabel: t('composer.close.save'),
-      alternativeLabel: t('composer.close.discard')
+      alternativeLabel: t('composer.close.discard'),
+      hasCancelButton: false
     })
     if (choice === 'cancel') return false
     if (choice === 'alternative') return true
@@ -1503,6 +1508,7 @@ function LoadedComposerForm({
       }}
       data-testid="composer-formatting-button"
     >
+      {/* Not an ActionIcon: the viewBox of FormatSize already holds its margin */}
       <Icon icon={FormatSize} size={isPhone ? 28 : 24} aria-hidden="true" />
     </ActionIconButton>
   )
@@ -1528,7 +1534,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid="composer-attach-file-button"
     >
-      <Icon icon={Attachment} size={24} aria-hidden="true" />
+      <ActionIcon icon={Attachment} />
     </ActionIconButton>
   )
   const imageButton = (
@@ -1538,7 +1544,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
     >
-      <Icon icon={Image} size={24} aria-hidden="true" />
+      <ActionIcon icon={Image} />
     </ActionIconButton>
   )
   // On a phone the link is in the More menu, as the bar has no room for it
@@ -1549,7 +1555,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
     >
-      <Icon icon={Link} size={24} aria-hidden="true" />
+      <ActionIcon icon={Link} />
     </ActionIconButton>
   )
   const emojiButton = (
@@ -1625,7 +1631,7 @@ function LoadedComposerForm({
       className={gap}
       data-testid="composer-more-button"
     >
-      <Icon icon={Dots} size={24} aria-hidden="true" />
+      <ActionIcon icon={Dots} />
     </ActionIconButton>
   )
   // As tmail-flutter: "Save as draft" beside "Delete", the menu holds it
@@ -1637,7 +1643,7 @@ function LoadedComposerForm({
       className="u-ml-half"
       data-testid="composer-save-draft-button"
     >
-      <Icon icon={FileOutline} size={24} aria-hidden="true" />
+      <ActionIcon icon={FileOutline} />
     </ActionIconButton>
   )
   // As tmail-flutter on phones: the arrow up in a primary disc, grey while
@@ -1986,6 +1992,19 @@ function LoadedComposerForm({
               fontSizes={fontSizes}
               fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
+              htmlBlock={{
+                displayOf: blockDisplay,
+                toggleLabel: (kind, isFolded) =>
+                  kind === 'signature'
+                    ? t(
+                        isFolded
+                          ? 'composer.showSignature'
+                          : 'composer.hideSignature'
+                      )
+                    : null,
+                toggleTestId: kind =>
+                  kind === 'signature' ? 'composer-signature-toggle' : undefined
+              }}
               selectionAction={
                 hasScribe
                   ? {
@@ -2058,7 +2077,7 @@ function LoadedComposerForm({
               onClick={handleDeleteDraft}
               data-testid="composer-delete-draft-button"
             >
-              <Icon icon={Trash} size={24} aria-hidden="true" />
+              <ActionIcon icon={Trash} />
             </ActionIconButton>
             {saveDraftButton}
             <span className="u-ml-1">{sendButton}</span>

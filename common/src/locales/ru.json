@@ -44,6 +44,7 @@
     "newMessage": "Создать",
     "folders": "Папки",
     "teamMailboxes": "Общие почтовые ящики",
+    "otherUsers": "Другие пользователи",
     "version": "версия %{version}",
     "personalFolders": "Личные папки"
   },
@@ -132,8 +133,7 @@
       "invite": "Пригласить на событие",
       "chat": "Чат",
       "copy": "Скопировать адрес электронной почты",
-      "copied": "Адрес скопирован",
-      "close": "Закрыть"
+      "copied": "Адрес скопирован"
     },
     "actionRequired": "Требуется действие",
     "removeActionRequired": "Убрать метку «Требуется действие»",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "Действия со списком",
-      "filter": "Фильтр сообщений",
+      "filter": "Фильтр",
       "clearFilter": "Сбросить фильтр",
-      "selectPage": "Выбрать все сообщения на этой странице",
+      "selectPage": "Выбрать все",
+      "selectPageTooltip": "Выбрать все сообщения на этой странице",
       "filterOn": "Вы установили фильтр \"%{name}\"",
       "filterOff": "Вы отключили фильтр сообщений",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "Английский",
       "russian": "Русский",
       "vietnamese": "Вьетнамский",
+      "mongolian": "Монгольский",
+      "german": "Немецкий",
+      "spanish": "Испанский",
+      "italian": "Итальянский",
       "helpMeWrite": "Помоги мне написать",
       "failed": "Не удалось сгенерировать ответ ИИ",
       "generating": "Генерация ответа",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Вставка изображения"
-    }
+    },
+    "hideSignature": "Скрыть подпись",
+    "showSignature": "Показать подпись"
   },
   "layout": {
     "navigation": "Навигация"
@@ -666,7 +673,6 @@
     "wordsHint": "Разделяйте слова запятыми",
     "loading": "Загрузка подсказок",
     "suggestionCount": "%{smart_count} подсказка |||| %{smart_count} подсказки |||| %{smart_count} подсказок",
-    "searchWithFilters": "Искать с этими фильтрами",
     "quickFiltersOnly": "Нет подсказок. Быстрые фильтры находятся после поля поиска.",
     "labels": {
       "all": "Все метки",
@@ -974,6 +980,7 @@
       "success": "Папка снова отображается"
     },
     "visibility": {
+      "personal": "Личные папки",
       "team": "Общие почтовые ящики",
       "hideOf": "Скрыть %{name}",
       "showOf": "Показать %{name}",
@@ -1226,6 +1233,10 @@
     "startTime": "Время начала",
     "endDate": "Дата окончания",
     "endTime": "Время окончания",
+    "selectStartDate": "Выбрать дату начала",
+    "selectStartTime": "Выбрать время начала",
+    "selectEndDate": "Выбрать дату окончания",
+    "selectEndTime": "Выбрать время окончания",
     "subject": "Тема",
     "subjectPlaceholder": "Введите тему",
     "message": "Сообщение",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "Не удалось отправить ответ на событие",
     "alreadyAnswered": "Вы уже дали этот ответ на приглашение",
+    "eventCanceled": "Это событие было отменено",
     "counterAccepted": "Вы приняли предложенное время встречи",
     "eventLabel": "Событие: %{title}",
     "allDay": "Весь день",
@@ -1470,6 +1482,10 @@
       "onDays": "по дням: %{days}",
       "count": "%{smart_count} раз |||| %{smart_count} раза |||| %{smart_count} раз",
       "until": "до %{date}"
+    },
+    "occurrence": {
+      "only": "Только это повторение",
+      "originally": "Только это повторение (изначально %{date})"
     },
     "untitled": "(Без названия)",
     "eventMark": "Приглашение на событие"

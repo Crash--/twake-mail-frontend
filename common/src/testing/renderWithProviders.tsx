@@ -94,7 +94,12 @@ export function renderWithProviders(
   )
 
   const result = render(
-    <AppProviders lang={lang} queryClient={queryClient} overlay={overlay}>
+    <AppProviders
+      lang={lang}
+      allowedLanguages={config?.allowedLanguages}
+      queryClient={queryClient}
+      overlay={overlay}
+    >
       <AuthProvider service={authService}>
         <JmapClientProvider
           createClient={createFakeClient}

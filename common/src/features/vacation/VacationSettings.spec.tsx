@@ -169,6 +169,29 @@ describe('VacationSettings', () => {
     })
   })
 
+  it('starts now when "Right away" is chosen again after a start that has passed', async () => {
+    const fake = setup({
+      isEnabled: true,
+      fromDate: '2020-01-01T09:00:00Z',
+      subject: 'Away',
+      htmlBody: '<p>Away</p>'
+    })
+
+    await screen.findByTestId('vacation-message-editor')
+    await userEvent.click(pickATime('Starts:'))
+    await userEvent.click(choice('Starts:', 'Right away'))
+    const before = Date.now()
+    await userEvent.click(screen.getByTestId('vacation-save-button'))
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'Vacation settings saved'
+    )
+    const { fromDate } = fake.vacation()
+    expect(typeof fromDate).toBe('string')
+    // Saved to the minute, as the date and time inputs
+    expect(Date.parse(String(fromDate))).toBeGreaterThan(before - 60_000)
+  })
+
   it('reopens a saved start to come on "Pick a time"', async () => {
     setup({
       isEnabled: true,

@@ -1,6 +1,6 @@
 import { Icon, Cross } from '@linagora/twake-icons'
 import { Typography } from '@linagora/twake-mui'
-import type { IntentService } from 'cozy-interapp'
+import type { IntentServiceAPI } from 'cozy-interapp'
 import {
   Suspense,
   useCallback,
@@ -25,7 +25,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import type { ComposeIntentResult } from './composeIntent'
 
 export interface ComposeIntentPageProps {
-  service: IntentService
+  service: IntentServiceAPI
   fields: MailtoFields
 }
 

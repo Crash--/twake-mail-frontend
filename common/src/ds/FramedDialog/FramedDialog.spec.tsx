@@ -4,17 +4,24 @@ import { useEffect, useState, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { FramedDialog, type FrameSize } from './FramedDialog'
+import { FramedDialog } from './FramedDialog'
+
+/** As cozy-interapp's `start`: a frame appended to the box */
+function startFrame(container: HTMLElement | null): void {
+  if (!container || container.querySelector('iframe')) return
+  const frame = document.createElement('iframe')
+  frame.src = 'https://drive.example.com/pick'
+  frame.title = 'File picker'
+  container.append(frame)
+}
 
 /** The framed page says it is ready: a `frame-ready` event of the test */
 function Harness({
   isReadyAtOnce,
-  showCloseButton,
-  frameSize
+  showCloseButton
 }: {
   isReadyAtOnce: boolean
   showCloseButton?: boolean
-  frameSize?: FrameSize
 }): ReactElement {
   const [isOpen, setIsOpen] = useState(false)
   const [isReady, setIsReady] = useState(isReadyAtOnce)
@@ -35,14 +42,13 @@ function Harness({
       <FramedDialog
         open={isOpen}
         title="Twake Drive"
-        src="https://drive.example.com/pick"
-        frameTitle="File picker"
+        frameContainerRef={startFrame}
+        frameTestId="picker-frame"
         isReady={isReady}
         loadingLabel="Opening…"
         closeLabel="Close"
         onClose={() => setIsOpen(false)}
         showCloseButton={showCloseButton}
-        frameSize={frameSize}
       />
     </>
   )
@@ -54,9 +60,12 @@ describe('FramedDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Pick files' }))
 
     expect(screen.getByRole('dialog', { name: 'Twake Drive' })).toBeVisible()
-    expect(screen.getByTitle('File picker')).toHaveAttribute(
+    expect(await screen.findByTitle('File picker')).toHaveAttribute(
       'src',
       'https://drive.example.com/pick'
+    )
+    expect(screen.getByTestId('picker-frame')).toContainElement(
+      screen.getByTitle('File picker')
     )
     expect(screen.getByRole('status')).toHaveTextContent('Opening…')
 
@@ -102,18 +111,5 @@ describe('FramedDialog', () => {
       expect(screen.queryByRole('dialog')).toBe(null)
     })
     expect(opener).toHaveFocus()
-  })
-
-  it('takes the size the framed page asks for', async () => {
-    renderDs(
-      <Harness
-        isReadyAtOnce
-        frameSize={{ width: 640, height: 480, transition: 'height .2s' }}
-      />
-    )
-    await userEvent.click(screen.getByRole('button', { name: 'Pick files' }))
-
-    const paper = screen.getByRole('dialog', { name: 'Twake Drive' })
-    expect(paper).toHaveStyle({ width: '640px', height: '480px' })
   })
 })

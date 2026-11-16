@@ -119,9 +119,9 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
   )
 
   test(
-    'TRE-03 the actions of the focused folder stay reachable: Tab to its arrow and menu button, Shift+F10 and the menu key',
+    'TRE-03 the actions of the focused folder stay reachable: Tab to its arrow and menu button (none in the drawer of a phone or a tablet), Shift+F10 and the menu key',
     { tag: '@mobile' },
-    async ({ page, user, jmap }, testInfo) => {
+    async ({ page, user, jmap }) => {
       const work = await jmap.createMailbox({ name: 'Work' })
       await jmap.createMailbox({ name: 'Clients', parentId: work.id })
       const mailbox = await new LoginPage(page).loginAs(user)
@@ -132,8 +132,9 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
       await expect(row.getByTestId('mailbox-expand-button')).toBeFocused()
       await page.keyboard.press('Enter')
       await expect(row).toHaveAttribute('aria-expanded', 'true')
-      // The phone drawer has no menu button: a long press opens the menu
-      if (testInfo.project.name === 'mobile') {
+      // The drawer, below the desktop size of the app (1200 px): a long
+      // press opens the menu there, no ⋮ button
+      if ((page.viewportSize()?.width ?? 0) < 1200) {
         await expect(row.getByTestId('mailbox-more-button')).toHaveCount(0)
       } else {
         await page.keyboard.press('Tab')

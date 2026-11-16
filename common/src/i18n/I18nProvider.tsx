@@ -22,6 +22,7 @@ import { hasDateFormats, loadDateFormats } from './dateFormats'
 import {
   DEFAULT_LANGUAGE,
   storeLanguage,
+  SUPPORTED_LANGUAGES,
   type SupportedLanguage
 } from './languages'
 
@@ -45,6 +46,8 @@ function findDictionary(lang: SupportedLanguage): Dictionary {
 export interface I18nProviderProps {
   /** The language to start with; the user may change it */
   lang: SupportedLanguage
+  /** The languages the deployment offers (`ALLOWED_LANGUAGES`) */
+  allowedLanguages?: readonly SupportedLanguage[]
   children: ReactNode
 }
 
@@ -52,6 +55,8 @@ export interface LanguageApi {
   lang: SupportedLanguage
   /** Shows the app in `lang` and remembers it in this browser */
   setLanguage: (lang: SupportedLanguage) => void
+  /** The languages the user may pick, in the order of the picker */
+  allowedLanguages: readonly SupportedLanguage[]
 }
 
 const LanguageContext = createContext<LanguageApi | null>(null)
@@ -65,6 +70,7 @@ const LanguageContext = createContext<LanguageApi | null>(null)
  */
 export function I18nProvider({
   lang: initialLang,
+  allowedLanguages = SUPPORTED_LANGUAGES,
   children
 }: I18nProviderProps): ReactElement | null {
   const [lang, setLang] = useState(initialLang)
@@ -106,9 +112,10 @@ export function I18nProvider({
       setLanguage: next => {
         storeLanguage(next)
         setLang(next)
-      }
+      },
+      allowedLanguages
     }),
-    [lang, shownLang]
+    [lang, shownLang, allowedLanguages]
   )
 
   if (shownLang === null) return null

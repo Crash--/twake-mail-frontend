@@ -44,6 +44,7 @@
     "newMessage": "Compose",
     "folders": "Folders",
     "teamMailboxes": "Team-mailboxes",
+    "otherUsers": "Other users",
     "version": "version %{version}",
     "personalFolders": "Personal folders"
   },
@@ -132,8 +133,7 @@
       "invite": "Invite to an event",
       "chat": "Chat",
       "copy": "Copy the email address",
-      "copied": "Email address copied",
-      "close": "Close"
+      "copied": "Email address copied"
     },
     "actionRequired": "Action Required",
     "removeActionRequired": "Remove the Action Required tag",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "List actions",
-      "filter": "Filter messages",
+      "filter": "Filter",
       "clearFilter": "Clear the filter",
-      "selectPage": "Select all messages of this page",
+      "selectPage": "Select all",
+      "selectPageTooltip": "Select all messages of this page",
       "filterOn": "You’ve filtered messages by \"%{name}\"",
       "filterOff": "You’ve disabled filtered messages",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "English",
       "russian": "Russian",
       "vietnamese": "Vietnamese",
+      "mongolian": "Mongolian",
+      "german": "German",
+      "spanish": "Spanish",
+      "italian": "Italian",
       "helpMeWrite": "Help me write",
       "failed": "Failed to generate AI response",
       "generating": "Generating response",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Inserting the image"
-    }
+    },
+    "hideSignature": "Hide signature",
+    "showSignature": "Show signature"
   },
   "layout": {
     "navigation": "Navigation"
@@ -666,7 +673,6 @@
     "wordsHint": "Separate words with commas",
     "loading": "Loading suggestions",
     "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
-    "searchWithFilters": "Search with these filters",
     "quickFiltersOnly": "No suggestions. The quick filters follow the search field.",
     "labels": {
       "all": "All labels",
@@ -974,6 +980,7 @@
       "success": "This folder is shown again"
     },
     "visibility": {
+      "personal": "Personal folders",
       "team": "Team-mailboxes",
       "hideOf": "Hide %{name}",
       "showOf": "Show %{name}",
@@ -1061,7 +1068,7 @@
     "empty": {
       "title": "No Rules Configured",
       "message": "Start by creating your first rule to automate email management.",
-      "action": "Create My First Rule"
+      "action": "Create your first rule"
     },
     "delete": {
       "title": "Delete rule",
@@ -1226,6 +1233,10 @@
     "startTime": "Start time",
     "endDate": "End date",
     "endTime": "End time",
+    "selectStartDate": "Select start date",
+    "selectStartTime": "Select start time",
+    "selectEndDate": "Select end date",
+    "selectEndTime": "Select end time",
     "subject": "Subject",
     "subjectPlaceholder": "Enter subject",
     "message": "Message",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "Event reply was sent unsuccessfully!",
     "alreadyAnswered": "You have already given this answer to the invitation",
+    "eventCanceled": "This event was canceled",
     "counterAccepted": "You accepted the proposed time for this meeting",
     "eventLabel": "Event: %{title}",
     "allDay": "All day",
@@ -1470,6 +1482,10 @@
       "onDays": "on %{days}",
       "count": "%{smart_count} time |||| %{smart_count} times",
       "until": "until %{date}"
+    },
+    "occurrence": {
+      "only": "This occurrence only",
+      "originally": "This occurrence only (originally %{date})"
     },
     "untitled": "(No title)",
     "eventMark": "Event invitation"

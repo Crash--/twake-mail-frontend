@@ -258,4 +258,21 @@ describe('findActionDestination', () => {
       'mailbox-archive'
     )
   })
+
+  it('sends emails of a folder another user shares to the Trash of the user', () => {
+    const shared = 'Delegated[bob@example.com]'
+    const withShared = [
+      ...mailboxes,
+      makeMailbox({ id: 'abc', name: 'abc', namespace: shared }),
+      makeMailbox({
+        id: 'abc-trash',
+        name: 'Trash',
+        parentId: 'abc',
+        namespace: shared
+      })
+    ]
+    expect(findActionDestination(withShared, 'moveToTrash', 'abc')).toBe(
+      'mailbox-trash'
+    )
+  })
 })

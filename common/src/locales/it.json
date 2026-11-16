@@ -44,6 +44,7 @@
     "newMessage": "Componi",
     "folders": "Cartelle",
     "teamMailboxes": "Caselle di posta del team",
+    "otherUsers": "Altri utenti",
     "version": "versione %{version}",
     "personalFolders": "Cartelle personali"
   },
@@ -132,8 +133,7 @@
       "invite": "Invita a un evento",
       "chat": "Chat",
       "copy": "Copia l'indirizzo e-mail",
-      "copied": "Indirizzo email copiato",
-      "close": "Chiudi"
+      "copied": "Indirizzo email copiato"
     },
     "actionRequired": "Azione richiesta",
     "removeActionRequired": "Rimuovi l'etichetta Azione richiesta",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "Azioni sull'elenco",
-      "filter": "Filtra i messaggi",
+      "filter": "Filtra",
       "clearFilter": "Rimuovi il filtro",
-      "selectPage": "Seleziona tutti i messaggi di questa pagina",
+      "selectPage": "Seleziona tutti",
+      "selectPageTooltip": "Seleziona tutti i messaggi di questa pagina",
       "filterOn": "Hai filtrato i messaggi per «%{name}»",
       "filterOff": "Hai disabilitato i messaggi filtrati",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "Inglese",
       "russian": "Russo",
       "vietnamese": "Vietnamita",
+      "mongolian": "Mongolo",
+      "german": "Tedesco",
+      "spanish": "Spagnolo",
+      "italian": "Italiano",
       "helpMeWrite": "Aiutami a scrivere",
       "failed": "Impossibile generare la risposta dell'IA",
       "generating": "Generazione della risposta",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Inserimento dell'immagine"
-    }
+    },
+    "hideSignature": "Nascondi firma",
+    "showSignature": "Mostra firma"
   },
   "layout": {
     "navigation": "Navigazione"
@@ -666,7 +673,6 @@
     "wordsHint": "Separa le parole con virgole",
     "loading": "Caricamento dei suggerimenti",
     "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
-    "searchWithFilters": "Cerca con questi filtri",
     "quickFiltersOnly": "Nessun suggerimento. I filtri rapidi seguono il campo di ricerca.",
     "labels": {
       "all": "Tutte le etichette",
@@ -974,6 +980,7 @@
       "success": "Questa cartella è di nuovo visibile"
     },
     "visibility": {
+      "personal": "Cartelle personali",
       "team": "Caselle di posta del team",
       "hideOf": "Nascondi %{name}",
       "showOf": "Mostra %{name}",
@@ -1226,6 +1233,10 @@
     "startTime": "Tempo di inizio",
     "endDate": "Data di fine",
     "endTime": "Tempo di fine",
+    "selectStartDate": "Seleziona la data di inizio",
+    "selectStartTime": "Seleziona l'ora di inizio",
+    "selectEndDate": "Seleziona la data di fine",
+    "selectEndTime": "Seleziona l'ora di fine",
     "subject": "Oggetto",
     "subjectPlaceholder": "Inserisci oggetto",
     "message": "Messaggio",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "Invio della risposta all'evento non riuscito!",
     "alreadyAnswered": "Hai già dato questa risposta all'invito",
+    "eventCanceled": "Questo evento è stato annullato",
     "counterAccepted": "Hai accettato l'orario proposto per questa riunione",
     "eventLabel": "Evento: %{title}",
     "allDay": "Tutto il giorno",
@@ -1470,6 +1482,10 @@
       "onDays": "il %{days}",
       "count": "%{smart_count} volta |||| %{smart_count} volte",
       "until": "fino al %{date}"
+    },
+    "occurrence": {
+      "only": "Solo questa occorrenza",
+      "originally": "Solo questa occorrenza (originariamente %{date})"
     },
     "untitled": "(Senza titolo)",
     "eventMark": "Invito a un evento"

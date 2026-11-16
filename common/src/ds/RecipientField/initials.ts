@@ -10,7 +10,8 @@ function firstLetter(word: string): string | null {
  * else the first two letters of a single word, else its first character
  */
 export function initialsOf(text: string): string {
-  const words = text.split(' ')
+  // Any run of white space (doubled spaces, a no-break space) between words
+  const words = text.trim().split(/\s+/u)
   if (words.length > 1) {
     const first = firstLetter(words[0] ?? '')
     const second = firstLetter(words[1] ?? '')

@@ -1,8 +1,7 @@
 /**
- * The Twake Drive picker, a cozy-stack intent (`PICK io.cozy.files`): its
- * creation and the messages of its iframe (`intent-<id>:<subtype>`, the
- * protocol of cozy-interapp), checked as tmail-flutter's
- * `DriveOriginValidator` does.
+ * The Twake Drive picker, a cozy-stack intent (`PICK io.cozy.files`) shown
+ * with cozy-interapp: the data it is sent and what it gives back, checked as
+ * tmail-flutter's `DriveOriginValidator` does.
  */
 
 /** A file picked in Twake Drive */
@@ -17,14 +16,6 @@ export interface DriveFile {
   /** Set when the user chose to attach the file: where to download it */
   downloadLink: string | null
   thumbnail: string | null
-}
-
-/** The intent the stack created: its id and the page of the picker */
-export interface DriveIntent {
-  id: string
-  href: string
-  /** Origin of `href`, the only one whose messages count */
-  origin: string
 }
 
 /** What the picker offers, sent to it once it is ready */
@@ -87,7 +78,6 @@ export function pickerData(
   }
 }
 
-/** The body of `POST /intents` */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -95,7 +85,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 
 /** An https URL; http only on a local machine (tmail-flutter's rule) */
-export function safeUrl(value: unknown): string | null {
+function safeUrl(value: unknown): string | null {
   if (typeof value !== 'string') return null
   try {
     const url = new URL(value)
@@ -109,17 +99,14 @@ export function safeUrl(value: unknown): string | null {
 }
 
 /**
- * The intent the stack created (`createIntent` of the platform client): its
- * id and the page of the picker (an https URL; http only on a local
- * machine), or null.
+ * The page of the picker in the intent the stack created (`POST /intents`,
+ * JSON:API): an https URL (http only on a local machine), or null
  */
-export function readIntent(intent: unknown): DriveIntent | null {
-  if (!isRecord(intent) || typeof intent.id !== 'string') return null
-  const services = Array.isArray(intent.services) ? intent.services : []
-  const first: unknown = services[0]
-  const href = isRecord(first) ? safeUrl(first.href) : null
-  if (href === null) return null
-  return { id: intent.id, href, origin: new URL(href).origin }
+export function readPickerHref(intent: unknown): string | null {
+  if (!isRecord(intent) || !isRecord(intent.attributes)) return null
+  const services = intent.attributes.services
+  const first: unknown = Array.isArray(services) ? services[0] : null
+  return isRecord(first) ? safeUrl(first.href) : null
 }
 
 function readFile(value: unknown): DriveFile | null {
@@ -161,98 +148,10 @@ function readFile(value: unknown): DriveFile | null {
 }
 
 /**
- * The size the picker asks for (`resize`), in CSS pixels: `width` and
- * `height` set the size of the frame, `maxWidth` and `maxHeight` cap it
- * (cozy-interapp applies them as styles of the element holding the frame),
- * `transition` animates the change.
+ * The files of the document the picker ends with: those with a valid link
+ * (https, http on a local machine), the others dropped
  */
-export interface DriveFrameSize {
-  width?: number
-  height?: number
-  maxWidth?: number
-  maxHeight?: number
-  transition?: string
-}
-
-/** What a message of the picker means */
-export type DriveIntentMessage =
-  | { type: 'ready' }
-  | { type: 'readyToUse' }
-  | { type: 'resize'; size: DriveFrameSize }
-  /** The picker shows its own close button: hide the dialog's */
-  | { type: 'hideCross' }
-  /** The picker hides its own close button: show the dialog's */
-  | { type: 'showCross' }
-  | { type: 'done'; files: DriveFile[] }
-  | { type: 'cancel' }
-  | { type: 'error' }
-
-const SIZE_KEYS = ['width', 'height', 'maxWidth', 'maxHeight'] as const
-
-/** The dimensions of a `resize` message: finite positive numbers only */
-function readFrameSize(
-  dimensions: unknown,
-  transition: unknown
-): DriveFrameSize {
-  const size: DriveFrameSize = {}
-  if (isRecord(dimensions)) {
-    for (const key of SIZE_KEYS) {
-      const value = dimensions[key]
-      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-        size[key] = value
-      }
-    }
-  }
-  if (typeof transition === 'string' && transition !== '') {
-    size.transition = transition
-  }
-  return size
-}
-
-/**
- * A `message` event as the picker speaks it, or null when it is not one of
- * the picker of this intent (another origin, another intent, another
- * format). The links of the files must be https (http on a local machine);
- * a file without a valid link is dropped.
- */
-export function readIntentMessage(
-  event: { origin: string; data: unknown },
-  intent: Pick<DriveIntent, 'id' | 'origin'>
-): DriveIntentMessage | null {
-  if (event.origin !== intent.origin || !isRecord(event.data)) return null
-  const type = event.data.type
-  if (typeof type !== 'string') return null
-  const prefix = `intent-${intent.id}:`
-  if (!type.startsWith(prefix)) return null
-  switch (type.slice(prefix.length)) {
-    case 'ready':
-      return { type: 'ready' }
-    case 'readyToUse':
-      return { type: 'readyToUse' }
-    case 'resize':
-      return {
-        type: 'resize',
-        size: readFrameSize(event.data.dimensions, event.data.transition)
-      }
-    case 'hideCross':
-      return { type: 'hideCross' }
-    case 'showCross':
-      return { type: 'showCross' }
-    case 'cancel':
-      return { type: 'cancel' }
-    case 'error':
-      return { type: 'error' }
-    case 'done': {
-      const document = event.data.document
-      const list: unknown[] = Array.isArray(document) ? document : [document]
-      return {
-        type: 'done',
-        files: list
-          .map(readFile)
-          .filter((file): file is DriveFile => file !== null)
-      }
-    }
-    default:
-      return null
-  }
+export function readPickedFiles(document: unknown): DriveFile[] {
+  const list: unknown[] = Array.isArray(document) ? document : [document]
+  return list.map(readFile).filter((file): file is DriveFile => file !== null)
 }

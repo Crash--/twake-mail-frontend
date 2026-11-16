@@ -5,10 +5,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { EmailSubject } from '@/ds/EmailSubject/EmailSubject'
 import { EmailSubjectBar } from '@/ds/EmailSubject/EmailSubjectBar'
-import {
-  firstLetterOf,
-  GradientAvatar
-} from '@/ds/GradientAvatar/GradientAvatar'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 import { MessageHeader } from '@/ds/MessageHeader/MessageHeader'
 import { WarningAvatarBadge } from '@/ds/WarningAvatarBadge/WarningAvatarBadge'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
@@ -32,6 +29,7 @@ import { EmailLabels } from '@common/features/labels/EmailLabels'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 
 import { AddressLine } from './AddressLine'
+import { addressAvatar } from './addresses'
 import { isMarkedImportant } from './importance'
 import { ImportantMark } from './ImportantMark'
 import { EmailMessageBody } from './EmailMessageBody'
@@ -84,14 +82,7 @@ function SenderAvatar({
   sender: EmailAddress | null
   onClick: () => void
 }): ReactElement {
-  const name = sender?.name ?? ''
-  const address = sender?.email ?? ''
-  const avatar = (
-    <GradientAvatar
-      text={firstLetterOf(name === '' ? address : name)}
-      colorKey={address}
-    />
-  )
+  const avatar = <GradientAvatar {...addressAvatar(sender)} />
   return sender === null ? (
     avatar
   ) : (
@@ -202,6 +193,7 @@ function EmailContent({
               <SenderLine
                 sender={sender}
                 cardButtonRef={senderCardRef}
+                isHeading
                 smimeStatus={parseSmimeStatus(email[SMIME_STATUS_HEADER])}
                 onUnsubscribe={
                   canUnsubscribe(email)

@@ -44,6 +44,7 @@
     "newMessage": "Verfassen",
     "folders": "Ordner",
     "teamMailboxes": "Team-Postfächer",
+    "otherUsers": "Andere Benutzer",
     "version": "Version %{version}",
     "personalFolders": "Persönliche Ordner"
   },
@@ -132,8 +133,7 @@
       "invite": "Zu einem Termin einladen",
       "chat": "Chat",
       "copy": "E-Mail-Adresse kopieren",
-      "copied": "E-Mail-Adresse kopiert",
-      "close": "Schließen"
+      "copied": "E-Mail-Adresse kopiert"
     },
     "actionRequired": "Aktion erforderlich",
     "removeActionRequired": "Markierung „Aktion erforderlich“ entfernen",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "Listenaktionen",
-      "filter": "Nachrichten filtern",
+      "filter": "Filtern",
       "clearFilter": "Filter entfernen",
-      "selectPage": "Alle Nachrichten dieser Seite auswählen",
+      "selectPage": "Alles auswählen",
+      "selectPageTooltip": "Alle Nachrichten dieser Seite auswählen",
       "filterOn": "Sie haben die Nachrichten nach „%{name}“ gefiltert",
       "filterOff": "Sie haben gefilterte Nachrichten deaktiviert",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "Englisch",
       "russian": "Russisch",
       "vietnamese": "Vietnamesisch",
+      "mongolian": "Mongolisch",
+      "german": "Deutsch",
+      "spanish": "Spanisch",
+      "italian": "Italienisch",
       "helpMeWrite": "Hilf mir beim Schreiben",
       "failed": "KI-Antwort konnte nicht erstellt werden",
       "generating": "Antwort wird erstellt",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Bild wird eingefügt"
-    }
+    },
+    "hideSignature": "Signatur ausblenden",
+    "showSignature": "Signatur anzeigen"
   },
   "layout": {
     "navigation": "Navigation"
@@ -666,7 +673,6 @@
     "wordsHint": "Wörter durch Kommas trennen",
     "loading": "Vorschläge werden geladen",
     "suggestionCount": "%{smart_count} Vorschlag |||| %{smart_count} Vorschläge",
-    "searchWithFilters": "Mit diesen Filtern suchen",
     "quickFiltersOnly": "Keine Vorschläge. Die Schnellfilter folgen auf das Suchfeld.",
     "labels": {
       "all": "Alle Labels",
@@ -974,6 +980,7 @@
       "success": "Dieser Ordner wird wieder angezeigt"
     },
     "visibility": {
+      "personal": "Persönliche Ordner",
       "team": "Team-Postfächer",
       "hideOf": "%{name} ausblenden",
       "showOf": "%{name} anzeigen",
@@ -1226,6 +1233,10 @@
     "startTime": "Anfangszeit",
     "endDate": "Enddatum",
     "endTime": "Endzeit",
+    "selectStartDate": "Startdatum auswählen",
+    "selectStartTime": "Startzeit auswählen",
+    "selectEndDate": "Enddatum auswählen",
+    "selectEndTime": "Endzeit auswählen",
     "subject": "Betreff",
     "subjectPlaceholder": "Betreff eingeben",
     "message": "Nachricht",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "Ereignisantwort wurde erfolglos gesendet!",
     "alreadyAnswered": "Sie haben diese Antwort auf die Einladung bereits gegeben",
+    "eventCanceled": "Dieses Ereignis wurde abgesagt",
     "counterAccepted": "Sie haben die vorgeschlagene Zeit für diese Besprechung angenommen",
     "eventLabel": "Termin: %{title}",
     "allDay": "Ganztägig",
@@ -1470,6 +1482,10 @@
       "onDays": "am %{days}",
       "count": "%{smart_count}-mal |||| %{smart_count}-mal",
       "until": "bis %{date}"
+    },
+    "occurrence": {
+      "only": "Nur dieser Termin der Serie",
+      "originally": "Nur dieser Termin der Serie (ursprünglich %{date})"
     },
     "untitled": "(Kein Titel)",
     "eventMark": "Termineinladung"

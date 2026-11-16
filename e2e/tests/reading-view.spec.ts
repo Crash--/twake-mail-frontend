@@ -61,6 +61,130 @@ test.describe('EML the reading view of the new design', () => {
       await email.root.getByTestId('reply-email-button').click()
       await expect(new ComposerPage(page).subjectInput).toHaveValue('Re: newer')
     })
+
+    test(
+      'EML-44 the recipients chevron follows the last address on its line, and a tap at the end of that address opens its card',
+      { tag: '@mobile' },
+      async ({ page, user, jmap }) => {
+        await jmap.sendEmail({
+          to: user.email,
+          cc: [
+            { email: 'quentin@example.com', name: 'Quentin Valmorinovski' },
+            { email: 'frank@example.com', name: 'Frank Garnier-Dupontel' }
+          ],
+          subject: 'Long copy',
+          text: 'Hello'
+        })
+        await jmap.waitForEmail({ subject: 'Long copy' })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const email = await mailbox.openEmail('Long copy')
+
+        const last = email.addressButton(email.cc, 'Frank Garnier-Dupontel')
+        const toggle = email.root.getByTestId('email-view-recipients-toggle')
+        const lastBox = await last.boundingBox()
+        const toggleBox = await toggle.boundingBox()
+        expect(lastBox).not.toBeNull()
+        expect(toggleBox).not.toBeNull()
+        if (lastBox === null || toggleBox === null) return
+        // On the line of the last address, centred on it
+        expect(
+          Math.abs(
+            toggleBox.y +
+              toggleBox.height / 2 -
+              (lastBox.y + lastBox.height / 2)
+          )
+        ).toBeLessThan(2)
+
+        // 3 px from the end of the address: its card, not the recipients
+        // (the click fails if the target of the chevron covers that point)
+        await last.click({
+          position: { x: lastBox.width - 3, y: lastBox.height / 2 }
+        })
+        await expect(email.addressCard).toBeVisible()
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      }
+    )
+
+    test(
+      'EML-45 a long first address stays on the line of its label and breaks inside the screen',
+      { tag: '@mobile' },
+      async ({ page, user, jmap }) => {
+        const longName =
+          "Maximilienne-Élisabeth de La Tour d'Auvergne-Lauraguais Montmorency"
+        await jmap.sendEmail({
+          to: user.email,
+          cc: [
+            {
+              email:
+                'maximilienne.elisabeth.de.la.tour.dauvergne@direction-generale-des-finances.example.com',
+              name: longName
+            },
+            { email: 'frank@example.com', name: 'Frank Garnier' }
+          ],
+          subject: 'Long first copy',
+          text: 'Hello'
+        })
+        await jmap.waitForEmail({ subject: 'Long first copy' })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const email = await mailbox.openEmail('Long first copy')
+        await email.root.getByTestId('email-view-recipients-toggle').click()
+
+        const label = email.cc.getByText('Cc:', { exact: true })
+        const first = email.addressButton(email.cc, longName)
+        const labelBox = await label.boundingBox()
+        const firstBox = await first.boundingBox()
+        const viewport = page.viewportSize()
+        expect(labelBox).not.toBeNull()
+        expect(firstBox).not.toBeNull()
+        if (labelBox === null || firstBox === null || viewport === null) return
+        // Its first line beside the label, not under it
+        expect(Math.abs(firstBox.y - labelBox.y)).toBeLessThan(4)
+        expect(firstBox.x).toBeGreaterThan(labelBox.x + labelBox.width)
+        expect(firstBox.x + firstBox.width).toBeLessThanOrEqual(viewport.width)
+      }
+    )
+
+    test(
+      'EML-46 the chevron sits on the last line of a last address that breaks',
+      { tag: '@mobile' },
+      async ({ page, user, jmap, isMobile }) => {
+        test.skip(!isMobile, 'a name breaks only on a phone')
+        const longName =
+          "Maximilienne-Élisabeth de La Tour d'Auvergne-Lauraguais Montmorency"
+        await jmap.sendEmail({
+          to: user.email,
+          cc: [
+            { email: 'frank@example.com', name: 'Frank Garnier' },
+            { email: 'maximilienne@example.com', name: longName }
+          ],
+          subject: 'Long last copy',
+          text: 'Hello'
+        })
+        await jmap.waitForEmail({ subject: 'Long last copy' })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const email = await mailbox.openEmail('Long last copy')
+
+        const last = email.addressButton(email.cc, longName)
+        const toggle = email.root.getByTestId('email-view-recipients-toggle')
+        const lastBox = await last.boundingBox()
+        // The drawn chevron: its touch target is taller than a line
+        const iconBox = await toggle.locator('svg').boundingBox()
+        const viewport = page.viewportSize()
+        expect(lastBox).not.toBeNull()
+        expect(iconBox).not.toBeNull()
+        if (lastBox === null || iconBox === null || viewport === null) return
+        const lastBottom = lastBox.y + lastBox.height
+        // The name breaks, and the chevron is on its last line, not between
+        expect(lastBox.height).toBeGreaterThan(30)
+        expect(iconBox.y + iconBox.height / 2).toBeGreaterThan(
+          lastBox.y + lastBox.height / 2
+        )
+        expect(iconBox.y + iconBox.height).toBeLessThanOrEqual(lastBottom + 2)
+        // Right after the box of the name, inside the screen
+        expect(iconBox.x - (lastBox.x + lastBox.width)).toBeLessThan(10)
+        expect(iconBox.x + iconBox.width).toBeLessThanOrEqual(viewport.width)
+      }
+    )
   })
 
   test('THR-21 a conversation has its answers in a bar at the bottom, and the actions of a collapsed message in its row', async ({

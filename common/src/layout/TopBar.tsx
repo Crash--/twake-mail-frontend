@@ -22,14 +22,10 @@ import {
   useSettingsExitPath
 } from '@common/features/settings/SettingsExitProvider'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
-import {
-  ListFilterSlot,
-  useSelectionBarSlotRef
-} from '@common/features/thread/ListFilterProvider'
+import { useSelectionBarSlotRef } from '@common/features/thread/ListFilterProvider'
 import { usePlatformStatus } from '@common/features/platform/PlatformProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { HelpButton } from './HelpButton'
 import { MailSearchBar } from './MailSearchBar'
 import { SettingsButton } from './SettingsButton'
 
@@ -40,10 +36,9 @@ export interface TopBarProps {
 
 /**
  * The bar of the mail below the desktop size, as tmail-flutter's: a button
- * opening the folders, the current folder, the filter of the list (and the
- * help under the bar of Twake Workplace, with the settings on a tablet;
- * otherwise the drawer holds them), and the search under it (not in the
- * settings)
+ * opening the folders, the current folder (and the settings under the bar
+ * of Twake Workplace on a tablet; otherwise the drawer holds them), and the
+ * search under it (not in the settings), which has the filters
  */
 export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
   const { t } = useI18n()
@@ -124,12 +119,9 @@ export function TopBar({ onOpenFolders }: TopBarProps): ReactElement {
         )
       }
       actions={
-        <>
-          <ListFilterSlot />
-          {/* Without the platform the drawer holds both */}
-          {isPlatformActive ? <HelpButton /> : null}
-          {hasSettingsButton ? <SettingsButton /> : null}
-        </>
+        // The search field filters and the settings have the support: no
+        // button doubles them
+        hasSettingsButton ? <SettingsButton /> : null
       }
       menu={{
         label: t('topbar.showFolders'),

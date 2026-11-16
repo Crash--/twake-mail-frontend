@@ -95,6 +95,15 @@ spec:
               readOnly: true
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.logotype.configMap }}
+            # Over the files the image serves, as with tmail-flutter's image
+            {{- range list "ic_logo_with_text.svg" "ic_logo_with_text_dark.svg" }}
+            - name: logotype
+              mountPath: /usr/share/nginx/html/assets/assets/images/{{ . }}
+              subPath: {{ . }}
+              readOnly: true
+            {{- end }}
+            {{- end }}
       volumes:
         - name: config
           configMap:
@@ -104,6 +113,11 @@ spec:
             {{- with .Values.deployment.tmpSizeLimit }}
             sizeLimit: {{ . }}
             {{- end }}
+        {{- with .Values.logotype.configMap }}
+        - name: logotype
+          configMap:
+            name: {{ . | quote }}
+        {{- end }}
       {{- with .Values.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

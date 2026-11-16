@@ -44,6 +44,7 @@
     "newMessage": "Redactar",
     "folders": "Carpetas",
     "teamMailboxes": "Buzones de equipo",
+    "otherUsers": "Otros usuarios",
     "version": "versión %{version}",
     "personalFolders": "Carpetas personales"
   },
@@ -132,8 +133,7 @@
       "invite": "Invitar a un evento",
       "chat": "Chat",
       "copy": "Copiar dirección de correo electrónico",
-      "copied": "Dirección de correo copiada",
-      "close": "Cerrar"
+      "copied": "Dirección de correo copiada"
     },
     "actionRequired": "Acción requerida",
     "removeActionRequired": "Quitar la etiqueta Acción requerida",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "Acciones de la lista",
-      "filter": "Filtrar mensajes",
+      "filter": "Filtrar",
       "clearFilter": "Quitar el filtro",
-      "selectPage": "Seleccionar todos los mensajes de esta página",
+      "selectPage": "Seleccionar todo",
+      "selectPageTooltip": "Seleccionar todos los mensajes de esta página",
       "filterOn": "Ha filtrado los mensajes por «%{name}»",
       "filterOff": "Ha desactivado los mensajes filtrados",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "Inglés",
       "russian": "Ruso",
       "vietnamese": "Vietnamita",
+      "mongolian": "Mongol",
+      "german": "Alemán",
+      "spanish": "Español",
+      "italian": "Italiano",
       "helpMeWrite": "Ayúdame a escribir",
       "failed": "No se pudo generar la respuesta de la IA",
       "generating": "Generando la respuesta",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Insertando la imagen"
-    }
+    },
+    "hideSignature": "Ocultar firma",
+    "showSignature": "Mostrar firma"
   },
   "layout": {
     "navigation": "Navegación"
@@ -666,7 +673,6 @@
     "wordsHint": "Separe las palabras con comas",
     "loading": "Cargando sugerencias",
     "suggestionCount": "%{smart_count} sugerencia |||| %{smart_count} sugerencias",
-    "searchWithFilters": "Buscar con estos filtros",
     "quickFiltersOnly": "Sin sugerencias. Los filtros rápidos siguen al campo de búsqueda.",
     "labels": {
       "all": "Todas las etiquetas",
@@ -974,6 +980,7 @@
       "success": "Esta carpeta vuelve a mostrarse"
     },
     "visibility": {
+      "personal": "Carpetas personales",
       "team": "Buzones de equipo",
       "hideOf": "Ocultar %{name}",
       "showOf": "Mostrar %{name}",
@@ -1226,6 +1233,10 @@
     "startTime": "Hora de inicio",
     "endDate": "Fecha de fin",
     "endTime": "Hora de fin",
+    "selectStartDate": "Seleccionar la fecha de inicio",
+    "selectStartTime": "Seleccionar la hora de inicio",
+    "selectEndDate": "Seleccionar la fecha de fin",
+    "selectEndTime": "Seleccionar la hora de fin",
     "subject": "Asunto",
     "subjectPlaceholder": "Introduzca el asunto",
     "message": "Mensaje",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "¡No se pudo enviar la respuesta al evento!",
     "alreadyAnswered": "Ya ha dado esta respuesta a la invitación",
+    "eventCanceled": "Este evento ha sido cancelado",
     "counterAccepted": "Ha aceptado la hora propuesta para esta reunión",
     "eventLabel": "Evento: %{title}",
     "allDay": "Todo el día",
@@ -1470,6 +1482,10 @@
       "onDays": "los %{days}",
       "count": "%{smart_count} vez |||| %{smart_count} veces",
       "until": "hasta el %{date}"
+    },
+    "occurrence": {
+      "only": "Solo esta repetición",
+      "originally": "Solo esta repetición (originalmente %{date})"
     },
     "untitled": "(Sin título)",
     "eventMark": "Invitación a un evento"

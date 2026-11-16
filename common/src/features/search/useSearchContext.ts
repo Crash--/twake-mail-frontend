@@ -12,7 +12,8 @@ import { formatDay, type SearchContext } from './searchFilter'
 /**
  * What a search filter needs to become a JMAP filter: the trash (a team
  * mailbox's too) and spam mailboxes, left out by default, the folders of
- * each team mailbox, searched when its root is picked, and today (relative
+ * each team mailbox, searched when its root is picked, every mailbox (the
+ * ones a team mailbox search leaves out), and today (relative
  * date ranges count from the day the screen opened, which keeps the query
  * stable), and the team mailbox the screens are bound to. Null until the mailboxes are known, so that the first query is
  * the right one.
@@ -28,6 +29,10 @@ export function useSearchContext(): SearchContext | null {
     () => findTeamFolderIds(mailboxes.data ?? []),
     [mailboxes.data]
   )
+  const mailboxIdsKey = (mailboxes.data ?? [])
+    .map(mailbox => mailbox.id)
+    .sort()
+    .join('\n')
   const isLoaded = mailboxes.isSuccess
   const boundTeamRootId = useTeamMailboxScope()
   return useMemo(
@@ -36,10 +41,11 @@ export function useSearchContext(): SearchContext | null {
         ? {
             trashAndSpamIds: key === '' ? [] : key.split('\n'),
             teamFolderIds,
+            mailboxIds: mailboxIdsKey === '' ? [] : mailboxIdsKey.split('\n'),
             today,
             boundTeamRootId
           }
         : null,
-    [isLoaded, key, teamFolderIds, today, boundTeamRootId]
+    [isLoaded, key, teamFolderIds, mailboxIdsKey, today, boundTeamRootId]
   )
 }

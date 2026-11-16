@@ -1,3 +1,8 @@
+import {
+  parseAllowedLanguages,
+  type SupportedLanguage
+} from '@common/i18n/languages'
+
 export type AuthMode = 'oidc' | 'basic'
 
 export interface OidcConfig {
@@ -57,6 +62,11 @@ export interface AppConfig {
   ecosystemUrl: string
   debug: boolean
   defaultLanguage: string | null
+  /**
+   * The languages offered, in the order of the picker (tmail-flutter
+   * `ALLOWED_LANGUAGES`); every supported language when unset
+   */
+  allowedLanguages: readonly SupportedLanguage[]
   calendarSpaUrl: string | null
   chatSpaUrl: string | null
   workplaceFqdnFallback: string | null
@@ -90,6 +100,7 @@ export type FlutterConfigKey =
   | 'WEB_OIDC_CLIENT_ID'
   | 'OIDC_SCOPES'
   | 'FORWARD_WARNING_MESSAGE'
+  | 'ALLOWED_LANGUAGES'
   | 'COZY_INTEGRATION'
   | 'SENTRY_ENABLED'
   | 'SENTRY_DSN'
@@ -393,6 +404,9 @@ export function resolveConfig(
           : `${removeTrailingSlashes(serverUrl)}${ECOSYSTEM_WELL_KNOWN_PATH}`,
       debug: toBoolean(source.DEBUG),
       defaultLanguage: normalizeString(source.LANG),
+      allowedLanguages: parseAllowedLanguages(
+        normalizeString(source.ALLOWED_LANGUAGES)
+      ),
       calendarSpaUrl: normalizeString(source.CALENDAR_SPA_URL),
       chatSpaUrl: normalizeString(source.CHAT_SPA_URL),
       workplaceFqdnFallback: normalizeString(source.WORKPLACE_FQDN_FALLBACK),

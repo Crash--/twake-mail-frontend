@@ -18,6 +18,7 @@ import {
 
 import { ColorPopoverPicker } from '@/ds/ColorPopoverPicker/ColorPopoverPicker'
 import { normalizeHexColor } from '@/ds/ColorSwatchPicker/hexColor'
+import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { validateIdentityName } from '@common/features/identities/identityForm'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -25,7 +26,7 @@ import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import { LABEL_PALETTE } from './labelPalette'
+import { LABEL_PALETTE, pickLabelColor } from './labelPalette'
 import { labelKeys, useLabels } from './queries'
 
 export interface LabelDialogProps {
@@ -75,7 +76,15 @@ export function LabelDialog({
   const nameRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(label?.displayName ?? '')
   const [description, setDescription] = useState(label?.description ?? '')
-  const [color, setColor] = useState<string | null>(label?.color ?? null)
+  const [color, setColor] = useState<string | null>(() =>
+    label === null
+      ? pickLabelColor(
+          COLORS,
+          labels.map(other => other.color)
+        )
+      : // tmail-backend leaves `color` out of a label without one
+        (label.color ?? null)
+  )
   // A colour out of the list stays as it is, in the custom field
   const [isCustom, setIsCustom] = useState(
     color !== null && !COLORS.includes(color.toUpperCase())
@@ -84,6 +93,8 @@ export function LabelDialog({
   const isColorValid = !isCustom || normalizeHexColor(hex) !== null
   const [isTouched, setIsTouched] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  // Each refused submit remounts the announced problem, said again then
+  const [failedSubmits, setFailedSubmits] = useState(0)
   const hexRef = useRef<HTMLInputElement>(null)
   const [isSaving, setIsSaving] = useState(false)
   // The dialog takes the focus as it opens: the name gets it once there
@@ -130,6 +141,7 @@ export function LabelDialog({
     setIsTouched(true)
     setIsSubmitted(true)
     if (problem !== null) {
+      setFailedSubmits(count => count + 1)
       nameRef.current?.focus()
       return
     }
@@ -234,6 +246,11 @@ export function LabelDialog({
       onClose={isSaving ? () => undefined : onClose}
       content={
         <form id={formId} onSubmit={handleSubmit} noValidate>
+          <LiveRegion data-testid="label-name-announcement">
+            {shownProblem === null ? null : (
+              <span key={failedSubmits}>{t(shownProblem)}</span>
+            )}
+          </LiveRegion>
           <Typography component="p" className="u-mb-1-half">
             {t(
               label === null

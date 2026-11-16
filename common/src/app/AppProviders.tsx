@@ -18,7 +18,10 @@ import { overlayThemeOptions, SpaceOverlayProvider } from '@linagora/twake-mui'
 import type { SpaceOverlay } from '@linagora/twake-mui'
 import { focusIndicatorThemeOptions } from '@/ds/FocusIndicator/focusIndicator'
 import { SCROLLBAR_CSS } from '@/ds/ScrollbarLook/scrollbarLook'
-import type { SupportedLanguage } from '@common/i18n/languages'
+import {
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage
+} from '@common/i18n/languages'
 
 // The production entry point keeps the devtools out of the main bundle:
 // they are only downloaded when DEBUG is on.
@@ -29,6 +32,8 @@ const ReactQueryDevtools = lazy(async () => {
 
 export interface AppProvidersProps {
   lang: SupportedLanguage
+  /** The languages the deployment offers (`ALLOWED_LANGUAGES`) */
+  allowedLanguages?: readonly SupportedLanguage[]
   queryClient: QueryClient
   debug?: boolean
   /**
@@ -47,6 +52,7 @@ export interface AppProvidersProps {
  */
 export function AppProviders({
   lang,
+  allowedLanguages = SUPPORTED_LANGUAGES,
   queryClient,
   debug = false,
   overlay = null,
@@ -69,7 +75,7 @@ export function AppProviders({
     <TwakeMuiThemeProvider themeOptions={themeOptions}>
       <ColorSchemeSync />
       <SpaceOverlayProvider overlay={overlay}>
-        <I18nProvider lang={lang}>
+        <I18nProvider lang={lang} allowedLanguages={allowedLanguages}>
           <DocumentTitleProvider>
             <QueryClientProvider client={queryClient}>
               <NotificationsProvider>

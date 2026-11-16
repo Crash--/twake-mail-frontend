@@ -7,7 +7,13 @@ import {
   Tooltip,
   Typography
 } from '@linagora/twake-mui'
-import { useId, useMemo, type ReactElement } from 'react'
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactElement
+} from 'react'
 
 import {
   EventCard,
@@ -47,6 +53,7 @@ import {
 import { formatRecurrence } from './formatRecurrence'
 import { LinkifiedText } from './LinkifiedText'
 import type { CalendarInvitation } from './queries'
+import { formatOccurrenceStart, occurrenceStart } from './recurrenceId'
 import type { CalendarAnswer } from './useCalendarReply'
 
 const BANNER_KEYS: Record<CalendarBannerKind, TranslationKey> = {
@@ -107,7 +114,8 @@ export interface CalendarEventCardProps {
  * where, the meeting link (shown and copied, not joined: tmail-flutter
  * #4622), the organizer and the attendees; Yes / Maybe / No for an
  * invitation (Yes only for a counter proposal), "Mail to attendees" and the
- * event in Twake Calendar. The description follows the card, as text.
+ * event in Twake Calendar. The description follows the card, as text. An
+ * event the server found canceled when answering offers no answer.
  */
 export function CalendarEventCard({
   invitation,
@@ -137,8 +145,28 @@ export function CalendarEventCard({
   const recurrence = (event.recurrenceRules ?? [])
     .map(rule => formatRecurrence(rule, lang, t))
     .filter((text): text is string => text !== null)
+  const occurrence = useMemo(
+    () =>
+      invitation.recurrenceId === null
+        ? null
+        : occurrenceStart(invitation.recurrenceId, event.timeZone ?? null),
+    [invitation.recurrenceId, event.timeZone]
+  )
   const showsBusy =
     !invitation.isFree && method !== 'REPLY' && method !== 'CANCEL'
+  const canceledRef = useRef<HTMLDivElement>(null)
+  const answersHadFocus = useRef(false)
+
+  // The answers go away when the server finds the event canceled: the
+  // focus they held moves to the warning instead of falling to the body.
+  useLayoutEffect(() => {
+    if (!invitation.isCanceled || !answersHadFocus.current) return
+    answersHadFocus.current = false
+    const focused = document.activeElement
+    if (focused === null || focused === document.body) {
+      canceledRef.current?.focus()
+    }
+  }, [invitation.isCanceled])
 
   const handleCopy = (link: string): void => {
     navigator.clipboard
@@ -170,6 +198,19 @@ export function CalendarEventCard({
               data-testid="calendar-event-recurrence"
             >
               {recurrence.join(' ; ')}
+            </SecondaryText>
+          ) : null}
+          {invitation.recurrenceId !== null ? (
+            <SecondaryText
+              component="span"
+              className="u-db"
+              data-testid="calendar-event-occurrence"
+            >
+              {occurrence === null
+                ? t('calendar.occurrence.only')
+                : t('calendar.occurrence.originally', {
+                    date: formatOccurrenceStart(occurrence, lang, timeZone)
+                  })}
             </SecondaryText>
           ) : null}
           {showsBusy ? (
@@ -247,13 +288,30 @@ export function CalendarEventCard({
     })
   }
 
-  const answers: CalendarAnswer[] = actions.acceptsCounter
-    ? ['acceptCounter']
-    : [...actions.replies]
+  const answers: CalendarAnswer[] = invitation.isCanceled
+    ? []
+    : actions.acceptsCounter
+      ? ['acceptCounter']
+      : [...actions.replies]
+  const status = invitation.isCanceled ? (
+    <Alert
+      ref={canceledRef}
+      severity="warning"
+      tabIndex={-1}
+      data-testid="calendar-event-canceled"
+    >
+      {t('calendar.eventCanceled')}
+    </Alert>
+  ) : !isInvited && method !== 'CANCEL' ? (
+    <Alert severity="error" data-testid="calendar-event-not-invited">
+      {t('calendar.notInvited')}
+    </Alert>
+  ) : null
 
   return (
     <>
       <EventCard
+        headingLevel="h3"
         title={title}
         label={t('calendar.eventLabel', { title })}
         date={times ? formatDateBlock(times, lang, timeZone) : null}
@@ -274,13 +332,7 @@ export function CalendarEventCard({
         }
         badgeTestId="calendar-event-banner"
         details={details}
-        status={
-          !isInvited && method !== 'CANCEL' ? (
-            <Alert severity="error" data-testid="calendar-event-not-invited">
-              {t('calendar.notInvited')}
-            </Alert>
-          ) : null
-        }
+        status={status}
         actions={
           answers.length > 0 || actions.mailToAttendees ? (
             <>
@@ -289,6 +341,14 @@ export function CalendarEventCard({
                   role="group"
                   aria-labelledby={attendingId}
                   className="u-flex u-flex-wrap u-flex-items-center u-flex-justify-center"
+                  onFocus={() => {
+                    answersHadFocus.current = true
+                  }}
+                  onBlur={event => {
+                    if (event.relatedTarget !== null) {
+                      answersHadFocus.current = false
+                    }
+                  }}
                   data-testid="calendar-event-replies"
                 >
                   <Typography
@@ -353,7 +413,7 @@ export function CalendarEventCard({
       />
       {description !== '' ? (
         <Box className="u-mt-1" data-testid="calendar-event-description">
-          <Typography component="h3" className="u-fw-bold u-mb-half">
+          <Typography component="h4" className="u-fw-bold u-mb-half">
             {t('calendar.description')}
           </Typography>
           <Typography className="u-breakword">

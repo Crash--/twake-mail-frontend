@@ -9,6 +9,7 @@ import type {
 import {
   collapseThreads,
   filterWords,
+  isSupportedFilter,
   markWords,
   matchesFilter,
   sortEmails
@@ -762,6 +763,7 @@ export function makeFakeJmapServer(
   }
 
   function queryEmails(args: Record<string, unknown>): unknown {
+    if (!isSupportedFilter(args.filter)) return { error: 'unsupportedFilter' }
     const found = sortEmails(
       server.emails.filter(email => matchesFilter(email, args.filter)),
       args.sort

@@ -11,13 +11,15 @@ export interface CalendarUrlOptions {
 /**
  * The event in Twake Calendar, which opens it at `/events/<uid>` (as
  * tmail-flutter links its `calendarUrlTemplate`); null without
- * `CALENDAR_SPA_URL` or when the result is not an http(s) URL.
+ * `CALENDAR_SPA_URL`, when the UID cannot be a path segment, or when the
+ * result is not an http(s) URL.
  */
 export function calendarEventUrl(
   uid: string,
   { calendarSpaUrl, workplaceFqdnFallback, username }: CalendarUrlOptions
 ): string | null {
-  if (!calendarSpaUrl || !uid.trim()) return null
+  const trimmedUid = uid.trim()
+  if (!calendarSpaUrl || !isPathSegment(trimmedUid)) return null
   const base = resolveCalendarSpaUrl(calendarSpaUrl, {
     localpart: username.split('@')[0] ?? '',
     ...(workplaceFqdnFallback ? { workplaceFqdnFallback } : {})
@@ -26,7 +28,7 @@ export function calendarEventUrl(
   try {
     const url = new URL(
       // (?<!…): a run is tried from its first character only (ReDoS)
-      `${base.replace(/(?<!\/)\/+$/, '')}/events/${encodeURIComponent(uid.trim())}`
+      `${base.replace(/(?<!\/)\/+$/, '')}/events/${encodeURIComponent(trimmedUid)}`
     )
     return url.protocol === 'https:' || url.protocol === 'http:'
       ? url.href
@@ -34,4 +36,12 @@ export function calendarEventUrl(
   } catch {
     return null
   }
+}
+
+/**
+ * `.` and `..` (even percent-encoded) are dot segments the URL parser
+ * removes: no path can name them.
+ */
+function isPathSegment(segment: string): boolean {
+  return segment !== '' && segment !== '.' && segment !== '..'
 }

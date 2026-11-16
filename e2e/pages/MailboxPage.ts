@@ -5,6 +5,7 @@ import { ComposerPage } from './ComposerPage'
 import { EmailPage } from './EmailPage'
 import { SettingsPage } from './SettingsPage'
 import { openAccountMenuIfAny } from '../support/accountMenu'
+import { longPress } from '../support/longPress'
 
 /** A folder of the sidebar, by JMAP role (`inbox`, `trash`...) or by displayed name */
 export type FolderRef =
@@ -68,6 +69,8 @@ export class MailboxPage {
   readonly mailboxNameDialog: Locator
   readonly teamMailboxesSection: Locator
   readonly showHiddenFoldersButton: Locator
+  /** The folders other users share with the user, below the team mailboxes */
+  readonly otherUsersSection: Locator
   /** The titles of the sidebar sections, buttons that collapse them */
   readonly foldersSectionToggle: Locator
   readonly teamMailboxesSectionToggle: Locator
@@ -109,6 +112,7 @@ export class MailboxPage {
     this.showHiddenFoldersButton = page.getByTestId(
       'show-hidden-folders-button'
     )
+    this.otherUsersSection = page.getByTestId('other-users-section')
     this.foldersSectionToggle = page.getByTestId('folders-section-toggle')
     this.teamMailboxesSectionToggle = page.getByTestId(
       'team-mailboxes-section-toggle'
@@ -263,19 +267,16 @@ export class MailboxPage {
     return tree.locator('[role="treeitem"][tabindex="0"]')
   }
 
-  /** Folder actions menu (⋮ on hover, or right-click): New subfolder, Rename, Move, Delete, Empty trash... */
+  /** Folder actions menu (⋮ on hover, or a long press on a phone, which has no ⋮): New subfolder, Rename, Move, Delete, Empty trash... */
   async openFolderMenu(ref: FolderRef): Promise<Locator> {
     await this.showFolders()
-    const more = this.folder(ref).getByTestId('mailbox-more-button')
-    // count() does not wait: the row must be there first
-    await expect(this.folder(ref)).toBeVisible()
+    const row = this.folder(ref)
+    const more = row.getByTestId('mailbox-more-button')
     if ((await more.count()) > 0) {
-      await this.folder(ref).hover()
+      await row.hover()
       await more.click()
     } else {
-      // A phone has no ⋮: a long press, or the keyboard as here
-      await this.folder(ref).focus()
-      await this.page.keyboard.press('Shift+F10')
+      await longPress(this.page, row.getByTestId('mailbox-item-name'))
     }
     const menu = this.page.getByTestId('mailbox-context-menu').getByRole('menu')
     await expect(menu).toBeVisible()

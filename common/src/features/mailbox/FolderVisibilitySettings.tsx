@@ -2,6 +2,7 @@ import { EyeClosed, Eye, Icon, Lock } from '@linagora/twake-icons'
 import { Box, Typography } from '@linagora/twake-mui'
 import { useId, useState, type ReactElement } from 'react'
 
+import { CollapsibleCategory } from '@/ds/CollapsibleCategory/CollapsibleCategory'
 import { FolderVisibilityRow } from '@/ds/FolderVisibilityRow/FolderVisibilityRow'
 import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
 import { PlainList } from '@/ds/PlainList/PlainList'
@@ -194,16 +195,20 @@ export interface FolderVisibilitySettingsProps {
 
 /**
  * Settings > Folder visibility, as the Figma: the system folders, always
- * visible, then the user's own folders and the team mailboxes, each under
- * its heading. Each folder the user made, and each team mailbox, is hidden
- * or shown again (`isSubscribed`, with their subfolders, or with their
- * parents).
+ * visible, then the "Folders" heading folding the user's own folders and the
+ * team mailboxes, each under its own folding heading. Each folder the user
+ * made, and each team mailbox, is hidden or shown again (`isSubscribed`, with
+ * their subfolders, or with their parents).
  */
 export function FolderVisibilitySettings({
   section
 }: FolderVisibilitySettingsProps): ReactElement {
   const { t } = useI18n()
   const { data: mailboxes } = useMailboxes()
+  const baseId = useId()
+  const [areFoldersExpanded, setFoldersExpanded] = useState(true)
+  const [isPersonalExpanded, setPersonalExpanded] = useState(true)
+  const [isTeamExpanded, setTeamExpanded] = useState(true)
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
     () => new Set()
   )
@@ -244,21 +249,47 @@ export function FolderVisibilitySettings({
         >
           {rows(system)}
         </FolderGroup>
-        {folders.length === 0 ? null : (
-          <FolderGroup
+        {folders.length === 0 && team.length === 0 ? null : (
+          <CollapsibleCategory
             title={t('sidebar.folders')}
-            data-testid="folder-visibility-folders"
+            isExpanded={areFoldersExpanded}
+            onToggle={() => {
+              setFoldersExpanded(current => !current)
+            }}
+            controlsId={`${baseId}-folders`}
+            toggleTestId="folder-visibility-folders-toggle"
           >
-            {rows(folders)}
-          </FolderGroup>
-        )}
-        {team.length === 0 ? null : (
-          <FolderGroup
-            title={t('folders.visibility.team')}
-            data-testid="folder-visibility-team"
-          >
-            {rows(team)}
-          </FolderGroup>
+            {folders.length === 0 ? null : (
+              <CollapsibleCategory
+                title={t('folders.visibility.personal')}
+                isExpanded={isPersonalExpanded}
+                onToggle={() => {
+                  setPersonalExpanded(current => !current)
+                }}
+                controlsId={`${baseId}-personal`}
+                headingLevel="h3"
+                isList
+                data-testid="folder-visibility-folders"
+              >
+                {rows(folders)}
+              </CollapsibleCategory>
+            )}
+            {team.length === 0 ? null : (
+              <CollapsibleCategory
+                title={t('folders.visibility.team')}
+                isExpanded={isTeamExpanded}
+                onToggle={() => {
+                  setTeamExpanded(current => !current)
+                }}
+                controlsId={`${baseId}-team`}
+                headingLevel="h3"
+                isList
+                data-testid="folder-visibility-team"
+              >
+                {rows(team)}
+              </CollapsibleCategory>
+            )}
+          </CollapsibleCategory>
         )}
       </NarrowColumn>
     </SettingsSectionLayout>

@@ -7,6 +7,8 @@ import type {
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 
+import { readRecurrenceId, type RecurrenceId } from './recurrenceId'
+
 /** The event of an email and how the user answered it */
 export interface CalendarInvitation {
   /** The blob the event was read from, the one the replies refer to */
@@ -16,6 +18,13 @@ export interface CalendarInvitation {
   attendance: CalendarEventAttendanceStatus | null
   /** False when the user has another event at that time */
   isFree: boolean
+  /**
+   * The server refused an answer because the event was canceled since:
+   * neither the email nor `CalendarEventAttendance/get` tell it beforehand
+   */
+  isCanceled: boolean
+  /** The occurrence of a recurring event it overrides, null for a whole event */
+  recurrenceId: RecurrenceId | null
 }
 
 export type CalendarInvitationKey = readonly [
@@ -34,6 +43,33 @@ export const calendarKeys = {
     accountId: string,
     blobIds: readonly string[]
   ): CalendarInvitationKey => ['calendar', accountId, 'invitation', ...blobIds]
+}
+
+/**
+ * The occurrence an event overrides: `recurrenceId` when the server gives
+ * it, else the `RECURRENCE-ID` of the blob (tmail-backend leaves it out of
+ * `CalendarEvent/parse`). A recurring event (with rules) is a whole series;
+ * null when the blob cannot be read.
+ */
+async function recurrenceIdOf(
+  client: JmapClient,
+  accountId: string,
+  blobId: string,
+  event: CalendarEvent,
+  signal: AbortSignal
+): Promise<RecurrenceId | null> {
+  if (event.recurrenceId) {
+    return { value: event.recurrenceId, timeZone: null }
+  }
+  if ((event.recurrenceRules ?? []).length > 0) return null
+  try {
+    const blob = await client.download({ accountId, blobId }, { signal })
+    return readRecurrenceId(await blob.text())
+  } catch (error: unknown) {
+    if (signal.aborted) throw error
+    console.warn('[calendar] Cannot read the recurrence id', error)
+    return null
+  }
 }
 
 /**
@@ -83,7 +119,15 @@ export function calendarInvitationQueryOptions(
         blobId: found.blobId,
         event: found.event,
         attendance: record?.eventAttendanceStatus ?? null,
-        isFree: record?.isFree ?? true
+        isFree: record?.isFree ?? true,
+        isCanceled: false,
+        recurrenceId: await recurrenceIdOf(
+          client,
+          accountId,
+          found.blobId,
+          found.event,
+          signal
+        )
       }
     },
     staleTime: Infinity

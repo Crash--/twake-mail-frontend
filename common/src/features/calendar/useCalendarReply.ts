@@ -55,17 +55,26 @@ function outcomeOf(
   return (done ?? []).length > 0 ? { ok: true } : { ok: false, error: null }
 }
 
+function hasType(error: unknown, type: string): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'type' in error &&
+    error.type === type
+  )
+}
+
 /**
  * tmail-backend refuses with `invalidPatch` an answer the event already
  * holds: the reply is a no-op
  */
 function isAlreadyAnswered(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'type' in error &&
-    error.type === 'invalidPatch'
-  )
+  return hasType(error, 'invalidPatch')
+}
+
+/** tmail-backend refuses with `eventCancelled` an answer to a canceled event */
+function isEventCanceled(error: unknown): boolean {
+  return hasType(error, 'eventCancelled')
 }
 
 /**
@@ -73,7 +82,8 @@ function isAlreadyAnswered(error: unknown): boolean {
  * `reject`, in the language of the UI when the server writes it, or
  * `CalendarEventCounter/accept` for a counter proposal. The answer shows
  * at once on the card; a failure shows a translated message, the server
- * detail going to the console, and reads the answer on the card again.
+ * detail going to the console, and reads the answer on the card again. An
+ * event canceled since the email marks the invitation as canceled.
  */
 export function useCalendarReply(
   invitation: CalendarInvitation,
@@ -127,8 +137,17 @@ export function useCalendarReply(
       }
 
       // The answer on the card may be out of date (given elsewhere, or read
-      // from another copy of the event): read it again
+      // from another copy of the event): read it again. Not for a canceled
+      // event: tmail-backend reports the refused answer as given, the card
+      // keeps the one it showed and drops the answers
       function answerFailed(error: unknown): void {
+        if (isEventCanceled(error)) {
+          queryClient.setQueryData<CalendarInvitation | null>(key, current =>
+            current ? { ...current, isCanceled: true } : current
+          )
+          notify({ message: t('calendar.eventCanceled'), severity: 'error' })
+          return
+        }
         queryClient.invalidateQueries({ queryKey: key }).catch(() => undefined)
         if (isAlreadyAnswered(error)) {
           notify({ message: t('calendar.alreadyAnswered'), severity: 'info' })

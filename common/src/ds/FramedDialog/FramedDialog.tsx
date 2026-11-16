@@ -3,7 +3,9 @@
 // named dialog, a loading state until the framed page says it is ready, the
 // focus moved into the frame then, the size the framed page asks for, a
 // close button the framed page can take over, full screen on phones.
-// twake-mui's Dialog has no such variant.
+// The frame is cozy-interapp's: it appends it to the frame box and styles
+// that box as the framed page asks (`resize`). twake-mui's Dialog has no
+// such variant.
 import { Icon, Cross } from '@linagora/twake-icons'
 import {
   Box,
@@ -14,12 +16,12 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import {
+  useCallback,
   useEffect,
   useId,
-  useRef,
+  useState,
   type ReactElement,
-  type ReactNode,
-  type RefObject
+  type ReactNode
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
@@ -29,7 +31,7 @@ import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
  * Calendar and Twake Drive's own picker dialog (MUI `md`), 800 high as
  * Calendar
  */
-export const FRAMED_DIALOG_DEFAULT_SIZE = { width: 900, height: 800 } as const
+const FRAMED_DIALOG_DEFAULT_SIZE = { width: 900, height: 800 } as const
 
 /**
  * The dialog keeps a 16 px margin (MUI's 32 px default is reduced) and is
@@ -38,26 +40,54 @@ export const FRAMED_DIALOG_DEFAULT_SIZE = { width: 900, height: 800 } as const
 const SCREEN_MARGIN = 'calc(100% - 32px)'
 
 /**
- * The size the framed page asks for, in CSS pixels (the `resize` message of
- * the cozy intents: `width` and `height` set the size, `maxWidth` and
- * `maxHeight` cap it), and the CSS transition to get there. The screen
- * still caps it all.
+ * The box of the frame, which sizes the dialog: 900 × 800 by default, the
+ * size the framed page asks for once cozy-interapp sets it as inline styles
+ * (`resize`: `width`, `height`, `maxWidth`, `maxHeight`, `transition`).
+ * shortcut: the screen caps win over a `maxWidth` or `maxHeight` the page
+ * asks for (`!important`), Drive asks for none; take the smaller if one does.
  */
-export interface FrameSize {
-  width?: number
-  height?: number
-  maxWidth?: number
-  maxHeight?: number
-  /** A CSS `transition` value, e.g. `height .2s ease-out` */
-  transition?: string
-}
-
 const FRAME_SX = {
   position: 'relative',
-  flex: 1,
+  flex: '0 1 auto',
   minHeight: 0,
-  '& iframe': { display: 'block', width: '100%', height: '100%', border: 0 }
+  width: FRAMED_DIALOG_DEFAULT_SIZE.width,
+  height: FRAMED_DIALOG_DEFAULT_SIZE.height,
+  maxWidth: '100% !important',
+  maxHeight: '100% !important',
+  '& iframe': { display: 'block', width: '100%', height: '100%', border: 0 },
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none !important'
+  }
 } as const
+
+/** Full screen on phones, whatever size the page asks for */
+const PHONE_FRAME_SX = {
+  ...FRAME_SX,
+  flex: 1,
+  width: 'auto !important',
+  height: 'auto !important',
+  maxWidth: 'none !important',
+  maxHeight: 'none !important'
+} as const
+
+/**
+ * The paper wraps the frame box, within the screen. Twice the class:
+ * twake-mui caps the paper with `&.<size>` (544 px for its default
+ * `medium`, which cut the 800 px asked here before)
+ */
+const PAPER_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  '&&': {
+    m: 2,
+    width: 'auto',
+    height: 'auto',
+    maxWidth: SCREEN_MARGIN,
+    maxHeight: SCREEN_MARGIN
+  }
+} as const
+
+const PHONE_PAPER_SX = { display: 'flex', flexDirection: 'column' } as const
 
 const OVERLAY_SX = {
   position: 'absolute',
@@ -74,46 +104,15 @@ const OVERLAY_SX = {
 
 const CLOSE_SX = { position: 'absolute', top: 8, right: 8, zIndex: 1 } as const
 
-// What a CSS transition can hold: names, durations, timing functions. No
-// `;`, `{` or `}`: the value goes into a style sheet.
-const TRANSITION_PATTERN = /^[\w\s.,()%-]+$/
-
-function cap(size: number | undefined, screen: string): string {
-  return size === undefined ? screen : `min(${size}px, ${screen})`
-}
-
-function paperSx(size: FrameSize | null): Record<string, unknown> {
-  const transition =
-    size?.transition !== undefined && TRANSITION_PATTERN.test(size.transition)
-      ? size.transition
-      : undefined
-  return {
-    display: 'flex',
-    flexDirection: 'column',
-    // Twice the class: twake-mui caps the paper with `&.<size>` (544 px for
-    // its default `medium`, which cut the 800 px asked here before)
-    '&&': {
-      m: 2,
-      width: size?.width ?? FRAMED_DIALOG_DEFAULT_SIZE.width,
-      height: size?.height ?? FRAMED_DIALOG_DEFAULT_SIZE.height,
-      maxWidth: cap(size?.maxWidth, SCREEN_MARGIN),
-      maxHeight: cap(size?.maxHeight, SCREEN_MARGIN),
-      ...(transition === undefined ? {} : { transition })
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-      '&&': { transition: 'none' }
-    }
-  }
-}
-
 export interface FramedDialogProps {
   open: boolean
   /** Name of the dialog for screen readers; the framed page shows its own header */
   title: string
-  /** The page to frame, null while it is not known yet */
-  src: string | null
-  /** Title of the iframe, for screen readers */
-  frameTitle: string
+  /**
+   * Gets the box the frame goes in (cozy-interapp's `start`), null once it
+   * is gone
+   */
+  frameContainerRef: (element: HTMLElement | null) => void
   /** The framed page said it is ready: the loading state goes, the focus enters */
   isReady: boolean
   loadingLabel: string
@@ -126,8 +125,6 @@ export interface FramedDialogProps {
    * `message`.
    */
   showCloseButton?: boolean
-  /** The size the framed page asks for, null for the default (900 × 800) */
-  frameSize?: FrameSize | null
   /**
    * What the loading state shows instead of the progress indicator and its
    * text (Figma "Drive loading": the logo of the framed application in the
@@ -136,15 +133,13 @@ export interface FramedDialogProps {
   loadingBrand?: { logo: ReactNode; name: ReactNode }
   /** Shown instead of the frame (an error and its actions) */
   message?: ReactNode
-  frameRef?: RefObject<HTMLIFrameElement | null>
-  /** Permissions of the framed page (`allow`) */
-  allow?: string
   /**
    * The owner moves the focus itself on close (e.g. into what the dialog
    * inserted) instead of back to what opened the dialog
    */
   disableRestoreFocus?: boolean
   'data-testid'?: string
+  /** Test id of the box the frame goes in */
   frameTestId?: string
 }
 
@@ -160,32 +155,34 @@ export interface FramedDialogProps {
 export function FramedDialog({
   open,
   title,
-  src,
-  frameTitle,
+  frameContainerRef,
   isReady,
   loadingLabel,
   closeLabel,
   onClose,
   showCloseButton = true,
-  frameSize = null,
   message,
   loadingBrand,
-  frameRef,
-  allow,
   disableRestoreFocus = false,
   'data-testid': testId,
   frameTestId
 }: FramedDialogProps): ReactElement {
   const titleId = useId()
   const isPhone = useScreenSize() === 'mobile'
-  const localRef = useRef<HTMLIFrameElement | null>(null)
-  const ref = frameRef ?? localRef
+  const [container, setContainer] = useState<HTMLElement | null>(null)
+  const containerRef = useCallback(
+    (element: HTMLElement | null): void => {
+      setContainer(element)
+      frameContainerRef(element)
+    },
+    [frameContainerRef]
+  )
   const hasMessage = message !== undefined
   const isLoading = !isReady && !hasMessage
 
   useEffect(() => {
-    if (open && isReady) ref.current?.focus()
-  }, [open, isReady, ref])
+    if (open && isReady) container?.querySelector('iframe')?.focus()
+  }, [open, isReady, container])
 
   return (
     <Dialog
@@ -193,15 +190,12 @@ export function FramedDialog({
       onClose={onClose}
       size="full"
       fullScreen={isPhone}
-      fullWidth
       maxWidth={false}
       aria-labelledby={titleId}
       disableRestoreFocus={disableRestoreFocus}
       slotProps={{
         paper: {
-          sx: isPhone
-            ? { display: 'flex', flexDirection: 'column' }
-            : paperSx(frameSize)
+          sx: isPhone ? PHONE_PAPER_SX : PAPER_SX
         }
       }}
       data-testid={testId}
@@ -209,17 +203,12 @@ export function FramedDialog({
       <h2 id={titleId} className="u-visuallyhidden">
         {title}
       </h2>
-      <Box sx={FRAME_SX} aria-busy={isLoading}>
-        {src !== null && !hasMessage ? (
-          <iframe
-            ref={ref}
-            src={src}
-            title={frameTitle}
-            allow={allow}
-            referrerPolicy="strict-origin-when-cross-origin"
-            data-testid={frameTestId}
-          />
-        ) : null}
+      <Box
+        ref={containerRef}
+        sx={isPhone ? PHONE_FRAME_SX : FRAME_SX}
+        aria-busy={isLoading}
+        data-testid={frameTestId}
+      >
         {hasMessage ? (
           <Box sx={OVERLAY_SX} role="alert">
             {message}

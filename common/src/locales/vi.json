@@ -44,6 +44,7 @@
     "newMessage": "Soạn thư",
     "folders": "Thư mục",
     "teamMailboxes": "Hộp thư nhóm",
+    "otherUsers": "Người dùng khác",
     "version": "phiên bản %{version}",
     "personalFolders": "Thư mục cá nhân"
   },
@@ -132,8 +133,7 @@
       "invite": "Mời tham gia sự kiện",
       "chat": "Trò chuyện",
       "copy": "Sao chép địa chỉ email",
-      "copied": "Đã sao chép địa chỉ email",
-      "close": "Đóng"
+      "copied": "Đã sao chép địa chỉ email"
     },
     "actionRequired": "Cần xử lý",
     "removeActionRequired": "Gỡ nhãn Cần xử lý",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "Thao tác với danh sách",
-      "filter": "Lọc thư",
+      "filter": "Lọc",
       "clearFilter": "Xóa bộ lọc",
-      "selectPage": "Chọn tất cả tin nhắn của trang này",
+      "selectPage": "Chọn tất cả",
+      "selectPageTooltip": "Chọn tất cả tin nhắn của trang này",
       "filterOn": "Bạn vừa lọc các email \"%{name}\"",
       "filterOff": "Bộ lọc đã được huỷ bỏ",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "Tiếng Anh",
       "russian": "Tiếng Nga",
       "vietnamese": "Tiếng Việt",
+      "mongolian": "Tiếng Mông Cổ",
+      "german": "Tiếng Đức",
+      "spanish": "Tiếng Tây Ban Nha",
+      "italian": "Tiếng Ý",
       "helpMeWrite": "Tuỳ chỉnh nội dung",
       "failed": "Tạo nội dung thất bại",
       "generating": "Tạo phản hồi",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Đang chèn ảnh"
-    }
+    },
+    "hideSignature": "Ẩn chữ ký",
+    "showSignature": "Hiện chữ ký"
   },
   "layout": {
     "navigation": "Điều hướng"
@@ -666,7 +673,6 @@
     "wordsHint": "Phân tách các từ bằng dấu phẩy",
     "loading": "Đang tải gợi ý",
     "suggestionCount": "%{smart_count} gợi ý",
-    "searchWithFilters": "Tìm kiếm với các bộ lọc này",
     "quickFiltersOnly": "Không có gợi ý. Các bộ lọc nhanh nằm sau ô tìm kiếm.",
     "labels": {
       "all": "Tất cả nhãn",
@@ -974,6 +980,7 @@
       "success": "Thư mục này đã được hiển thị lại"
     },
     "visibility": {
+      "personal": "Thư mục cá nhân",
       "team": "Hộp thư nhóm",
       "hideOf": "Ẩn %{name}",
       "showOf": "Hiển thị %{name}",
@@ -1061,7 +1068,7 @@
     "empty": {
       "title": "Chưa có bộ lọc nào được tạo",
       "message": "Tạo một bộ lọc thư để tự động phân loại thư",
-      "action": "Tạo bộ lọc thư"
+      "action": "Tạo quy tắc đầu tiên của bạn"
     },
     "delete": {
       "title": "Xoá bộ lọc",
@@ -1226,6 +1233,10 @@
     "startTime": "Bắt đầu",
     "endDate": "Kết thúc",
     "endTime": "Kết thúc",
+    "selectStartDate": "Chọn ngày bắt đầu",
+    "selectStartTime": "Chọn giờ bắt đầu",
+    "selectEndDate": "Chọn ngày kết thúc",
+    "selectEndTime": "Chọn giờ kết thúc",
     "subject": "Tiêu đề",
     "subjectPlaceholder": "Tiêu đề",
     "message": "Tin nhắn",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "Hồi đáp sự kiện không thành công!",
     "alreadyAnswered": "Bạn đã gửi câu trả lời này cho lời mời",
+    "eventCanceled": "Sự kiện này đã bị hủy",
     "counterAccepted": "Bạn đã chấp nhận một đề xuất thời gian mới cho cuộc họp này",
     "eventLabel": "Sự kiện: %{title}",
     "allDay": "Cả ngày",
@@ -1470,6 +1482,10 @@
       "onDays": "vào %{days}",
       "count": "%{smart_count} lần",
       "until": "đến %{date}"
+    },
+    "occurrence": {
+      "only": "Chỉ lần lặp này",
+      "originally": "Chỉ lần lặp này (ban đầu %{date})"
     },
     "untitled": "(Không có tiêu đề)",
     "eventMark": "Lời mời sự kiện"

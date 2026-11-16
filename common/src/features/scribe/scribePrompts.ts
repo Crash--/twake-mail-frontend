@@ -56,7 +56,11 @@ const EDITING_INSTRUCTIONS: Readonly<Record<string, string>> = {
   'translate-french': 'Translate the text to French.',
   'translate-english': 'Translate the text to English.',
   'translate-russian': 'Translate the text to Russian.',
-  'translate-vietnamese': 'Translate the text to Vietnamese.'
+  'translate-vietnamese': 'Translate the text to Vietnamese.',
+  'translate-mongolian': 'Translate the text to Mongolian.',
+  'translate-german': 'Translate the text to German.',
+  'translate-spanish': 'Translate the text to Spanish.',
+  'translate-italian': 'Translate the text to Italian.'
 }
 
 /** The prompts of tmail-flutter, used when the server gives none */

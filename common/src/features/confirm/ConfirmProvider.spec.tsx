@@ -33,18 +33,22 @@ function Asker(): ReactElement {
 function Chooser(): ReactElement {
   const choose = useChoose()
   const [answer, setAnswer] = useState('none')
-  const handleAsk = (): void => {
+  const ask = (hasCancelButton: boolean): void => {
     void choose({
       title: 'Save message',
       message: 'Save this message to your drafts folder?',
       confirmLabel: 'Save',
-      alternativeLabel: 'Discard changes'
+      alternativeLabel: 'Discard changes',
+      hasCancelButton
     }).then(setAnswer)
   }
   return (
     <>
-      <button type="button" onClick={handleAsk}>
+      <button type="button" onClick={() => ask(true)}>
         Close
+      </button>
+      <button type="button" onClick={() => ask(false)}>
+        Discard
       </button>
       <p>Answer: {answer}</p>
     </>
@@ -158,6 +162,17 @@ describe('ConfirmProvider', () => {
     expect(await screen.findByText('Answer: confirm')).toBeVisible()
 
     await userEvent.click(close)
+    await userEvent.keyboard('{Escape}')
+    expect(await screen.findByText('Answer: cancel')).toBeVisible()
+  })
+
+  it('offers a choice without a Cancel button, still cancelled by Escape', async () => {
+    renderAsker()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    const dialog = screen.getByRole('dialog', { name: 'Save message' })
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBe(null)
+    expect(within(dialog).getByRole('button', { name: 'Save' })).toHaveFocus()
     await userEvent.keyboard('{Escape}')
     expect(await screen.findByText('Answer: cancel')).toBeVisible()
   })

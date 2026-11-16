@@ -551,20 +551,21 @@ test.describe('A11Y composer', () => {
     await page.keyboard.press('Escape')
     await expect(composer.moreButton).toBeFocused()
 
-    // The close dialog: named, with its message, the focus comes back where it was on Cancel
+    // The close dialog: named, with its message, the focus comes back where it was on Escape
     await composer.editor.focus()
     await page.keyboard.type(' and more')
     await composer.closeButton.click()
     const dialog = page.getByTestId('confirm-dialog')
     await expect(dialog).toMatchAriaSnapshot(`
       - dialog "Save message":
+        - button "Close"
         - heading "Save message" [level=2]
-        - button "Cancel"
         - button "Discard changes"
         - button "Save"
     `)
+    await expect(dialog.getByTestId('confirm-dialog-cancel-button')).toHaveCount(0)
     await expectNoA11yViolations(page)
-    await dialog.getByTestId('confirm-dialog-cancel-button').click()
+    await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     await expect(composer.closeButton).toBeFocused()
 

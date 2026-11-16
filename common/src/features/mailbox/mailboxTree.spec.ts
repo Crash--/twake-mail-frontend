@@ -10,8 +10,11 @@ import {
   findTrashAndSpamIds,
   isDraftsMailbox,
   isFirstLevelTeamFolder,
+  isSharedMailbox,
+  isSharedRoot,
   isTeamDrafts,
   isTeamFolder,
+  isTeamMailbox,
   isTeamRoot,
   isTeamTemplates,
   isTeamTrash,
@@ -25,6 +28,7 @@ import {
   findMailboxIdByRole,
   listVisibleMailboxes,
   pruneMailboxRoles,
+  sharedMailboxOwner,
   teamMailboxAddress,
   type MailboxNode
 } from './mailboxTree'
@@ -200,6 +204,36 @@ describe('buildMailboxSections', () => {
       'Projects'
     ])
   })
+
+  it('puts the folders other users share in a section of their own, never hidden', () => {
+    const SHARED = 'Delegated[bob@example.com]'
+    const { team, shared, hiddenCount } = buildMailboxSections(
+      [
+        ...mailboxes,
+        makeMailbox({
+          id: 'abc',
+          name: 'abc',
+          namespace: SHARED,
+          isSubscribed: false
+        }),
+        makeMailbox({
+          id: 'abc-sub',
+          name: 'Sub',
+          namespace: SHARED,
+          parentId: 'abc',
+          isSubscribed: false
+        })
+      ],
+      false
+    )
+
+    expect(team.map(node => node.mailbox.id)).toEqual(['team'])
+    expect(shared.map(node => node.mailbox.id)).toEqual(['abc'])
+    expect(shared[0]?.children.map(node => node.mailbox.id)).toEqual([
+      'abc-sub'
+    ])
+    expect(hiddenCount).toBe(2)
+  })
 })
 
 describe('findDescendantIds', () => {
@@ -247,9 +281,37 @@ describe('teamMailboxAddress', () => {
     expect(
       teamMailboxAddress({ namespace: 'TeamMailbox[team@example.com]' })
     ).toBe('team@example.com')
+  })
+
+  it('gives none for a folder shared by another user, its owner instead', () => {
+    const shared = { namespace: 'Delegated[bob@example.com]' }
+    expect(teamMailboxAddress(shared)).toBe(null)
+    expect(sharedMailboxOwner(shared)).toBe('bob@example.com')
     expect(
-      teamMailboxAddress({ namespace: 'Delegated[bob@example.com]' })
-    ).toBe('bob@example.com')
+      sharedMailboxOwner({ namespace: 'TeamMailbox[team@example.com]' })
+    ).toBe(null)
+    expect(sharedMailboxOwner({ namespace: 'Personal' })).toBe(null)
+  })
+
+  it('tells a team mailbox from a folder shared by another user', () => {
+    const shared = makeMailbox({
+      id: 'abc',
+      name: 'abc',
+      namespace: 'Delegated[bob@example.com]'
+    })
+    expect(isSharedMailbox(shared)).toBe(true)
+    expect(isSharedRoot(shared)).toBe(true)
+    expect(isTeamMailbox(shared)).toBe(false)
+    expect(isTeamRoot(shared)).toBe(false)
+    expect(isTeamFolder({ ...shared, parentId: 'abc' })).toBe(false)
+    const team = makeMailbox({
+      id: 't',
+      name: 't',
+      namespace: teamNamespace('t@example.com')
+    })
+    expect(isTeamMailbox(team)).toBe(true)
+    expect(isSharedMailbox(team)).toBe(false)
+    expect(isSharedRoot(team)).toBe(false)
   })
 
   it('takes the whole namespace without brackets', () => {
@@ -289,9 +351,38 @@ describe('the folders of a team mailbox', () => {
     // The root of a team mailbox named like a system folder is not one
     expect(
       isTeamTrash(
-        makeMailbox({ id: 'r', name: 'trash', namespace: teamNamespace('t@x') })
+        makeMailbox({
+          id: 'r',
+          name: 'trash',
+          namespace: teamNamespace('trash@x')
+        })
       )
     ).toBe(false)
+  })
+
+  it('takes the folders whose root is not shown for folders, not roots', () => {
+    // James leaves `parentId` null when the user cannot see the parent: the
+    // root alone is named after the address of the namespace
+    const orphans = folders
+      .filter(folder => folder.id !== 'team')
+      .map(folder => ({ ...folder, parentId: null }))
+    expect(orphans.filter(isTeamRoot)).toEqual([])
+    expect(orphans.every(isTeamFolder)).toBe(true)
+    expect(isTeamTrash(byName('Trash'))).toBe(true)
+    expect(
+      isTeamTrash(
+        makeMailbox({ id: 'r', name: 'Trash', namespace: teamNamespace('t@x') })
+      )
+    ).toBe(true)
+    expect(
+      isTeamRoot(
+        makeMailbox({
+          id: 'T',
+          name: 'Team',
+          namespace: teamNamespace('team@x')
+        })
+      )
+    ).toBe(true)
   })
 
   it('knows the Trash and Drafts of the user or of a team mailbox', () => {

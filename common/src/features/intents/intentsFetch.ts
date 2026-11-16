@@ -1,4 +1,4 @@
-import type { IntentsFetch } from 'cozy-interapp'
+import type { FetchJSON } from 'cozy-interapp'
 
 type FetchFunction = typeof fetch
 
@@ -26,7 +26,7 @@ export function makeIntentsFetch(
   cozyStackUrl: string,
   accessToken: string,
   fetchFunction: FetchFunction = fetch
-): IntentsFetch {
+): FetchJSON {
   return async (method, path, body) => {
     let response: Response
     try {

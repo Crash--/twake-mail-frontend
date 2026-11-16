@@ -51,8 +51,7 @@ function toggleSx(
     // inset, the bar is above the scrolling area
     scrollMarginTop: isInset ? 0 : '4rem',
     display: 'block',
-    flex: hasHeaderEnd ? '0 1 auto' : 1,
-    minWidth: 0,
+    width: '100%',
     textAlign: 'start',
     position: 'static',
     pl: side,
@@ -77,6 +76,19 @@ function toggleSx(
     '&.Mui-focusVisible': { outline: 'none' },
     '&.Mui-focusVisible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET },
     '@media (prefers-reduced-motion: reduce)': { transition: 'none' }
+  }
+}
+
+/**
+ * The heading around the toggle (APG accordion): it takes the place of the
+ * toggle in the row and draws nothing of its own
+ */
+function headingSx(hasHeaderEnd: boolean): SxProps<Theme> {
+  return {
+    m: 0,
+    font: 'inherit',
+    minWidth: 0,
+    flex: hasHeaderEnd ? '0 1 auto' : 1
   }
 }
 
@@ -138,8 +150,8 @@ export interface MessageThreadItemProps {
 
 /**
  * A message of a conversation: its header is a button (`aria-expanded`,
- * `aria-controls`) that expands or collapses the message, shown below it in
- * a region named by the header.
+ * `aria-controls`), in a level-2 heading, that expands or collapses the
+ * message, shown below it in a region named by the header.
  */
 export function MessageThreadItem({
   isExpanded,
@@ -167,18 +179,20 @@ export function MessageThreadItem({
       data-expanded={isExpanded ? 'true' : 'false'}
     >
       <Box sx={ROW_SX}>
-        <ButtonBase
-          ref={toggleRef}
-          id={toggleId}
-          aria-expanded={isExpanded}
-          aria-controls={regionId}
-          onClick={onToggle}
-          sx={toggleSx(isExpanded, hasHeaderEnd, isInset)}
-          {...toggleProps}
-          data-testid={toggleTestId}
-        >
-          {header}
-        </ButtonBase>
+        <Box component="h2" sx={headingSx(hasHeaderEnd)}>
+          <ButtonBase
+            ref={toggleRef}
+            id={toggleId}
+            aria-expanded={isExpanded}
+            aria-controls={regionId}
+            onClick={onToggle}
+            sx={toggleSx(isExpanded, hasHeaderEnd, isInset)}
+            {...toggleProps}
+            data-testid={toggleTestId}
+          >
+            {header}
+          </ButtonBase>
+        </Box>
         {hasHeaderEnd ? <Box sx={HEADER_END_SX}>{headerEnd}</Box> : null}
         {actions === undefined || actions === null ? null : (
           <Box sx={actionsSx(isExpanded, isInset)}>{actions}</Box>

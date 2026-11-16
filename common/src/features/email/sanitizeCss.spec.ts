@@ -19,6 +19,18 @@ const BLOCKED = { allowRemoteContent: false }
 const ALLOWED = { allowRemoteContent: true }
 
 describe('sanitizeStyleSheet', () => {
+  it('drops a selector holding a CSS escape, with or without a scope', () => {
+    const css =
+      '[title="\\3c/style\\3e\\3cimg src=x onerror=alert(1)\\3e"] { color: red }\n' +
+      '.a\\:b { color: red }\n' +
+      'p { color: blue }'
+
+    expect(sanitizeStyleSheet(css, ALLOWED).css).toBe('p { color: blue }')
+    expect(
+      sanitizeStyleSheet(css, { ...ALLOWED, scope: '.quote' }).css
+    ).not.toContain('\\')
+  })
+
   describe('@font-face', () => {
     it('drops a block without src and does not count it (Outlook boilerplate)', () => {
       const css =
@@ -85,6 +97,21 @@ describe('sanitizeStyleSheet', () => {
       'does not count a %s source, which is never loaded, even once allowed',
       (_kind, src) => {
         const css = `@font-face { font-family: Brand; src: ${src} }`
+
+        expect(sanitizeStyleSheet(css, BLOCKED).blockedRemoteContent).toBe(0)
+        expect(sanitizeStyleSheet(css, ALLOWED).css).toBe('')
+      }
+    )
+
+    it.each([
+      ['an http', 'url("http://fonts.example.com/a).woff2")'],
+      ['a data:', 'url("da0 /-o* …r); po:…")'],
+      ['a relative', 'url( "dpr):l" )'],
+      ['a mangled-scheme', 'url("ht)ps://fonts.example.com/a.woff2")']
+    ])(
+      'drops a src holding %s url() with a quoted ")", which it cannot read',
+      (_kind, unreadable) => {
+        const css = `@font-face { font-family: X; src: url("https://fonts.example.com/a.woff2"), ${unreadable} }`
 
         expect(sanitizeStyleSheet(css, BLOCKED).blockedRemoteContent).toBe(0)
         expect(sanitizeStyleSheet(css, ALLOWED).css).toBe('')

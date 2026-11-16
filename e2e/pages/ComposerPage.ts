@@ -249,8 +249,8 @@ export class ComposerPage {
   }
 
   /**
-   * Opens From, Cc, Bcc or Reply-To: on a phone by the chevron showing them
-   * all, elsewhere by its text button (Reply-To: the More menu)
+   * Opens From, Cc, Bcc or Reply-To by its text button, or on a phone by the
+   * chevron showing them all
    */
   private async openOptionalLine(
     line: 'from' | Exclude<RecipientField, 'to'>
@@ -258,14 +258,6 @@ export class ComposerPage {
     const more = this.root.getByTestId('composer-show-more-fields-button')
     if (await more.isVisible()) {
       await more.click()
-      return
-    }
-    if (line === 'reply-to') {
-      await this.root.getByTestId('composer-more-button').click()
-      await this.root
-        .page()
-        .getByTestId('composer-show-reply-to-item')
-        .click()
       return
     }
     await this.root.getByTestId(`composer-show-${line}-button`).click()
@@ -383,14 +375,13 @@ export class ComposerPage {
   }
 
   /** Closes a modified message, answering the "Save message" dialog */
-  async closeAnd(choice: 'save' | 'discard' | 'cancel'): Promise<ComposerPage> {
+  async closeAnd(choice: 'save' | 'discard'): Promise<ComposerPage> {
     await this.closeButton.click()
     const dialog = this.page.getByTestId('confirm-dialog')
     await expect(dialog).toBeVisible()
     const button = {
       save: 'confirm-dialog-confirm-button',
-      discard: 'confirm-dialog-alternative-button',
-      cancel: 'confirm-dialog-cancel-button'
+      discard: 'confirm-dialog-alternative-button'
     }[choice]
     await dialog.getByTestId(button).click()
     await expect(dialog).toBeHidden()

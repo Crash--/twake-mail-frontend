@@ -2,7 +2,10 @@ import { Drive, DriveText, Icon, ToTheCloud } from '@linagora/twake-icons'
 import { Button, Typography, useColorScheme } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
-import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import {
+  ActionIcon,
+  ActionIconButton
+} from '@/ds/ActionIconButton/ActionIconButton'
 import { FramedDialog } from '@/ds/FramedDialog/FramedDialog'
 import type { DriveFile } from '@common/features/drive/driveIntent'
 import {
@@ -110,7 +113,8 @@ export function DriveAttachButton({
       maxFileSize,
       theme: colorScheme
     },
-    handleFiles
+    handleFiles,
+    t('composer.drive.frameTitle')
   )
 
   const isOpen = picker.state.status !== 'closed'
@@ -137,13 +141,12 @@ export function DriveAttachButton({
         className="u-ml-half"
         data-testid="composer-drive-button"
       >
-        <Icon icon={ToTheCloud} size={20} aria-hidden="true" />
+        <ActionIcon icon={ToTheCloud} />
       </ActionIconButton>
       <FramedDialog
         open={isOpen}
         title={t('composer.drive.title')}
-        src={state.status === 'open' ? state.intent.href : null}
-        frameTitle={t('composer.drive.frameTitle')}
+        frameContainerRef={picker.frameContainerRef}
         isReady={state.status === 'open' && state.isReady}
         loadingLabel={t('composer.drive.loading')}
         loadingBrand={{
@@ -153,8 +156,6 @@ export function DriveAttachButton({
         closeLabel={t('common.close')}
         onClose={picker.close}
         showCloseButton={state.status === 'open' && state.showCloseButton}
-        frameSize={state.status === 'open' ? state.size : null}
-        frameRef={picker.frameRef}
         disableRestoreFocus
         message={
           state.status === 'failed' ? (

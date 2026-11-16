@@ -44,6 +44,7 @@
     "newMessage": "Бичих",
     "folders": "Хавтаснууд",
     "teamMailboxes": "Багийн шуудангийн хайрцаг",
+    "otherUsers": "Бусад хэрэглэгчид",
     "version": "хувилбар %{version}",
     "personalFolders": "Хувийн хавтаснууд"
   },
@@ -132,8 +133,7 @@
       "invite": "Арга хэмжээнд урих",
       "chat": "Чат",
       "copy": "Имэйл хаягийг хуулах",
-      "copied": "Имэйл хаягийг хуулсан",
-      "close": "Хаах"
+      "copied": "Имэйл хаягийг хуулсан"
     },
     "actionRequired": "Үйлдэл шаардлагатай",
     "removeActionRequired": "«Үйлдэл шаардлагатай» шошгыг арилгах",
@@ -235,9 +235,10 @@
     },
     "toolbar": {
       "label": "Жагсаалтын үйлдлүүд",
-      "filter": "Мессеж шүүх",
+      "filter": "Шүүх",
       "clearFilter": "Шүүлтүүрийг арилгах",
-      "selectPage": "Энэ хуудасны бүх мессежийг сонгох",
+      "selectPage": "Бүгдийг сонгох",
+      "selectPageTooltip": "Энэ хуудасны бүх мессежийг сонгох",
       "filterOn": "Та мессежүүдийг «%{name}»-ээр шүүсэн",
       "filterOff": "Та мессежийн шүүлтийг идэвхгүй болголоо",
       "filters": {
@@ -552,6 +553,10 @@
       "english": "Англи",
       "russian": "Орос",
       "vietnamese": "Вьетнам",
+      "mongolian": "Монгол",
+      "german": "Герман",
+      "spanish": "Испани",
+      "italian": "Итали",
       "helpMeWrite": "Бичихэд туслаач",
       "failed": "AI хариулт үүсгэж чадсангүй",
       "generating": "Хариулт үүсгэж байна",
@@ -590,7 +595,9 @@
     },
     "images": {
       "inserting": "Зураг оруулж байна"
-    }
+    },
+    "hideSignature": "Гарын үсгийг нуух",
+    "showSignature": "Гарын үсгийг харуулах"
   },
   "layout": {
     "navigation": "Навигаци"
@@ -666,7 +673,6 @@
     "wordsHint": "Үгсийг таслалаар тусгаарлана уу",
     "loading": "Санал ачаалж байна",
     "suggestionCount": "%{smart_count} санал |||| %{smart_count} санал",
-    "searchWithFilters": "Эдгээр шүүлтүүрээр хайх",
     "quickFiltersOnly": "Санал алга. Хурдан шүүлтүүрүүд хайлтын талбарын дараа байна.",
     "labels": {
       "all": "Бүх шошго",
@@ -974,6 +980,7 @@
       "success": "Энэ хавтсыг дахин харуулж байна"
     },
     "visibility": {
+      "personal": "Хувийн хавтаснууд",
       "team": "Багийн шуудангийн хайрцаг",
       "hideOf": "%{name}-г нуух",
       "showOf": "%{name}-г харуулах",
@@ -1226,6 +1233,10 @@
     "startTime": "Эхлэх цаг",
     "endDate": "Дуусах огноо",
     "endTime": "Дуусах цаг",
+    "selectStartDate": "Эхлэх огноо сонгох",
+    "selectStartTime": "Эхлэх цаг сонгох",
+    "selectEndDate": "Дуусах огноо сонгох",
+    "selectEndTime": "Дуусах цаг сонгох",
     "subject": "Гарчиг",
     "subjectPlaceholder": "Гарчиг оруулна уу",
     "message": "Мессеж",
@@ -1449,6 +1460,7 @@
     },
     "replyFailed": "Арга хэмжээний хариу амжилтгүй илгээгдлээ!",
     "alreadyAnswered": "Та энэ урилгад аль хэдийн ийм хариу өгсөн",
+    "eventCanceled": "Энэ арга хэмжээ цуцлагдсан",
     "counterAccepted": "Та энэ уулзалтын санал болгосон цагийг хүлээн зөвшөөрсөн",
     "eventLabel": "Арга хэмжээ: %{title}",
     "allDay": "Өдөржин",
@@ -1470,6 +1482,10 @@
       "onDays": "%{days} гарагт",
       "count": "%{smart_count} удаа |||| %{smart_count} удаа",
       "until": "%{date} хүртэл"
+    },
+    "occurrence": {
+      "only": "Зөвхөн энэ давталт",
+      "originally": "Зөвхөн энэ давталт (анх %{date})"
     },
     "untitled": "(Гарчиггүй)",
     "eventMark": "Арга хэмжээний урилга"

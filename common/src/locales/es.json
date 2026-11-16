@@ -130,8 +130,6 @@
     "address": {
       "createRule": "Crear una regla con este correo",
       "compose": "Redactar mensaje",
-      "invite": "Invitar a un evento",
-      "chat": "Chat",
       "copy": "Copiar dirección de correo electrónico",
       "copied": "Dirección de correo copiada"
     },

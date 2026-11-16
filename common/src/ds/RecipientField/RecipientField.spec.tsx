@@ -118,13 +118,13 @@ describe('RecipientField', () => {
   it('opens the card of a tag on a click or Enter, as tmail-flutter, and edits it from there', async () => {
     const card: RecipientFieldCard = {
       labels: {
-        copy: 'Copy the email address',
         edit: 'Edit email',
         createRule: 'Create a rule'
       },
-      onCopy: jest.fn(),
+      onCopied: jest.fn(),
       onCreateRule: jest.fn()
     }
+    const user = userEvent.setup()
     renderDs(<Harness initial={['a@example.com']} card={card} />)
     const chip = screen.getByTestId('chip')
 
@@ -144,11 +144,12 @@ describe('RecipientField', () => {
     await userEvent.click(chip)
     const dialog = screen.getByRole('dialog', { name: 'a@example.com' })
     expect(chip).toHaveAttribute('aria-expanded', 'true')
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Copy the email address' })
-    )
-    expect(card.onCopy).toHaveBeenCalledWith('a@example.com')
-    await userEvent.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: 'Copy email' }))
+    await waitFor(() => {
+      expect(card.onCopied).toHaveBeenCalledTimes(1)
+    })
+    expect(await navigator.clipboard.readText()).toBe('a@example.com')
+    await user.keyboard('{Escape}')
     await waitFor(() => {
       expect(dialog).not.toBeInTheDocument()
     })

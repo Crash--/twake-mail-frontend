@@ -143,19 +143,11 @@ export function RecipientInput({
   // create a filtering rule from it
   const card: RecipientFieldCard = {
     labels: {
-      copy: t('email.address.copy'),
       edit: t('composer.recipients.editEmail'),
       createRule: t('composer.recipients.createRule')
     },
-    onCopy: id => {
-      window.navigator.clipboard
-        .writeText(id)
-        .then(() => {
-          notify({ message: t('email.address.copied'), severity: 'success' })
-        })
-        .catch((error: unknown) => {
-          console.warn('[composer] Cannot copy the address', error)
-        })
+    onCopied: () => {
+      notify({ message: t('email.address.copied'), severity: 'success' })
     },
     onCreateRule: hasRules
       ? id => {

@@ -898,15 +898,13 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/list-rows.spec.ts`.
 - [x] `LST-08` In a label view, a row labelled with a long name has the height of the same row in the Inbox, and the chip is cut with an ellipsis, its title holding the whole name. — web app (Figma list rows) (issue #110)
   - Spec: `tests/list-rows.spec.ts`.
-- [x] `CRD-01` The sender of an opened email is a button (`aria-haspopup="dialog"`) opening its contact card, a named dialog (the name) with the avatar, the address and a "Copy the email address" button (the address lands in the clipboard, a toast confirms); 383 px wide on a desktop and a tablet, a bottom sheet resting on the bottom edge on a phone; axe; Escape closes it and the focus goes back to the sender. — tmail-flutter `EmailAddressDialogBuilder` / `EmailAddressBottomSheetBuilder` (issue #132)
+- [x] `CRD-01` The sender of an opened email is a button (`aria-haspopup="dialog"`) opening its contact card, a named dialog (the name) next to the sender, inside the screen, with the avatar, the address and a "Copy email" button (the address lands in the clipboard, a toast confirms); axe; Escape closes it and the focus goes back to the sender. — tmail-flutter `EmailAddressDialogBuilder` / `EmailAddressBottomSheetBuilder` (issue #132)
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `CRD-02` A recipient of To and of Cc opens its card; "Compose email" closes it and opens a message to that address. — tmail-flutter `openEmailAddressDialog` (issue #132)
   - Spec: `tests/contact-card.spec.ts`.
-- [x] `CRD-03` With `CALENDAR_SPA_URL` and `CHAT_SPA_URL` set, the card has "Invite to an event" (a link to `<CALENDAR_SPA_URL>/newEvent?attendee=<address>`) and "Chat" (a link to `CHAT_SPA_URL` with `{target}` the local part), both opening a new tab with `noopener`. — Twake Calendar `AttendeeActions` (no such action in tmail-flutter) (issue #132)
+- [x] `CRD-03` Even with `CALENDAR_SPA_URL` and `CHAT_SPA_URL` set, the card offers "Compose email" and no link: no "Invite to an event" nor "Chat". — web app (issue #132)
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `CRD-04` The focus stays inside the card while tabbing; its close button closes it and gives the focus back to the address. — web app (RGAA 7.1, 12.8) (issue #132)
-  - Spec: `tests/contact-card.spec.ts`.
-- [x] `CRD-05` Without `CALENDAR_SPA_URL` and `CHAT_SPA_URL` the card offers "Compose email" and no link. — web app (issue #132)
   - Spec: `tests/contact-card.spec.ts`.
 - [x] `CRD-06` A recipient of an expanded message of a conversation (a `mailto:` link in its "To" line, which wraps with the text) opens its card too; Escape closes it and gives the focus back to the recipient. — web app (issue #132)
   - Spec: `tests/contact-card.spec.ts`.

@@ -33,9 +33,7 @@ import {
 
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
 import { ContactCard } from '@/ds/ContactCard/ContactCard'
-import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 
-import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
 import {
   currentRecipientDrag,
@@ -187,12 +185,11 @@ export interface RecipientFieldChip {
 /** The card a tag opens (tmail-flutter's), and what its actions do */
 export interface RecipientFieldCard {
   labels: {
-    /** "Copy the email address": the name and tooltip of the copy button */
-    copy: string
     edit: string
     createRule: string
   }
-  onCopy: (id: string) => void
+  /** Called once the address is in the clipboard */
+  onCopied: () => void
   /** None without filtering rules */
   onCreateRule: ((id: string) => void) | null
   testIds?: { card?: string; edit?: string; createRule?: string }
@@ -383,8 +380,11 @@ export function RecipientField({
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
-  /** The tag whose card is open */
-  const [cardIndex, setCardIndex] = useState<number | null>(null)
+  /** The tag whose card is open, and the chip it is attached to */
+  const [cardAt, setCardAt] = useState<{
+    index: number
+    anchorEl: HTMLElement
+  } | null>(null)
   /** Chip to focus once the chips change (after a removal), -1 for the input */
   const pendingFocus = useRef<number | null>(null)
   /** The tag moved to another field from the keyboard, which keeps the focus */
@@ -857,13 +857,13 @@ export function RecipientField({
               tabIndex={-1}
               aria-haspopup={card === undefined ? undefined : 'dialog'}
               aria-expanded={
-                card === undefined ? undefined : cardIndex === index
+                card === undefined ? undefined : cardAt?.index === index
               }
               // A click or Enter opens its card (tmail-flutter); without one,
               // Enter (a click without a pointer) edits it
               onClick={event => {
                 if (card !== undefined) {
-                  setCardIndex(index)
+                  setCardAt({ index, anchorEl: event.currentTarget })
                 } else if (event.detail === 0) {
                   editChip(index)
                 }
@@ -991,14 +991,15 @@ export function RecipientField({
       {card === undefined ? null : (
         <ChipCard
           card={card}
-          chip={cardIndex === null ? null : (chips[cardIndex] ?? null)}
+          chip={cardAt === null ? null : (chips[cardAt.index] ?? null)}
+          anchorEl={cardAt?.anchorEl ?? null}
           onClose={() => {
-            setCardIndex(null)
+            setCardAt(null)
           }}
           onEdit={() => {
-            const index = cardIndex
-            setCardIndex(null)
-            if (index !== null) editChip(index)
+            const index = cardAt?.index
+            setCardAt(null)
+            if (index !== undefined) editChip(index)
           }}
         />
       )}
@@ -1015,31 +1016,26 @@ export function RecipientField({
 function ChipCard({
   card,
   chip,
+  anchorEl,
   onClose,
   onEdit
 }: {
   card: RecipientFieldCard
   chip: RecipientFieldChip | null
+  anchorEl: HTMLElement | null
   onClose: () => void
   onEdit: () => void
 }): ReactElement {
   const name = chip?.name ?? ''
   const address = chip?.address ?? chip?.label ?? ''
-  const initials = initialsOf(name === '' ? address : name)
   const { onCreateRule } = card
   return (
     <ContactCard
-      open={chip !== null}
+      anchorEl={chip === null ? null : anchorEl}
       onClose={onClose}
-      // 40 px as the Figma of the card (Quentin): not a step of twake-mui's
-      // avatar sizes
-      avatar={<GradientAvatar text={initials} colorKey={initials} size={40} />}
       name={name}
       address={address}
-      copyLabel={card.labels.copy}
-      onCopy={() => {
-        if (chip !== null) card.onCopy(chip.id)
-      }}
+      onCopy={card.onCopied}
       actions={[
         {
           id: 'edit',

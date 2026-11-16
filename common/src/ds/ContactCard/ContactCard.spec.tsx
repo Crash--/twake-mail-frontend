@@ -16,19 +16,17 @@ function Harness({
   name?: string
   onCopy?: () => void
 }): ReactElement {
-  const [isOpen, setIsOpen] = useState(false)
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   return (
     <>
-      <button type="button" onClick={() => setIsOpen(true)}>
+      <button type="button" onClick={event => setAnchorEl(event.currentTarget)}>
         Bob
       </button>
       <ContactCard
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        avatar={<span>B</span>}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
         name={name}
         address="bob@example.com"
-        copyLabel="Copy the address"
         onCopy={onCopy}
         actions={actions ?? []}
       />
@@ -41,34 +39,20 @@ describe('ContactCard', () => {
     resetViewport()
   })
 
-  it('is a dialog named by the name, with the address and a copy button', async () => {
+  it('is a dialog named by the name, with the address, copying it', async () => {
+    const user = userEvent.setup()
     const onCopy = jest.fn()
     renderDs(<Harness onCopy={onCopy} />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Bob' }))
+    await user.click(screen.getByRole('button', { name: 'Bob' }))
 
     const card = await screen.findByRole('dialog', { name: 'Bob' })
     expect(within(card).getByText('bob@example.com')).toBeVisible()
-    await userEvent.click(
-      within(card).getByRole('button', { name: 'Copy the address' })
-    )
-    expect(onCopy).toHaveBeenCalledTimes(1)
-  })
-
-  it('keeps the tooltip of the copy button off the way of the actions', async () => {
-    const onWrite = jest.fn()
-    renderDs(
-      <Harness actions={[{ id: 'write', label: 'Write', onClick: onWrite }]} />
-    )
-
-    await userEvent.click(screen.getByRole('button', { name: 'Bob' }))
-    await userEvent.hover(
-      await screen.findByRole('button', { name: 'Copy the address' })
-    )
-    const tooltip = await screen.findByRole('tooltip')
-    expect(getComputedStyle(tooltip).pointerEvents).toBe('none')
-    await userEvent.click(screen.getByRole('button', { name: 'Write' }))
-    expect(onWrite).toHaveBeenCalledTimes(1)
+    await user.click(within(card).getByRole('button', { name: 'Copy email' }))
+    await waitFor(() => {
+      expect(onCopy).toHaveBeenCalledTimes(1)
+    })
+    expect(await navigator.clipboard.readText()).toBe('bob@example.com')
   })
 
   it('is named by the address when it has no name', async () => {
@@ -81,28 +65,28 @@ describe('ContactCard', () => {
     ).toBeVisible()
   })
 
-  it('draws buttons and links for its actions', async () => {
+  it('draws a button for each action, the main one filled', async () => {
     const onWrite = jest.fn()
+    const onRule = jest.fn()
     renderDs(
       <Harness
         actions={[
-          { id: 'write', label: 'Write', onClick: onWrite },
-          {
-            id: 'chat',
-            label: 'Chat',
-            href: 'https://chat.test/bob'
-          }
+          { id: 'rule', label: 'Create a rule', onClick: onRule },
+          { id: 'write', label: 'Write', isPrimary: true, onClick: onWrite }
         ]}
       />
     )
 
     await userEvent.click(screen.getByRole('button', { name: 'Bob' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Write' }))
+    const write = await screen.findByRole('button', { name: 'Write' })
+    expect(write).toHaveClass('MuiButton-contained')
+    await userEvent.click(write)
+    const rule = screen.getByRole('button', { name: 'Create a rule' })
+    expect(rule).toHaveClass('MuiButton-outlined')
+    await userEvent.click(rule)
 
     expect(onWrite).toHaveBeenCalledTimes(1)
-    const link = screen.getByRole('link', { name: 'Chat' })
-    expect(link).toHaveAttribute('href', 'https://chat.test/bob')
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(onRule).toHaveBeenCalledTimes(1)
   })
 
   it('traps the focus, closes on Escape and gives the focus back', async () => {
@@ -124,16 +108,13 @@ describe('ContactCard', () => {
     expect(trigger).toHaveFocus()
   })
 
-  it('is a bottom sheet on a phone, still a named dialog', async () => {
+  it('stays next to what opened it on a phone', async () => {
     mockViewport({ width: 390, touch: true })
     renderDs(<Harness />)
 
     await userEvent.click(screen.getByRole('button', { name: 'Bob' }))
 
     expect(await screen.findByRole('dialog', { name: 'Bob' })).toBeVisible()
-    await userEvent.keyboard('{Escape}')
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).toBe(null)
-    })
+    expect(screen.getByRole('button', { name: 'Close' })).toBeVisible()
   })
 })

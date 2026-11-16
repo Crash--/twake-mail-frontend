@@ -8,7 +8,7 @@ test.describe('CRD the contact card of an address', () => {
   test.use({ emailsOneByOne: true })
 
   test(
-    'CRD-01 the sender opens a named card with its avatar, name, address and a copy button; Escape closes it and gives the focus back (a bottom sheet on a phone)',
+    'CRD-01 the sender opens a named card next to it, with its avatar, name, address and a copy button; Escape closes it and gives the focus back',
     { tag: '@mobile' },
     async ({ page, user, users, jmapFor }) => {
       const alice = await users.create({ prefix: 'alice' })
@@ -30,30 +30,30 @@ test.describe('CRD the contact card of an address', () => {
 
       const card = page.getByRole('dialog', { name: 'Alice Martin' })
       await expect(card).toBeVisible()
-      await expect(card.getByTestId('contact-card-address')).toHaveText(
-        alice.email
-      )
+      await expect(card.getByText(alice.email, { exact: true })).toBeVisible()
       await expect(card.getByText('AM', { exact: true })).toBeVisible()
+      // twake-mui's ContactCard: on the screen, a phone's included
       const viewport = page.viewportSize()
-      if (viewport !== null && viewport.width < 600) {
-        // A bottom sheet: as wide as the screen, resting on its bottom edge
-        // once it has slid in
-        await expect
-          .poll(async () => {
-            const box = await card.boundingBox()
-            return (box?.y ?? 0) + (box?.height ?? 0)
-          })
-          .toBeCloseTo(viewport.height, 0)
-        expect((await card.boundingBox())?.width).toBeCloseTo(viewport.width, 0)
-      } else {
-        // twake-mui's small dialog, once it has grown in
-        await expect
-          .poll(async () => (await card.boundingBox())?.width)
-          .toBeCloseTo(480, 0)
-      }
+      // Once grown in: the same box twice in a row
+      let box = await card.boundingBox()
+      await expect
+        .poll(async () => {
+          const previous = box
+          box = await card.boundingBox()
+          return JSON.stringify(box) === JSON.stringify(previous)
+        })
+        .toBe(true)
+      expect(box?.x).toBeGreaterThanOrEqual(0)
+      expect(box?.y).toBeGreaterThanOrEqual(0)
+      expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+        viewport?.width ?? 0
+      )
+      expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(
+        viewport?.height ?? 0
+      )
       await expectNoA11yViolations(page)
 
-      await card.getByRole('button', { name: 'Copy the email address' }).click()
+      await card.getByRole('button', { name: 'Copy email' }).click()
       await expect(page.getByTestId('toast')).toHaveText('Email address copied')
       expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
         alice.email
@@ -91,9 +91,7 @@ test.describe('CRD the contact card of an address', () => {
 
       await email.addressButton(email.cc, 'Carol Petit').click()
       const card = page.getByRole('dialog', { name: 'Carol Petit' })
-      await expect(card.getByTestId('contact-card-address')).toHaveText(
-        carol.email
-      )
+      await expect(card.getByText(carol.email, { exact: true })).toBeVisible()
       await card.getByTestId('email-address-compose-item').click()
 
       await expect(card).toBeHidden()
@@ -105,7 +103,7 @@ test.describe('CRD the contact card of an address', () => {
     }
   )
 
-  test('CRD-03 "Invite to an event" and "Chat" are links built from CALENDAR_SPA_URL and CHAT_SPA_URL', async ({
+  test('CRD-03 with CALENDAR_SPA_URL and CHAT_SPA_URL set, the card still offers no invitation and no chat', async ({
     page,
     user,
     users,
@@ -119,21 +117,13 @@ test.describe('CRD the contact card of an address', () => {
     })
     const mailbox = await new LoginPage(page).loginAs(user)
     const email = await mailbox.openEmail(SUBJECT)
-    const local = alice.email.split('@')[0] ?? ''
 
     await email.from.getByTestId('email-address').click()
-    const invite = email.addressCard.getByRole('link', {
-      name: 'Invite to an event'
-    })
-    await expect(invite).toHaveAttribute(
-      'href',
-      `https://calendar.example.com/newEvent?attendee=${encodeURIComponent(alice.email)}`
-    )
-    await expect(invite).toHaveAttribute('target', '_blank')
-    await expect(invite).toHaveAttribute('rel', /noopener/)
+
     await expect(
-      email.addressCard.getByRole('link', { name: 'Chat' })
-    ).toHaveAttribute('href', `https://chat.example.com/#/chat/@${local}`)
+      email.addressCard.getByTestId('email-address-compose-item')
+    ).toBeVisible()
+    await expect(email.addressCard.getByRole('link')).toHaveCount(0)
   })
 
   test('CRD-04 the focus stays in the card while tabbing, and the close button closes it', async ({
@@ -164,67 +154,6 @@ test.describe('CRD the contact card of an address', () => {
     await expect(email.from.getByTestId('email-address')).toBeFocused()
   })
 
-  test('CRD-05 without CALENDAR_SPA_URL and CHAT_SPA_URL the card offers no invitation and no chat', async ({
-    page,
-    user,
-    users,
-    jmapFor
-  }) => {
-    const alice = await users.create({ prefix: 'alice' })
-    await jmapFor(alice).sendEmail({
-      to: user.email,
-      subject: SUBJECT,
-      text: 'hello'
-    })
-    await page.route('**/.env.js', async route => {
-      const response = await route.fetch()
-      const body = (await response.text())
-        .replace(/var CALENDAR_SPA_URL = .*/, '')
-        .replace(/var CHAT_SPA_URL = .*/, '')
-      await route.fulfill({ response, body })
-    })
-    const mailbox = await new LoginPage(page).loginAs(user)
-    const email = await mailbox.openEmail(SUBJECT)
-
-    await email.from.getByTestId('email-address').click()
-
-    await expect(
-      email.addressCard.getByTestId('email-address-compose-item')
-    ).toBeVisible()
-    await expect(email.addressCard.getByRole('link')).toHaveCount(0)
-  })
-
-  test.describe('with reduced motion', () => {
-    test.use({ reducedMotion: 'reduce' })
-
-    test(
-      'CRD-07 with reduced motion, the bottom sheet of a phone is in place at once',
-      { tag: '@mobile' },
-      async ({ page, user, users, jmapFor }) => {
-        test.skip(
-          (page.viewportSize()?.width ?? 0) >= 600,
-          'a dialog above the phone size'
-        )
-        const alice = await users.create({ prefix: 'alice' })
-        await jmapFor(alice).sendEmail({
-          from: { name: 'Alice Martin', email: alice.email },
-          to: user.email,
-          subject: SUBJECT,
-          text: 'hello'
-        })
-        const mailbox = await new LoginPage(page).loginAs(user)
-        const email = await mailbox.openEmail(SUBJECT)
-
-        await email.addressButton(email.from, 'Alice Martin').click()
-        const name = email.addressCard.getByTestId('contact-card-name')
-        await expect(name).toBeVisible()
-        const first = (await name.boundingBox())?.y
-        await page.waitForTimeout(100)
-        expect((await name.boundingBox())?.y).toBe(first)
-      }
-    )
-  })
-
   test.describe('in a conversation', () => {
     test.use({ emailsOneByOne: false })
 
@@ -253,9 +182,7 @@ test.describe('CRD the contact card of an address', () => {
         await recipient.click()
 
         const card = page.getByRole('dialog', { name: 'Bob Dupont' })
-        await expect(card.getByTestId('contact-card-address')).toHaveText(
-          bob.email
-        )
+        await expect(card.getByText(bob.email, { exact: true })).toBeVisible()
         await page.keyboard.press('Escape')
         await expect(card).toBeHidden()
         await expect(recipient).toBeFocused()

@@ -38,7 +38,7 @@ export class EmailPage {
   readonly replyToListButton: Locator
   readonly forwardButton: Locator
   readonly moreButton: Locator
-  /** The contact card (dialog, bottom sheet on a phone) of an address of the header */
+  /** The contact card (a dialog next to it) of an address of the header */
   readonly addressCard: Locator
   /** "Unsubscribe" link after the sender, and the note once unsubscribed */
   readonly unsubscribeLink: Locator

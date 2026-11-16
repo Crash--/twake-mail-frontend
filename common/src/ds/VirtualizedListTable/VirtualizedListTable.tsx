@@ -26,14 +26,17 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ComponentProps,
+  type ComponentRef,
   type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
-  type ReactElement
+  type ReactElement,
+  type RefObject
 } from 'react'
 
 /** `data-*` and `aria-*` attributes put on a row */
@@ -45,6 +48,15 @@ export type RowAttributes = Partial<
 export type ListTableRange = Parameters<
   NonNullable<VirtualizedTableProps['rangeChanged']>
 >[0]
+
+/**
+ * Where the table was scrolled when it left (`onLeave`), to show it there
+ * again (`savedScroll`): the measured rows and the scroll, the rows in view
+ */
+export interface ListTableScroll {
+  snapshot: NonNullable<VirtualizedTableProps['restoreStateFrom']>
+  range: ListTableRange
+}
 
 type TableComponents = NonNullable<VirtualizedTableProps['components']>
 type ScrollerProps = ComponentProps<NonNullable<TableComponents['Scroller']>>
@@ -462,7 +474,78 @@ export interface VirtualizedListTableProps extends Omit<
    * comes back from: its `RowLink` gets the focus, its position the scroll
    */
   focusedRowIndex?: number | null
+  /**
+   * Shows the table where it was when it left (`onLeave`) instead of
+   * around `focusedRowIndex`, when that row was in view and the rows in view
+   * are still there
+   */
+  savedScroll?: ListTableScroll | null
+  /** Called when the table unmounts, with where it was scrolled */
+  onLeave?: (scroll: ListTableScroll) => void
   'data-testid'?: string
+}
+
+function canRestore(
+  scroll: ListTableScroll | null,
+  rowCount: number,
+  focusedRowIndex: number | null
+): scroll is ListTableScroll {
+  if (scroll === null || scroll.range.endIndex >= rowCount) return false
+  return (
+    focusedRowIndex === null ||
+    (focusedRowIndex >= scroll.range.startIndex &&
+      focusedRowIndex <= scroll.range.endIndex)
+  )
+}
+
+/**
+ * Where the table starts: where it was, else around the row to focus. Not
+ * even undefined at the top: virtuoso would render no row
+ */
+function startAt(
+  restored: ListTableScroll | null,
+  focusedRowIndex: number | null
+): Pick<VirtualizedTableProps, 'restoreStateFrom' | 'initialTopMostItemIndex'> {
+  if (restored !== null) {
+    return restored.snapshot.scrollTop > 0
+      ? { restoreStateFrom: restored.snapshot }
+      : {}
+  }
+  return focusedRowIndex === null || focusedRowIndex === 0
+    ? {}
+    : { initialTopMostItemIndex: { index: focusedRowIndex, align: 'center' } }
+}
+
+/** Calls `onLeave` with where the table is scrolled when it unmounts */
+function useSaveScrollOnLeave(
+  onLeave: ((scroll: ListTableScroll) => void) | null
+): {
+  tableRef: RefObject<ComponentRef<typeof VirtualizedTable> | null>
+  trackRange: (range: ListTableRange) => void
+} {
+  const tableRef = useRef<ComponentRef<typeof VirtualizedTable>>(null)
+  const rangeRef = useRef<ListTableRange | null>(null)
+  const onLeaveRef = useRef(onLeave)
+  useEffect(() => {
+    onLeaveRef.current = onLeave
+  }, [onLeave])
+  // A layout cleanup: the table below still holds its state, which it drops
+  // in its own cleanup, run after this one
+  useLayoutEffect(() => {
+    const table = tableRef.current
+    return () => {
+      const range = rangeRef.current
+      const leave = onLeaveRef.current
+      if (table === null || range === null || leave === null) return
+      table.getState(snapshot => {
+        leave({ snapshot, range })
+      })
+    }
+  }, [])
+  const trackRange = useCallback((range: ListTableRange): void => {
+    rangeRef.current = range
+  }, [])
+  return { tableRef, trackRange }
 }
 
 /** Frames to wait for the row to focus to be rendered */
@@ -532,10 +615,27 @@ export function VirtualizedListTable({
   rowLayout,
   compactRowLayout,
   focusedRowIndex = null,
+  savedScroll = null,
+  onLeave,
+  rangeChanged,
   ...props
 }: VirtualizedListTableProps): ReactElement {
   const tableId = useId()
   useFocusRowOnMount(tableId, focusedRowIndex)
+  // Read on mount only, as the table does
+  const [restored] = useState(() =>
+    canRestore(savedScroll, props.rows.length, focusedRowIndex)
+      ? savedScroll
+      : null
+  )
+  const { tableRef, trackRange } = useSaveScrollOnLeave(onLeave ?? null)
+  const handleRangeChanged = useCallback(
+    (range: ListTableRange): void => {
+      trackRange(range)
+      rangeChanged?.(range)
+    },
+    [trackRange, rangeChanged]
+  )
   const [isNarrow, setIsNarrow] = useState(false)
   const handleWidthChange = useCallback((width: number): void => {
     // A hidden table measures 0: keep its columns until it shows again
@@ -572,17 +672,10 @@ export function VirtualizedListTable({
     <ListTableContext.Provider value={settings}>
       <VirtualizedTable
         {...props}
+        ref={tableRef}
         id={tableId}
-        // Not even undefined otherwise: virtuoso would render no row. The
-        // first rows are in view anyway
-        {...(focusedRowIndex === null || focusedRowIndex === 0
-          ? {}
-          : {
-              initialTopMostItemIndex: {
-                index: focusedRowIndex,
-                align: 'center' as const
-              }
-            })}
+        rangeChanged={handleRangeChanged}
+        {...startAt(restored, focusedRowIndex)}
         columns={columns}
         components={COMPONENTS}
         {...(bottomInset > 0

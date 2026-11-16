@@ -192,10 +192,58 @@ function ExpandedSender({
 }
 
 /**
- * The content of an expanded message: its sender (with the address menu),
- * recipients and body, as the single email view has them; the answers are
- * in the bar at the bottom of the conversation, and its actions beside its
- * header. Its labels are not repeated here: as tmail-flutter (only the
+ * The recipients of an expanded message, under its header and in the
+ * surface of its hover, once the message is loaded. As tmail-flutter: the
+ * names on one line, the addresses once the chevron is open
+ */
+function ExpandedRecipients({
+  emailId
+}: {
+  emailId: string
+}): ReactElement | null {
+  const { data: detail } = useEmail(emailId)
+  const { indent, pullUp } = useRecipientsPlace()
+  const [isRecipientsOpen, setIsRecipientsOpen] = useState(false)
+  if (detail === null || detail === undefined) return null
+  const recipientLines = RECIPIENT_LINES.map(line => ({
+    ...line,
+    addresses: detail[line.field]
+  })).filter(line => (line.addresses ?? []).length > 0)
+  // As tmail-flutter: a chevron shows the addresses of several recipients
+  const hasSeveralRecipients =
+    recipientLines.reduce(
+      (count, line) => count + (line.addresses?.length ?? 0),
+      0
+    ) > 1
+  return (
+    <Indent size={indent} pullUp={pullUp}>
+      <InlineGroup gap={0.5}>
+        {recipientLines.map(({ label, addresses, testId }, index) => (
+          <AddressLine
+            key={testId}
+            label={label}
+            addresses={addresses}
+            isOpen={isRecipientsOpen}
+            onToggle={
+              hasSeveralRecipients && index === recipientLines.length - 1
+                ? () => {
+                    setIsRecipientsOpen(current => !current)
+                  }
+                : null
+            }
+            data-testid={testId}
+          />
+        ))}
+      </InlineGroup>
+    </Indent>
+  )
+}
+
+/**
+ * The content of an expanded message, its recipients being under its header
+ * (`ExpandedRecipients`): the body, as the single email view has it; the
+ * answers are in the bar at the bottom of the conversation, and its actions
+ * beside its header. Its labels are not repeated here: as tmail-flutter (only the
  * `EmailSubjectWidget` of the first email of the thread detail shows them),
  * they are on the line of the subject of the conversation, once (issue #668)
  */
@@ -209,44 +257,10 @@ function ExpandedBody({
   useReadReceiptRequest(detail)
   const { data: mailboxes = [] } = useMailboxes()
   const mailboxId = messageMailboxId(detail, openedMailboxId, mailboxes)
-  const { indent, pullUp } = useRecipientsPlace()
   // A draft is not read but written: the composer edits it
   const isDraft = hasKeyword(detail, DRAFT)
-  const [isRecipientsOpen, setIsRecipientsOpen] = useState(false)
-  const recipientLines = RECIPIENT_LINES.map(line => ({
-    ...line,
-    addresses: detail[line.field]
-  })).filter(line => (line.addresses ?? []).length > 0)
-  // As tmail-flutter: a chevron shows the addresses of several recipients
-  const hasSeveralRecipients =
-    recipientLines.reduce(
-      (count, line) => count + (line.addresses?.length ?? 0),
-      0
-    ) > 1
   return (
     <>
-      <Indent size={indent} pullUp={pullUp}>
-        {/* As tmail-flutter: the names on one line, the addresses once
-            the chevron is open */}
-        <InlineGroup gap={0.5}>
-          {recipientLines.map(({ label, addresses, testId }, index) => (
-            <AddressLine
-              key={testId}
-              label={label}
-              addresses={addresses}
-              isOpen={isRecipientsOpen}
-              onToggle={
-                hasSeveralRecipients && index === recipientLines.length - 1
-                  ? () => {
-                      setIsRecipientsOpen(current => !current)
-                    }
-                  : null
-              }
-              data-testid={testId}
-            />
-          ))}
-        </InlineGroup>
-      </Indent>
       <EmailActionRequiredTag
         emails={[detail]}
         mailboxId={mailboxId}
@@ -534,6 +548,9 @@ export function ConversationMessage({
       }}
       header={header}
       headerEnd={headerEnd}
+      headerBelow={
+        isExpanded ? <ExpandedRecipients emailId={email.id} /> : null
+      }
       actions={
         isDraft ? null : (
           <MessageActions

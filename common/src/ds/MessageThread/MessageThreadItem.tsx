@@ -17,11 +17,13 @@ const ITEM_SX = {
   '&:first-of-type': { borderTop: 0 }
 } as const
 
+/** The header and what is under it: one surface for the hover */
+const HEADER_SX = { '&:hover': { bgcolor: 'action.hover' } } as const
+
 const ROW_SX = {
   position: 'relative',
   display: 'flex',
-  alignItems: 'flex-start',
-  '&:hover': { bgcolor: 'action.hover' }
+  alignItems: 'flex-start'
 } as const
 
 /**
@@ -123,6 +125,9 @@ function actionsSx(isExpanded: boolean, isInset: boolean): SxProps<Theme> {
 
 const REGION_SX = { px: 2, pb: 1 } as const
 const INSET_REGION_SX = { px: '8px', pb: 1 } as const
+/** Under the header row, aligned with the message below */
+const HEADER_BELOW_SX = { px: 2 } as const
+const INSET_HEADER_BELOW_SX = { px: '8px' } as const
 
 export interface MessageThreadItemProps {
   isExpanded: boolean
@@ -139,6 +144,11 @@ export interface MessageThreadItemProps {
    * it (a button cannot hold buttons)
    */
   actions?: ReactNode
+  /**
+   * Under the header row, outside the toggle, in the surface of its hover:
+   * e.g. the recipients of an expanded message
+   */
+  headerBelow?: ReactNode
   /** The message, shown while expanded */
   children: ReactNode
   'data-testid'?: string
@@ -159,6 +169,7 @@ export function MessageThreadItem({
   header,
   headerEnd,
   actions,
+  headerBelow,
   children,
   'data-testid': testId,
   toggleTestId,
@@ -178,24 +189,31 @@ export function MessageThreadItem({
       data-testid={testId}
       data-expanded={isExpanded ? 'true' : 'false'}
     >
-      <Box sx={ROW_SX}>
-        <Box component="h2" sx={headingSx(hasHeaderEnd)}>
-          <ButtonBase
-            ref={toggleRef}
-            id={toggleId}
-            aria-expanded={isExpanded}
-            aria-controls={regionId}
-            onClick={onToggle}
-            sx={toggleSx(isExpanded, hasHeaderEnd, isInset)}
-            {...toggleProps}
-            data-testid={toggleTestId}
-          >
-            {header}
-          </ButtonBase>
+      <Box sx={HEADER_SX}>
+        <Box sx={ROW_SX}>
+          <Box component="h2" sx={headingSx(hasHeaderEnd)}>
+            <ButtonBase
+              ref={toggleRef}
+              id={toggleId}
+              aria-expanded={isExpanded}
+              aria-controls={regionId}
+              onClick={onToggle}
+              sx={toggleSx(isExpanded, hasHeaderEnd, isInset)}
+              {...toggleProps}
+              data-testid={toggleTestId}
+            >
+              {header}
+            </ButtonBase>
+          </Box>
+          {hasHeaderEnd ? <Box sx={HEADER_END_SX}>{headerEnd}</Box> : null}
+          {actions === undefined || actions === null ? null : (
+            <Box sx={actionsSx(isExpanded, isInset)}>{actions}</Box>
+          )}
         </Box>
-        {hasHeaderEnd ? <Box sx={HEADER_END_SX}>{headerEnd}</Box> : null}
-        {actions === undefined || actions === null ? null : (
-          <Box sx={actionsSx(isExpanded, isInset)}>{actions}</Box>
+        {headerBelow === undefined || headerBelow === null ? null : (
+          <Box sx={isInset ? INSET_HEADER_BELOW_SX : HEADER_BELOW_SX}>
+            {headerBelow}
+          </Box>
         )}
       </Box>
       <Box

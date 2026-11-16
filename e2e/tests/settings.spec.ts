@@ -62,6 +62,50 @@ test.describe('SET settings', () => {
     }
   )
 
+  test(
+    'SET-19 the edit and delete buttons of a profile show on hover or focus, always on a touch screen, with 16 px icons',
+    { tag: '@mobile' },
+    async ({ page, user }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const settings = await mailbox.openSettings()
+      await settings.open('profiles')
+      await settings.createIdentity({ name: 'Hover Identity' })
+      const row = settings.identity('Hover Identity')
+      const edit = row.getByTestId('identity-edit-button')
+      const remove = row.getByTestId('identity-delete-button')
+      const opacity = (): Promise<string> =>
+        edit.evaluate(button => {
+          const actions = button.closest('[data-row-actions]')
+          return actions === null ? '' : getComputedStyle(actions).opacity
+        })
+
+      for (const button of [edit, remove]) {
+        const icon = await button.locator('svg').boundingBox()
+        expect(icon?.width).toBeCloseTo(16, 0)
+        expect(icon?.height).toBeCloseTo(16, 0)
+      }
+
+      const isTouch = await page.evaluate(
+        () => window.matchMedia('(hover: none)').matches
+      )
+      if (isTouch) {
+        await expect.poll(opacity).toBe('1')
+        return
+      }
+      await page.mouse.move(0, 0)
+      await expect.poll(opacity).toBe('0')
+      await row.hover()
+      await expect.poll(opacity).toBe('1')
+      await page.mouse.move(0, 0)
+      await expect.poll(opacity).toBe('0')
+      // Still in the tab order: the focus shows them
+      await edit.focus()
+      await expect(edit).toBeFocused()
+      await expect.poll(opacity).toBe('1')
+      await expectNoA11yViolations(page)
+    }
+  )
+
   test('SET-04 an identity is created, edited and deleted', async ({
     page,
     user,

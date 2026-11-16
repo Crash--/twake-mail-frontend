@@ -34,7 +34,8 @@ export interface IdentityListItemProps {
  * An identity in Settings > Profiles, as the Figma lists it: the radio
  * making it the default one, name, address, Reply-To, Bcc, then "Edit" and
  * "Delete" (no delete for the identity of the account, which the server
- * keeps), and the signature as it is written under the row.
+ * keeps), shown while the row is hovered or focused, and the signature as it
+ * is written under the row.
  */
 export function IdentityListItem({
   identity,
@@ -55,6 +56,7 @@ export function IdentityListItem({
   return (
     <SettingsListItem
       data-testid="identity-item"
+      isActionsOnHover
       dataAttributes={{
         'data-identity-name': identity.name,
         'data-default': isDefault || undefined

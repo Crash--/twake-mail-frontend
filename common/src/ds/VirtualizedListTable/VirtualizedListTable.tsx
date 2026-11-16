@@ -121,7 +121,12 @@ const ROW_SX = {
   '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
   // The theme greys body cells with text.secondary, 3.6:1 on white: below
   // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)
-  '& .MuiTableCell-body': { color: 'text.primary' }
+  '& .MuiTableCell-body': { color: 'text.primary' },
+  // The unticked box in the hint grey of the design, the text colour at 38 %.
+  // TODO: text.hint and a discreet Checkbox in twake-mui (Crash--/twake-ui#32)
+  '& .MuiCheckbox-root:not(.Mui-checked):not(.MuiCheckbox-indeterminate)': {
+    color: 'rgb(var(--twake-palette-text-primaryChannel) / 0.38)'
+  }
 } as const
 
 export function makeRowLayoutSx({

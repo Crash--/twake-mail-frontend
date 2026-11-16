@@ -39,36 +39,79 @@ function CompactAddressLine({
   const toggleLabel = t(
     isOpen ? 'email.hideRecipients' : 'email.showRecipients'
   )
+  const toggle =
+    onToggle === null ? null : (
+      <IconAction
+        label={toggleLabel}
+        // A 16 px chevron in an 18 px button, as high as a line of
+        // addresses, in the secondary text colour
+        icon={isOpen ? Dropup : Dropdown}
+        iconSize={16}
+        size={18}
+        isInline
+        tone="secondary"
+        aria-expanded={isOpen}
+        onClick={onToggle}
+        data-testid="email-view-recipients-toggle"
+      />
+    )
+  // One wrapping row: the addresses start on the line of the label and go
+  // to the next line one by one
+  const labelText = <MessageText variant="label">{`${t(label)}:`}</MessageText>
   return (
     <InlineGroup gap={0.5} data-testid={testId}>
-      <MessageText variant="label">{`${t(label)}:`}</MessageText>
-      <InlineGroup gap={0.5} component="span" isWrapping>
-        {addresses.map((address, index) => (
+      {addresses.map((address, index) => {
+        const isFirst = index === 0
+        const isLast = index === addresses.length - 1
+        const recipient = (
           <MessageText
             key={`${address.email}-${index}`}
             variant="recipient"
-            className="u-mr-half"
+            className={isLast && toggle !== null ? undefined : 'u-mr-half'}
           >
             <EmailAddressCard address={address}>
               {isOpen ? formatAddress(address) : formatAddressName(address)}
+              {/* In the button, so it never wraps away from its address */}
+              {isLast ? null : <span aria-hidden="true">,</span>}
             </EmailAddressCard>
-            {index < addresses.length - 1 ? ',' : null}
           </MessageText>
-        ))}
-      </InlineGroup>
-      {onToggle !== null ? (
-        <IconAction
-          label={toggleLabel}
-          // A 20 px chevron, 2 px around, in the secondary text colour
-          icon={isOpen ? Dropup : Dropdown}
-          iconSize={20}
-          size={24}
-          tone="secondary"
-          aria-expanded={isOpen}
-          onClick={onToggle}
-          data-testid="email-view-recipients-toggle"
-        />
-      ) : null}
+        )
+        const key = `${address.email}-${index}`
+        // The chevron goes along with the last address, even to the next
+        // line, rather than on a line of its own; on the last line of an
+        // address that breaks (a button is a block: it cannot follow its text)
+        const withToggle =
+          isLast && toggle !== null ? (
+            <InlineGroup
+              key={key}
+              gap={0.5}
+              component="span"
+              isWrapping={false}
+              align="flex-end"
+            >
+              {recipient}
+              {toggle}
+            </InlineGroup>
+          ) : (
+            recipient
+          )
+        // The label stays on the first line of the first address, which
+        // breaks inside itself when it is too long
+        return isFirst ? (
+          <InlineGroup
+            key={key}
+            gap={0.5}
+            component="span"
+            isWrapping={false}
+            align="flex-start"
+          >
+            {labelText}
+            {withToggle}
+          </InlineGroup>
+        ) : (
+          withToggle
+        )
+      })}
     </InlineGroup>
   )
 }

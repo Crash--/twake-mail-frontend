@@ -1,3 +1,7 @@
+import { randomUUID } from 'node:crypto'
+
+import type { Response } from '@playwright/test'
+
 import { LoginPage, MailboxPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
@@ -15,6 +19,31 @@ async function importSortOrderEmails(jmap: JmapClient): Promise<string[]> {
     subjects.push(email.subject ?? '')
   }
   return subjects
+}
+
+/** The subjects an `Email/query` + `Email/get` answer of the app found */
+async function foundSubjects(response: Response): Promise<string[]> {
+  const body = (await response.json()) as {
+    methodResponses: [string, { list?: { subject?: string }[] }][]
+  }
+  const get = body.methodResponses.find(([name]) => name === 'Email/get')
+  return (get?.[1].list ?? []).map(email => email.subject ?? '')
+}
+
+function reportEml(subject: string, to: string): Buffer {
+  return Buffer.from(
+    [
+      'From: Reports <reports@reports.example.org>',
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `Message-ID: <${randomUUID()}@reports.example.org>`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=utf-8',
+      '',
+      'report'
+    ].join('\r\n'),
+    'utf8'
+  )
 }
 
 /**
@@ -625,9 +654,7 @@ test.describe('SRCH search', () => {
         'aria-pressed',
         'true'
       )
-      await expect(search.showAllSuggestion).toHaveText(
-        'Search with these filters'
-      )
+      await expect(search.showAllSuggestion).toHaveText('Search emails')
       await expect(search.input).toHaveAttribute('aria-expanded', 'true')
       await expectNoA11yViolations(page)
 
@@ -699,17 +726,16 @@ test.describe('SRCH search', () => {
   }) => {
     const plain = 'Filterbar plain report'
     const invitation = 'Filterbar invitation report'
-    await jmap.sendEmail({ to: user.email, subject: plain, text: 'report' })
-    await jmap.sendEmail({
-      to: user.email,
-      subject: invitation,
-      text: 'report'
-    })
-    await waitInInbox(jmap, plain)
-    const event = await waitInInbox(jmap, invitation)
-    await jmap.setKeywords(event.id, { event: true })
-    // The search index takes the keyword asynchronously, late when the
-    // stack is busy: wait for a search to find the invitation by it
+    // Imported, not sent to oneself: the copy in Sent would carry no `event`
+    // and keep the invitation's conversation in the results
+    await jmap.importEmlContent(reportEml(plain, user.email))
+    const event = await jmap.importEmlContent(
+      reportEml(invitation, user.email),
+      'inbox',
+      { keywords: { event: true } }
+    )
+    // The search index takes the message asynchronously, late when the
+    // stack is busy: wait for a search to find the invitation by its keyword
     await expect
       .poll(async () =>
         (await jmap.queryEmails({ text: 'report', hasKeyword: 'event' })).some(
@@ -725,7 +751,15 @@ test.describe('SRCH search', () => {
     await expect(search.filterChip('from')).toBeVisible()
     await expect(search.filterChip('to')).toBeVisible()
 
+    // The rows mount again one by one after the answer, the invitation
+    // missing for a moment whatever it says: check the answer itself
+    const filtered = page.waitForResponse(
+      response =>
+        response.url().endsWith('/jmap') &&
+        (response.request().postData() ?? '').includes('"notKeyword":"event"')
+    )
     await search.filterChip('not-include-events').click()
+    expect(await foundSubjects(await filtered)).toEqual([plain])
 
     await expect(search.filterChip('not-include-events')).toHaveAttribute(
       'aria-pressed',

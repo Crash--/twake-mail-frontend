@@ -1,6 +1,6 @@
-import { Alert, Box, Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
+import { NoticeBanner } from '@/ds/NoticeBanner/NoticeBanner'
 import { useI18n } from '@common/i18n/useI18n'
 
 export interface RemoteContentBannerProps {
@@ -21,35 +21,28 @@ export function RemoteContentBanner({
 }: RemoteContentBannerProps): ReactElement {
   const { t } = useI18n()
   return (
-    <Alert
-      severity="info"
+    <NoticeBanner
       role="status"
       className="u-mb-1"
+      actions={[
+        {
+          label: t('email.remoteContent.show'),
+          onClick: onShow,
+          'data-testid': 'remote-content-show-button'
+        },
+        ...(onAlwaysShow
+          ? [
+              {
+                label: t('email.remoteContent.alwaysShow'),
+                onClick: onAlwaysShow,
+                'data-testid': 'remote-content-always-show-button'
+              }
+            ]
+          : [])
+      ]}
       data-testid="remote-content-banner"
-      action={
-        <Box className="u-flex u-flex-wrap">
-          <Button
-            color="inherit"
-            size="small"
-            onClick={onShow}
-            data-testid="remote-content-show-button"
-          >
-            {t('email.remoteContent.show')}
-          </Button>
-          {onAlwaysShow ? (
-            <Button
-              color="inherit"
-              size="small"
-              onClick={onAlwaysShow}
-              data-testid="remote-content-always-show-button"
-            >
-              {t('email.remoteContent.alwaysShow')}
-            </Button>
-          ) : null}
-        </Box>
-      }
     >
       {t('email.remoteContent.hidden')}
-    </Alert>
+    </NoticeBanner>
   )
 }

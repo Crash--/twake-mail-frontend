@@ -5,6 +5,7 @@ import type { ReactElement } from 'react'
 import { ColorTag } from '@/ds/ColorTag/ColorTag'
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { labelDisplayName } from './labelDisplayName'
@@ -43,6 +44,7 @@ export function LabelChips({
   const { t } = useI18n()
   // A chip taken off with its × leaves the focus on the next control
   const focusFallbackRef = useFocusFallback<HTMLSpanElement>()
+  const isPhone = useScreenSize() === 'mobile'
   if (labels.length === 0) return null
   const shown = max === undefined ? labels : labels.slice(0, max)
   const hidden = labels.length - shown.length
@@ -60,6 +62,8 @@ export function LabelChips({
       aria-label={t('labels.listLabel')}
       gap={1.5}
       isWrapping={!nowrap}
+      // On a phone, wrapped tags keep 4 px between their lines
+      rowGap={isPhone ? 0.5 : 0}
       className={className}
       data-testid="label-chips"
     >

@@ -29,10 +29,16 @@ const STYLES = {
   address: { variant: 'body2', color: 'text.secondary' },
   meta: { variant: 'body2', color: 'text.secondary' },
   compact: { variant: 'body2', color: 'text.secondary' },
-  label: { variant: 'body2', color: 'text.secondary' },
+  label: {
+    variant: 'body2',
+    color: 'text.secondary',
+    // "To:" keeps its width beside an address that breaks inside itself
+    sx: { flexShrink: 0, whiteSpace: 'nowrap' }
+  },
   recipient: {
     variant: 'body2',
-    sx: { [PHONE]: { color: 'text.secondary' } }
+    // A long address breaks anywhere rather than overflowing a phone screen
+    sx: { overflowWrap: 'anywhere', [PHONE]: { color: 'text.secondary' } }
   }
 } as const satisfies Record<MessageTextVariant, TypographyProps>
 

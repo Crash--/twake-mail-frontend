@@ -149,8 +149,7 @@ export function RecipientInput({
     labels: {
       copy: t('email.address.copy'),
       edit: t('composer.recipients.editEmail'),
-      createRule: t('composer.recipients.createRule'),
-      close: t('email.address.close')
+      createRule: t('composer.recipients.createRule')
     },
     onCopy: id => {
       window.navigator.clipboard
@@ -171,10 +170,8 @@ export function RecipientInput({
       : null,
     testIds: {
       card: 'recipient-card',
-      copy: 'recipient-card-copy-button',
       edit: 'recipient-card-edit-button',
-      createRule: 'recipient-card-create-rule-button',
-      close: 'recipient-card-close-button'
+      createRule: 'recipient-card-create-rule-button'
     }
   }
 

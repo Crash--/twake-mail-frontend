@@ -133,8 +133,7 @@
       "invite": "Invita a un evento",
       "chat": "Chat",
       "copy": "Copia l'indirizzo e-mail",
-      "copied": "Indirizzo email copiato",
-      "close": "Chiudi"
+      "copied": "Indirizzo email copiato"
     },
     "actionRequired": "Azione richiesta",
     "removeActionRequired": "Rimuovi l'etichetta Azione richiesta",
@@ -236,9 +235,10 @@
     },
     "toolbar": {
       "label": "Azioni sull'elenco",
-      "filter": "Filtra i messaggi",
+      "filter": "Filtra",
       "clearFilter": "Rimuovi il filtro",
-      "selectPage": "Seleziona tutti i messaggi di questa pagina",
+      "selectPage": "Seleziona tutti",
+      "selectPageTooltip": "Seleziona tutti i messaggi di questa pagina",
       "filterOn": "Hai filtrato i messaggi per «%{name}»",
       "filterOff": "Hai disabilitato i messaggi filtrati",
       "filters": {
@@ -673,7 +673,6 @@
     "wordsHint": "Separa le parole con virgole",
     "loading": "Caricamento dei suggerimenti",
     "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
-    "searchWithFilters": "Cerca con questi filtri",
     "quickFiltersOnly": "Nessun suggerimento. I filtri rapidi seguono il campo di ricerca.",
     "labels": {
       "all": "Tutte le etichette",
@@ -1234,6 +1233,10 @@
     "startTime": "Tempo di inizio",
     "endDate": "Data di fine",
     "endTime": "Tempo di fine",
+    "selectStartDate": "Seleziona la data di inizio",
+    "selectStartTime": "Seleziona l'ora di inizio",
+    "selectEndDate": "Seleziona la data di fine",
+    "selectEndTime": "Seleziona l'ora di fine",
     "subject": "Oggetto",
     "subjectPlaceholder": "Inserisci oggetto",
     "message": "Messaggio",

@@ -23,3 +23,19 @@ export const LABEL_PALETTE: Readonly<Record<string, TranslationKey>> = {
   '#131326': 'labels.colors.black',
   '#646580': 'labels.colors.grey'
 }
+
+/**
+ * The colour a new label starts with: one of the swatches of the picker at
+ * random, among those no label has yet while some are left; null without
+ * swatches
+ */
+export function pickLabelColor(
+  swatches: readonly string[],
+  taken: readonly (string | null)[],
+  random: () => number = Math.random
+): string | null {
+  const used = new Set(taken.map(color => color?.toUpperCase()))
+  const free = swatches.filter(color => !used.has(color.toUpperCase()))
+  const choices = free.length > 0 ? free : swatches
+  return choices[Math.floor(random() * choices.length)] ?? null
+}

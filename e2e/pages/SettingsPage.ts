@@ -52,7 +52,10 @@ export class SettingsPage {
     this.createIdentityButton = page.getByTestId('create-new-identity-button')
     this.identityItems = page.getByTestId('identity-item')
     this.identityDialog = page.getByTestId('identity-form-dialog')
-    this.addRuleButton = page.getByTestId('add-rule-button')
+    // Without rules, the button of the empty state is the only one
+    this.addRuleButton = page
+      .getByTestId('add-rule-button')
+      .or(page.getByTestId('create-first-rule-button'))
     this.ruleItems = page.getByTestId('email-rule-item')
     this.ruleDialog = page.getByTestId('rule-form-dialog')
     this.forwardInput = page.getByTestId('forward-input')

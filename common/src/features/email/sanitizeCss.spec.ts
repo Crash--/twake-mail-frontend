@@ -19,6 +19,18 @@ const BLOCKED = { allowRemoteContent: false }
 const ALLOWED = { allowRemoteContent: true }
 
 describe('sanitizeStyleSheet', () => {
+  it('drops a selector holding a CSS escape, with or without a scope', () => {
+    const css =
+      '[title="\\3c/style\\3e\\3cimg src=x onerror=alert(1)\\3e"] { color: red }\n' +
+      '.a\\:b { color: red }\n' +
+      'p { color: blue }'
+
+    expect(sanitizeStyleSheet(css, ALLOWED).css).toBe('p { color: blue }')
+    expect(
+      sanitizeStyleSheet(css, { ...ALLOWED, scope: '.quote' }).css
+    ).not.toContain('\\')
+  })
+
   describe('@font-face', () => {
     it('drops a block without src and does not count it (Outlook boilerplate)', () => {
       const css =

@@ -5,6 +5,7 @@ import { ComposerPage } from './ComposerPage'
 import { EmailPage } from './EmailPage'
 import { SettingsPage } from './SettingsPage'
 import { openAccountMenuIfAny } from '../support/accountMenu'
+import { longPress } from '../support/longPress'
 
 /** A folder of the sidebar, by JMAP role (`inbox`, `trash`...) or by displayed name */
 export type FolderRef =
@@ -266,11 +267,17 @@ export class MailboxPage {
     return tree.locator('[role="treeitem"][tabindex="0"]')
   }
 
-  /** Folder actions menu (⋮ on hover, or right-click): New subfolder, Rename, Move, Delete, Empty trash... */
+  /** Folder actions menu (⋮ on hover, or a long press on a phone, which has no ⋮): New subfolder, Rename, Move, Delete, Empty trash... */
   async openFolderMenu(ref: FolderRef): Promise<Locator> {
     await this.showFolders()
-    await this.folder(ref).hover()
-    await this.folder(ref).getByTestId('mailbox-more-button').click()
+    const row = this.folder(ref)
+    const more = row.getByTestId('mailbox-more-button')
+    if ((await more.count()) > 0) {
+      await row.hover()
+      await more.click()
+    } else {
+      await longPress(this.page, row.getByTestId('mailbox-item-name'))
+    }
     const menu = this.page.getByTestId('mailbox-context-menu').getByRole('menu')
     await expect(menu).toBeVisible()
     return menu

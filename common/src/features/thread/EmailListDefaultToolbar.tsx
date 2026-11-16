@@ -65,6 +65,7 @@ export function EmailListDefaultToolbar({
   const action = useListToolbarAction()
   const refreshLabel = t('common.refresh')
   const selectAllLabel = t('thread.toolbar.selectPage')
+  const selectAllName = t('thread.toolbar.selectPageTooltip')
   const recoverLabel = t('recovery.title')
   const canRecover =
     mailbox !== null &&
@@ -99,7 +100,7 @@ export function EmailListDefaultToolbar({
       )}
       {loadedCount === 0 && !isLoading ? null : isPhone ? (
         <IconAction
-          label={selectAllLabel}
+          label={selectAllName}
           icon={CheckboxBlankIcon}
           disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
@@ -108,9 +109,8 @@ export function EmailListDefaultToolbar({
       ) : (
         <ToolbarButton
           label={selectAllLabel}
-          tooltip={selectAllLabel}
+          tooltip={selectAllName}
           icon={CheckboxBlankIcon}
-          isAtMaxWidth
           disabled={loadedCount === 0}
           onClick={selection.selectLoaded}
           data-testid="list-select-all-button"

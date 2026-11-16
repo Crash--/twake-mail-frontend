@@ -23,5 +23,6 @@ describe('CompactRowLines', () => {
     expect(screen.getByTestId('sender')).toHaveStyle({ fontWeight: 600 })
     expect(screen.getByTestId('subject')).toHaveTextContent('Hello')
     expect(screen.getByTestId('preview')).toHaveTextContent('Some text')
+    expect(screen.getByTestId('preview')).toHaveStyle({ fontWeight: 600 })
   })
 })

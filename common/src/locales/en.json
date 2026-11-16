@@ -133,8 +133,7 @@
       "invite": "Invite to an event",
       "chat": "Chat",
       "copy": "Copy the email address",
-      "copied": "Email address copied",
-      "close": "Close"
+      "copied": "Email address copied"
     },
     "actionRequired": "Action Required",
     "removeActionRequired": "Remove the Action Required tag",
@@ -236,9 +235,10 @@
     },
     "toolbar": {
       "label": "List actions",
-      "filter": "Filter messages",
+      "filter": "Filter",
       "clearFilter": "Clear the filter",
-      "selectPage": "Select all messages of this page",
+      "selectPage": "Select all",
+      "selectPageTooltip": "Select all messages of this page",
       "filterOn": "You’ve filtered messages by \"%{name}\"",
       "filterOff": "You’ve disabled filtered messages",
       "filters": {
@@ -673,7 +673,6 @@
     "wordsHint": "Separate words with commas",
     "loading": "Loading suggestions",
     "suggestionCount": "%{smart_count} suggestion |||| %{smart_count} suggestions",
-    "searchWithFilters": "Search with these filters",
     "quickFiltersOnly": "No suggestions. The quick filters follow the search field.",
     "labels": {
       "all": "All labels",
@@ -1069,7 +1068,7 @@
     "empty": {
       "title": "No Rules Configured",
       "message": "Start by creating your first rule to automate email management.",
-      "action": "Create My First Rule"
+      "action": "Create your first rule"
     },
     "delete": {
       "title": "Delete rule",
@@ -1234,6 +1233,10 @@
     "startTime": "Start time",
     "endDate": "End date",
     "endTime": "End time",
+    "selectStartDate": "Select start date",
+    "selectStartTime": "Select start time",
+    "selectEndDate": "Select end date",
+    "selectEndTime": "Select end time",
     "subject": "Subject",
     "subjectPlaceholder": "Enter subject",
     "message": "Message",

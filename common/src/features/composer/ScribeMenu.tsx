@@ -1,5 +1,4 @@
 import {
-  Icon,
   AssistantColor,
   Bottom,
   Copy,
@@ -17,7 +16,10 @@ import {
   type ReactElement
 } from 'react'
 
-import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import {
+  ActionIcon,
+  ActionIconButton
+} from '@/ds/ActionIconButton/ActionIconButton'
 import { AiScribeBar } from '@/ds/AiScribeBar/AiScribeBar'
 import {
   AiScribeMenu,
@@ -331,7 +333,7 @@ export function ScribeMenu({
         className="u-ml-half"
         data-testid="composer-scribe-button"
       >
-        <Icon icon={AssistantColor} size={24} aria-hidden="true" />
+        <ActionIcon icon={AssistantColor} />
       </ActionIconButton>
       <AiScribePopover
         open={isMenuOpen}

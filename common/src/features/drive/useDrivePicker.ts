@@ -67,34 +67,6 @@ export function useDriveSdk(): Sdk | null {
   return driveSdk !== null && driveSdk === sdk ? sdk : null
 }
 
-/**
- * The picker posts to the window its frame is in: the overlay of TwakeSpace
- * when the dialog shows there. cozy-interapp listens on the window of the
- * app only: the messages of the frames in `container` are passed on to it,
- * until the function returned is called.
- */
-function relayIntentMessages(container: HTMLElement): () => void {
-  const host = container.ownerDocument.defaultView
-  if (host === null || host === window) return () => undefined
-  const relay = (event: MessageEvent<unknown>): void => {
-    const isFromPicker = Array.from(container.querySelectorAll('iframe')).some(
-      frame => frame.contentWindow === event.source
-    )
-    if (!isFromPicker) return
-    window.dispatchEvent(
-      new MessageEvent('message', {
-        data: event.data,
-        origin: event.origin,
-        source: event.source
-      })
-    )
-  }
-  host.addEventListener('message', relay)
-  return () => {
-    host.removeEventListener('message', relay)
-  }
-}
-
 export interface DrivePicker {
   state: DrivePickerState
   /** Gets the box the frame of the picker goes in */
@@ -195,10 +167,8 @@ export function useDrivePicker(
         onShowCross: update({ showCloseButton: true }),
         onHideCross: update({ showCloseButton: false })
       })
-      const unrelay = relayIntentMessages(container)
       stopRef.current = () => {
         started.stop()
-        unrelay()
       }
       setState({ status: 'open', isReady: false, showCloseButton: false })
       const document = await started

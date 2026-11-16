@@ -76,7 +76,6 @@ const LINE_SX = { display: 'flex', alignItems: 'center', minWidth: 0 } as const
 const LABEL_SX = (isStrong: boolean): SxProps<Theme> => ({
   flex: '0 1 auto',
   minWidth: 0,
-  color: 'text.primary',
   fontWeight: isStrong ? 600 : undefined
 })
 const HINT_SX = { flexShrink: 0, mr: 0.5, color: 'text.secondary' } as const
@@ -107,6 +106,8 @@ export interface SearchComboboxOption {
   label: ReactNode
   /** The label in Semi Bold (the sender of an email) */
   isStrong?: boolean
+  /** The label in the primary colour: an action such as "Search emails" */
+  isAction?: boolean
   /**
    * Before the label, in grey: the label is then a small hint too
    * ("Showing results for:" "text")
@@ -535,6 +536,11 @@ export function SearchCombobox({
                                     option.hint === undefined
                                       ? 'body1'
                                       : 'caption'
+                                  }
+                                  color={
+                                    option.isAction === true
+                                      ? 'primary'
+                                      : 'textPrimary'
                                   }
                                   sx={LABEL_SX(option.isStrong === true)}
                                 >

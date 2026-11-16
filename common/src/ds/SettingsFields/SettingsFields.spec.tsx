@@ -28,7 +28,73 @@ function Field(): ReactElement {
   )
 }
 
+function DateField(): ReactElement {
+  return (
+    <SettingsTextField
+      type="date"
+      label="Start date"
+      pickerLabel="Select date"
+      value="2026-11-12"
+      onChange={() => undefined}
+      inputTestId="start-date"
+    />
+  )
+}
+
+const originalCss = Object.getOwnPropertyDescriptor(globalThis, 'CSS')
+
+/** jsdom has no `CSS.supports`: Gecko, whose picker button stays, or not */
+function mockPickerHiding(canHide: boolean): void {
+  Object.defineProperty(globalThis, 'CSS', {
+    value: { supports: () => !canHide },
+    configurable: true
+  })
+}
+
 describe('SettingsFields', () => {
+  beforeEach(() => {
+    mockPickerHiding(true)
+  })
+
+  afterEach(() => {
+    if (originalCss === undefined) Reflect.deleteProperty(globalThis, 'CSS')
+    else Object.defineProperty(globalThis, 'CSS', originalCss)
+  })
+
+  it('keeps the button of the browser where it cannot be hidden (Firefox)', () => {
+    mockPickerHiding(false)
+    renderDs(<DateField />)
+
+    expect(screen.queryByRole('button', { name: 'Select date' })).toBe(null)
+  })
+
+  it('opens the picker of a date field from a named button', async () => {
+    // jsdom has no showPicker
+    const showPicker = jest.fn()
+    Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+      value: showPicker,
+      configurable: true
+    })
+    try {
+      renderDs(<DateField />)
+
+      await userEvent.click(screen.getByRole('button', { name: 'Select date' }))
+
+      expect(showPicker).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('start-date')).toHaveFocus()
+    } finally {
+      Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker')
+    }
+  })
+
+  it('leaves the focus in the date field when the browser has no picker to open', async () => {
+    renderDs(<DateField />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Select date' }))
+
+    expect(screen.getByTestId('start-date')).toHaveFocus()
+  })
+
   it('labels a field of a form row', async () => {
     renderDs(<Field />)
 

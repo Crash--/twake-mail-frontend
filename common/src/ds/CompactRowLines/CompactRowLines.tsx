@@ -47,7 +47,7 @@ export interface CompactRowLinesProps {
   previewEnd?: ReactNode
   /** Room left free at the end of the preview line, in px (`CompactRowAside`) */
   previewEndRoom?: number
-  /** Unread: the sender and the subject Semi Bold and black */
+  /** Unread: the sender, the subject and the preview Semi Bold and black */
   isStrong?: boolean
   testIds?: { sender?: string; subject?: string; preview?: string }
 }
@@ -99,7 +99,12 @@ export function CompactRowLines({
       <Box component="span" sx={{ ...LINE_SX, pr: `${previewEndRoom}px` }}>
         <Box
           component="span"
-          sx={{ ...rowTextSx(false), color: ROW_MUTED_COLOR, ...CUT_SX }}
+          sx={{
+            ...(isStrong
+              ? rowTextSx(true)
+              : { ...rowTextSx(false), color: ROW_MUTED_COLOR }),
+            ...CUT_SX
+          }}
           data-testid={testIds.preview}
         >
           {preview}

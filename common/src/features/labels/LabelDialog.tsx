@@ -26,7 +26,7 @@ import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
-import { LABEL_PALETTE } from './labelPalette'
+import { LABEL_PALETTE, pickLabelColor } from './labelPalette'
 import { labelKeys, useLabels } from './queries'
 
 export interface LabelDialogProps {
@@ -76,7 +76,15 @@ export function LabelDialog({
   const nameRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(label?.displayName ?? '')
   const [description, setDescription] = useState(label?.description ?? '')
-  const [color, setColor] = useState<string | null>(label?.color ?? null)
+  const [color, setColor] = useState<string | null>(() =>
+    label === null
+      ? pickLabelColor(
+          COLORS,
+          labels.map(other => other.color)
+        )
+      : // tmail-backend leaves `color` out of a label without one
+        (label.color ?? null)
+  )
   // A colour out of the list stays as it is, in the custom field
   const [isCustom, setIsCustom] = useState(
     color !== null && !COLORS.includes(color.toUpperCase())

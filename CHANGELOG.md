@@ -6,6 +6,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-13
+
+No setting changed since 0.11.1.
+
+### Added
+
+- The create dialog of a label starts with a colour drawn at random among the
+  ones no label has yet.
+
+### Changed
+
+- The card of a recipient tag in the composer is the contact card of the
+  reading view: twake-mui's dialog on tablets and desktops, its bottom sheet on
+  phones.
+- The colour button of a label without colour shows a palette.
+- The unticked checkbox of a list row is drawn in the hint grey.
+- On a phone, the drawer keeps the spacing of the desktop around "Folders" and
+  "Labels", and both titles sit 12 px above their first row.
+
+### Fixed
+
+- An email leaves the Starred view once it is unstarred.
+- On a phone, a closing email slides down over the list.
+- A double click on New message opens one composer.
+
+### Security
+
+- A quoted style rebuilt for a reply or a forward can no longer carry escaped
+  markup into the composer.
+
+## [0.11.1] - 2026-11-12
+
+No setting changed since 0.11.0.
+
+### Changed
+
+- On phones and tablets, the drawer shows no menu button on its rows nor
+  Clean on Spam: a long press on a folder or a label opens its menu, Clean
+  included.
+- On phones and tablets, the top bar of the list has neither the filter icon
+  nor the help: the search field opens the filters, and the help is in
+  Settings.
+
+## [0.11.0] - 2026-11-12
+
+No setting changed since 0.10.0. The image is built on Node 26.
+
+### Added
+
+- The AI assistant speaks Mongolian, German, Spanish and Italian.
+- Folders another user shares show under "Other users", below the team
+  mailboxes, with the address of their owner, instead of passing for a team
+  mailbox.
+- The card of an invitation tells when it is one occurrence of a series.
+
+### Changed
+
+- The Drive picker is opened by cozy-interapp (0.24.2), in the Space overlay
+  too.
+- A sender has the same avatar in the list, the reading view and the contact
+  card: two initials, the colour drawn from the address.
+- The contact card is twake-mui's dialog on wide screens and its bottom sheet
+  on phones.
+- The notices of Trash, Spam and hidden remote images are grey alerts with
+  text actions.
+- The preview of an unread email is written like its subject.
+- The list toolbar reads "Select all" and "Filter", with the chevron of the
+  design; the composer toolbar icons sit on the grid of the design icons.
+- The close dialog of the composer has no Cancel button: the close button and
+  Escape keep the message open.
+- On a phone, an email opens at once, its labels sit under the subject, the
+  delegation tabs and the settings chevrons are smaller, and Cancel is as high
+  as Search in the advanced search.
+- The empty Email rules page has one button, and the rules and forwarding
+  empty states have the design's illustrations.
+- The vacation and forwarding pages sit in the 628 px column of the other
+  settings, and the vacation date and time fields open their pickers with
+  twake-icons buttons.
+
+### Fixed
+
+- A search scoped to a whole team mailbox no longer fails.
+- A long name or address wraps inside itself, its comma stays beside it, and
+  the recipients chevron stays with the last address.
+- An EML file name cut to its maximum length no longer ends in a dot.
+- An email with a `__proto__` or `constructor` attribute opens instead of
+  crashing the reader.
+- Pasting a styled list or table keeps its items and cells in place, and a
+  reopened reply keeps the colours of its quote.
+- Choosing "Right away" again for a vacation starts it now.
+- An invitation with a UID of "." or ".." has no event link.
+- Accessibility: each message of the reading view has a heading, the name
+  errors of the folder and label dialogs are announced, the focus moves to the
+  warning when a canceled event drops the answers, and the name of an identity
+  can be filled in by the browser.
+
+### Security
+
+- Email bodies are sanitized in standards mode, the way the reader parses
+  them.
+- An `@font-face` source holding a `url()` the checker cannot read is dropped.
+- Drafts, templates and emails edited as new are sanitized when loaded, and
+  the composer never trusts a kept-block marker coming from the content.
+
 ## [0.10.0] - 2026-11-10
 
 New settings since 0.9.0: `ALLOWED_LANGUAGES` (Helm chart:

@@ -133,8 +133,7 @@
       "invite": "Zu einem Termin einladen",
       "chat": "Chat",
       "copy": "E-Mail-Adresse kopieren",
-      "copied": "E-Mail-Adresse kopiert",
-      "close": "Schließen"
+      "copied": "E-Mail-Adresse kopiert"
     },
     "actionRequired": "Aktion erforderlich",
     "removeActionRequired": "Markierung „Aktion erforderlich“ entfernen",
@@ -236,9 +235,10 @@
     },
     "toolbar": {
       "label": "Listenaktionen",
-      "filter": "Nachrichten filtern",
+      "filter": "Filtern",
       "clearFilter": "Filter entfernen",
-      "selectPage": "Alle Nachrichten dieser Seite auswählen",
+      "selectPage": "Alles auswählen",
+      "selectPageTooltip": "Alle Nachrichten dieser Seite auswählen",
       "filterOn": "Sie haben die Nachrichten nach „%{name}“ gefiltert",
       "filterOff": "Sie haben gefilterte Nachrichten deaktiviert",
       "filters": {
@@ -673,7 +673,6 @@
     "wordsHint": "Wörter durch Kommas trennen",
     "loading": "Vorschläge werden geladen",
     "suggestionCount": "%{smart_count} Vorschlag |||| %{smart_count} Vorschläge",
-    "searchWithFilters": "Mit diesen Filtern suchen",
     "quickFiltersOnly": "Keine Vorschläge. Die Schnellfilter folgen auf das Suchfeld.",
     "labels": {
       "all": "Alle Labels",
@@ -1234,6 +1233,10 @@
     "startTime": "Anfangszeit",
     "endDate": "Enddatum",
     "endTime": "Endzeit",
+    "selectStartDate": "Startdatum auswählen",
+    "selectStartTime": "Startzeit auswählen",
+    "selectEndDate": "Enddatum auswählen",
+    "selectEndTime": "Endzeit auswählen",
     "subject": "Betreff",
     "subjectPlaceholder": "Betreff eingeben",
     "message": "Nachricht",

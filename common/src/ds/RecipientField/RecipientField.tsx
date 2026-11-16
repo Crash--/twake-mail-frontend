@@ -31,11 +31,8 @@ import {
 } from 'react'
 
 import { FIELD_LABEL_SX, FIELD_LINE_SX } from '@/ds/FieldLine/FieldLine'
-import {
-  RecipientCard,
-  type RecipientCardLabels,
-  type RecipientCardProps
-} from '@/ds/RecipientCard/RecipientCard'
+import { ContactCard } from '@/ds/ContactCard/ContactCard'
+import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
 
 import { initialsOf } from './initials'
 import { RecipientAvatar } from './RecipientAvatar'
@@ -196,11 +193,16 @@ export interface RecipientFieldChip {
 
 /** The card a tag opens (tmail-flutter's), and what its actions do */
 export interface RecipientFieldCard {
-  labels: RecipientCardLabels
+  labels: {
+    /** "Copy the email address": the name and tooltip of the copy button */
+    copy: string
+    edit: string
+    createRule: string
+  }
   onCopy: (id: string) => void
   /** None without filtering rules */
   onCreateRule: ((id: string) => void) | null
-  testIds?: RecipientCardProps['testIds']
+  testIds?: { card?: string; edit?: string; createRule?: string }
 }
 
 /** A suggestion of the list under the field */
@@ -392,12 +394,8 @@ export function RecipientField({
   const [isOpen, setIsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
-  /** The tag whose card is open, and the element it opens under */
-  const [openCard, setOpenCard] = useState<{
-    index: number
-    anchor: HTMLElement
-  } | null>(null)
-  const cardIndex = openCard?.index ?? null
+  /** The tag whose card is open */
+  const [cardIndex, setCardIndex] = useState<number | null>(null)
   /** Chip to focus once the chips change (after a removal), -1 for the input */
   const pendingFocus = useRef<number | null>(null)
   /** The tag moved to another field from the keyboard, which keeps the focus */
@@ -876,7 +874,7 @@ export function RecipientField({
               // Enter (a click without a pointer) edits it
               onClick={event => {
                 if (card !== undefined) {
-                  setOpenCard({ index, anchor: event.currentTarget })
+                  setCardIndex(index)
                 } else if (event.detail === 0) {
                   editChip(index)
                 }
@@ -1009,13 +1007,12 @@ export function RecipientField({
         <ChipCard
           card={card}
           chip={cardIndex === null ? null : (chips[cardIndex] ?? null)}
-          anchorEl={openCard?.anchor ?? null}
           onClose={() => {
-            setOpenCard(null)
+            setCardIndex(null)
           }}
           onEdit={() => {
             const index = cardIndex
-            setOpenCard(null)
+            setCardIndex(null)
             if (index !== null) editChip(index)
           }}
         />
@@ -1033,41 +1030,54 @@ export function RecipientField({
 function ChipCard({
   card,
   chip,
-  anchorEl,
   onClose,
   onEdit
 }: {
   card: RecipientFieldCard
   chip: RecipientFieldChip | null
-  anchorEl: HTMLElement | null
   onClose: () => void
   onEdit: () => void
 }): ReactElement {
-  const name = chip?.name ?? null
+  const name = chip?.name ?? ''
   const address = chip?.address ?? chip?.label ?? ''
+  const initials = initialsOf(name === '' ? address : name)
   const { onCreateRule } = card
   return (
-    <RecipientCard
-      open={chip !== null && anchorEl !== null}
-      anchorEl={anchorEl}
+    <ContactCard
+      open={chip !== null}
       onClose={onClose}
+      // 40 px as the Figma of the card (Quentin): not a step of twake-mui's
+      // avatar sizes
+      avatar={<GradientAvatar text={initials} colorKey={initials} size={40} />}
       name={name}
       address={address}
-      initials={initialsOf(name ?? address)}
-      labels={card.labels}
+      copyLabel={card.labels.copy}
       onCopy={() => {
         if (chip !== null) card.onCopy(chip.id)
       }}
-      onEdit={onEdit}
-      onCreateRule={
-        onCreateRule === null
-          ? null
-          : () => {
-              onClose()
-              if (chip !== null) onCreateRule(chip.id)
-            }
-      }
-      testIds={card.testIds}
+      actions={[
+        {
+          id: 'edit',
+          label: card.labels.edit,
+          isPrimary: true,
+          onClick: onEdit,
+          'data-testid': card.testIds?.edit
+        },
+        ...(onCreateRule === null
+          ? []
+          : [
+              {
+                id: 'create-rule',
+                label: card.labels.createRule,
+                onClick: () => {
+                  onClose()
+                  if (chip !== null) onCreateRule(chip.id)
+                },
+                'data-testid': card.testIds?.createRule
+              }
+            ])
+      ]}
+      data-testid={card.testIds?.card}
     />
   )
 }

@@ -37,7 +37,10 @@ export function ComposeButton({
       // Aligned on the create button of Drive
       className="u-bdrs-6"
       fullWidth={!isInToolbar}
-      onClick={onClick}
+      // The second click of a double click would open a second window
+      onClick={event => {
+        if (event.detail < 2) onClick()
+      }}
       startIcon={<Icon icon={icon} size={12} />}
       data-testid={testId}
       sx={{

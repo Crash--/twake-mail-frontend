@@ -123,14 +123,26 @@ describe('RecipientField', () => {
       labels: {
         copy: 'Copy the email address',
         edit: 'Edit email',
-        createRule: 'Create a rule',
-        close: 'Close'
+        createRule: 'Create a rule'
       },
       onCopy: jest.fn(),
       onCreateRule: jest.fn()
     }
     renderDs(<Harness initial={['a@example.com']} card={card} />)
     const chip = screen.getByTestId('chip')
+
+    await userEvent.click(chip)
+    await userEvent.click(screen.getByRole('button', { name: 'Create a rule' }))
+    expect(card.onCreateRule).toHaveBeenCalledWith('a@example.com')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+
+    await userEvent.click(chip)
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
 
     await userEvent.click(chip)
     const dialog = screen.getByRole('dialog', { name: 'a@example.com' })
@@ -147,6 +159,9 @@ describe('RecipientField', () => {
 
     await userEvent.keyboard('{Enter}')
     await userEvent.click(screen.getByRole('button', { name: 'Edit email' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
     const input = screen.getByRole('combobox', { name: 'To' })
     await waitFor(() => {
       expect(input).toHaveFocus()

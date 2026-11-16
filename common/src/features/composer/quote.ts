@@ -143,19 +143,23 @@ function scopeSelector(selector: string, scope: string): string {
 }
 
 function scopeRules(rules: CSSRuleList, scope: string): string {
-  return Array.from(rules)
-    .map(rule => {
-      if (rule instanceof CSSStyleRule) {
-        return `${scopeSelector(rule.selectorText, scope)} { ${rule.style.cssText} }`
-      }
-      if (rule instanceof CSSMediaRule) {
-        return `@media ${rule.conditionText} { ${scopeRules(rule.cssRules, scope)} }`
-      }
-      // @import, @font-face, @keyframes…: dropped
-      return ''
-    })
-    .filter(text => text !== '')
-    .join('\n')
+  return (
+    Array.from(rules)
+      .map(rule => {
+        if (rule instanceof CSSStyleRule) {
+          return `${scopeSelector(rule.selectorText, scope)} { ${rule.style.cssText} }`
+        }
+        if (rule instanceof CSSMediaRule) {
+          return `@media ${rule.conditionText} { ${scopeRules(rule.cssRules, scope)} }`
+        }
+        // @import, @font-face, @keyframes…: dropped
+        return ''
+      })
+      // CSSOM serializes strings with their escapes decoded: a `<` there
+      // could close the <style> element once written back as HTML
+      .filter(text => text !== '' && !text.includes('<'))
+      .join('\n')
+  )
 }
 
 /**

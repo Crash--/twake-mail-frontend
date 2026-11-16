@@ -15,4 +15,17 @@ describe('ComposeButton', () => {
 
     expect(onClick).toHaveBeenCalledTimes(1)
   })
+
+  it('calls onClick once on a double click, and from the keyboard', async () => {
+    const onClick = jest.fn()
+    renderDs(<ComposeButton label="New message" icon={Pen} onClick={onClick} />)
+
+    await userEvent.dblClick(
+      screen.getByRole('button', { name: 'New message' })
+    )
+    expect(onClick).toHaveBeenCalledTimes(1)
+
+    await userEvent.keyboard('{Enter}')
+    expect(onClick).toHaveBeenCalledTimes(2)
+  })
 })

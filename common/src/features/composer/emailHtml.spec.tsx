@@ -2,6 +2,7 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 
 import { HtmlBlock } from '@/ds/RichTextEditor/htmlBlock'
+import { InlineImage } from '@/ds/RichTextEditor/inlineImage'
 import {
   QuoteBlock,
   QuoteCite,
@@ -99,6 +100,15 @@ describe('fromEmailHtml', () => {
     )
   })
 
+  it('splits a <pre> around the images it holds', () => {
+    expect(
+      fromEmailHtml(
+        '<pre><img src="https://x/a.png">  a\n  b</pre>',
+        () => null
+      )
+    ).toBe('<img src="https://x/a.png"><pre>  a\n  b</pre>')
+  })
+
   it('leaves a <pre> holding only text alone', () => {
     const html = '<pre class="c">  a\n  <b>b</b></pre>'
 
@@ -111,6 +121,7 @@ function loadInEditor(content: string): string {
   const editor = new Editor({
     extensions: [
       StarterKit.configure({ trailingNode: false, link: false }),
+      InlineImage,
       HtmlBlock,
       QuoteBlock,
       QuoteCite,
@@ -123,7 +134,7 @@ function loadInEditor(content: string): string {
   return html
 }
 
-describe('a reply quoting a <pre> that holds blocks (#780)', () => {
+describe('a reply quoting a <pre> that holds blocks (#780) or images (#1005)', () => {
   it.each([
     ['a quote', '<pre>x<blockquote>  a\n  b</blockquote></pre>'],
     [
@@ -137,7 +148,16 @@ describe('a reply quoting a <pre> that holds blocks (#780)', () => {
     [
       'a block in an inline element',
       '<pre>x<span><blockquote>  a\n  b</blockquote></span></pre>'
-    ]
+    ],
+    [
+      'an image (#1005)',
+      '<pre><img src="https://cdn.example.com/chart.png">  a\n  b</pre>'
+    ],
+    [
+      'an image in an inline element',
+      '<pre>x<span><img src="https://cdn.example.com/chart.png">  a\n  b</span></pre>'
+    ],
+    ['a line break', '<pre>x<br>  a\n  b</pre>']
   ])('gives a stable draft with %s', (_name, quoted) => {
     const quote =
       '<div data-html-block="quote"><cite>On Monday, Jane wrote:</cite>' +

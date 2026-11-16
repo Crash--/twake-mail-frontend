@@ -56,7 +56,7 @@ const fadeIn = (keyframes: string): string =>
  * The view transitions of a navigation run with `prepareViewTransition`:
  * - one view at a time below `slideBreakpoint` (900 px: phones, small
  *   tablets; 600 px under `WithoutTablets`): the item shows at once, and
- *   going back swipes it out to the end while the list comes back;
+ *   going back slides it down off the screen, over the list;
  * - otherwise (the item pane beside the list from 900 px, the item replacing
  *   the whole width on desktops): a lighter effect, the old view fading
  *   out, then the new one fading in with a short slide;
@@ -67,9 +67,8 @@ const fadeIn = (keyframes: string): string =>
  */
 function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
   return {
-    '@keyframes list-detail-out-end': { to: { transform: 'translateX(100%)' } },
-    '@keyframes list-detail-in-start': {
-      from: { transform: 'translateX(-30%)', opacity: 0.6 }
+    '@keyframes list-detail-out-down': {
+      to: { transform: 'translateY(100%)' }
     },
     '@keyframes list-detail-fade-out': { to: { opacity: 0 } },
     '@keyframes list-detail-fade-in-end': {
@@ -98,13 +97,19 @@ function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
     // The pane leaving on top when going back
     [`${backward}::view-transition-old(${PANE_TRANSITION})`]: { zIndex: 1 },
     [`@media (max-width:${slideBreakpoint - 0.05}px)`]: {
-      [`${forward}::view-transition-old(${PANE_TRANSITION}), ${forward}::view-transition-new(${PANE_TRANSITION})`]:
+      [`::view-transition-old(${PANE_TRANSITION}), ::view-transition-new(${PANE_TRANSITION})`]:
         { animation: 'none' },
-      [`${backward}::view-transition-old(${PANE_TRANSITION})`]: {
-        animation: slide('list-detail-out-end')
+      // Going back, the list stays where it lands (its group does not move
+      // from the item's rectangle to its own) and the item, held by the
+      // bottom it shares with the list, starts where it was and goes down
+      [`${backward}::view-transition-group(${PANE_TRANSITION})`]: {
+        animation: 'none',
+        overflow: 'visible'
       },
-      [`${backward}::view-transition-new(${PANE_TRANSITION})`]: {
-        animation: slide('list-detail-in-start')
+      [`${backward}::view-transition-old(${PANE_TRANSITION})`]: {
+        insetBlockStart: 'auto',
+        insetBlockEnd: 0,
+        animation: slide('list-detail-out-down')
       }
     },
     [`@media (min-width:${slideBreakpoint}px)`]: {

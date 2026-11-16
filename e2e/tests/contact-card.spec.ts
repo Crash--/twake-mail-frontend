@@ -46,7 +46,10 @@ test.describe('CRD the contact card of an address', () => {
           .toBeCloseTo(viewport.height, 0)
         expect((await card.boundingBox())?.width).toBeCloseTo(viewport.width, 0)
       } else {
-        expect((await card.boundingBox())?.width).toBeCloseTo(383, 0)
+        // twake-mui's small dialog, once it has grown in
+        await expect
+          .poll(async () => (await card.boundingBox())?.width)
+          .toBeCloseTo(480, 0)
       }
       await expectNoA11yViolations(page)
 
@@ -189,6 +192,37 @@ test.describe('CRD the contact card of an address', () => {
       email.addressCard.getByTestId('email-address-compose-item')
     ).toBeVisible()
     await expect(email.addressCard.getByRole('link')).toHaveCount(0)
+  })
+
+  test.describe('with reduced motion', () => {
+    test.use({ reducedMotion: 'reduce' })
+
+    test(
+      'CRD-07 with reduced motion, the bottom sheet of a phone is in place at once',
+      { tag: '@mobile' },
+      async ({ page, user, users, jmapFor }) => {
+        test.skip(
+          (page.viewportSize()?.width ?? 0) >= 600,
+          'a dialog above the phone size'
+        )
+        const alice = await users.create({ prefix: 'alice' })
+        await jmapFor(alice).sendEmail({
+          from: { name: 'Alice Martin', email: alice.email },
+          to: user.email,
+          subject: SUBJECT,
+          text: 'hello'
+        })
+        const mailbox = await new LoginPage(page).loginAs(user)
+        const email = await mailbox.openEmail(SUBJECT)
+
+        await email.addressButton(email.from, 'Alice Martin').click()
+        const name = email.addressCard.getByTestId('contact-card-name')
+        await expect(name).toBeVisible()
+        const first = (await name.boundingBox())?.y
+        await page.waitForTimeout(100)
+        expect((await name.boundingBox())?.y).toBe(first)
+      }
+    )
   })
 
   test.describe('in a conversation', () => {

@@ -1,8 +1,7 @@
-import { Icon, Cross } from '@linagora/twake-icons'
-import { Alert, Button, IconButton } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
+import { NoticeBanner } from '@/ds/NoticeBanner/NoticeBanner'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
@@ -83,36 +82,26 @@ export function SpamReportBanner({
   }
 
   return (
-    <Alert
+    <NoticeBanner
       ref={focusFallbackRef}
-      severity="info"
       // A live region: the banner comes when the mail arrives
       role="status"
       className="u-m-half"
-      action={
-        <>
-          <Button
-            color="inherit"
-            size="small"
-            onClick={handleView}
-            data-testid="spam-report-banner-view"
-          >
-            {t('spamReport.view')}
-          </Button>
-          <IconButton
-            color="inherit"
-            size="small"
-            aria-label={t('spamReport.dismiss')}
-            onClick={handleClose}
-            data-testid="spam-report-banner-dismiss"
-          >
-            <Icon icon={Cross} size={16} aria-hidden="true" />
-          </IconButton>
-        </>
-      }
+      actions={[
+        {
+          label: t('spamReport.view'),
+          onClick: handleView,
+          'data-testid': 'spam-report-banner-view'
+        }
+      ]}
+      dismiss={{
+        label: t('spamReport.dismiss'),
+        onClick: handleClose,
+        'data-testid': 'spam-report-banner-dismiss'
+      }}
       data-testid="spam-report-banner"
     >
       {t('spamReport.banner', { smart_count: unread })}
-    </Alert>
+    </NoticeBanner>
   )
 }

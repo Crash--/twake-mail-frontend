@@ -26,6 +26,25 @@ describe('NoticeBanner', () => {
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 
+  it('closes with a named button after its actions', async () => {
+    const onDismiss = jest.fn()
+    renderDs(
+      <NoticeBanner
+        actions={[{ label: 'View', onClick: () => undefined }]}
+        dismiss={{ label: 'Close', onClick: onDismiss }}
+      >
+        1 message in spam
+      </NoticeBanner>
+    )
+
+    const buttons = screen.getAllByRole('button')
+    expect(
+      buttons.map(button => button.textContent || button.ariaLabel)
+    ).toEqual(['View', 'Close'])
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(onDismiss).toHaveBeenCalledTimes(1)
+  })
+
   it('puts its action on a row of its own on a phone', () => {
     mockViewport({ width: 390, touch: true })
     renderDs(

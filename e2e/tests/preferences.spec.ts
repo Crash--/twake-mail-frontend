@@ -163,10 +163,9 @@ test.describe('SET preferences', () => {
 
       // A start that has passed is saved again as it was, not as the save time
       const { fromDate } = await savedVacation()
-      await expect(page.getByTestId('vacation-start-choice-now')).toHaveAttribute(
-        'aria-pressed',
-        'true'
-      )
+      await expect(
+        page.getByTestId('vacation-start-choice-now')
+      ).toHaveAttribute('aria-pressed', 'true')
       await page.getByTestId('vacation-subject-input').fill('Out of office')
       await page.getByTestId('vacation-save-button').click()
       await expect
@@ -234,6 +233,33 @@ test.describe('SET preferences', () => {
       mailbox.foldersTree.getByText('Projects', { exact: true })
     ).toBeVisible()
   })
+
+  test(
+    'SET-20 the unread spam banner keeps its text, View and its close button on one line when they fit',
+    { tag: '@mobile' },
+    async ({ page, user, jmap }) => {
+      const spam = await jmap.findMailboxByRole('junk')
+      await jmap.createEmailIn(spam.id, {
+        subject: 'Cheap pills',
+        keywords: {}
+      })
+
+      await new LoginPage(page).loginAs(user)
+      const banner = page.getByTestId('spam-report-banner')
+      await expect(banner).toBeVisible()
+      const text = await banner.getByText('1 message in spam').boundingBox()
+      for (const button of [
+        banner.getByRole('button', { name: 'View' }),
+        banner.getByRole('button', { name: 'Dismiss' })
+      ]) {
+        const box = await button.boundingBox()
+        // On the row of the text: its middle within the button
+        const middle = (text?.y ?? 0) + (text?.height ?? 0) / 2
+        expect(middle).toBeGreaterThan(box?.y ?? 0)
+        expect(middle).toBeLessThan((box?.y ?? 0) + (box?.height ?? 0))
+      }
+    }
+  )
 
   test('SET-14 unread spam shows a banner in the other folders, opened or dismissed from it, and turned off in Preferences', async ({
     page,

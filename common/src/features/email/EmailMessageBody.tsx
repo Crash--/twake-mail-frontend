@@ -189,6 +189,8 @@ export function EmailMessageBody({
       ) : null}
       {body?.hasBlockedRemoteContent ? (
         <RemoteContentBanner
+          // Room above too: right after the header, as the other banners
+          className="u-mv-1"
           onShow={handleShowRemoteContent}
           onAlwaysShow={sender ? handleAlwaysShowRemoteContent : null}
         />

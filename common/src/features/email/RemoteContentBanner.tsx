@@ -8,6 +8,8 @@ export interface RemoteContentBannerProps {
   onShow: () => void
   /** Shows it, now and for every email of this sender; absent without sender */
   onAlwaysShow: (() => void) | null
+  /** Its margins, depending on where it sits: room under it by default */
+  className?: string
 }
 
 /**
@@ -17,13 +19,14 @@ export interface RemoteContentBannerProps {
  */
 export function RemoteContentBanner({
   onShow,
-  onAlwaysShow
+  onAlwaysShow,
+  className = 'u-mb-1'
 }: RemoteContentBannerProps): ReactElement {
   const { t } = useI18n()
   return (
     <NoticeBanner
       role="status"
-      className="u-mb-1"
+      className={className}
       actions={[
         {
           label: t('email.remoteContent.show'),

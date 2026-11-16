@@ -21,7 +21,7 @@ export function TruncatedBodyBanner({
     <Alert
       severity="warning"
       role="status"
-      className="u-mb-1"
+      className="u-mv-1"
       data-testid="email-body-truncated"
       action={
         onDownload ? (

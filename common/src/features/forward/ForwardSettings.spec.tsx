@@ -290,10 +290,11 @@ describe('ForwardSettings', () => {
     const listbox = await screen.findByRole('listbox', {
       name: 'Contact suggestions'
     })
-    // Already forwarded to: ticked, as tmail-flutter
+    // Already forwarded to: not suggested again
+    await within(listbox).findByRole('option', { name: /Zelda Contact/ })
     expect(
-      within(listbox).getByRole('option', { name: /Zack Forwarded/ })
-    ).toHaveAccessibleName(/already added/)
+      within(listbox).queryByRole('option', { name: /Zack Forwarded/ })
+    ).toBe(null)
     await userEvent.click(
       within(listbox).getByRole('option', { name: /Zelda Contact/ })
     )

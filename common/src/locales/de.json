@@ -418,7 +418,6 @@
       "suggestionCount": "%{smart_count} Vorschlag |||| %{smart_count} Vorschläge",
       "summary": "Alle Empfänger anzeigen:",
       "others": "+%{smart_count}",
-      "alreadyAdded": "bereits hinzugefügt",
       "editEmail": "E-Mail bearbeiten",
       "createRule": "Regel erstellen",
       "moveHelp": "Alt+Pfeil nach oben oder Alt+Pfeil nach unten verschiebt sie in das Feld darüber oder darunter.",

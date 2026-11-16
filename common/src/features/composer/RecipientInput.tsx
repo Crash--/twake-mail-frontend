@@ -80,7 +80,8 @@ export function RecipientInput({
   const { session } = useJmapSession()
   const hasRules = LINAGORA_CAPABILITIES.filter in session.capabilities
   const { contacts, loadMore } = useContactSuggestions(inputValue)
-  // As tmail-flutter: the contacts already entered stay, ticked
+  // As twake-mui's MemberAutocomplete: the recipients of this field are not
+  // suggested again
   const suggestions = useMemo(
     () =>
       withTypedAddressFirst(
@@ -89,17 +90,12 @@ export function RecipientInput({
           return {
             id: contact.emailAddress,
             label: name ?? contact.emailAddress,
-            ...(name === null ? {} : { secondary: contact.emailAddress }),
-            isAdded: hasRecipient(recipients, contact.emailAddress)
+            ...(name === null ? {} : { secondary: contact.emailAddress })
           }
         }),
         inputValue,
-        email => ({
-          id: email,
-          label: email,
-          isAdded: hasRecipient(recipients, email)
-        })
-      ),
+        email => ({ id: email, label: email })
+      ).filter(suggestion => !hasRecipient(recipients, suggestion.id)),
     [contacts, recipients, inputValue]
   )
 
@@ -191,7 +187,6 @@ export function RecipientInput({
       labels={{
         field: label,
         suggestions: t('composer.recipients.suggestions'),
-        alreadyAdded: t('composer.recipients.alreadyAdded'),
         invalid: t('composer.recipients.invalid'),
         chipHelp:
           dnd?.onMoveBy === undefined

@@ -7,6 +7,7 @@ import {
   Box,
   Chip,
   InputBase,
+  List,
   Paper,
   Popper,
   radius,
@@ -66,15 +67,7 @@ function popperOptionsIn(window: HTMLElement): PopperProps['popperOptions'] {
   }
 }
 /** The suggestions: as wide as the chips and the input, at most 300 px high */
-const PAPER_SX = {
-  mt: 0.5,
-  maxHeight: 300,
-  overflowY: 'auto',
-  borderRadius: radius.lg,
-  bgcolor: 'background.paper',
-  boxShadow: 8
-} as const
-const LIST_SX = { listStyle: 'none', m: 0, p: 0 } as const
+const PAPER_SX = { mt: 0.5, maxHeight: 300, overflowY: 'auto' } as const
 /** How close to the end of the suggestions scrolling asks for more, in px */
 const LOAD_MORE_THRESHOLD = 60
 /**
@@ -210,8 +203,6 @@ export interface RecipientFieldSuggestion {
   id: string
   label: string
   secondary?: string
-  /** Already entered: listed with a tick, as tmail-flutter, not picked again */
-  isAdded?: boolean
 }
 
 export interface RecipientFieldLabels {
@@ -219,8 +210,6 @@ export interface RecipientFieldLabels {
   field: string
   /** Name of the list of suggestions */
   suggestions: string
-  /** Said after a suggestion already entered */
-  alreadyAdded: string
   /** Appended to the name of an invalid chip */
   invalid: string
   /** How to act on a chip, read after its name */
@@ -964,7 +953,7 @@ export function RecipientField({
         sx={{ ...POPUP_SX, width: content?.offsetWidth }}
       >
         <Paper
-          elevation={0}
+          elevation={8}
           sx={PAPER_SX}
           onMouseDown={keepFocus}
           onScroll={event => {
@@ -974,12 +963,10 @@ export function RecipientField({
             if (rest <= LOAD_MORE_THRESHOLD) onLoadMore?.()
           }}
         >
-          <Box
-            component="ul"
+          <List
             id={listboxId}
             role="listbox"
             aria-label={labels.suggestions}
-            sx={LIST_SX}
             data-testid={testIds.listbox}
           >
             {suggestions.map(suggestion => (
@@ -988,8 +975,6 @@ export function RecipientField({
                 id={optionId(suggestion.id)}
                 label={suggestion.label}
                 secondary={suggestion.secondary}
-                isAdded={suggestion.isAdded === true}
-                addedLabel={labels.alreadyAdded}
                 query={inputValue.trim()}
                 isActive={active?.id === suggestion.id}
                 onSelect={() => {
@@ -997,7 +982,7 @@ export function RecipientField({
                 }}
               />
             ))}
-          </Box>
+          </List>
         </Paper>
       </Popper>
       <Box id={chipHelpId} className="u-visuallyhidden">

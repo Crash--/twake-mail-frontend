@@ -418,7 +418,6 @@
       "suggestionCount": "%{smart_count} предложение |||| %{smart_count} предложения |||| %{smart_count} предложений",
       "summary": "Показать всех получателей:",
       "others": "+%{smart_count}",
-      "alreadyAdded": "уже добавлен",
       "editEmail": "Изменить адрес",
       "createRule": "Создать правило",
       "moveHelp": "Alt+Вверх или Alt+Вниз переносит его в поле выше или ниже.",

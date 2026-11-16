@@ -418,7 +418,6 @@
       "suggestionCount": "%{smart_count} sugerencia |||| %{smart_count} sugerencias",
       "summary": "Mostrar todos los destinatarios:",
       "others": "+%{smart_count}",
-      "alreadyAdded": "ya añadido",
       "editEmail": "Editar la dirección",
       "createRule": "Crear una regla",
       "moveHelp": "Alt+Arriba o Alt+Abajo lo mueve al campo de arriba o de abajo.",

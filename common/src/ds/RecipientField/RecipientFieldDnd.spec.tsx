@@ -8,7 +8,6 @@ import { RecipientField, type RecipientFieldChip } from './RecipientField'
 
 const LABELS = {
   suggestions: 'Suggestions',
-  alreadyAdded: 'already added',
   invalid: 'invalid address',
   chipHelp: 'Delete removes it',
   removed: (label: string) => `${label} removed`,

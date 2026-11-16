@@ -58,6 +58,34 @@ describe('MessageThread', () => {
     expect(screen.getByText('Body of a')).toBeVisible()
   })
 
+  it('shows what goes under the header in the surface of its hover, outside the toggle and the message', async () => {
+    const onToggle = jest.fn()
+    renderDs(
+      <MessageThread label="Messages of the conversation">
+        <MessageThreadItem
+          isExpanded
+          onToggle={onToggle}
+          header="Message a"
+          headerBelow={<button type="button">To: Bob</button>}
+        >
+          <p>Body of a</p>
+        </MessageThreadItem>
+      </MessageThread>
+    )
+
+    const toggle = screen.getByRole('button', { name: 'Message a' })
+    const below = screen.getByRole('button', { name: 'To: Bob' })
+    // The surface: the parent of the row holding the heading of the toggle
+    const surface = toggle.closest('h2')?.parentElement?.parentElement
+    expect(surface).toContainElement(below)
+    expect(toggle).not.toContainElement(below)
+    expect(
+      screen.getByRole('region', { name: 'Message a' })
+    ).not.toContainElement(below)
+    await userEvent.click(below)
+    expect(onToggle).not.toHaveBeenCalled()
+  })
+
   it('puts the toggle of each message in a level-2 heading', () => {
     renderDs(<Thread />)
 

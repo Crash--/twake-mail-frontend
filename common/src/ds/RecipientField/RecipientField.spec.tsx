@@ -10,6 +10,7 @@ import {
   type RecipientFieldChip,
   type RecipientFieldSuggestion
 } from './RecipientField'
+import { RecipientSummary } from './RecipientSummary'
 
 const LABELS = {
   field: 'To',
@@ -447,5 +448,41 @@ describe('RecipientField avatar', () => {
       'aria-hidden',
       'true'
     )
+  })
+
+  it('keeps the colour of a chip once the field folds into its summary', () => {
+    const carol: RecipientFieldChip = {
+      id: 'carol@example.com',
+      label: 'Carol Petit',
+      isInvalid: false,
+      avatar: 'Carol Petit',
+      avatarKey: 'carol@example.com'
+    }
+    renderDs(
+      <>
+        <RecipientField
+          labels={LABELS}
+          chips={[carol]}
+          inputValue=""
+          onInputChange={jest.fn()}
+          onCommit={jest.fn()}
+          onRemove={jest.fn()}
+          onEdit={jest.fn()}
+          onCancelEdit={jest.fn()}
+          suggestions={[]}
+          onSelectSuggestion={jest.fn()}
+        />
+        <RecipientSummary
+          chips={[carol]}
+          label="Show all the recipients:"
+          moreLabel={count => `+${String(count)}`}
+          onExpand={jest.fn()}
+        />
+      </>
+    )
+
+    const [inField, inSummary] = document.querySelectorAll('[data-letter="C"]')
+    expect(inField).toBeDefined()
+    expect(inSummary?.className).toBe(inField?.className)
   })
 })

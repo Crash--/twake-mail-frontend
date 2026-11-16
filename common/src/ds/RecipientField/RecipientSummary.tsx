@@ -43,7 +43,10 @@ function SummaryChip({ chip }: { chip: RecipientFieldChip }): ReactElement {
       color={chip.isInvalid ? 'error' : 'default'}
       avatar={
         chip.isInvalid || chip.avatar === undefined ? undefined : (
-          <RecipientAvatar of={chip.avatar} />
+          <RecipientAvatar
+            of={chip.avatar}
+            colorKey={chip.avatarKey ?? chip.avatar}
+          />
         )
       }
       icon={

@@ -96,6 +96,18 @@ describe('summarizeThread', () => {
     expect(summary.count).toBe(4)
   })
 
+  it('names the owner of the mailbox as the email does without a label for them', () => {
+    const summary = summarizeThread(
+      [
+        member('m1', { name: 'Alice QA', email: ME }),
+        member('m2', { email: 'bob@example.com' })
+      ],
+      { ...context(), meLabel: null }
+    )
+
+    expect(summary.participants).toEqual(['Alice QA', 'bob@example.com'])
+  })
+
   it('takes the state of any of its emails', () => {
     const summary = summarizeThread(
       [

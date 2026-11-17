@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import type { WebSocketLike } from 'jmap-client-ts'
 import { useState, type ReactElement } from 'react'
 
+import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
 import { EmailList } from '@common/features/thread/EmailList'
 import {
@@ -412,6 +413,39 @@ describe('PushProvider', () => {
     result.unmount()
 
     expect(socket.isClosed).toBe(true)
+  })
+
+  it('shows a delegation granted meanwhile when the page comes back', async () => {
+    const server = makeServer()
+    renderWithProviders(
+      <PushProvider WebSocket={FakeWebSocket}>
+        <MailboxSwitcherButton />
+      </PushProvider>,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await waitFor(() => {
+      expect(server.calledMethods()).toContain('Mailbox/get')
+    })
+    expect(screen.queryByTestId('mailbox-switcher-button')).toBe(null)
+
+    server.delegatedAccounts.push({
+      accountId: 'account-boss',
+      name: 'boss@example.com'
+    })
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'Switch mailbox, viewing my email'
+      })
+    )
+    expect(
+      within(screen.getByRole('menu')).getByRole('menuitemradio', {
+        name: /boss@example\.com/
+      })
+    ).toBeVisible()
   })
 
   describe('in a mailbox delegated to the user', () => {

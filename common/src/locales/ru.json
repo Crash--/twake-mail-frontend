@@ -224,7 +224,7 @@
     "deletePermanently": "Удалить беседу навсегда",
     "notSpam": "Убрать беседу из спама",
     "selection": {
-      "count": "%{count} выбрано",
+      "count": "Выбран %{smart_count} элемент |||| Выбрано %{smart_count} элемента |||| Выбрано %{smart_count} элементов",
       "selectAll": "Выбрать все",
       "selectPage": "Выбрать все сообщения на этой странице",
       "select": "Выбрать %{subject}",
@@ -1209,7 +1209,7 @@
     "emptyText": "Добавьте адрес выше, и каждое новое письмо будет также отправляться на него.",
     "recipientCount": "%{smart_count} получатель |||| %{smart_count} получателя |||| %{smart_count} получателей",
     "selectAll": "Выбрать все",
-    "selectedCount": "%{count} выбрано",
+    "selectedCount": "Выбран %{smart_count} элемент |||| Выбрано %{smart_count} элемента |||| Выбрано %{smart_count} элементов",
     "deselectAll": "Отменить выбор всех (%{count})",
     "remove": "Удалить",
     "deleteAll": {

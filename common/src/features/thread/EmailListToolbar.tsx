@@ -182,7 +182,7 @@ export function EmailListToolbar({
     <SelectionCount data-testid="selection-toolbar-count">
       {selection.isAllInFolder
         ? t('thread.selection.allInFolderSelected', { smart_count: count })
-        : t('thread.selection.count', { count })}
+        : t('thread.selection.count', { smart_count: count })}
     </SelectionCount>
   )
   const actionButtons = buttons.map(item => (

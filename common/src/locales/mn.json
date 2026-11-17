@@ -224,7 +224,7 @@
     "deletePermanently": "Харилцан яриаг бүрмөсөн устгах",
     "notSpam": "Харилцан яриаг спамаас гаргах",
     "selection": {
-      "count": "%{count} сонгогдсон",
+      "count": "%{smart_count} сонгогдсон",
       "selectAll": "Бүгдийг сонгох",
       "selectPage": "Энэ хуудасны бүх мессежийг сонгох",
       "select": "%{subject}-г сонгох",
@@ -1209,7 +1209,7 @@
     "emptyText": "Дээр хаяг нэмбэл ирсэн шинэ имэйл бүр тэнд бас илгээгдэнэ.",
     "recipientCount": "%{smart_count} хүлээн авагч |||| %{smart_count} хүлээн авагч",
     "selectAll": "Бүгдийг сонгох",
-    "selectedCount": "%{count} сонгогдсон",
+    "selectedCount": "%{smart_count} сонгогдсон",
     "deselectAll": "Бүх сонголтыг цуцлах (%{count})",
     "remove": "Хасах",
     "deleteAll": {

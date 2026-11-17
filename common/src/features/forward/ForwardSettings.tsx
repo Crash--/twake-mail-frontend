@@ -425,7 +425,9 @@ export function ForwardSettings({
             {/* The number selected, said as it changes (RGAA 7.5) */}
             <LiveRegion data-testid="forward-selection-status">
               {selection.length > 0
-                ? t('forward.selectedCount', { count: selection.length })
+                ? t('forward.selectedCount', {
+                    smart_count: selection.length
+                  })
                 : null}
             </LiveRegion>
             <SettingsListHeader>
@@ -436,7 +438,7 @@ export function ForwardSettings({
                       isAllSelected
                         ? t('forward.deselectAll', { count: selection.length })
                         : t('forward.selectedCount', {
-                            count: selection.length
+                            smart_count: selection.length
                           })
                     }
                     icon={<Icon icon={Cross} size={20} aria-hidden="true" />}

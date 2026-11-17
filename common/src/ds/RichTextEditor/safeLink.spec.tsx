@@ -55,7 +55,8 @@ describe('SafeLink', () => {
     expect(editor.getText()).toContain(HYPHENATED_RUN)
     expect(linkHrefs(editor)).toEqual([
       'https://example.com/ok',
-      'http://example.org'
+      // The configured `defaultProtocol`, a pasted bare domain too
+      'https://example.org'
     ])
   })
 

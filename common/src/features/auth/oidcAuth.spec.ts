@@ -75,6 +75,16 @@ function makeTokenSet(
   return Object.assign(response, helpers)
 }
 
+type RefreshResponse = Awaited<ReturnType<typeof client.refreshTokenGrant>>
+
+/**
+ * A token set as `refreshTokenGrant` resolves it: openid-client brands it
+ * with a symbol it does not export, so a test can only assert the brand
+ */
+function asRefreshResponse(tokens: TokenSet): RefreshResponse {
+  return tokens as RefreshResponse
+}
+
 function makeLoginResult(
   tokenSet: TokenSet,
   {
@@ -287,7 +297,7 @@ describe('createOidcAuthService', () => {
   describe('refresh', () => {
     it('sends a single refresh request for concurrent callers', async () => {
       const service = await signIn()
-      let resolveRefresh: (response: TokenSet) => void = () => undefined
+      let resolveRefresh: (response: RefreshResponse) => void = () => undefined
       mockedClient.refreshTokenGrant.mockReturnValueOnce(
         new Promise(resolve => {
           resolveRefresh = resolve
@@ -299,7 +309,7 @@ describe('createOidcAuthService', () => {
         service.refresh(),
         service.onUnauthorized()
       ])
-      resolveRefresh(makeTokenSet('access-2'))
+      resolveRefresh(asRefreshResponse(makeTokenSet('access-2')))
 
       await expect(results).resolves.toEqual([true, true, true])
       expect(mockedClient.refreshTokenGrant).toHaveBeenCalledTimes(1)
@@ -316,8 +326,8 @@ describe('createOidcAuthService', () => {
     it('starts a new request once the previous one is over', async () => {
       const service = await signIn()
       mockedClient.refreshTokenGrant
-        .mockResolvedValueOnce(makeTokenSet('access-2'))
-        .mockResolvedValueOnce(makeTokenSet('access-3'))
+        .mockResolvedValueOnce(asRefreshResponse(makeTokenSet('access-2')))
+        .mockResolvedValueOnce(asRefreshResponse(makeTokenSet('access-3')))
 
       await service.refresh()
       await service.refresh()
@@ -332,7 +342,7 @@ describe('createOidcAuthService', () => {
     it('renews the tokens a minute before they expire', async () => {
       const service = await signIn()
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenSet('access-2')
+        asRefreshResponse(makeTokenSet('access-2'))
       )
 
       await jest.advanceTimersByTimeAsync(239_000)
@@ -351,7 +361,7 @@ describe('createOidcAuthService', () => {
       jest.clearAllTimers()
       jest.setSystemTime(Date.now() + 300_000)
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenSet('access-2')
+        asRefreshResponse(makeTokenSet('access-2'))
       )
 
       await expect(service.getAuthorizationHeader()).resolves.toBe(
@@ -364,7 +374,7 @@ describe('createOidcAuthService', () => {
     it('lets the request be retried when the refresh succeeds', async () => {
       const service = await signIn()
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenSet('access-2')
+        asRefreshResponse(makeTokenSet('access-2'))
       )
 
       await expect(service.onUnauthorized()).resolves.toBe(true)
@@ -428,10 +438,12 @@ describe('createOidcAuthService', () => {
       const service = await signIn()
       const { id_token: _, ...withoutIdToken } = makeTokenSet('access-2')
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        Object.assign(withoutIdToken, {
-          expiresIn: () => 300,
-          claims: () => undefined
-        })
+        asRefreshResponse(
+          Object.assign(withoutIdToken, {
+            expiresIn: () => 300,
+            claims: () => undefined
+          })
+        )
       )
 
       await service.refresh()
@@ -467,7 +479,7 @@ describe('createOidcAuthService', () => {
       )
       await service.handleCallback()
       mockedClient.refreshTokenGrant.mockResolvedValueOnce(
-        makeTokenSet('access-2', { profile: {} })
+        asRefreshResponse(makeTokenSet('access-2', { profile: {} }))
       )
 
       await service.refresh()

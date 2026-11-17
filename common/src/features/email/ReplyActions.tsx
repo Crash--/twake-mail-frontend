@@ -16,10 +16,12 @@ export interface ReplyActionsProps {
   email: EmailDetail
 }
 
+// Reply fills its box with a single arrow: at 15 px it is as high as the
+// double arrows of Reply all and Forward at 20, as the Figma draws them
 const ICONS: Record<ReplyAction, ReactNode> = {
-  reply: <Icon icon={Reply} size={20} aria-hidden="true" />,
+  reply: <Icon icon={Reply} size={15} aria-hidden="true" />,
   replyAll: <Icon icon={ReplyAll} size={20} aria-hidden="true" />,
-  replyToList: <Icon icon={Reply} size={20} aria-hidden="true" />,
+  replyToList: <Icon icon={Reply} size={15} aria-hidden="true" />,
   forward: <Icon icon={Forward} size={20} aria-hidden="true" />
 }
 

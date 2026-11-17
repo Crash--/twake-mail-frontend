@@ -4,6 +4,10 @@ import {
   THEME_PREFERENCE_STORAGE_KEY,
   themePreference
 } from '@common/features/settings/themePreference'
+import {
+  LEGACY_MEDIA_LISTENERS,
+  type MediaQueryListMock
+} from '@/ds/testing/mockViewport'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 describe('ColorSchemeSync', () => {
@@ -33,15 +37,18 @@ describe('ColorSchemeSync', () => {
   it('follows the system with `auto`', async () => {
     const original = Object.getOwnPropertyDescriptor(window, 'matchMedia')
     // A system in the dark scheme
-    window.matchMedia = (query: string): MediaQueryList => ({
-      matches: query.includes('dark'),
-      media: query,
-      onchange: null,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-      addListener: () => undefined,
-      removeListener: () => undefined,
-      dispatchEvent: () => false
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: (query: string): MediaQueryListMock => ({
+        ...LEGACY_MEDIA_LISTENERS,
+        matches: query.includes('dark'),
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false
+      })
     })
     try {
       window.localStorage.setItem(THEME_PREFERENCE_STORAGE_KEY, 'auto')

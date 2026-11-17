@@ -37,6 +37,8 @@ config:
   forwardWarningMessage: Do not forward "outside" <example.com>
   tdrive:
     enabled: true
+  newVersionCheck:
+    enabled: true
   extraEnvJs: |
     var SOME_FUTURE_SETTING = 'value'
 csp:

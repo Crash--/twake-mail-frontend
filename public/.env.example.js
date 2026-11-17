@@ -110,6 +110,11 @@ var WORKPLACE_EMBEDDING = false
 // claim or WORKPLACE_FQDN_FALLBACK), when Twake Drive is installed there.
 var TDRIVE_ENABLED = false
 
+// "New version available": a tab reads /version.json (written by the image)
+// every 10 minutes and on focus, and offers a reload once it names another
+// build than the one running. Off when unset.
+var NEW_VERSION_CHECK_ENABLED = false
+
 // Keys of tmail-flutter that this app ignores: APP_GRID_AVAILABLE (the apps
 // are those of the platform top bar), FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,

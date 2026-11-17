@@ -156,6 +156,7 @@ docker run -d --name "$ENV_FILE_NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
   -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false -e SENTRY_FEEDBACK_ENABLED=true \
   -e "TWAKE_SPACE_URL=https://space.example.com/it's" -e TDRIVE_ENABLED=true \
+  -e NEW_VERSION_CHECK_ENABLED=true \
   -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
   -v "$CONFIG_DIR/logo.svg:/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg:ro" \
   "$IMAGE" >/dev/null
@@ -169,6 +170,7 @@ expect 'env.file: /.env.js generated' "$env_js" "*var SERVER_URL = 'https://jmap
 expect 'env.file: quotes removed' "$env_js" "*var WEB_OIDC_CLIENT_ID = 'teammail-web';*"
 expect 'env.file: TWAKE_SPACE_URL from the environment' "$env_js" "*var TWAKE_SPACE_URL = 'https://space.example.com/it\\\\'s';*"
 expect 'env.file: TDRIVE_ENABLED from the environment' "$env_js" "*var TDRIVE_ENABLED = 'true';*"
+expect 'env.file: NEW_VERSION_CHECK_ENABLED from the environment' "$env_js" "*var NEW_VERSION_CHECK_ENABLED = 'true';*"
 expect 'env.file: trailing comment removed' "$env_js" "*var OIDC_SCOPES = 'openid,profile,email,offline_access';*"
 forward_line="$(grep '^var FORWARD_WARNING_MESSAGE' <<<"$env_js" || true)"
 expected_line='var FORWARD_WARNING_MESSAGE = '"'It\\'s a \\\\ test';"

@@ -65,9 +65,19 @@ describe('resolveConfig', () => {
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveEnabled: false,
+        newVersionCheckEnabled: false,
         appVersion: 'dev'
       })
     })
+  })
+
+  it('turns the new version check on with NEW_VERSION_CHECK_ENABLED', () => {
+    expect(
+      resolveConfig(
+        { ...OIDC_SOURCE, NEW_VERSION_CHECK_ENABLED: 'true' },
+        ORIGIN
+      )
+    ).toMatchObject({ value: { newVersionCheckEnabled: true } })
   })
 
   it('reads the forwarding warning, without its surrounding spaces', () => {

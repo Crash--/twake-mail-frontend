@@ -224,7 +224,7 @@
     "deletePermanently": "Unterhaltung endgültig löschen",
     "notSpam": "Unterhaltung aus dem Spam entfernen",
     "selection": {
-      "count": "%{count} ausgewählt",
+      "count": "%{smart_count} ausgewählt",
       "selectAll": "Alles auswählen",
       "selectPage": "Alle Nachrichten dieser Seite auswählen",
       "select": "%{subject} auswählen",
@@ -1209,7 +1209,7 @@
     "emptyText": "Fügen Sie oben eine Adresse hinzu, und jede neue E-Mail wird auch dorthin gesendet.",
     "recipientCount": "%{smart_count} Empfänger |||| %{smart_count} Empfänger",
     "selectAll": "Alles auswählen",
-    "selectedCount": "%{count} ausgewählt",
+    "selectedCount": "%{smart_count} ausgewählt",
     "deselectAll": "Alle abwählen (%{count})",
     "remove": "Entfernen",
     "deleteAll": {

@@ -8,6 +8,7 @@ import {
   SETTINGS_SECTIONS,
   type SettingsSection
 } from '@common/features/settings/sections'
+import type { SupportedLanguage } from '@common/i18n/languages'
 import {
   FAKE_USERNAME,
   makeFakeJmapServer,
@@ -42,7 +43,8 @@ function withWarning(ui: ReactElement, message: string): ReactElement {
 
 function setup(
   forwards: string[] = [],
-  warning: string | null = null
+  warning: string | null = null,
+  lang: SupportedLanguage = 'en'
 ): ReturnType<typeof installFakeForward> & { server: FakeJmapServer } {
   const server = makeFakeJmapServer({
     capabilities: {
@@ -68,7 +70,8 @@ function setup(
   const ui = <ForwardSettings section={forwardingSection()} />
   renderWithProviders(warning === null ? ui : withWarning(ui, warning), {
     jmapServer: server,
-    withJmapSession: true
+    withJmapSession: true,
+    lang
   })
   return { ...fake, server }
 }
@@ -361,4 +364,28 @@ describe('ForwardSettings', () => {
     )
     expect(screen.getByTestId('forward-selection-status')).toHaveTextContent('')
   })
+  it.each([
+    ['fr', '1 sélectionné', '2 sélectionnés'],
+    ['es', '1 seleccionado', '2 seleccionados'],
+    ['it', '1 selezionato', '2 selezionati'],
+    ['ru', 'Выбран 1 элемент', 'Выбрано 2 элемента']
+  ] as const)(
+    'agrees the selected count with the number in %s',
+    async (lang, one, two) => {
+      setup(['bob@example.com', 'carol@example.com'], null, lang)
+
+      await userEvent.click(
+        await screen.findByRole('checkbox', { name: /bob@example\.com/ })
+      )
+      expect(screen.getByTestId('forward-selection-status').textContent).toBe(
+        one
+      )
+      await userEvent.click(
+        screen.getByRole('checkbox', { name: /carol@example\.com/ })
+      )
+      expect(screen.getByTestId('forward-selection-status').textContent).toBe(
+        two
+      )
+    }
+  )
 })

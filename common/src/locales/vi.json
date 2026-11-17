@@ -224,7 +224,7 @@
     "deletePermanently": "Xoá vĩnh viễn hội thoại",
     "notSpam": "Xoá hội thoại khỏi thư mục Spam",
     "selection": {
-      "count": "Đã chọn %{count}",
+      "count": "Đã chọn %{smart_count}",
       "selectAll": "Chọn tất cả",
       "selectPage": "Chọn tất cả tin nhắn của trang này",
       "select": "Chọn %{subject}",
@@ -1209,7 +1209,7 @@
     "emptyText": "Thêm một địa chỉ ở trên và mọi email mới bạn nhận được cũng sẽ được gửi đến đó.",
     "recipientCount": "%{smart_count} người nhận",
     "selectAll": "Chọn tất cả",
-    "selectedCount": "Chọn %{count}",
+    "selectedCount": "Chọn %{smart_count}",
     "deselectAll": "Bỏ chọn tất cả (%{count})",
     "remove": "Xóa",
     "deleteAll": {

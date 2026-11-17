@@ -224,7 +224,7 @@
     "deletePermanently": "Elimina definitivamente la conversazione",
     "notSpam": "Rimuovi la conversazione dallo spam",
     "selection": {
-      "count": "%{count} selezionato",
+      "count": "%{smart_count} selezionato |||| %{smart_count} selezionati",
       "selectAll": "Seleziona tutti",
       "selectPage": "Seleziona tutti i messaggi di questa pagina",
       "select": "Seleziona %{subject}",
@@ -1209,7 +1209,7 @@
     "emptyText": "Aggiungi un indirizzo qui sopra e ogni nuova email ricevuta verrà inviata anche lì.",
     "recipientCount": "%{smart_count} destinatario |||| %{smart_count} destinatari",
     "selectAll": "Seleziona tutti",
-    "selectedCount": "%{count} selezionato",
+    "selectedCount": "%{smart_count} selezionato |||| %{smart_count} selezionati",
     "deselectAll": "Deselezionare tutto (%{count})",
     "remove": "Rimuovere",
     "deleteAll": {

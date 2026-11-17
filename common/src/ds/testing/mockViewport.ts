@@ -6,7 +6,22 @@ export interface Viewport {
   reducedMotion?: boolean
 }
 
-type MatchMedia = (query: string) => MediaQueryList
+/** A media query list without its deprecated listeners, added apart */
+export type MediaQueryListMock = Omit<
+  MediaQueryList,
+  'addListener' | 'removeListener'
+>
+
+/**
+ * MUI's `useCurrentColorScheme` still calls the deprecated `addListener`
+ * (old Safari): spread into a mock, outside of its `MediaQueryList` type
+ */
+export const LEGACY_MEDIA_LISTENERS = {
+  addListener: () => undefined,
+  removeListener: () => undefined
+}
+
+type MatchMedia = (query: string) => MediaQueryListMock
 
 function matchesCondition(condition: string, viewport: Viewport): boolean {
   const feature = /\(\s*([a-z-]+)\s*:\s*([^)]+?)\s*\)/.exec(condition)
@@ -42,14 +57,13 @@ export function matchesViewport(query: string, viewport: Viewport): boolean {
 }
 
 function makeMatchMedia(viewport: Viewport): MatchMedia {
-  return (query: string): MediaQueryList => ({
+  return (query: string): MediaQueryListMock => ({
+    ...LEGACY_MEDIA_LISTENERS,
     matches: matchesViewport(query, viewport),
     media: query,
     onchange: null,
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
-    addListener: () => undefined,
-    removeListener: () => undefined,
     dispatchEvent: () => false
   })
 }

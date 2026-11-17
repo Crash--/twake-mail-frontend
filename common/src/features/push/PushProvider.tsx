@@ -28,6 +28,12 @@ const PING_INTERVAL_MS = 30_000
  */
 export const DELEGATED_POLL_INTERVAL_MS = 30_000
 
+/**
+ * How often the session is read again: its accounts change (a delegation
+ * granted or taken back) with no response nor push telling it
+ */
+export const SESSION_POLL_INTERVAL_MS = 30_000
+
 export interface PushProviderProps {
   children: ReactNode
   /** WebSocket implementation, the browser's by default (tests) */
@@ -53,6 +59,29 @@ export function PushProvider({
   const queryClient = useQueryClient()
   const isDelegated = accountId !== ownAccountId
 
+  // In every view: tmail-backend keeps the same session state when its
+  // accounts change, so a delegation granted or taken back shows only once
+  // the session is read again, regularly, back online, and when the page
+  // comes back to the front
+  useEffect(() => {
+    const reload = (): void => {
+      reloadSession(client, queryClient).catch((error: unknown) => {
+        console.error('[push] Cannot read the session again', error)
+      })
+    }
+    const handleVisibility = (): void => {
+      if (document.visibilityState === 'visible') reload()
+    }
+    const timer = window.setInterval(reload, SESSION_POLL_INTERVAL_MS)
+    window.addEventListener('online', reload)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('online', reload)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [client, queryClient])
+
   // A delegated mailbox: no push (the channel is scoped to the user's own
   // account), its changes are caught up regularly, back online, and when
   // the page comes back to the front
@@ -61,10 +90,6 @@ export function PushProvider({
     const sync = createPushSync(queryClient, client, accountId)
     const catchUp = (): void => {
       sync.catchUp()
-      // The delegation may have been taken back meanwhile
-      reloadSession(client, queryClient).catch((error: unknown) => {
-        console.error('[push] Cannot read the session again', error)
-      })
     }
     const handleVisibility = (): void => {
       if (document.visibilityState === 'visible') catchUp()

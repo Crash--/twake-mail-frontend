@@ -87,6 +87,11 @@ export interface AppConfig {
    * the Workplace of the user when Drive is installed there
    */
   tdriveEnabled: boolean
+  /**
+   * Reads `/version.json` and offers a reload when it names another build
+   * than the bundle's (`NEW_VERSION_CHECK_ENABLED`)
+   */
+  newVersionCheckEnabled: boolean
   appVersion: string
 }
 
@@ -125,6 +130,7 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_EMBEDDING'
   | 'SENTRY_FEEDBACK_ENABLED'
   | 'TDRIVE_ENABLED'
+  | 'NEW_VERSION_CHECK_ENABLED'
   | 'APP_VERSION'
 
 /**
@@ -415,6 +421,7 @@ export function resolveConfig(
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
+      newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

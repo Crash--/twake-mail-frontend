@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- A tab opened before a new version was deployed offers to reload the page
-  ("New version available"). "Not now" declines that version: the dialog
-  comes back with the next one. The image serves `/version.json`, never
-  cached.
+- With `NEW_VERSION_CHECK_ENABLED = true` (off by default), a tab opened
+  before a new version was deployed offers to reload the page ("What's new in
+  Twake Mail"). "Not now" declines that version: the dialog comes back with
+  the next one. The image serves `/version.json`, never cached.
 
 ## [0.13.0] - 2026-11-16
 

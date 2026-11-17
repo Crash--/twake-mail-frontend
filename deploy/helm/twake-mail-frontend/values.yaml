@@ -153,6 +153,10 @@ config:
   # installed there. Allow the Drive hosts in csp.frameSrc
   tdrive:
     enabled: false
+  # -- "New version available": an open tab reads /version.json and offers a
+  # reload once the image serves another build
+  newVersionCheck:
+    enabled: false
   # -- JavaScript appended to .env.js as is, for a variable this chart does not
   # know yet
   extraEnvJs: ""

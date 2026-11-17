@@ -141,7 +141,7 @@ looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
-`TDRIVE_ENABLED`. tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.
@@ -218,8 +218,9 @@ The env.file of the `linagora/tmail-frontend` chart has no key for the
 feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
 generated `/.env.js` when the `env.file` has no such key, as are
-`TWAKE_SPACE_URL` and `TDRIVE_ENABLED` (the
-[Twake Drive picker](#twake-drive-picker)).
+`TWAKE_SPACE_URL`, `TDRIVE_ENABLED` (the
+[Twake Drive picker](#twake-drive-picker)) and `NEW_VERSION_CHECK_ENABLED`
+([New version available](#new-version-available)).
 
 ### Custom logotype
 
@@ -651,6 +652,18 @@ Register a public client (no secret) using Authorization Code with PKCE
   `https://<app>/`;
 - scopes `openid profile email offline_access`, refresh tokens allowed;
 - the access token must be accepted by tmail-backend (its OIDC audience).
+
+## New version available
+
+Off unless `NEW_VERSION_CHECK_ENABLED = true`. An open tab then reads
+`/version.json` every 10 minutes, when it gets the focus or comes back online,
+and when a part of the app fails to load. Once the file names another build
+than the one running, a dialog offers to reload; "Not now" declines that
+build until the next one. The image writes `/version.json` and serves it
+uncached; with the setting off, nothing asks for it.
+
+With the `linagora/tmail-frontend` chart, set it in the environment of the
+container (`extraEnv`, see [Mounting an `env.file`](#mounting-an-envfile)).
 
 ## Intents served by Twake Mail
 

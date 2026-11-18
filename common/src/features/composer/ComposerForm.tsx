@@ -71,6 +71,12 @@ import {
   hasDriveCards
 } from '@common/features/drive/driveCard'
 import type { DriveFile } from '@common/features/drive/driveIntent'
+import { useDriveSdk } from '@common/features/drive/useDrivePicker'
+import {
+  useDriveUpload,
+  type DriveUploadEnd
+} from '@common/features/drive/useDriveUpload'
+import { useDriveAttachmentPreference } from '@common/features/settings/driveAttachmentPreference'
 import type { TemplateSummary } from '@common/features/templates/queries'
 import {
   ATTACHMENT_DRAG_TYPE,
@@ -163,6 +169,7 @@ import { SEND_SLOW_MS } from './sendPolicy'
 import { getEditorHtml, getEditorStorageHtml } from './editorHtml'
 import { ComposerEmojiPicker } from './ComposerEmojiPicker'
 import { DriveAttachButton } from './DriveAttachButton'
+import { DriveUploadDialog } from './DriveUploadDialog'
 import { ScribeMenu, type ScribeInput } from './ScribeMenu'
 import {
   useComposerAttachments,
@@ -1248,10 +1255,42 @@ function LoadedComposerForm({
     markChanged()
   }
 
+  // The failed files stay in the dialog, which says so
+  const handleDriveUploadEnd = ({ links }: DriveUploadEnd): void => {
+    if (links.length === 0) return
+    handleDriveLinks(links)
+    notify({
+      message: t('composer.drive.linked', {
+        smart_count: links.length,
+        name: links[0]?.name ?? ''
+      }),
+      severity: 'success'
+    })
+  }
+  const driveSdk = useDriveSdk()
+  const { isEnabled: isDriveAttachmentEnabled } = useDriveAttachmentPreference()
+  const driveUpload = useDriveUpload(
+    isDriveAttachmentEnabled ? driveSdk : null,
+    t('composer.driveUpload.frameTitle'),
+    handleDriveUploadEnd
+  )
+  const [driveUploadLimit, setDriveUploadLimit] = useState<number | null>(null)
+
+  // Files over the size limit of the server go to Twake Drive, as links,
+  // when it is there (tmail-flutter); the size alert otherwise
+  const addLocalFiles = (picked: File[]): void => {
+    const limit = files.exceededLimit(picked.map(file => file.size))
+    if (limit !== null && driveUpload.start(picked)) {
+      setDriveUploadLimit(limit)
+      return
+    }
+    files.addFiles(picked)
+  }
+
   const handlePickFiles = (event: ChangeEvent<HTMLInputElement>): void => {
     const picked = Array.from(event.target.files ?? [])
     event.target.value = ''
-    if (picked.length > 0) files.addFiles(picked)
+    if (picked.length > 0) addLocalFiles(picked)
   }
 
   /**
@@ -1410,6 +1449,8 @@ function LoadedComposerForm({
   }
 
   const send = async (): Promise<void> => {
+    // Its dialog is up: the message waits for the links of the files
+    if (driveUpload.files.length > 0) return
     const editor = editorRef.current
     const identity = identities.find(item => item.id === identityId)
     if (!editor || !identity) return
@@ -1960,7 +2001,7 @@ function LoadedComposerForm({
             dropped in the text go inline) */}
         <FileDropZone
           label={t('composer.attachments.dropHere')}
-          onFiles={files.addFiles}
+          onFiles={addLocalFiles}
           dataType={ATTACHMENT_DRAG_TYPE}
           onData={handleAttachmentDrop}
           isForChild={isImageDropOnBody}
@@ -2096,6 +2137,7 @@ function LoadedComposerForm({
         />
         {sendingDialog}
         {savingTemplateDialog}
+        <DriveUploadDialog upload={driveUpload} maxSize={driveUploadLimit} />
         <TemplatePicker
           open={isPickerOpen}
           onClose={handleClosePicker}

@@ -532,6 +532,13 @@
       "tooLarge": "%{name} quá lớn để đính kèm",
       "linked": "Đã chèn liên kết tới %{smart_count} tệp"
     },
+    "driveUpload": {
+      "title": "Đang đính kèm tệp",
+      "description": "Tệp của bạn lớn hơn %{maxSize}. Tệp sẽ được tải lên Twake Drive và đính kèm dưới dạng liên kết.",
+      "cancelFile": "Hủy %{name}",
+      "failed": "Không thể tải một số tệp lên Drive.",
+      "frameTitle": "Tải lên Twake Drive"
+    },
     "scribe": {
       "assistant": "Trợ lý AI",
       "correct": "Sửa ngữ pháp",

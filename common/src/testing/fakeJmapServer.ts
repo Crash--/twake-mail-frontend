@@ -472,12 +472,19 @@ interface FakeLimits {
   /** Null: not told */
   maxObjectsInGet: number | null
   maxObjectsInSet: number
+  /** Of the mail capability of the account; null: not told */
+  maxSizeAttachmentsPerEmail: number | null
 }
 
 function makeSession(
   webSocket: boolean,
   extraCapabilities: Readonly<Record<string, unknown>>,
-  { maxCallsInRequest, maxObjectsInGet, maxObjectsInSet }: FakeLimits,
+  {
+    maxCallsInRequest,
+    maxObjectsInGet,
+    maxObjectsInSet,
+    maxSizeAttachmentsPerEmail
+  }: FakeLimits,
   delegatedAccounts: readonly FakeDelegatedAccount[] = []
 ): Record<string, unknown> {
   return {
@@ -506,7 +513,10 @@ function makeSession(
         isReadOnly: false,
         accountCapabilities: {
           ...extraCapabilities,
-          'urn:ietf:params:jmap:mail': {}
+          'urn:ietf:params:jmap:mail':
+            maxSizeAttachmentsPerEmail === null
+              ? {}
+              : { maxSizeAttachmentsPerEmail }
         }
       },
       ...Object.fromEntries(
@@ -654,6 +664,8 @@ export function makeFakeJmapServer(
     maxCallsInRequest?: number
     /** `maxObjectsInSet` of the session, 500 by default */
     maxObjectsInSet?: number
+    /** `maxSizeAttachmentsPerEmail` of the account, not told by default */
+    maxSizeAttachmentsPerEmail?: number
     settings?: Record<string, string>
     delegatedAccounts?: FakeDelegatedAccount[]
   } = {}
@@ -722,6 +734,7 @@ export function makeFakeJmapServer(
     init.actualMaxObjectsInGet ?? toldMaxObjectsInGet ?? 500
   const maxCallsInRequest = init.maxCallsInRequest ?? 16
   const maxObjectsInSet = init.maxObjectsInSet ?? 500
+  const maxSizeAttachmentsPerEmail = init.maxSizeAttachmentsPerEmail ?? null
   let held: { method: string | null; released: Promise<void> } | null = null
   let losing: string | null = null
   let uploadCounter = 0
@@ -1520,7 +1533,8 @@ export function makeFakeJmapServer(
           {
             maxCallsInRequest,
             maxObjectsInGet: toldMaxObjectsInGet,
-            maxObjectsInSet
+            maxObjectsInSet,
+            maxSizeAttachmentsPerEmail
           },
           server.delegatedAccounts
         )

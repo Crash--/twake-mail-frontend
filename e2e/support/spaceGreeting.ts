@@ -1,3 +1,17 @@
+import type { Page } from '@playwright/test'
+
+/**
+ * Names the fake TwakeSpace as the host the facade talks to: the page that
+ * frames it is served on the origin of the app, which `TWAKE_SPACE_URL` of a
+ * deployment would name. Set before the facade reads its configuration.
+ */
+export async function nameSpaceHost(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    ;(window as Window & { TWAKE_SPACE_URL?: string }).TWAKE_SPACE_URL =
+      location.origin
+  })
+}
+
 /**
  * Script of a fake TwakeSpace page: greets the frame of the facade on each of
  * its loads, and when the frame says it is ready. To put before the iframe, so

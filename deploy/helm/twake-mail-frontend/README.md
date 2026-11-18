@@ -144,7 +144,7 @@ scheme (give the same file twice to keep one logotype). They are mounted with
 | `config.calendarSpaUrl`, `config.chatSpaUrl` | `""` | URI templates of the other Twake apps |
 | `config.workplaceFqdnFallback` | `""` | The Workplace of the user when the SSO has no `workplaceFqdn` claim (`{localpart}`), where the platform top bar exchanges the ID token; allow the Workplace hosts in `csp.connectSrc` |
 | `config.workplaceEmbedding` | `false` | Inside an iframe of Twake Workplace, leave the platform top bar to the container |
-| `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: no longer read by the app, which learns where TwakeSpace is from its greeting; only serves `frame-ancestors`: allow TwakeSpace in `csp.frameAncestors` |
+| `config.twakeSpaceUrl` | `""` | `TWAKE_SPACE_URL`: the TwakeSpace whose Mail tab frames the facade of a team mailbox. The app answers that origin and no other page, and the image adds it to `frame-ancestors` |
 | `config.forwardWarningMessage` | `""` | |
 | `config.allowedLanguages` | `""` | `ALLOWED_LANGUAGES`: the languages offered, comma-separated in the order of the picker (`mn,en`); empty offers every language |
 | `config.tdrive.enabled` | `false` | Twake Drive picker of the composer, on the Workplace of the user when Drive is installed there |

@@ -186,6 +186,8 @@ if [[ "$env_file_csp" == *ingest-off.example.com* ]]; then
 else
   echo 'ok   CSP: the DSN of a disabled Sentry is not allowed'
 fi
+expect 'env.file CSP: the TwakeSpace of TWAKE_SPACE_URL may frame the app' "$env_file_csp" \
+  "*frame-ancestors 'self' https://space.example.com;*"
 env_js_headers="$(curl -fsS -o /dev/null -D - "$ENV_FILE_BASE/.env.js" | tr -d '\r')"
 expect 'env.file: /.env.js is never cached' "$env_js_headers" '*no-store*'
 expect 'env.file: /.env.js is JavaScript' "$env_js_headers" '*application/javascript*'

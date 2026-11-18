@@ -560,7 +560,7 @@ Environment variables of the container:
 | `CSP_WEBFINGER_TIMEOUT` | `3` | Seconds of each of its two attempts |
 | `LISTEN_PORT` | `80` | The port nginx listens on |
 | `CSP_FRAME_SRC` | | Extra `frame-src` sources, e.g. the Twake Drive origin for its intents |
-| `CSP_FRAME_ANCESTORS` | `'self'` | Origins allowed to embed Twake Mail in a frame, see [below](#embedding-in-twake-workplace-iframe) |
+| `CSP_FRAME_ANCESTORS` | `'self'` | Origins allowed to embed Twake Mail in a frame, see [below](#embedding-in-twake-workplace-iframe); the origin of `TWAKE_SPACE_URL` is added to them |
 | `CSP_REPORT_URI` | | Adds `report-uri`: where browsers report violations (e.g. the security endpoint of a Sentry project) |
 | `CSP_REPORT_ONLY` | `false` | `true` sends `Content-Security-Policy-Report-Only` instead: nothing blocked, violations reported. For a progressive rollout |
 | `CONTENT_SECURITY_POLICY` | | Replaces the whole policy (the variables above are then ignored) |

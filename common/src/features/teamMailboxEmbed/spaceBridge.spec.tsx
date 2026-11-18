@@ -4,8 +4,10 @@ const SPACE_ORIGIN = 'https://space.example.com'
 const BASENAME = '/embed/team-mailboxes/root1'
 const TARGET = { basename: BASENAME, rootId: 'root1' }
 
-function connect(): ReturnType<typeof connectToSpace> {
-  return connectToSpace(TARGET)
+function connect(
+  hostOrigins: string[] = [SPACE_ORIGIN]
+): ReturnType<typeof connectToSpace> {
+  return connectToSpace(TARGET, hostOrigins)
 }
 
 describe('connectToSpace', () => {
@@ -62,6 +64,25 @@ describe('connectToSpace', () => {
 
   it('is a connection in a frame', () => {
     expect(connect()).not.toBe(null)
+  })
+
+  it('is null without a TwakeSpace listed', () => {
+    expect(connect([])).toBe(null)
+  })
+
+  it('answers the TwakeSpace listed, and no other page', () => {
+    const connection = connect()
+    greet('https://other.example.com')
+    expect(postedTypes()).not.toContain('twake-embed:path')
+    connection?.notifyLoginRequired()
+    expect(postedTypes()).not.toContain('twake-embed:login-required')
+
+    greet()
+    connection?.notifyLoginRequired()
+    expect(postMessage).toHaveBeenCalledWith(
+      { type: 'twake-embed:login-required' },
+      SPACE_ORIGIN
+    )
   })
 
   describe('syncHistory', () => {
@@ -124,8 +145,13 @@ describe('connectToSpace', () => {
       )
     })
 
-    it('answers the origin of the parent that greeted', () => {
-      sync()
+    it('answers the listed origin of the parent that greeted', () => {
+      const connection = connect([
+        SPACE_ORIGIN,
+        'https://other-space.example.com'
+      ])
+      greet()
+      stop = connection?.syncHistory({ navigate: jest.fn(), load: jest.fn() })
       postMessage.mockClear()
 
       greet('https://other-space.example.com')

@@ -46,7 +46,12 @@ export interface AppProps {
 /** The app, under the providers `AppBootstrap` mounts for the whole page */
 export function App({ config, embed, intents = null }: AppProps): ReactElement {
   const [spaceBridge] = useState(() =>
-    embed === null ? null : connectToSpace(embed.target)
+    embed === null
+      ? null
+      : connectToSpace(
+          embed.target,
+          config.twakeSpaceUrl === null ? [] : [config.twakeSpaceUrl]
+        )
   )
   const [authService] = useState(() =>
     createAuthService(config, {

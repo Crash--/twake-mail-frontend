@@ -87,6 +87,11 @@ export interface AppConfig {
    * the Workplace of the user when Drive is installed there
    */
   tdriveEnabled: boolean
+  /**
+   * TwakeSpace, the one page the team mailbox facade talks to
+   * (`TWAKE_SPACE_URL`); `CSP_FRAME_ANCESTORS` must allow its origin too
+   */
+  twakeSpaceUrl: string | null
   appVersion: string
 }
 
@@ -125,6 +130,7 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_EMBEDDING'
   | 'SENTRY_FEEDBACK_ENABLED'
   | 'TDRIVE_ENABLED'
+  | 'TWAKE_SPACE_URL'
   | 'APP_VERSION'
 
 /**
@@ -415,6 +421,7 @@ export function resolveConfig(
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
+      twakeSpaceUrl: normalizeString(source.TWAKE_SPACE_URL),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

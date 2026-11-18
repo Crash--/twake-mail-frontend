@@ -21,6 +21,30 @@ describe('RowLine', () => {
     )
   })
 
+  it('puts the start first, without narrowing the title as the leading content does', () => {
+    renderDs(
+      <>
+        <RowLine
+          start={<span>Icon</span>}
+          primary={<span data-testid="after-start">Subject</span>}
+          data-testid="line"
+        />
+        <RowLine
+          leading={<span>Chip</span>}
+          primary={<span data-testid="after-leading">Subject</span>}
+        />
+      </>
+    )
+
+    expect(screen.getByTestId('line')).toHaveTextContent('IconSubject')
+    expect(screen.getByTestId('after-start').parentElement).toHaveStyle({
+      maxWidth: '50%'
+    })
+    expect(screen.getByTestId('after-leading').parentElement).toHaveStyle({
+      maxWidth: '40%'
+    })
+  })
+
   it('has no preview slot without a preview', () => {
     renderDs(<RowLine primary="Subject" data-testid="line" />)
 

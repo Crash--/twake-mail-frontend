@@ -71,9 +71,9 @@ function getButtonSize(isTouch: boolean): number {
   return isTouch ? TOUCH_TARGET_SIZE : ACTION_SIZE
 }
 
-/** Selection and star, then the two 32 px state slots, without gap */
+/** Selection and star, then the 32 px slot of the unread state, without gap */
 export function getLeadWidth(isTouch: boolean): number {
-  return ROW_LAYOUT.paddingX + 2 * getButtonSize(isTouch) + 2 * 32
+  return ROW_LAYOUT.paddingX + 2 * getButtonSize(isTouch) + 32
 }
 
 /**

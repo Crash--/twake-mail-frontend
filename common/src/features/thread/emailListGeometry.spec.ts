@@ -7,12 +7,12 @@ import {
 } from './emailListGeometry'
 
 describe('getLeadWidth', () => {
-  it('holds the checkbox, the star and the two state slots in 32 px each with a mouse', () => {
-    expect(getLeadWidth(false)).toBe(24 + 4 * 32)
+  it('holds the checkbox, the star and the unread slot in 32 px each with a mouse', () => {
+    expect(getLeadWidth(false)).toBe(24 + 3 * 32)
   })
 
   it('holds a 44 px touch target for the star on a touch screen', () => {
-    expect(getLeadWidth(true)).toBe(24 + 44 + 44 + 2 * 32)
+    expect(getLeadWidth(true)).toBe(24 + 44 + 44 + 32)
   })
 })
 

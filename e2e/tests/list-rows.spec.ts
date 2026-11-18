@@ -92,9 +92,11 @@ test.describe('LST email list rows', () => {
       'compact rows show no answered state'
     )
 
-    await expect(row.getByTestId('email-list-item-answered')).toHaveAccessibleName(
-      'Replied message'
-    )
+    const answered = row.getByTestId('email-list-item-answered')
+    await expect(answered).toHaveAccessibleName('Replied message')
+    // Above the link stretched over the row: the pointer reaches its tooltip
+    await answered.hover()
+    await expect(page.getByRole('tooltip')).toHaveText('Replied message')
   })
 
   test('LST-04 the hover actions open the email in a tab of its own, and move it', async ({

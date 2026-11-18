@@ -4,14 +4,11 @@ import {
   Check,
   Cross,
   Dots,
-  Image,
-  Link,
   Paperplane,
   Trash,
   Warning,
   Assistant,
-  FileOutline,
-  FormatSize
+  FileOutline
 } from '@linagora/twake-icons'
 import {
   Box,
@@ -53,7 +50,6 @@ import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
-import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
 import { SendMobileIcon } from '@/ds/ComposerIcons/ComposerIcons'
@@ -169,6 +165,7 @@ import {
   useUploadLimits
 } from './useComposerAttachments'
 import { useEditorLabels } from './useEditorLabels'
+import { useMessageEditor } from './useMessageEditor'
 import { usePrintDraft } from './usePrintDraft'
 
 /**
@@ -370,14 +367,18 @@ function LoadedComposerForm({
   const choose = useChoose()
   const confirm = useConfirm()
   const alert = useAlert()
-  const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
   const isPhone = useScreenSize() === 'mobile'
+  const messageEditor = useMessageEditor({
+    testIds: {
+      ...EDITOR_TEST_IDS,
+      formattingButton: 'composer-formatting-button'
+    },
+    buttonClassName: isPhone ? undefined : 'u-ml-half'
+  })
+  const { labels, actions: editorActions } = messageEditor
   const subjectId = useId()
   const sendErrorId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const editorActions = useRef<RichTextEditorActions>(null)
-  // As tmail-flutter: folded until "Aa" opens it
-  const [isToolbarShown, setIsToolbarShown] = useState(false)
   const [identityId, setIdentityId] = useState(content.identityId)
   // The identity selector opens on request (the "From" button), unless the
   // message already has its own identity (a draft, an answer, a template,
@@ -1499,19 +1500,8 @@ function LoadedComposerForm({
   const saveStateKey = SAVE_STATE_KEYS[saveState]
 
   const gap = isPhone ? undefined : 'u-ml-half'
-  const formattingButton = (
-    <ActionIconButton
-      label={labels.toolbar}
-      aria-pressed={isToolbarShown}
-      onClick={() => {
-        setIsToolbarShown(shown => !shown)
-      }}
-      data-testid="composer-formatting-button"
-    >
-      {/* Not an ActionIcon: the viewBox of FormatSize already holds its margin */}
-      <Icon icon={FormatSize} size={isPhone ? 28 : 24} aria-hidden="true" />
-    </ActionIconButton>
-  )
+  // On a phone the link is in the More menu, as the bar has no room for it
+  const { formattingButton, imageButton, linkButton } = messageEditor
 
   /** An attachment of an open email dropped on the body (`tf#2172`) */
   const handleAttachmentDrop = (value: string): void => {
@@ -1535,27 +1525,6 @@ function LoadedComposerForm({
       data-testid="composer-attach-file-button"
     >
       <ActionIcon icon={Attachment} />
-    </ActionIconButton>
-  )
-  const imageButton = (
-    <ActionIconButton
-      label={labels.insertImage}
-      onClick={() => editorActions.current?.pickImages()}
-      className={gap}
-      data-testid={EDITOR_TEST_IDS.toolbarButton?.('image')}
-    >
-      <ActionIcon icon={Image} />
-    </ActionIconButton>
-  )
-  // On a phone the link is in the More menu, as the bar has no room for it
-  const linkButton = (
-    <ActionIconButton
-      label={labels.link}
-      onClick={() => editorActions.current?.openLinkDialog()}
-      className={gap}
-      data-testid={EDITOR_TEST_IDS.toolbarButton?.('link')}
-    >
-      <ActionIcon icon={Link} />
     </ActionIconButton>
   )
   const emojiButton = (
@@ -1986,11 +1955,8 @@ function LoadedComposerForm({
             }}
           >
             <RichTextEditor
-              labels={labels}
+              {...messageEditor.editorProps}
               content={content.html}
-              colors={colors}
-              fontSizes={fontSizes}
-              fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
               htmlBlock={{
                 displayOf: blockDisplay,
@@ -2020,13 +1986,8 @@ function LoadedComposerForm({
               footerBlockKinds={['signature']}
               autoFocus={autoFocus && opensOnText}
               fill
-              isToolbarBelow
-              isToolbarShown={isToolbarShown}
-              hasInsertButtons={false}
-              actions={editorActions}
               onReady={handleEditorReady}
               onUpdate={handleEditorUpdate}
-              testIds={EDITOR_TEST_IDS}
             />
           </Box>
         </FileDropZone>

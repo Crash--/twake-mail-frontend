@@ -69,6 +69,8 @@ const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>()
 let refusesExchange = false
 let refusesIntent = false
 let hasDrive = true
+/** The ecosystem document of the mail server; none served when null */
+let ecosystem: unknown = null
 const originalFetch = global.fetch
 
 /** The Workplace of Alice, as the platform client asks it */
@@ -77,9 +79,16 @@ beforeEach(() => {
   refusesExchange = false
   refusesIntent = false
   hasDrive = true
+  ecosystem = null
   mockIsInIframe.mockReturnValue(false)
   fetchMock.mockImplementation(input => {
     const url = urlOf(input)
+    if (
+      url === 'https://jmap.example.com/.well-known/linagora-ecosystem' &&
+      ecosystem !== null
+    ) {
+      return Promise.resolve(json(ecosystem))
+    }
     if (url === `${DRIVE}/auth/token_exchange`) {
       return Promise.resolve(
         refusesExchange
@@ -193,6 +202,32 @@ function send(frame: HTMLIFrameElement, data: unknown, origin = PICKER): void {
 }
 
 describe('DriveAttachButton', () => {
+  it.each([
+    ['no section', {}],
+    ['enabled', { driveAttachment: { enabled: true } }]
+  ])(
+    'shows when the ecosystem of the server has %s for Drive',
+    async (_, document) => {
+      ecosystem = document
+      renderButton()
+      expect(await screen.findByTestId('composer-drive-button')).toBeVisible()
+    }
+  )
+
+  it('is hidden when the ecosystem of the server turns Drive off', async () => {
+    ecosystem = { driveAttachment: { enabled: false } }
+    renderButton()
+
+    // The Workplace was asked, and Drive is there: only the flag hides it
+    await waitFor(() => {
+      expect(callsTo('/apps/')).not.toHaveLength(0)
+    })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+    })
+    expect(screen.queryByTestId('composer-drive-button')).toBe(null)
+  })
+
   it('is hidden once turned off in the preferences', async () => {
     window.localStorage.setItem(
       DRIVE_ATTACHMENT_PREFERENCE_STORAGE_KEY,

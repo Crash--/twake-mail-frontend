@@ -54,13 +54,22 @@ function json(body: unknown): Response {
 const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>()
 const originalFetch = global.fetch
 let intentCount = 0
+/** The ecosystem document of the mail server; none served when null */
+let ecosystem: unknown = null
 
 /** The Workplace of Alice, with Drive, answering the intents of the composer */
 beforeEach(() => {
   intentCount = 0
+  ecosystem = null
   fetchMock.mockReset()
   fetchMock.mockImplementation(input => {
     const url = urlOf(input)
+    if (
+      url === 'https://jmap.example.com/.well-known/linagora-ecosystem' &&
+      ecosystem !== null
+    ) {
+      return Promise.resolve(json(ecosystem))
+    }
     if (url === `${WORKPLACE}/auth/token_exchange`) {
       return Promise.resolve(
         json({
@@ -351,6 +360,36 @@ describe('ComposerForm, files over the size limit', () => {
       `${WORKPLACE}/intents`,
       expect.anything()
     )
+  })
+
+  it('keeps the size alert when the ecosystem of the server turns Drive off', async () => {
+    ecosystem = { driveAttachment: { enabled: false } }
+    const jmapServer = makeFakeJmapServer()
+    uploads = installFakeUploads(jmapServer)
+    renderComposer(jmapServer, signedIn())
+    const composer = await openComposer()
+    // Drive is there: only the flag of the ecosystem keeps it out
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(
+          ([url]) => urlOf(url) === `${WORKPLACE}/apps/`
+        )
+      ).toBe(true)
+    })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100))
+    })
+    expect(within(composer).queryByTestId('composer-drive-button')).toBe(null)
+
+    await userEvent.upload(
+      within(composer).getByTestId('composer-file-input'),
+      new File([new Uint8Array(HUGE)], 'huge.bin')
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Maximum files size' })
+    ).toBeVisible()
+    expect(intentBodies()).toEqual([])
   })
 
   it('does not send while files go to Drive, then sends with their card', async () => {

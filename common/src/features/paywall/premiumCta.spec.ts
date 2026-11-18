@@ -25,6 +25,7 @@ function ecosystemOf(
       workplaceFqdnFallbackTemplate: null,
       sentry: null,
       scribePromptUrl: null,
+      driveAttachmentEnabled: true,
       document: {},
       ...parts
     }

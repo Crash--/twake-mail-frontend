@@ -21,6 +21,11 @@ export interface LinagoraEcosystem {
   sentry: EcosystemSentry | null
   /** `scribePromptUrl`: the prompts of the AI assistant */
   scribePromptUrl: string | null
+  /**
+   * `driveAttachment.enabled`: whether the composer may use Twake Drive (its
+   * picker, the files too large for the server); true unless it says false
+   */
+  driveAttachmentEnabled: boolean
   /** The whole document, for the features that read another section */
   document: Readonly<Record<string, unknown>>
 }
@@ -56,6 +61,18 @@ function toTemplate(value: unknown): string | null {
   return trimmed === '' ? null : trimmed
 }
 
+/**
+ * As tmail-flutter (`DriveAttachmentLinagoraEcosystem`): a boolean, or a
+ * string compared to "true" whatever its case; anything else says nothing
+ */
+function readDriveAttachmentEnabled(section: unknown): boolean {
+  if (!isRecord(section)) return true
+  const { enabled } = section
+  if (typeof enabled === 'boolean') return enabled
+  if (typeof enabled === 'string') return enabled.toLowerCase() === 'true'
+  return true
+}
+
 /** Reads the ecosystem document; null when it is not an object */
 export function parseEcosystem(document: unknown): LinagoraEcosystem | null {
   if (!isRecord(document)) return null
@@ -64,6 +81,9 @@ export function parseEcosystem(document: unknown): LinagoraEcosystem | null {
     workplaceFqdnFallbackTemplate: toTemplate(document.workplaceFqdnFallback),
     sentry: parseEcosystemSentry(document),
     scribePromptUrl: toTemplate(document.scribePromptUrl),
+    driveAttachmentEnabled: readDriveAttachmentEnabled(
+      document.driveAttachment
+    ),
     document
   }
 }

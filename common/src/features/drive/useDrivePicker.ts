@@ -1,8 +1,11 @@
 import type { Sdk } from '@linagora/twake-sdk'
+import { useQuery } from '@tanstack/react-query'
 import { Intents } from 'cozy-interapp'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'
+import { useAuthService } from '@common/features/auth/AuthProvider'
+import { ecosystemQueryOptions } from '@common/features/ecosystem/ecosystem'
 import { useWorkplaceSdk } from '@common/features/platform/PlatformProvider'
 
 import {
@@ -36,12 +39,23 @@ export type DrivePickerState =
   | { status: 'failed' }
 
 /**
- * The client of the Twake Workplace of the user when the picker is offered:
- * `TDRIVE_ENABLED`, signed in (OIDC, the Workplace known from the SSO or
- * `WORKPLACE_FQDN_FALLBACK`), with Twake Drive installed. Null otherwise.
+ * The client of the Twake Workplace of the user when the composer may use
+ * Drive (its picker, the files too large for the server): `TDRIVE_ENABLED`,
+ * not turned off by `driveAttachment.enabled` of the ecosystem of the server
+ * (on while it loads or when it cannot be read, as tmail-flutter), signed in
+ * (OIDC, the Workplace known from the SSO or `WORKPLACE_FQDN_FALLBACK`),
+ * with Twake Drive installed. Null otherwise.
  */
 export function useDriveSdk(): Sdk | null {
-  const isEnabled = useAppConfig()?.tdriveEnabled === true
+  const config = useAppConfig()
+  const authService = useAuthService()
+  const isConfigured = config?.tdriveEnabled === true
+  const ecosystem = useQuery({
+    ...ecosystemQueryOptions(config?.ecosystemUrl ?? '', authService),
+    enabled: isConfigured && config.ecosystemUrl !== ''
+  })
+  const isEnabled =
+    isConfigured && (ecosystem.data?.driveAttachmentEnabled ?? true)
   const workplaceSdk = useWorkplaceSdk()
   const sdk = isEnabled ? workplaceSdk : null
   // The client the apps were read from, when Drive is one of them

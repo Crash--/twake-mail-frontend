@@ -1,6 +1,22 @@
 import { fetchEcosystem, parseEcosystem, type EcosystemAuth } from './ecosystem'
 
 describe('parseEcosystem', () => {
+  it.each([
+    ['no section', {}, true],
+    ['enabled', { driveAttachment: { enabled: true } }, true],
+    ['disabled', { driveAttachment: { enabled: false } }, false],
+    ['disabled as a string', { driveAttachment: { enabled: 'False' } }, false],
+    ['enabled as a string', { driveAttachment: { enabled: 'TRUE' } }, true],
+    ['a section without enabled', { driveAttachment: {} }, true],
+    ['enabled of another type', { driveAttachment: { enabled: 0 } }, true],
+    ['a section that is not an object', { driveAttachment: 'off' }, true]
+  ])(
+    'allows Drive attachments as tmail-flutter does, with %s',
+    (_name, document, isEnabled) => {
+      expect(parseEcosystem(document)?.driveAttachmentEnabled).toBe(isEnabled)
+    }
+  )
+
   it('reads the templates, trimmed', () => {
     const ecosystem = parseEcosystem({
       paywallUrlTemplate: '  https://pay.domain.tld/{localPart}  ',

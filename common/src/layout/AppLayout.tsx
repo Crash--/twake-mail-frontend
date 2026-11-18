@@ -20,6 +20,11 @@ import { DelegatedAccessGuard } from '@common/features/delegation/DelegatedAcces
 import { TeamViewGuard } from '@common/features/delegation/TeamViewGuard'
 import { OfflineNotice } from '@common/features/network/OfflineNotice'
 import { LoadingAnnouncer } from '@common/features/loading/LoadingAnnouncer'
+import { AssistantPanel } from '@common/features/assistant/AssistantPanel'
+import {
+  AssistantProvider,
+  useAssistantPanel
+} from '@common/features/assistant/AssistantProvider'
 import { LabelActionsProvider } from '@common/features/labels/LabelActionsProvider'
 import {
   ListFilterProvider,
@@ -61,6 +66,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
+import { AssistantButton } from './AssistantButton'
 import { SettingsButton } from './SettingsButton'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
 import { useLogout } from './useLogout'
@@ -99,23 +105,25 @@ export function MailProviders({
   return (
     <PlatformProvider>
       <ShortcutsProvider>
-        <MailboxPickerProvider>
-          <RecoveryProvider>
-            <FolderActionProgressProvider>
-              <FolderActionsProvider>
-                <LabelActionsProvider>
-                  <ComposerProvider>
-                    <SettingsExitProvider>
-                      <ListFilterProvider>
-                        <LoadingAnnouncer>{children}</LoadingAnnouncer>
-                      </ListFilterProvider>
-                    </SettingsExitProvider>
-                  </ComposerProvider>
-                </LabelActionsProvider>
-              </FolderActionsProvider>
-            </FolderActionProgressProvider>
-          </RecoveryProvider>
-        </MailboxPickerProvider>
+        <AssistantProvider>
+          <MailboxPickerProvider>
+            <RecoveryProvider>
+              <FolderActionProgressProvider>
+                <FolderActionsProvider>
+                  <LabelActionsProvider>
+                    <ComposerProvider>
+                      <SettingsExitProvider>
+                        <ListFilterProvider>
+                          <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                        </ListFilterProvider>
+                      </SettingsExitProvider>
+                    </ComposerProvider>
+                  </LabelActionsProvider>
+                </FolderActionsProvider>
+              </FolderActionProgressProvider>
+            </RecoveryProvider>
+          </MailboxPickerProvider>
+        </AssistantProvider>
       </ShortcutsProvider>
     </PlatformProvider>
   )
@@ -163,6 +171,7 @@ function AppFrame(): ReactElement {
 
   const handleLogout = useLogout()
   const { openComposer } = useComposer()
+  const { isOpen: isAssistantOpen } = useAssistantPanel()
   // Both "New message" buttons and the `c` shortcut
   const handleCompose = (): void => {
     openComposer()
@@ -222,6 +231,7 @@ function AppFrame(): ReactElement {
               actions={
                 <>
                   <MailboxSwitcherButton />
+                  <AssistantButton />
                   {hasAccountMenu ? null : <SettingsButton />}
                 </>
               }
@@ -247,6 +257,7 @@ function AppFrame(): ReactElement {
             <Outlet />
           </FlatContent>
         </FlatMain>
+        {isAssistantOpen ? <AssistantPanel /> : null}
       </Layout>
       {showComposeFab ? (
         <FloatingActionButton

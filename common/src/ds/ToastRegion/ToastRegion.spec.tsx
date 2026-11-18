@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@linagora/twake-mui'
+import { Dialog, DialogContent, Popover } from '@linagora/twake-mui'
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
@@ -80,6 +80,47 @@ function DialogHarness({
         </DialogContent>
       </Dialog>
       <ToastRegion toast={toast} onClose={jest.fn()} closeLabel="Close" />
+    </>
+  )
+}
+
+/** As twake-mui's `ContactCard`: a popover whose paper is an `aria-modal` dialog */
+function PopoverHarness(): ReactElement {
+  const [toast, setToast] = useState<ToastItem | null>(null)
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+  return (
+    <>
+      <button
+        type="button"
+        onClick={event => {
+          setAnchor(event.currentTarget)
+        }}
+      >
+        Card
+      </button>
+      <Popover
+        open={anchor !== null}
+        anchorEl={anchor}
+        onClose={() => {
+          setAnchor(null)
+        }}
+        slotProps={{ paper: { role: 'dialog', 'aria-modal': true } }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setToast({ id: 'c', message: 'Copied', severity: 'success' })
+          }}
+        >
+          Copy
+        </button>
+      </Popover>
+      <ToastRegion
+        toast={toast}
+        onClose={jest.fn()}
+        closeLabel="Close"
+        data-testid="toast"
+      />
     </>
   )
 }
@@ -307,6 +348,20 @@ describe('ToastRegion', () => {
       expect(screen.queryByRole('dialog')).toBe(null)
       expect(screen.getByRole('button', { name: 'Undo' })).toBeVisible()
       expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    })
+  })
+
+  describe('while a popover is open', () => {
+    it('is drawn out of it, announced from inside it', async () => {
+      renderDs(<PopoverHarness />)
+      await userEvent.click(screen.getByRole('button', { name: 'Card' }))
+      const card = await screen.findByRole('dialog')
+
+      await userEvent.click(within(card).getByRole('button', { name: 'Copy' }))
+
+      // The page behind is aria-hidden: the message is read from the card
+      expect(within(card).getByRole('status')).toHaveTextContent('Copied')
+      expect(card).not.toContainElement(screen.getByTestId('toast'))
     })
   })
 })

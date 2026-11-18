@@ -50,10 +50,13 @@ describe('EmailAddressCard', () => {
     )
 
     expect(await navigator.clipboard.readText()).toBe('bob@example.com')
-    // In the card, a modal: what is outside it is hidden from screen readers
-    expect(
-      await within(screen.getByRole('dialog')).findByTestId('toast')
-    ).toHaveTextContent('Email address copied')
+    // Announced from the card (a modal: the rest of the page is hidden from
+    // screen readers), drawn out of it
+    const card = screen.getByRole('dialog')
+    expect(await within(card).findByRole('status')).toHaveTextContent(
+      'Email address copied'
+    )
+    expect(card).not.toContainElement(screen.getByTestId('toast'))
   })
 
   it('opens the rule creator for the address when the server has rules', async () => {

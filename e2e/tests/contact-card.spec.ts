@@ -55,6 +55,9 @@ test.describe('CRD the contact card of an address', () => {
 
       await card.getByRole('button', { name: 'Copy email' }).click()
       await expect(page.getByTestId('toast')).toHaveText('Email address copied')
+      // Drawn out of the card (#1052), announced from it
+      await expect(card.getByTestId('toast')).toHaveCount(0)
+      await expect(card.getByRole('status')).toHaveText('Email address copied')
       expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
         alice.email
       )

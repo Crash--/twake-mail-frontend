@@ -88,8 +88,8 @@ const SECONDARY_ICON_COLOR = 'var(--twake-palette-text-secondary)'
 
 /**
  * The columns of the email list, in their order, as tmail-flutter: `lead`
- * (selection, star, answered or forwarded, unread), `sender` (avatar and
- * name), `subject` and `trailing` (attachment and date, replaced by the
+ * (selection, star, unread), `sender` (avatar and name), `subject` (after
+ * the answered or forwarded state) and `trailing` (attachment and date, replaced by the
  * actions on hover) on a wide list; `select` (the avatar, which selects
  * the row) and `message` (sender, date, subject, preview on three lines)
  * on a narrow one (phone, tablet)
@@ -296,8 +296,7 @@ export function EmailCell({
       Object.keys(email.mailboxIds).some(id => templateMailboxIds.has(id)))
       ? openTemplate
       : undefined
-  // As tmail-flutter: whether the email was answered or forwarded, an icon
-  // named by its tooltip in a slot kept empty otherwise
+  // Whether the email was answered or forwarded, an icon named by its tooltip
   const isAnswered = email.keywords[ANSWERED] === true
   const isForwarded = email.keywords[FORWARDED] === true
   const answeredLabel = isAnswered
@@ -554,7 +553,6 @@ export function EmailCell({
         <span className="u-flex u-flex-items-center">
           {checkbox}
           {wideStarButton}
-          <RowStateSlot>{answeredState}</RowStateSlot>
           <RowStateSlot>{framedDot}</RowStateSlot>
         </span>
       )
@@ -604,6 +602,13 @@ export function EmailCell({
           ) : null}
           <RowLine
             isStrong={isUnread}
+            start={
+              answeredState === null ? null : (
+                <span className="u-flex u-flex-shrink-0 u-mr-half">
+                  <RowStateSlot inLink>{answeredState}</RowStateSlot>
+                </span>
+              )
+            }
             leading={
               eventMark === null &&
               importantIcon === null &&

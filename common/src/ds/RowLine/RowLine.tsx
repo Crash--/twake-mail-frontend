@@ -12,6 +12,8 @@ const PRIMARY_MAX_WIDTH = '50%'
 const PRIMARY_MAX_WIDTH_AFTER_LEADING = '40%'
 
 export interface RowLineProps {
+  /** First, never cut, without narrowing the title (a 32 px state icon) */
+  start?: ReactNode
   /** Before the title, never cut (label chips, a priority icon) */
   leading?: ReactNode
   /** The title (a subject): cut with an ellipsis past its maximum width */
@@ -29,10 +31,11 @@ export interface RowLineProps {
 }
 
 /**
- * The content of a one-line list row: leading, title, preview, trailing,
+ * The content of a one-line list row: start, leading, title, preview, trailing,
  * vertically centred, on a single line whatever their size.
  */
 export function RowLine({
+  start,
   leading,
   primary,
   secondary,
@@ -47,6 +50,7 @@ export function RowLine({
       sx={rowTextSx(false)}
       data-testid={testId}
     >
+      {start}
       {leading}
       <Box
         component="span"

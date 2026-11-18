@@ -381,6 +381,41 @@ describe('EmailList', () => {
     ).not.toHaveAccessibleName(/Event invitation/)
   })
 
+  it('puts the answered state right before the subject, only on an answered email', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({
+            id: 'answered',
+            subject: 'Answered',
+            keywords: { $seen: true, $answered: true }
+          }),
+          makeEmail({
+            id: 'plain',
+            subject: 'Plain',
+            keywords: { $seen: true }
+          })
+        ]
+      })
+    )
+
+    const link = await screen.findByRole('link', { name: /Answered/ })
+    const state = within(link).getByTestId('email-list-item-answered')
+    expect(state).toHaveAccessibleName('Replied message')
+    expect(
+      state.compareDocumentPosition(
+        within(link).getByTestId('email-list-item-subject')
+      )
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    // Not in a slot of its own before the sender any more
+    expect(screen.getAllByTestId('email-list-item-answered')).toHaveLength(1)
+    expect(
+      within(screen.getByRole('link', { name: /Plain/ })).queryByTestId(
+        'email-list-item-answered'
+      )
+    ).toBe(null)
+  })
+
   it('shows rows of skeleton, busy and hidden to screen readers, while the emails load', async () => {
     const server = makeFakeJmapServer({
       emails: [makeEmail({ id: 'e1', subject: 'Landed' })]

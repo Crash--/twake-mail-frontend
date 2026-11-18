@@ -10,6 +10,7 @@ import type { ReactElement } from 'react'
 import { FilterChip } from '@/ds/FilterChip/FilterChip'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { FILTER_ICON_SIZES } from './filterIconSizes'
 import type { SearchFilter } from './searchFilter'
 
 export interface QuickSearchFiltersProps {
@@ -47,6 +48,7 @@ export function QuickSearchFilters({
       <FilterChip
         label={t('search.filters.hasAttachment')}
         icon={Attachment}
+        iconSize={FILTER_ICON_SIZES.attachment}
         isSelected={filter.hasAttachment}
         keepFocus
         onClick={() => {
@@ -57,6 +59,7 @@ export function QuickSearchFilters({
       <FilterChip
         label={t('search.dates.last7Days')}
         icon={CalendarToday}
+        iconSize={FILTER_ICON_SIZES.calendar}
         isSelected={isLast7Days}
         keepFocus
         onClick={() => {
@@ -72,6 +75,7 @@ export function QuickSearchFilters({
       <FilterChip
         label={t('search.filters.fromMe')}
         icon={Account}
+        iconSize={FILTER_ICON_SIZES.person}
         isSelected={isFromMe}
         keepFocus
         onClick={() => {
@@ -87,6 +91,7 @@ export function QuickSearchFilters({
       <FilterChip
         label={t('search.filters.starred')}
         icon={StarOutline}
+        iconSize={FILTER_ICON_SIZES.star}
         isSelected={filter.starred}
         keepFocus
         onClick={() => {

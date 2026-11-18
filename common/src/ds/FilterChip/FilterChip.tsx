@@ -7,28 +7,65 @@ import { Icon, type IconProps, Dropdown, Cross } from '@linagora/twake-icons'
 import { Box, Chip, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement } from 'react'
 
-const END_SX = { display: 'flex', color: 'text.secondary' } as const
+/** The slot of the icons in Teammail 1.1's "Chip filters", in px */
+const SLOT = 16
+/**
+ * The chevron: twake-icons draw edge to edge, Material keeps a margin, so
+ * a 12 px box looks the size of the mockup's, centred in its 16 px slot
+ */
+const CHEVRON_SIZE = 12
+/** The check of an applied filter, the same in every chip */
+const SELECTED_ICON_SIZE = 14
+const END_SX = {
+  display: 'flex',
+  color: 'text.secondary',
+  px: `${(SLOT - CHEVRON_SIZE) / 2}px`
+} as const
 /** The cross of an applied filter takes its primary colour */
 const CROSS_SX = { display: 'flex' } as const
 
-const CHIP_SX = (isSelected: boolean): SxProps<Theme> =>
-  isSelected
+/**
+ * The metrics of Teammail 1.1's "Chip filters" (twake-mui's `Chip` keeps
+ * MUI's): 12 px before the 16 px slot of the icon, which centres it, 4 px
+ * between the slot, the `caption` label and the chevron, 8 px after the
+ * chevron (12 px without one)
+ */
+const CHIP_SX = (
+  isSelected: boolean,
+  hasEnd: boolean,
+  iconSize: number
+): SxProps<Theme> => ({
+  '& .MuiChip-icon': {
+    color: isSelected ? 'primary.main' : 'text.secondary',
+    // Whole pixels, so that the icon stays sharp: the odd pixel goes after
+    // it, the label stays in place
+    ml: `${12 + Math.floor((SLOT - iconSize) / 2)}px`,
+    mr: `${-8 + Math.ceil((SLOT - iconSize) / 2)}px`
+  },
+  '& .MuiChip-label': { typography: 'caption', pr: hasEnd ? '8px' : '12px' },
+  '& .MuiChip-label > span': { gap: '4px' },
+  ...(isSelected
     ? {
         color: 'primary.main',
-        bgcolor: theme =>
+        bgcolor: (theme: Theme) =>
           `color-mix(in srgb, ${theme.vars.palette.primary.main} 8%, transparent)`,
         '&:hover, &.Mui-focusVisible': {
-          bgcolor: theme =>
+          bgcolor: (theme: Theme) =>
             `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`
-        },
-        '& .MuiChip-icon': { color: 'primary.main' }
+        }
       }
-    : { '& .MuiChip-icon': { color: 'text.secondary' } }
+    : {})
+})
 
 export interface FilterChipProps {
   label: string
   /** The icon before the label */
   icon?: IconProps['icon']
+  /**
+   * Its box, 16 px by default, centred in the 16 px slot: the size at which
+   * the twake-icons glyph looks as big as the mockup's
+   */
+  iconSize?: number
   /** Replaces `icon` once applied, e.g. a check */
   selectedIcon?: IconProps['icon']
   /** Applied: the pale primary look, a cross, and `aria-pressed` */
@@ -59,6 +96,7 @@ function preventFocus(event: MouseEvent<HTMLElement>): void {
 export function FilterChip({
   label,
   icon,
+  iconSize = SLOT,
   selectedIcon,
   isSelected,
   onClick,
@@ -75,8 +113,9 @@ export function FilterChip({
       : isRemovable
         ? {}
         : { 'aria-pressed': isSelected }
-  const leadingIcon =
-    isSelected && selectedIcon !== undefined ? selectedIcon : icon
+  const isSelectedIconShown = isSelected && selectedIcon !== undefined
+  const leadingIcon = isSelectedIconShown ? selectedIcon : icon
+  const leadingSize = isSelectedIconShown ? SELECTED_ICON_SIZE : iconSize
   return (
     <Chip
       label={label}
@@ -85,13 +124,13 @@ export function FilterChip({
       square
       icon={
         leadingIcon === undefined ? undefined : (
-          <Icon icon={leadingIcon} size={16} />
+          <Icon icon={leadingIcon} size={leadingSize} />
         )
       }
       endIcon={
         popup !== undefined ? (
           <Box component="span" sx={END_SX}>
-            <Icon icon={Dropdown} size={16} />
+            <Icon icon={Dropdown} size={CHEVRON_SIZE} />
           </Box>
         ) : isSelected ? (
           <Box component="span" sx={CROSS_SX}>
@@ -99,7 +138,7 @@ export function FilterChip({
           </Box>
         ) : undefined
       }
-      sx={CHIP_SX(isSelected)}
+      sx={CHIP_SX(isSelected, popup !== undefined || isSelected, leadingSize)}
       onClick={onClick}
       onMouseDown={keepFocus ? preventFocus : undefined}
       {...stateProps}

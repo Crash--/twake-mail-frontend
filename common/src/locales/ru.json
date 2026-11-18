@@ -532,6 +532,13 @@
       "tooLarge": "Файл %{name} слишком большой для вложения",
       "linked": "Вставлена ссылка на %{name} |||| Вставлены ссылки на %{smart_count} файла |||| Вставлены ссылки на %{smart_count} файлов"
     },
+    "driveUpload": {
+      "title": "Прикрепление файла",
+      "description": "Ваш файл больше %{maxSize}. Он будет загружен в Twake Drive и прикреплён в виде ссылки.",
+      "cancelFile": "Отменить %{name}",
+      "failed": "Не удалось загрузить некоторые файлы в Drive.",
+      "frameTitle": "Загрузка в Twake Drive"
+    },
     "scribe": {
       "assistant": "Помощник ИИ",
       "correct": "Исправить",

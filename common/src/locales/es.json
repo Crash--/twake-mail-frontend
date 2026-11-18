@@ -532,6 +532,13 @@
       "tooLarge": "%{name} es demasiado grande para adjuntarlo",
       "linked": "Enlace a %{name} insertado |||| Enlaces a %{smart_count} archivos insertados"
     },
+    "driveUpload": {
+      "title": "Adjuntando archivo",
+      "description": "Tu archivo supera %{maxSize}. Se subirá a Twake Drive y se adjuntará como enlace.",
+      "cancelFile": "Cancelar %{name}",
+      "failed": "No se pudieron subir algunos archivos a Drive.",
+      "frameTitle": "Subida a Twake Drive"
+    },
     "scribe": {
       "assistant": "Asistente de IA",
       "correct": "Corregir",

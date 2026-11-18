@@ -532,6 +532,13 @@
       "tooLarge": "%{name} is too large to be attached",
       "linked": "Link to %{name} inserted |||| Links to %{smart_count} files inserted"
     },
+    "driveUpload": {
+      "title": "Attaching file",
+      "description": "Your file is larger than %{maxSize}. It will be uploaded to Twake Drive and attached as a link.",
+      "cancelFile": "Cancel %{name}",
+      "failed": "Some files could not be uploaded to Drive.",
+      "frameTitle": "Upload to Twake Drive"
+    },
     "scribe": {
       "assistant": "AI assistant",
       "correct": "Correct",

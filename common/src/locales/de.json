@@ -532,6 +532,13 @@
       "tooLarge": "%{name} ist zu groß, um angehängt zu werden",
       "linked": "Link zu %{name} eingefügt |||| Links zu %{smart_count} Dateien eingefügt"
     },
+    "driveUpload": {
+      "title": "Datei wird angehängt",
+      "description": "Ihre Datei ist größer als %{maxSize}. Sie wird in Twake Drive hochgeladen und als Link angehängt.",
+      "cancelFile": "%{name} abbrechen",
+      "failed": "Einige Dateien konnten nicht in Drive hochgeladen werden.",
+      "frameTitle": "Upload in Twake Drive"
+    },
     "scribe": {
       "assistant": "KI-Assistent",
       "correct": "Korrigieren",

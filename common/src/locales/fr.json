@@ -532,6 +532,13 @@
       "tooLarge": "%{name} est trop volumineux pour être joint",
       "linked": "Lien vers %{name} inséré |||| Liens vers %{smart_count} fichiers insérés"
     },
+    "driveUpload": {
+      "title": "Ajout du fichier en pièce jointe",
+      "description": "Votre fichier dépasse %{maxSize}. Il sera téléversé dans Twake Drive et joint sous forme de lien.",
+      "cancelFile": "Annuler %{name}",
+      "failed": "Certains fichiers n'ont pas pu être téléversés dans Drive.",
+      "frameTitle": "Téléversement vers Twake Drive"
+    },
     "scribe": {
       "assistant": "Assistant IA",
       "correct": "Corriger",

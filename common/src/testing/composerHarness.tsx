@@ -2,10 +2,13 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
+import type { AppConfig } from '@common/config/config'
+import type { AuthService } from '@common/features/auth/types'
 import {
   ComposerProvider,
   useComposer
 } from '@common/features/composer/ComposerProvider'
+import { PlatformProvider } from '@common/features/platform/PlatformProvider'
 
 import { makeFakeJmapServer, type FakeJmapServer } from './fakeJmapServer'
 import { renderWithProviders } from './renderWithProviders'
@@ -58,13 +61,22 @@ function Opener(): ReactElement {
 }
 
 export function renderComposer(
-  jmapServer: FakeJmapServer = makeFakeJmapServer()
+  jmapServer: FakeJmapServer = makeFakeJmapServer(),
+  /** A configuration and a signed-in user: the client of their Workplace */
+  workplace: { config: AppConfig; authService: AuthService } | null = null
 ): ReturnType<typeof renderWithProviders> {
-  return renderWithProviders(
+  const composer = (
     <ComposerProvider>
       <Opener />
-    </ComposerProvider>,
-    { jmapServer, withJmapSession: true }
+    </ComposerProvider>
+  )
+  return renderWithProviders(
+    workplace === null ? (
+      composer
+    ) : (
+      <PlatformProvider>{composer}</PlatformProvider>
+    ),
+    { jmapServer, withJmapSession: true, ...workplace }
   )
 }
 

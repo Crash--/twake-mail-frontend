@@ -53,6 +53,11 @@ export interface ComposerAttachments {
    * inline images already there; says why when they do not
    */
   fits: (sizes: number[]) => boolean
+  /**
+   * The limit files of these sizes would go over, with the files and the
+   * inline images already there; null when they fit. Says nothing
+   */
+  exceededLimit: (sizes: number[]) => number | null
   /** Checks the limits, then uploads the files */
   addFiles: (files: File[]) => void
   /**
@@ -211,21 +216,25 @@ export function useComposerAttachments(
     })
   }
 
-  const fits = (sizes: number[]): boolean => {
+  const exceededLimit = (sizes: number[]): number | null => {
     const { maxFileSize, maxTotalSize } = limits
     if (maxFileSize !== null && sizes.some(size => size > maxFileSize)) {
-      refuse(maxFileSize)
-      return false
+      return maxFileSize
     }
     const current = attachmentsRef.current
       .filter(item => item.status !== 'failed')
       .reduce((total, item) => total + item.size, 0)
     const added = sizes.reduce((total, size) => total + size, 0)
     if (maxTotalSize !== null && current + otherSize() + added > maxTotalSize) {
-      refuse(maxTotalSize)
-      return false
+      return maxTotalSize
     }
-    return true
+    return null
+  }
+
+  const fits = (sizes: number[]): boolean => {
+    const limit = exceededLimit(sizes)
+    if (limit !== null) refuse(limit)
+    return limit === null
   }
 
   const addFiles = (files: File[]): void => {
@@ -288,6 +297,7 @@ export function useComposerAttachments(
   return {
     attachments,
     fits,
+    exceededLimit,
     addFiles,
     addUploaded,
     remove,

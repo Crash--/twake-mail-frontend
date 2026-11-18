@@ -532,6 +532,13 @@
       "tooLarge": "%{name} хавсаргахад хэт том байна",
       "linked": "%{name}-н холбоосыг оруулсан |||| %{smart_count} файлын холбоосыг оруулсан"
     },
+    "driveUpload": {
+      "title": "Файл хавсаргаж байна",
+      "description": "Таны файл %{maxSize}-аас том байна. Файлыг Twake Drive-д байршуулж, холбоос хэлбэрээр хавсаргана.",
+      "cancelFile": "%{name}-г цуцлах",
+      "failed": "Зарим файлыг Drive-д байршуулж чадсангүй.",
+      "frameTitle": "Twake Drive-д байршуулах"
+    },
     "scribe": {
       "assistant": "AI туслах",
       "correct": "Засах",

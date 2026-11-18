@@ -19,6 +19,7 @@ import { labelDisplayName } from '@common/features/labels/labelDisplayName'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { FILTER_ICON_SIZES } from './filterIconSizes'
 import {
   DATE_RANGES,
   DEFAULT_SORT_ORDER,
@@ -208,6 +209,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={scopeLabel}
           icon={FolderOutlined}
+          iconSize={FILTER_ICON_SIZES.folder}
           isSelected={scope.kind !== 'default'}
           popup="dialog"
           isExpanded={isPickingFolder}
@@ -221,6 +223,7 @@ export function SearchFiltersBar({
           <FilterChip
             label={labelName}
             icon={LabelOutlined}
+            iconSize={FILTER_ICON_SIZES.label}
             isSelected={filter.label !== null}
             popup="menu"
             isExpanded={menu?.name === 'labels'}
@@ -234,6 +237,7 @@ export function SearchFiltersBar({
           <FilterChip
             label={addressLabel(field)}
             icon={Account}
+            iconSize={FILTER_ICON_SIZES.person}
             isSelected={filter[field].length > 0}
             popup="dialog"
             isExpanded={addressField === field}
@@ -260,6 +264,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={dateLabel}
           icon={CalendarToday}
+          iconSize={FILTER_ICON_SIZES.calendar}
           isSelected={filter.dateRange !== 'allTime'}
           popup="menu"
           isExpanded={menu?.name === 'date'}
@@ -271,6 +276,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.hasAttachment')}
           icon={Attachment}
+          iconSize={FILTER_ICON_SIZES.attachment}
           selectedIcon={Check}
           isSelected={filter.hasAttachment}
           onClick={() => {
@@ -283,6 +289,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.starred')}
           icon={StarOutline}
+          iconSize={FILTER_ICON_SIZES.star}
           selectedIcon={Check}
           isSelected={filter.starred}
           onClick={() => {
@@ -295,6 +302,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.unread')}
           icon={EmailNotification}
+          iconSize={FILTER_ICON_SIZES.unread}
           selectedIcon={Check}
           isSelected={filter.unread}
           onClick={() => {
@@ -307,6 +315,7 @@ export function SearchFiltersBar({
         <FilterChip
           label={t('search.filters.notIncludeEvents')}
           icon={CalendarToday}
+          iconSize={FILTER_ICON_SIZES.events}
           isSelected={filter.notIncludeEvents}
           onClick={() => {
             onChange({ ...filter, notIncludeEvents: !filter.notIncludeEvents })

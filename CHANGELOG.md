@@ -6,12 +6,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-18
+
+New setting since 0.13.0: `NEW_VERSION_CHECK_ENABLED` (Helm chart:
+`config.newVersionCheck.enabled`), off by default. Unset, nothing changes.
+
 ### Added
 
 - With `NEW_VERSION_CHECK_ENABLED = true` (off by default), a tab opened
   before a new version was deployed offers to reload the page ("What's new in
   Twake Mail"). "Not now" declines that version: the dialog comes back with
   the next one. The image serves `/version.json`, never cached.
+
+### Changed
+
+- The contact card of an address is twake-mui's ContactCard, opened next to
+  the address. It no longer offers "Invite to an event" nor "Chat".
+- The unread spam reminder is the common notice banner.
+- The edit and delete buttons of a profile are smaller outlined icons, shown
+  on hover or focus.
+
+### Fixed
+
+- A delegation granted or taken back while the tab is open shows in the
+  mailbox switcher without a reload.
+- The "N selected" counts agree with the number in French, Spanish, Italian
+  and Russian.
+- Reply is as high as Forward in the reply bar.
+- The remote images and truncated banners keep room above them.
 
 ## [0.13.0] - 2026-11-16
 

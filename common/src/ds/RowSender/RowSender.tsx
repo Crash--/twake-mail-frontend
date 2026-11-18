@@ -1,6 +1,6 @@
 // Upstream to twake-ui: yes, with `VirtualizedTable` row layouts. The sender
 // cell of the mail list: an avatar, 8 px, then the name in a block of fixed
-// width (170 px), so that the subjects line up whatever the names, 8 px
+// width (172 px), so that the subjects line up whatever the names, 32 px
 // after it.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
@@ -12,9 +12,9 @@ export const ROW_AVATAR_SIZE = 20
 /** Between the avatar and the name, in px */
 const AVATAR_GAP = 8
 /** Width of the name block, in px */
-export const SENDER_BLOCK_WIDTH = 170
+export const SENDER_BLOCK_WIDTH = 172
 /** Between the name block and the subject, in px */
-const SENDER_GAP = 8
+const SENDER_GAP = 32
 
 /** Width of the avatar, the name block and the gap after it, in px */
 export const SENDER_WIDTH =

@@ -171,7 +171,8 @@ const CONTROL_SX = {
  *   asks for reduced motion.
  * - While a dialog or a modal drawer is open (MUI hides the rest of the
  *   page from assistive technologies and keeps the focus inside), it is
- *   drawn inside it: still announced, its action reached with Tab.
+ *   drawn inside it: still announced, its action reached with Tab. Over a
+ *   popover (a contact card), it stays out of it, only announced from it.
  */
 interface ToastCardProps {
   toast: ToastItem
@@ -345,7 +346,10 @@ export function ToastRegion({
   'data-testid': testId
 }: ToastRegionProps): ReactElement {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  // The live regions go where assistive technologies can reach (a popover
+  // too: it hides the page); the toast itself never in a popover
   const modalHost = useTopModalHost()
+  const cardHost = useTopModalHost(false)
   const shownAt = useRef<{ id: string; at: number } | null>(null)
   const toastId = toast?.id ?? null
 
@@ -361,29 +365,35 @@ export function ToastRegion({
     []
   )
 
-  const region = (
+  // Always mounted: a live region only announces what changes in it.
+  // Mounted again once the modal they are in is no longer hidden
+  const liveRegions = (
+    <LiveRegions
+      key={modalHost?.isHidden === true ? 'hidden' : 'shown'}
+      toast={toast}
+      isFresh={isFresh}
+    />
+  )
+  const card =
+    toast === null ? null : (
+      <Box sx={theme => regionStyle(theme, bottomOffset)}>
+        <Fade key={toast.id} in appear timeout={reducedMotion ? 0 : 200}>
+          <ToastCard
+            toast={toast}
+            onClose={onClose}
+            closeLabel={closeLabel}
+            data-testid={testId}
+          />
+        </Fade>
+      </Box>
+    )
+
+  return (
     <>
-      {/* Always mounted: a live region only announces what changes in it.
-          Mounted again once the modal they are in is no longer hidden */}
-      <LiveRegions
-        key={modalHost?.isHidden === true ? 'hidden' : 'shown'}
-        toast={toast}
-        isFresh={isFresh}
-      />
-      {toast === null ? null : (
-        <Box sx={theme => regionStyle(theme, bottomOffset)}>
-          <Fade key={toast.id} in appear timeout={reducedMotion ? 0 : 200}>
-            <ToastCard
-              toast={toast}
-              onClose={onClose}
-              closeLabel={closeLabel}
-              data-testid={testId}
-            />
-          </Fade>
-        </Box>
-      )}
+      {modalHost === null
+        ? liveRegions
+        : createPortal(liveRegions, modalHost.element)}
+      {cardHost === null ? card : createPortal(card, cardHost.element)}
     </>
   )
-
-  return modalHost === null ? region : createPortal(region, modalHost.element)
 }

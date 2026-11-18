@@ -6,6 +6,8 @@
 import { useEffect, useState } from 'react'
 
 const MODAL_ROOT = '.MuiModal-root'
+/** A popover (a contact card, a menu): modal, but small and anchored */
+const POPOVER_ROOT = '.MuiPopover-root'
 const HIDDEN_MODAL = 'MuiModal-hidden'
 const MODAL_ELEMENT = '[aria-modal="true"]'
 /** The first focus guard of MUI's `FocusTrap`, focusable while it is open */
@@ -33,10 +35,20 @@ function isOpenModal(element: Element): boolean {
  * The `aria-modal` element (a dialog, a modal drawer) of the MUI modal open
  * over the others, a closing one left out, null when there is none: the only
  * part of the page assistive technologies and the keyboard can reach while
- * it is open. A menu (a modal without one) gives null.
+ * it is open. A menu (a modal without one) gives null. Without
+ * `withPopovers`, the popovers (twake-mui's `ContactCard` is an `aria-modal`
+ * one) are left out: no room to draw in there.
  */
-export function findTopModalHost(page: Document): ModalHost | null {
-  const top = Array.from(page.body.children).filter(isOpenModal).at(-1)
+export function findTopModalHost(
+  page: Document,
+  withPopovers = true
+): ModalHost | null {
+  const top = Array.from(page.body.children)
+    .filter(
+      element =>
+        isOpenModal(element) && (withPopovers || !element.matches(POPOVER_ROOT))
+    )
+    .at(-1)
   const element = top?.querySelector<HTMLElement>(MODAL_ELEMENT) ?? null
   if (top === undefined || element === null) return null
   return { element, isHidden: top.getAttribute('aria-hidden') === 'true' }
@@ -51,16 +63,16 @@ function isSameHost(a: ModalHost | null, b: ModalHost | null): boolean {
  * them to `<body>`, marks the ones under another one `aria-hidden`, and
  * turns their focus guards off while they close.
  */
-export function useTopModalHost(): ModalHost | null {
+export function useTopModalHost(withPopovers = true): ModalHost | null {
   const [host, setHost] = useState<ModalHost | null>(() =>
-    findTopModalHost(document)
+    findTopModalHost(document, withPopovers)
   )
 
   useEffect(() => {
     const page = document
     const observer = new MutationObserver(() => {
       watch()
-      const next = findTopModalHost(page)
+      const next = findTopModalHost(page, withPopovers)
       setHost(current => (isSameHost(current, next) ? current : next))
     })
     function watch(): void {
@@ -85,7 +97,7 @@ export function useTopModalHost(): ModalHost | null {
     return () => {
       observer.disconnect()
     }
-  }, [])
+  }, [withPopovers])
 
   return host
 }

@@ -40,8 +40,8 @@ describe('getHoverActionsRoom', () => {
     expect(getHoverActionsRoom(true)).toBe(32 + 5 * 44)
   })
 
-  it('keeps 16 px between the preview and the date', () => {
-    expect(HOVER_DATE_GAP).toBe(16)
+  it('keeps 32 px between the preview and the attachment or the date, their 8 px margin included', () => {
+    expect(HOVER_DATE_GAP + 8).toBe(32)
   })
 })
 

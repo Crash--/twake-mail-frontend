@@ -7,24 +7,29 @@ import type { ReactElement, ReactNode } from 'react'
 
 import { ROW_MUTED_COLOR, rowTextSx } from './rowText'
 
-/** Widest the title gets: half the row (40 % when label chips come first) */
-const PRIMARY_MAX_WIDTH = '50%'
-const PRIMARY_MAX_WIDTH_AFTER_LEADING = '40%'
+/**
+ * Widest the title gets beside a preview: 55 % of their room. Without a
+ * preview, all of it
+ */
+const PRIMARY_MAX_WIDTH = '55%'
 
 export interface RowLineProps {
-  /** First, never cut, without narrowing the title (a 32 px state icon) */
+  /** First, never cut (label chips) */
   start?: ReactNode
-  /** Before the title, never cut (label chips, a priority icon) */
+  /** After `start`, before the title, never cut (state icons) */
   leading?: ReactNode
   /** The title (a subject): cut with an ellipsis past its maximum width */
   primary: ReactNode
-  /** After the title (a preview): takes the room left, cut first */
+  /**
+   * After the title (a preview), in Medium: takes the room left, cut first;
+   * null when there is none
+   */
   secondary?: ReactNode
   /** After the preview, never cut (where the email is found) */
   trailing?: ReactNode
   /**
-   * The row stands out (an unread email): the title and the preview are
-   * Semi Bold in the primary text colour, rather than Regular and secondary
+   * The row stands out (an unread email): the title is Semi Bold rather than
+   * Regular, and the preview in the primary text colour, not the secondary
    */
   isStrong?: boolean
   'data-testid'?: string
@@ -43,6 +48,7 @@ export function RowLine({
   isStrong = false,
   'data-testid': testId
 }: RowLineProps): ReactElement {
+  const hasSecondary = secondary !== undefined && secondary !== null
   return (
     <Box
       component="span"
@@ -52,37 +58,41 @@ export function RowLine({
     >
       {start}
       {leading}
+      {/* The share of the title counts in the room of the title and the
+          preview only, out of the icons and labels before them */}
       <Box
         component="span"
-        className="u-ellipsis"
-        sx={{
-          ...rowTextSx(isStrong),
-          flex: '0 1 auto',
-          minWidth: 0,
-          maxWidth:
-            leading === undefined || leading === null
-              ? PRIMARY_MAX_WIDTH
-              : PRIMARY_MAX_WIDTH_AFTER_LEADING
-        }}
+        className="u-flex u-flex-items-center"
+        sx={{ flex: '1 1 0', minWidth: 0 }}
       >
-        {primary}
-      </Box>
-      {secondary === undefined ? null : (
         <Box
           component="span"
           className="u-ellipsis"
           sx={{
-            ...(isStrong
-              ? rowTextSx(true)
-              : { ...rowTextSx(false), color: ROW_MUTED_COLOR }),
-            flex: '1 1 0',
+            ...rowTextSx(isStrong),
+            flex: '0 1 auto',
             minWidth: 0,
-            marginLeft: '12px'
+            maxWidth: hasSecondary ? PRIMARY_MAX_WIDTH : '100%'
           }}
         >
-          {secondary}
+          {primary}
         </Box>
-      )}
+        {hasSecondary ? (
+          <Box
+            component="span"
+            className="u-ellipsis"
+            sx={{
+              typography: 'subtitle1',
+              color: isStrong ? 'text.primary' : ROW_MUTED_COLOR,
+              flex: '1 1 0',
+              minWidth: 0,
+              marginLeft: '8px'
+            }}
+          >
+            {secondary}
+          </Box>
+        ) : null}
+      </Box>
       {trailing}
     </Box>
   )

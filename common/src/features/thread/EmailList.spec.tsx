@@ -381,6 +381,68 @@ describe('EmailList', () => {
     ).not.toHaveAccessibleName(/Event invitation/)
   })
 
+  it('puts the labels first, then the state icons, then the subject', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES,
+      emails: [
+        makeEmail({
+          id: 'both',
+          subject: 'Both',
+          keywords: { $seen: true, $answered: true, work: true },
+          headers: { Importance: 'high' }
+        })
+      ]
+    })
+    installFakeLabels(server, [
+      { id: 'work', displayName: 'Work', keyword: 'work', color: '#273891' }
+    ])
+    renderList(server)
+
+    const link = await screen.findByRole('link', { name: /Both/ })
+    const order = [
+      await within(link).findByTestId('label-chip'),
+      within(link).getByTestId('email-list-item-answered'),
+      within(link).getByTestId('important-flag-icon'),
+      within(link).getByTestId('email-list-item-subject')
+    ]
+    order.slice(1).forEach((element, index) => {
+      expect(order[index]?.compareDocumentPosition(element)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      )
+    })
+  })
+
+  it('keeps the room of the attachment on every row, its icon on an email with one only', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [
+          makeEmail({ id: 'file', subject: 'With file', hasAttachment: true }),
+          makeEmail({ id: 'plain', subject: 'Without file' })
+        ]
+      })
+    )
+
+    const withFile = await screen.findByRole('link', { name: /With file/ })
+    const withoutFile = screen.getByRole('link', { name: /Without file/ })
+    expect(
+      within(withFile).getByTestId('email-list-item-attachment-room')
+    ).not.toBeEmptyDOMElement()
+    expect(
+      within(withoutFile).getByTestId('email-list-item-attachment-room')
+    ).toBeEmptyDOMElement()
+  })
+
+  it('gives the subject the whole room when the preview is only blank', async () => {
+    renderList(
+      makeFakeJmapServer({
+        emails: [makeEmail({ id: 'blank', subject: 'Blank', preview: '   ' })]
+      })
+    )
+
+    const link = await screen.findByRole('link', { name: /Blank/ })
+    expect(within(link).queryByTestId('email-list-item-preview')).toBe(null)
+  })
+
   it('puts the answered state right before the subject, only on an answered email', async () => {
     renderList(
       makeFakeJmapServer({

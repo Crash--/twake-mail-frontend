@@ -430,6 +430,91 @@ test.describe('LST list rows at every width', () => {
       }).toPass()
     }
   })
+
+  test('LST-12 on a desktop the previews end in line with or without an attachment, 32 px after the name block', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const text =
+      'A preview long enough to be cut before the end of the row, whatever the width of the screen'
+    await jmap.sendEmail({
+      to: user.email,
+      subject: 'With a file',
+      text,
+      attachments: [{ name: 'notes.txt', type: 'text/plain', content: 'hi' }]
+    })
+    await jmap.sendEmail({ to: user.email, subject: 'Without a file', text })
+    await jmap.waitForEmail({ subject: 'With a file' })
+    await jmap.waitForEmail({ subject: 'Without a file' })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'compact rows have their own layout'
+    )
+    const edges = async (
+      subject: string
+    ): Promise<{ previewEnd: number; gap: number }> => {
+      const row = mailbox.emailRow(subject)
+      const preview = await row
+        .getByTestId('email-list-item-preview')
+        .locator('xpath=..')
+        .boundingBox()
+      const name = await row
+        .getByTestId('email-list-item-sender')
+        .locator('xpath=..')
+        .boundingBox()
+      const title = await row
+        .getByTestId('email-list-item-subject')
+        .locator('xpath=..')
+        .boundingBox()
+      return {
+        previewEnd: (preview?.x ?? 0) + (preview?.width ?? 0),
+        gap: (title?.x ?? 0) - (name?.x ?? 0) - (name?.width ?? 0)
+      }
+    }
+
+    const withFile = await edges('With a file')
+    const withoutFile = await edges('Without a file')
+    expect(withFile.previewEnd).toBe(withoutFile.previewEnd)
+    expect([withFile.gap, withoutFile.gap]).toEqual([32, 32])
+    // The room of the attachment is kept, its icon drawn with a file only
+    await expect(
+      mailbox
+        .emailRow('Without a file')
+        .getByTestId('email-list-item-attachment-room')
+        .locator('svg')
+    ).toHaveCount(0)
+  })
+
+  test('LST-13 on a desktop a row shows its labels, then its state icons, then its subject', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const label = await jmap.createLabel('Design', '#2196F3')
+    await jmap.sendEmail({ to: user.email, subject: 'In order', text: 'Hi' })
+    const email = await jmap.waitForEmail({ subject: 'In order' })
+    await jmap.setKeywords(email.id, { $answered: true, [label.keyword]: true })
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const viewport = page.viewportSize()
+    test.skip(
+      viewport === null || viewport.width < 1000,
+      'compact rows have their own layout'
+    )
+    const row = mailbox.emailRow('In order')
+    await expect(row.getByTestId('label-chip')).toBeVisible()
+
+    const left = async (testId: string): Promise<number> =>
+      (await row.getByTestId(testId).boundingBox())?.x ?? 0
+    const xs = [
+      await left('label-chip'),
+      await left('email-list-item-answered'),
+      await left('email-list-item-subject')
+    ]
+    expect([...xs].sort((a, b) => a - b)).toEqual(xs)
+  })
 })
 
 test.describe('LST compact rows', () => {

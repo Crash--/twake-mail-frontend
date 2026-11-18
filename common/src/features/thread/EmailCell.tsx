@@ -502,7 +502,17 @@ export function EmailCell({
   // before the subject, said in the name of the row link
   const eventMark = isEvent ? (
     <CalendarEventMark
-      gap={screenSize === 'desktop' ? 12 : screenSize === 'mobile' ? 4 : 8}
+      gap={
+        // 8 px between the labels, the state icons and the subject of a
+        // wide row
+        column.id === 'subject'
+          ? 8
+          : screenSize === 'desktop'
+            ? 12
+            : screenSize === 'mobile'
+              ? 4
+              : 8
+      }
       size={screenSize === 'mobile' ? 18 : 20}
       data-testid="email-list-item-event-icon"
     />
@@ -602,22 +612,20 @@ export function EmailCell({
           ) : null}
           <RowLine
             isStrong={isUnread}
-            start={
-              answeredState === null ? null : (
-                <span className="u-flex u-flex-shrink-0 u-mr-half">
-                  <RowStateSlot inLink>{answeredState}</RowStateSlot>
-                </span>
-              )
-            }
+            // The labels first, then the state icons, then the subject
+            start={labelChips}
             leading={
+              answeredState === null &&
               eventMark === null &&
-              importantIcon === null &&
-              emailLabels.length === 0 &&
-              !isActionRequired ? null : (
+              importantIcon === null ? null : (
                 <>
+                  {answeredState === null ? null : (
+                    <span className="u-flex u-flex-shrink-0 u-mr-half">
+                      <RowStateSlot inLink>{answeredState}</RowStateSlot>
+                    </span>
+                  )}
                   {eventMark}
                   {importantIcon}
-                  {labelChips}
                 </>
               )
             }
@@ -625,7 +633,9 @@ export function EmailCell({
               <span data-testid="email-list-item-subject">{subject}</span>
             }
             secondary={
-              <span data-testid="email-list-item-preview">{preview}</span>
+              email.preview.trim() === '' ? null : (
+                <span data-testid="email-list-item-preview">{preview}</span>
+              )
             }
             trailing={
               // As tmail-flutter: the preview stops before the date of the
@@ -635,15 +645,21 @@ export function EmailCell({
                 {mailboxNames === null ? null : (
                   <MailboxTag name={mailboxNames} label={mailboxNames} />
                 )}
-                {hasAttachment ? (
-                  <span className="u-flex u-flex-shrink-0 u-ml-half">
-                    <Icon
-                      icon={AttachmentIcon}
-                      size={20}
-                      color={SECONDARY_ICON_COLOR}
-                    />
-                  </span>
-                ) : null}
+                {/* Kept without an attachment: the previews end in line */}
+                <span className="u-flex u-flex-shrink-0 u-ml-half">
+                  <RowStateSlot
+                    size={20}
+                    data-testid="email-list-item-attachment-room"
+                  >
+                    {hasAttachment ? (
+                      <Icon
+                        icon={AttachmentIcon}
+                        size={20}
+                        color={SECONDARY_ICON_COLOR}
+                      />
+                    ) : null}
+                  </RowStateSlot>
+                </span>
                 <RowDate isStrong={isUnread}>
                   {formatListDate(email.receivedAt, lang)}
                 </RowDate>

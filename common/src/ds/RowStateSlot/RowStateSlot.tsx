@@ -1,6 +1,6 @@
-// Upstream to twake-ui: no, a layout detail of the list. A 32 px slot for a
-// state icon of a row; the unread one stays empty when the email is read, so
-// that the avatars of the rows line up.
+// Upstream to twake-ui: no, a layout detail of the list. A slot for a state
+// icon of a row, kept when empty: the unread one when the email is read, so
+// that the avatars line up; the attachment, so that the previews end in line.
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -23,15 +23,24 @@ export interface RowStateSlotProps {
   children?: ReactNode
   /** In the row link: the icon has a tooltip to reach */
   inLink?: boolean
+  /** Its side, 32 px by default; 20 px holds the attachment icon exactly */
+  size?: 20 | 32
+  'data-testid'?: string
 }
 
-/** A 32 px slot centring a state icon of a row */
+/** A square slot centring a state icon of a row, kept when empty */
 export function RowStateSlot({
   children,
-  inLink = false
+  inLink = false,
+  size = 32,
+  'data-testid': testId
 }: RowStateSlotProps): ReactElement {
   return (
-    <Box component="span" sx={inLink ? IN_LINK_SX : SLOT_SX}>
+    <Box
+      component="span"
+      sx={{ ...(inLink ? IN_LINK_SX : SLOT_SX), width: size, height: size }}
+      data-testid={testId}
+    >
       {children}
     </Box>
   )

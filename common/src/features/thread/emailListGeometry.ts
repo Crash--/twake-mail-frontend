@@ -101,8 +101,11 @@ export function getHoverActionsRoom(isTouch: boolean): number {
   return TRAILING_GAP + HOVER_PREVIEW_SPACE + 5 * getButtonSize(isTouch)
 }
 
-/** Before the room of the date at the end of the subject */
-export const HOVER_DATE_GAP = TRAILING_GAP
+/**
+ * Before the room of the date at the end of the subject: with the 8 px
+ * margin of the attachment or the date, 32 px after the preview
+ */
+export const HOVER_DATE_GAP = 24
 
 /**
  * The cell of the date of a loading row: with hover, the room of a date

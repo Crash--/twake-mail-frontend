@@ -21,37 +21,49 @@ describe('RowLine', () => {
     )
   })
 
-  it('puts the start first, without narrowing the title as the leading content does', () => {
+  it('caps the title at 55 % of its room with the preview, whatever comes before', () => {
     renderDs(
       <>
         <RowLine
           start={<span>Icon</span>}
-          primary={<span data-testid="after-start">Subject</span>}
+          leading={<span>Chip</span>}
+          primary={<span data-testid="after-leading">Subject</span>}
+          secondary="Preview"
           data-testid="line"
         />
         <RowLine
-          leading={<span>Chip</span>}
-          primary={<span data-testid="after-leading">Subject</span>}
+          primary={<span data-testid="plain">Subject</span>}
+          secondary="Preview"
         />
       </>
     )
 
-    expect(screen.getByTestId('line')).toHaveTextContent('IconSubject')
-    expect(screen.getByTestId('after-start').parentElement).toHaveStyle({
-      maxWidth: '50%'
-    })
-    expect(screen.getByTestId('after-leading').parentElement).toHaveStyle({
-      maxWidth: '40%'
-    })
+    expect(screen.getByTestId('line')).toHaveTextContent(
+      'IconChipSubjectPreview'
+    )
+    for (const id of ['after-leading', 'plain']) {
+      expect(screen.getByTestId(id).parentElement).toHaveStyle({
+        maxWidth: '55%'
+      })
+    }
   })
 
-  it('has no preview slot without a preview', () => {
-    renderDs(<RowLine primary="Subject" data-testid="line" />)
+  it('lets the title take the whole room without a preview', () => {
+    renderDs(
+      <RowLine
+        primary={<span data-testid="title">Subject</span>}
+        secondary={null}
+        data-testid="line"
+      />
+    )
 
-    expect(screen.getByTestId('line').children).toHaveLength(1)
+    expect(screen.getByTestId('title').parentElement).toHaveStyle({
+      maxWidth: '100%'
+    })
+    expect(screen.getByTestId('title').parentElement?.nextSibling).toBe(null)
   })
 
-  it('writes the title in Semi Bold and the preview in the main colour when strong', () => {
+  it('writes the title in Semi Bold and the preview in Medium when strong', () => {
     renderDs(
       <RowLine
         primary={<span data-testid="title">Subject</span>}
@@ -65,7 +77,7 @@ describe('RowLine', () => {
       fontWeight: '600'
     })
     expect(screen.getByTestId('preview').parentElement).toHaveStyle({
-      fontWeight: '600'
+      fontWeight: '500'
     })
   })
 })

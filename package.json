@@ -27,7 +27,8 @@
       ">0.2%",
       "not dead",
       "not op_mini all",
-      "not ios_saf < 16"
+      "not ios_saf < 16",
+      "not and_uc < 16"
     ],
     "development": [
       "last 1 chrome version",

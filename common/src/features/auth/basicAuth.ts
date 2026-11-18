@@ -11,6 +11,7 @@ import {
   ANONYMOUS,
   SIGNED_OUT,
   type BasicAuthService,
+  type AuthState,
   type BasicLoginError,
   type BasicLoginResult,
   type SessionEndReason
@@ -34,12 +35,56 @@ export interface BasicDependencies {
   fetch: FetchFunction
   /** Hands the session over between tabs; absent, every tab signs in */
   sessionSharing?: BasicSessionSharing | null
+  /**
+   * Remembers, for the tab, that the user signed out (no credentials in
+   * it): a page loaded after a sign-out does not say the session was lost.
+   * Absent, a new page never knows.
+   */
+  storage?: SignedOutStorage | null
+}
+
+type SignedOutStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+
+/** `sessionStorage` key set when the user signs out in this tab */
+export const SIGNED_OUT_KEY = 'twake-mail-signed-out'
+
+function defaultStorage(): SignedOutStorage | null {
+  try {
+    return window.sessionStorage
+  } catch {
+    return null
+  }
 }
 
 function makeDefaultDependencies(): BasicDependencies {
   return {
     fetch: (input, init) => fetch(input, init),
-    sessionSharing: makeBasicSessionSharing()
+    sessionSharing: makeBasicSessionSharing(),
+    storage: defaultStorage()
+  }
+}
+
+/** Web storage may throw (quota, privacy settings): the mark is a hint */
+function makeSignedOutMark(storage: SignedOutStorage | null): {
+  isSet: () => boolean
+  set: (signedOut: boolean) => void
+} {
+  return {
+    isSet: () => {
+      try {
+        return storage?.getItem(SIGNED_OUT_KEY) === 'true'
+      } catch {
+        return false
+      }
+    },
+    set: signedOut => {
+      try {
+        if (signedOut) storage?.setItem(SIGNED_OUT_KEY, 'true')
+        else storage?.removeItem(SIGNED_OUT_KEY)
+      } catch {
+        // Only the subtitle of the login form depends on it
+      }
+    }
   }
 }
 
@@ -112,9 +157,15 @@ export function createBasicAuthService(
 ): BasicAuthService {
   const store = makeAuthStore()
   const sessionSharing = dependencies.sessionSharing ?? null
+  const signedOutMark = makeSignedOutMark(dependencies.storage ?? null)
   let authorizationHeader: string | null = null
   /** The session read by the last credentials check of this tab */
   let validatedSession: string | null = null
+
+  /** The state without a session: signed out if this tab signed out last */
+  function loggedOutState(): AuthState {
+    return signedOutMark.isSet() ? SIGNED_OUT : ANONYMOUS
+  }
 
   function signIn(
     email: string,
@@ -123,6 +174,7 @@ export function createBasicAuthService(
   ): void {
     authorizationHeader = header
     validatedSession = sessionBody
+    signedOutMark.set(false)
     store.setState({
       status: 'authenticated',
       user: { email, name: null, workplaceFqdn: null }
@@ -148,7 +200,7 @@ export function createBasicAuthService(
     const session = await sharing.request()
     if (store.getState().status !== 'restoring') return
 
-    if (session === null) store.setState(ANONYMOUS)
+    if (session === null) store.setState(loggedOutState())
     else signIn(session.email, session.authorizationHeader, null)
   }
 
@@ -157,8 +209,10 @@ export function createBasicAuthService(
     sessionSharing.share(getSharedSession)
     restoreFromOtherTab(sessionSharing).catch((error: unknown) => {
       console.error('[auth] Cannot get the session of another tab', error)
-      store.setState(ANONYMOUS)
+      store.setState(loggedOutState())
     })
+  } else {
+    store.setState(loggedOutState())
   }
 
   async function login(
@@ -179,6 +233,7 @@ export function createBasicAuthService(
   function clearLocalSession(reason: SessionEndReason = 'lost'): void {
     authorizationHeader = null
     validatedSession = null
+    signedOutMark.set(reason === 'signed-out')
     store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
   }
 

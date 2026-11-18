@@ -2,7 +2,8 @@ import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
 
 import {
   createBasicAuthService,
-  makeBasicAuthorizationHeader
+  makeBasicAuthorizationHeader,
+  SIGNED_OUT_KEY
 } from './basicAuth'
 import type {
   BasicSessionSharing,
@@ -185,6 +186,61 @@ describe('createBasicAuthService', () => {
       type: 'session-ended',
       email: 'alice@example.com'
     })
+  })
+})
+
+describe('createBasicAuthService after a sign-out', () => {
+  function makeStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> {
+    const items = new Map<string, string>()
+    return {
+      getItem: key => items.get(key) ?? null,
+      setItem: (key, value) => {
+        items.set(key, value)
+      },
+      removeItem: key => {
+        items.delete(key)
+      }
+    }
+  }
+
+  function makeService(
+    storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+  ): ReturnType<typeof createBasicAuthService> {
+    return createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch: makeFetch({ ok: true, status: 200 }), storage }
+    )
+  }
+
+  it('starts signed out on a page loaded after a sign-out in the tab', async () => {
+    const storage = makeStorage()
+    const service = makeService(storage)
+    await service.login('alice@example.com', 'secret')
+    await service.logout()
+
+    const nextPage = makeService(storage)
+
+    expect(nextPage.getState()).toEqual({
+      status: 'anonymous',
+      signedOut: true
+    })
+    expect(storage.getItem(SIGNED_OUT_KEY)).toBe('true')
+  })
+
+  it('forgets the sign-out once signed in again', async () => {
+    const storage = makeStorage()
+    const service = makeService(storage)
+    service.clearLocalSession('signed-out')
+    await service.login('alice@example.com', 'secret')
+
+    expect(makeService(storage).getState()).toEqual({ status: 'anonymous' })
+  })
+
+  it('starts without a sign-out when the session was lost', () => {
+    const storage = makeStorage()
+    makeService(storage).clearLocalSession('lost')
+
+    expect(makeService(storage).getState()).toEqual({ status: 'anonymous' })
   })
 })
 

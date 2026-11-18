@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Checkbox,
   FixedDialog,
@@ -21,9 +22,8 @@ import {
 import { FileDropZone } from '@/ds/FileDropZone/FileDropZone'
 import { RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
-import type { RichTextEditorActions } from '@/ds/RichTextEditor/types'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
-import { useEditorLabels } from '@common/features/composer/useEditorLabels'
+import { useMessageEditor } from '@common/features/composer/useMessageEditor'
 import { formatSize } from '@common/features/email/formatSize'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
@@ -79,7 +79,11 @@ export interface IdentityFormDialogProps {
 
 type FieldProblem = TranslationKey | null
 
-const EDITOR_TEST_IDS = { editor: 'identity-signature-editor' }
+const EDITOR_TEST_IDS = {
+  editor: 'identity-signature-editor',
+  formattingButton: 'identity-signature-formatting-button',
+  toolbarButton: (item: string) => `identity-signature-${item}-button`
+}
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -114,13 +118,24 @@ export function IdentityFormDialog({
   const { notify } = useNotify()
   const screenSize = useScreenSize()
   const isMobile = screenSize === 'mobile'
-  const { labels, colors, fontSizes, fontFamilies } = useEditorLabels()
+  // The signature is written as a message in the composer
+  const signatureEditor = useMessageEditor({
+    testIds: EDITOR_TEST_IDS,
+    buttonClassName: 'u-ml-half'
+  })
   const formId = useId()
   const nameRef = useRef<HTMLInputElement>(null)
   const replyToRef = useRef<HTMLInputElement>(null)
   const bccRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<Editor | null>(null)
-  const editorActionsRef = useRef<RichTextEditorActions>(null)
+  const signatureActionsRef = useRef<HTMLDivElement>(null)
+  const isToolbarShown = signatureEditor.editorProps.isToolbarShown === true
+  // The toolbar opens above "Aa": the buttons stay in view, over the footer
+  useEffect(() => {
+    if (isToolbarShown) {
+      signatureActionsRef.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [isToolbarShown])
   const [initialSignature] = useState(() =>
     draft !== null
       ? draft.signatureHtml
@@ -628,34 +643,41 @@ export function IdentityFormDialog({
           <FileDropZone
             label={t('composer.attachments.dropHere')}
             onFiles={files => {
-              editorActionsRef.current?.insertImages(files)
+              signatureEditor.actions.current?.insertImages(files)
             }}
             isFlush
             data-testid="identity-signature-drop-zone"
           >
             <RichTextEditor
-              labels={{ ...labels, editor: t('identities.form.signature') }}
+              {...signatureEditor.editorProps}
+              labels={{
+                ...signatureEditor.labels,
+                editor: t('identities.form.signature')
+              }}
               content={initialSignature}
-              colors={colors}
-              fontSizes={fontSizes}
-              fontFamilies={fontFamilies}
               onImageFiles={handleImageFiles}
               shouldStorePastedDataImages={canPublishImages}
               imageTypes={SIGNATURE_IMAGE_TYPES}
               busyLabel={
                 storingCount > 0 ? t('composer.images.inserting') : null
               }
-              actions={editorActionsRef}
               onReady={editor => {
                 editorRef.current = editor
               }}
               onUpdate={() => {
                 isSignatureChangedRef.current = true
               }}
-              testIds={EDITOR_TEST_IDS}
               look="boxed"
             />
           </FileDropZone>
+          <Box
+            ref={signatureActionsRef}
+            className="u-flex u-flex-items-center u-mt-half"
+          >
+            {signatureEditor.formattingButton}
+            {signatureEditor.imageButton}
+            {signatureEditor.linkButton}
+          </Box>
           {saveError === null ? null : (
             <Typography
               role="alert"

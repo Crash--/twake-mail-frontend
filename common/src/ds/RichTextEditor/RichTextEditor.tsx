@@ -26,6 +26,7 @@ import {
 
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
 
+import { BOXED_FONT_SIZE } from './boxedToolbar'
 import { CARET_BLOCK_ATTRIBUTE, CaretBlock } from './caretBlock'
 import { cleanPastedHtml } from './cleanPastedHtml'
 import { HtmlBlock, type HtmlBlockOptions } from './htmlBlock'
@@ -545,9 +546,15 @@ export function RichTextEditor({
       onPickImages={onImageFiles ? () => fileInputRef.current?.click() : null}
       hasInsertButtons={hasInsertButtons}
       placement={isToolbarBelow || isSettingsLook ? 'bottom' : 'top'}
+      // Under the text, the boxed signature has the bar of the composer
       look={
-        look === 'boxed' ? 'boxed' : isSettingsLook ? 'compact' : 'composer'
+        look === 'boxed' && !isToolbarBelow
+          ? 'boxed'
+          : isSettingsLook
+            ? 'compact'
+            : 'composer'
       }
+      defaultFontSize={look === 'boxed' ? BOXED_FONT_SIZE : undefined}
       actionsRef={actionsRef}
       disabled={disabled}
       buttonTestId={testIds.toolbarButton}

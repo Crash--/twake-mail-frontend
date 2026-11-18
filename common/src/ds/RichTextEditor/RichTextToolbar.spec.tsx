@@ -278,6 +278,37 @@ describe('RichTextToolbar controls', () => {
     ])
   })
 
+  it('has the bar of the composer under a boxed text, still saying its 16 px', async () => {
+    await renderEditor('<p>Hello</p>', {
+      look: 'boxed',
+      isToolbarBelow: true,
+      hasInsertButtons: false,
+      onImageFiles: () => Promise.resolve([])
+    })
+
+    const toolbar = screen.getByRole('toolbar', { name: 'Formatting options' })
+    const names = within(toolbar)
+      .getAllByRole('button')
+      .map(button => button.getAttribute('aria-label'))
+    expect(names).toEqual([
+      'Text style Normal',
+      'Text size 16',
+      'Font Sans Serif',
+      'Text color',
+      'Highlight color',
+      'Bold',
+      'Italic',
+      'Underline',
+      'Strikethrough',
+      'Paragraph',
+      'Lists and indentation'
+    ])
+    // The composer's buttons, not the boxes of tmail-flutter's signature
+    expect(
+      within(toolbar).getByRole('button', { name: 'Text size 16' })
+    ).not.toHaveClass('RichTextToolbar-size')
+  })
+
   it('opens the link dialog from its button in the boxed look', async () => {
     await renderEditor('<p>Hello</p>', { look: 'boxed' })
 

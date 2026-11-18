@@ -85,6 +85,11 @@ export interface RichTextToolbarProps {
    * soft shadow
    */
   look?: 'compact' | 'boxed' | 'composer'
+  /**
+   * The size of the text without a size of its own, shown by the size
+   * button: the one of the editor (the boxed signature is 16 px)
+   */
+  defaultFontSize?: number
   /** Lets the editor send the focus here (Alt+F10) */
   actionsRef: RefObject<EditorActions>
   /** The editor is disabled: every button says it, and does nothing */
@@ -215,6 +220,7 @@ export function RichTextToolbar({
   hasInsertButtons,
   placement,
   look = 'compact',
+  defaultFontSize,
   actionsRef,
   disabled = false,
   buttonTestId,
@@ -225,7 +231,8 @@ export function RichTextToolbar({
   const isMobile = useScreenSize() === 'mobile' || isOneLine
   const isBoxed = look === 'boxed'
   const isComposer = look === 'composer'
-  const defaultSize = isBoxed ? BOXED_FONT_SIZE : DEFAULT_FONT_SIZE
+  const defaultSize =
+    defaultFontSize ?? (isBoxed ? BOXED_FONT_SIZE : DEFAULT_FONT_SIZE)
   const state = useEditorState({
     editor,
     selector: ({ editor: current }) => {

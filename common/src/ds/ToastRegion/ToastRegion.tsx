@@ -32,6 +32,15 @@ import {
 import { createPortal } from 'react-dom'
 import { useTopModalHost } from '@/ds/useTopModalHost/useTopModalHost'
 
+import {
+  isSamePlacement,
+  placeToast,
+  TOAST_AVOID,
+  TOAST_MAX_WIDTH,
+  type AvoidedBox,
+  type ToastPlacement
+} from './toastPlacement'
+
 /** `error` is announced at once (`role="alert"`), the others politely */
 export type ToastSeverity = 'info' | 'success' | 'error'
 
@@ -125,17 +134,74 @@ const LIVE_REGIONS_STYLE: SystemStyleObject<Theme> = {
 
 function regionStyle(
   theme: Theme,
-  bottomOffset: number
+  bottomOffset: number,
+  placement: ToastPlacement
 ): SystemStyleObject<Theme> {
-  return {
+  const base: SystemStyleObject<Theme> = {
     position: 'fixed',
-    left: '50%',
-    transform: 'translateX(-50%)',
     zIndex: theme.zIndex.snackbar,
     width: 'max-content',
-    maxWidth: `min(424px, calc(100vw - ${theme.spacing(4)}))`,
+    maxWidth: `min(${TOAST_MAX_WIDTH}px, calc(100vw - ${theme.spacing(4)}))`,
     bottom: `calc(${theme.spacing(3)} + ${bottomOffset}px + env(safe-area-inset-bottom))`
   }
+  switch (placement.kind) {
+    case 'beside':
+      return {
+        ...base,
+        right: placement.right,
+        maxWidth: placement.maxWidth,
+        ...(placement.bottom === null ? {} : { bottom: placement.bottom })
+      }
+    case 'above':
+      return {
+        ...base,
+        left: placement.centerX,
+        transform: 'translateX(-50%)',
+        bottom: placement.bottom
+      }
+    default:
+      return { ...base, left: '50%', transform: 'translateX(-50%)' }
+  }
+}
+
+function findAvoidedBoxes(): AvoidedBox[] {
+  return Array.from(document.querySelectorAll(`[${TOAST_AVOID}]`)).map(
+    element => element.getBoundingClientRect()
+  )
+}
+
+/**
+ * Where the toast goes while it is shown, kept up to date as docked
+ * windows open, close, change mode, or the screen is resized
+ */
+function useToastPlacement(isShown: boolean): ToastPlacement {
+  const [placement, setPlacement] = useState<ToastPlacement>({
+    kind: 'center'
+  })
+  useEffect(() => {
+    if (!isShown) return
+    const update = (): void => {
+      const next = placeToast(findAvoidedBoxes(), {
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+      // The page changes a lot meanwhile: render again on a move only
+      setPlacement(current => (isSamePlacement(current, next) ? current : next))
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributeFilter: [TOAST_AVOID]
+    })
+    window.addEventListener('resize', update)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [isShown])
+  return placement
 }
 
 /**
@@ -350,6 +416,8 @@ export function ToastRegion({
   // too: it hides the page); the toast itself never in a popover
   const modalHost = useTopModalHost()
   const cardHost = useTopModalHost(false)
+  // In a dialog, the toast stays at its bottom centre
+  const placement = useToastPlacement(toast !== null && cardHost === null)
   const shownAt = useRef<{ id: string; at: number } | null>(null)
   const toastId = toast?.id ?? null
 
@@ -376,7 +444,7 @@ export function ToastRegion({
   )
   const card =
     toast === null ? null : (
-      <Box sx={theme => regionStyle(theme, bottomOffset)}>
+      <Box sx={theme => regionStyle(theme, bottomOffset, placement)}>
         <Fade key={toast.id} in appear timeout={reducedMotion ? 0 : 200}>
           <ToastCard
             toast={toast}

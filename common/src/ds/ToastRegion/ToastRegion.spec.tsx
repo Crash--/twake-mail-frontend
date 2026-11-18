@@ -12,6 +12,7 @@ import {
   ToastRegion,
   type ToastItem
 } from './ToastRegion'
+import { TOAST_AVOID } from './toastPlacement'
 
 function Harness({
   initial,
@@ -349,6 +350,22 @@ describe('ToastRegion', () => {
       expect(screen.getByRole('button', { name: 'Undo' })).toBeVisible()
       expect(screen.getByRole('status')).toBeEmptyDOMElement()
     })
+  })
+
+  it('goes 16 px left of a docked window, over the page', () => {
+    const docked = document.createElement('div')
+    docked.setAttribute(TOAST_AVOID, '')
+    docked.getBoundingClientRect = () =>
+      ({ left: 630, top: 118, right: 1260 }) as DOMRect
+    document.body.append(docked)
+
+    renderToast(MOVED)
+
+    // The toast, its paper, then the box that places it
+    expect(
+      screen.getByTestId('toast').parentElement?.parentElement
+    ).toHaveStyle({ right: `${window.innerWidth - 630 + 16}px` })
+    docked.remove()
   })
 
   describe('while a popover is open', () => {

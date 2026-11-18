@@ -301,3 +301,27 @@ describe('IdentityFormDialog name field', () => {
     )
   })
 })
+
+describe('IdentityFormDialog signature editor', () => {
+  it('writes the signature as the composer: formatting folded until "Aa", image and link under the text', async () => {
+    renderDialog(makeServer())
+    await screen.findByTestId('identity-signature-editor')
+    const formatting = screen.getByTestId(
+      'identity-signature-formatting-button'
+    )
+
+    expect(formatting).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('toolbar')).toBe(null)
+    expect(screen.getByTestId('identity-signature-image-button')).toBeVisible()
+    expect(screen.getByTestId('identity-signature-link-button')).toBeVisible()
+
+    const scroll = jest.spyOn(Element.prototype, 'scrollIntoView')
+    await userEvent.click(formatting)
+
+    expect(formatting).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('toolbar')).toBeVisible()
+    // The toolbar pushes its buttons down: they are brought back in view
+    expect(scroll.mock.contexts).toContain(formatting.parentElement)
+    scroll.mockRestore()
+  })
+})

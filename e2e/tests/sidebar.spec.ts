@@ -252,9 +252,10 @@ test.describe('SBR sidebar rows and compose button', () => {
       const title = page.getByTestId('mailbox-tree-title').locator('xpath=..')
       const titleBox = await title.boundingBox()
       const addBox = await mailbox.addFolderButton.boundingBox()
-      // A tablet grows the row to the 44 px of its touch targets
-      expect(titleBox?.height).toBe(isPhone || isDesktop ? 26 : 44)
-      expect(addBox?.height).toBe(isDesktop ? 26 : 44)
+      // A desktop keeps the 24 px of the title around 20 px actions; a
+      // tablet grows the row to the 44 px of its touch targets
+      expect(titleBox?.height).toBe(isDesktop ? 24 : isPhone ? 26 : 44)
+      expect(addBox?.height).toBe(isDesktop ? 20 : 44)
 
       // Phones: the same 12 px under both titles (Figma); else 16 and 8
       await expect(page.getByTestId('labels-section')).toContainText('Design')

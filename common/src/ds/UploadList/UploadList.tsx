@@ -165,7 +165,8 @@ export interface UploadChipProps {
     'remove' | 'retry' | 'progress' | 'failed' | 'done'
   >
   onRemove: (id: string) => void
-  onRetry: (id: string) => void
+  /** Without it, a failed file says so and offers no retry */
+  onRetry?: (id: string) => void
   onOpen?: (id: string) => void
   testIds?: UploadTestIds
 }
@@ -303,7 +304,7 @@ export function UploadChip({
           />
         ) : null}
       </Box>
-      {isFailed ? (
+      {isFailed && onRetry !== undefined ? (
         <Tooltip title={labels.retry(item.name)}>
           <IconButton
             aria-label={labels.retry(item.name)}

@@ -2,16 +2,23 @@
 // the title of a sidebar section: twake-mui's `xsmall` button, 44 px on touch
 // screens.
 import { Icon, type IconProps } from '@linagora/twake-icons'
-import { IconButton, Tooltip } from '@linagora/twake-mui'
+import { IconButton, Tooltip, useMediaQuery } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, Ref } from 'react'
 
-import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import {
+  TOUCH_MEDIA,
+  TOUCH_QUERY,
+  TOUCH_TARGET_SIZE
+} from '@/ds/TouchTargets/TouchTargets'
 
 export interface NavSectionActionProps {
   /** Tooltip and accessible name */
   label: string
   icon: IconProps['icon']
-  /** The glyph, 16 px by default */
+  /**
+   * The glyph: by default 10 px (the section titles of Teammail 1.1), 16 px
+   * on touch screens
+   */
   iconSize?: number
   onClick: (event: MouseEvent<HTMLElement>) => void
   buttonRef?: Ref<HTMLButtonElement>
@@ -26,7 +33,7 @@ export interface NavSectionActionProps {
 export function NavSectionAction({
   label,
   icon,
-  iconSize = 16,
+  iconSize,
   onClick,
   buttonRef,
   disabled,
@@ -35,6 +42,8 @@ export function NavSectionAction({
   'aria-controls': controls,
   'data-testid': testId
 }: NavSectionActionProps): ReactElement {
+  // noSsr: the first render already has the right glyph, as useScreenSize
+  const isTouch = useMediaQuery(TOUCH_QUERY, { noSsr: true })
   return (
     <Tooltip title={label}>
       <IconButton
@@ -56,7 +65,7 @@ export function NavSectionAction({
           }
         }}
       >
-        <Icon icon={icon} size={iconSize} />
+        <Icon icon={icon} size={iconSize ?? (isTouch ? 16 : 10)} />
       </IconButton>
     </Tooltip>
   )

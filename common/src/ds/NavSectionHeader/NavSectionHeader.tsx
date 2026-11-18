@@ -7,10 +7,10 @@ import { Icon, Dropdown, Right } from '@linagora/twake-icons'
 import { Box, ButtonBase, Typography, radius } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
-import { TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
-/** twake-mui's `xsmall` icon button, the size of the actions off touch */
+/** The height a phone keeps for the title row: twake-mui's `xsmall` button */
 const ACTION_SIZE = 26
 const PHONE_MEDIA = `@media ${SCREEN_QUERIES.mobile}`
 
@@ -59,13 +59,14 @@ export function NavSectionHeader({
   return (
     <Box
       className="u-flex u-flex-items-center"
-      // The actions are 26 px boxes around 16 px glyphs: their glyphs end
-      // 17 px before the edge
+      // Off touch, the actions are 20 px boxes around 10 px glyphs: their
+      // glyphs end 19 px before the edge, 3 px inside the rows (Teammail 1.1)
       sx={{
         minHeight: 24,
         mt: '24px',
         pl: 2,
-        pr: '12px',
+        pr: '14px',
+        [TOUCH_MEDIA]: { pr: '12px' },
         // Phones: the 44 px touch targets of the actions spill over the
         // margins, above the next row, instead of growing the title row
         [PHONE_MEDIA]: {

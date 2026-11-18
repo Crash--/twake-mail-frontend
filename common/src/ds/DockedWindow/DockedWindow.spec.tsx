@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
 import { renderDs } from '@/ds/testing/renderDs'
+import { TOAST_AVOID } from '@/ds/ToastRegion/toastPlacement'
 
 import { DockedWindow, type DockedWindowMode } from './DockedWindow'
 import { WindowDock } from './WindowDock'
@@ -109,6 +110,20 @@ describe('DockedWindow', () => {
       'Hello'
     )
     expect(screen.getByRole('textbox', { name: 'Subject' })).toHaveFocus()
+  })
+
+  it('asks the toasts to keep clear of it while docked, open or minimized', async () => {
+    renderDs(<Harness />)
+    expect(screen.getByTestId('window')).toHaveAttribute(TOAST_AVOID)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fullscreen' }))
+    expect(screen.getByTestId('window')).not.toHaveAttribute(TOAST_AVOID)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Exit fullscreen' })
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Minimize' }))
+    expect(screen.getByTestId('window')).toHaveAttribute(TOAST_AVOID)
   })
 
   it('goes full screen as a modal dialog, and back', async () => {

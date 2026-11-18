@@ -25,6 +25,7 @@ import {
 } from 'react'
 
 import { ActionIconButton } from '@/ds/ActionIconButton/ActionIconButton'
+import { TOAST_AVOID } from '@/ds/ToastRegion/toastPlacement'
 import { useVisualViewport } from '@/ds/useVisualViewport/useVisualViewport'
 
 /** Where the window is: in the dock, its title bar only, or over the page */
@@ -391,6 +392,9 @@ export function DockedWindow({
           ]}
           data-testid={testIds.window}
           data-mode={isModal ? 'fullscreen' : mode}
+          // In the dock, open or minimized, over the page: the toasts go
+          // beside it (`ds/ToastRegion`)
+          {...(isFullscreen ? {} : { [TOAST_AVOID]: '' })}
         >
           {hasNoTitleBar ? (
             <h2 id={titleId} className="u-visuallyhidden">

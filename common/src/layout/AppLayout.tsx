@@ -51,6 +51,7 @@ import {
   RecoveryProvider
 } from '@common/features/recovery/RecoveryProvider'
 import { VacationBanner } from '@common/features/vacation/VacationBanner'
+import { useAuthService } from '@common/features/auth/AuthProvider'
 import {
   PlatformProvider,
   usePlatformSdk,
@@ -138,11 +139,14 @@ function AppFrame(): ReactElement {
   const isSearchResults = useMatch('/search') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
   const isSettings = isSettingsPath(location.pathname)
-  // Without the platform, the settings are behind the initial of the user
-  // in the bar (`AccountMenu`), not in the search row as well
+  // In basic mode, as tmail-flutter, the settings are behind the initial of
+  // the user in the bar (`AccountMenu`) alone. After an SSO sign-in the gear
+  // stays when the Workplace is out of reach, where users look for it
   const platformSdk = usePlatformSdk()
   const platformStatus = usePlatformStatus()
-  const hasAccountMenu = platformSdk !== null && platformStatus === 'public'
+  const isBasicMode = useAuthService().mode !== 'oidc'
+  const hasSettingsButton =
+    platformSdk === null || platformStatus !== 'public' || !isBasicMode
   // As tmail-flutter, it makes way for the selection
   const isSelectingEmails = useIsSelectingEmails()
   const showComposeFab =
@@ -222,7 +226,7 @@ function AppFrame(): ReactElement {
               actions={
                 <>
                   <MailboxSwitcherButton />
-                  {hasAccountMenu ? null : <SettingsButton />}
+                  {hasSettingsButton ? <SettingsButton /> : null}
                 </>
               }
               data-testid="search-row"

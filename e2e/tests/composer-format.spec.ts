@@ -212,6 +212,30 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     }
   )
 
+  test('CMP-114 in dark mode, the composer casts the shadow of the dark scheme, edged with a light line (issue #1043)', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    await jmap.call(
+      'Settings/set',
+      { update: { singleton: { 'settings/appearance.theme': 'dark' } } },
+      ['com:linagora:params:jmap:settings']
+    )
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.style.colorScheme))
+      .toBe('dark')
+    const composer = await mailbox.compose()
+
+    // The shadow of the light scheme is edged with a dark grey line, which
+    // vanishes on a dark page
+    const shadow = await composer.root.evaluate(
+      element => getComputedStyle(element).boxShadow
+    )
+    expect(shadow).toContain('rgba(255, 255, 255')
+  })
+
   test('CMP-110 in dark mode, the formatting toolbar and its menus are dark with readable text', async ({
     page,
     user,

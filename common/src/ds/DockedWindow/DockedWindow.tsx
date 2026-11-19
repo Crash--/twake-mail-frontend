@@ -338,7 +338,9 @@ export function DockedWindow({
             {
               pointerEvents: 'auto',
               borderRadius: radius.md,
-              boxShadow: theme => theme.shadows[4],
+              // The shadow of the color scheme shown: `theme.shadows` is the
+              // light one whatever the scheme
+              boxShadow: theme => theme.vars.shadows[4],
               ...(viewTransitionName === undefined
                 ? {}
                 : {

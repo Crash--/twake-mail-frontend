@@ -279,7 +279,7 @@ export async function fetchThreadMembersInChunks(
  * conversations, one email of the thread matching is enough. `maybe` stays:
  * only the server knows.
  */
-export function matchesFilter(
+export function matchesListFilter(
   filter: Filter<EmailFilterCondition>,
   email: EmailListItemData,
   members: readonly ThreadMember[] | undefined
@@ -287,6 +287,21 @@ export function matchesFilter(
   return (members ?? [email]).some(
     member => filterVerdict(filter, member) !== 'no'
   )
+}
+
+/**
+ * Number of results a list shows: the server's total, less the results the
+ * loaded pages cover without listing them (a stale index returned them, see
+ * `matchesListFilter`)
+ */
+export function listedTotal(pages: readonly EmailListPage[]): number | null {
+  const total = pages[0]?.total ?? null
+  if (total === null) return null
+  const hidden = pages.reduce(
+    (sum, page) => sum + Math.max(0, page.count - page.emails.length),
+    0
+  )
+  return Math.max(0, total - hidden)
 }
 
 function toSnippets(
@@ -399,7 +414,7 @@ export async function fetchListPage(
   // listed, but still count, so that the next page starts where the
   // server's results go on
   const listed = fetched.filter(email =>
-    matchesFilter(filter, email, members?.[email.threadId])
+    matchesListFilter(filter, email, members?.[email.threadId])
   )
   return {
     emails: listed,

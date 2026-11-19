@@ -9,7 +9,7 @@ import {
   EMAIL_LIST_PAGE_SIZE,
   EMAIL_LIST_PROPERTIES,
   fetchThreadMembersInChunks,
-  matchesFilter,
+  matchesListFilter,
   orderByIds,
   type EmailListData,
   type EmailListItemData,
@@ -159,7 +159,7 @@ export async function refreshQueryList(
     // A stale index may return emails that no longer match: they are not
     // listed (the ones already listed stay as push patched them)
     for (const email of fetched) {
-      if (matchesFilter(filter, email, threads.get(email.threadId))) {
+      if (matchesListFilter(filter, email, threads.get(email.threadId))) {
         known.set(email.id, email)
       }
     }

@@ -10,6 +10,7 @@ import {
   type FakeEmail,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import { answerQueriesFromStaleIndex } from '@common/testing/staleIndex'
 
 import { fetchThreadUpdates } from './fetchThreadUpdates'
 import {
@@ -17,7 +18,9 @@ import {
   EMAIL_LIST_PAGE_SIZE,
   fetchEmailListPage,
   fetchListPage,
+  getNextPosition,
   MAILBOX_SORT,
+  type ListPageOptions,
   type SearchRequest
 } from './queries'
 import { refreshQueryList } from './refreshQueryList'
@@ -256,5 +259,156 @@ describe('more new emails than maxObjectsInGet in a list queried again', () => {
     })
 
     expect(Object.keys(refreshed?.pages[0]?.snippets ?? {})).toHaveLength(20)
+  })
+})
+
+describe('a search index behind the emails', () => {
+  const UNREAD_INBOX: SearchRequest = {
+    filter: {
+      operator: 'AND',
+      conditions: [{ inMailbox: 'mailbox-inbox' }, { notKeyword: '$seen' }]
+    },
+    sort: MAILBOX_SORT,
+    isListFiltered: true
+  }
+
+  /** `count` emails, the most recent first, unread as the index knows them */
+  function makeUnreadEmails(count: number): FakeEmail[] {
+    return Array.from({ length: count }, (_, index) =>
+      makeEmail({
+        id: `e${index}`,
+        receivedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, count - index))
+          .toISOString()
+          .replace('.000', '')
+      })
+    )
+  }
+
+  function markRead(email: FakeEmail): FakeEmail {
+    return { ...email, keywords: { $seen: true } }
+  }
+
+  /** A server whose emails `readIds` were read after the index saw them */
+  function makeStaleServer(
+    indexed: readonly FakeEmail[],
+    readIds: readonly string[]
+  ): FakeJmapServer {
+    const server = makeFakeJmapServer({
+      emails: indexed.map(email =>
+        readIds.includes(email.id) ? markRead(email) : email
+      )
+    })
+    answerQueriesFromStaleIndex(server, indexed)
+    return server
+  }
+
+  function firstPageAt(position: number): ListPageOptions {
+    return { position, limit: EMAIL_LIST_PAGE_SIZE, withSnippets: false }
+  }
+
+  it('does not list the emails Email/get tells no longer match', async () => {
+    const server = makeStaleServer(makeUnreadEmails(3), ['e1'])
+
+    const page = await fetchListPage(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      UNREAD_INBOX,
+      firstPageAt(0)
+    )
+
+    expect(page.emails.map(email => email.id)).toEqual(['e0', 'e2'])
+    expect(page.count).toBe(3)
+  })
+
+  it('pages after the emails it does not list', async () => {
+    const indexed = makeUnreadEmails(EMAIL_LIST_PAGE_SIZE + 5)
+    const server = makeStaleServer(
+      indexed,
+      indexed.slice(0, EMAIL_LIST_PAGE_SIZE).map(email => email.id)
+    )
+    const client = makeClient(server)
+
+    const first = await fetchListPage(
+      client,
+      FAKE_ACCOUNT_ID,
+      UNREAD_INBOX,
+      firstPageAt(0)
+    )
+    const nextPosition = getNextPosition(first)
+    const second = await fetchListPage(
+      client,
+      FAKE_ACCOUNT_ID,
+      UNREAD_INBOX,
+      firstPageAt(nextPosition ?? -1)
+    )
+
+    expect(first.emails).toEqual([])
+    expect(first.isLast).toBe(false)
+    expect(nextPosition).toBe(EMAIL_LIST_PAGE_SIZE)
+    expect(second.emails.map(email => email.id)).toEqual([
+      'e30',
+      'e31',
+      'e32',
+      'e33',
+      'e34'
+    ])
+    expect(second.isLast).toBe(true)
+  })
+
+  it('keeps a conversation one email of which still matches', async () => {
+    const indexed = [
+      makeEmail({
+        id: 'reply',
+        threadId: 'plan',
+        receivedAt: '2026-08-02T00:00:00Z'
+      }),
+      makeEmail({
+        id: 'first',
+        threadId: 'plan',
+        receivedAt: '2026-08-01T00:00:00Z'
+      }),
+      makeEmail({ id: 'other', receivedAt: '2026-07-01T00:00:00Z' })
+    ]
+    const server = makeStaleServer(indexed, ['reply', 'other'])
+
+    const page = await fetchListPage(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      { ...UNREAD_INBOX, collapseThreads: true },
+      firstPageAt(0)
+    )
+
+    expect(page.emails.map(email => email.id)).toEqual(['reply'])
+    expect(Object.keys(page.threads ?? {})).toEqual(['plan'])
+    expect(page.count).toBe(2)
+  })
+
+  it('does not bring them when the list is queried again', async () => {
+    const server = makeStaleServer([], [])
+    const client = makeClient(server)
+    const page = await fetchListPage(
+      client,
+      FAKE_ACCOUNT_ID,
+      UNREAD_INBOX,
+      firstPageAt(0)
+    )
+    const indexed = makeUnreadEmails(3)
+    for (const email of indexed) {
+      server.addEmail(email.id === 'e1' ? markRead(email) : email)
+    }
+    answerQueriesFromStaleIndex(server, indexed)
+
+    const refreshed = await refreshQueryList(
+      client,
+      FAKE_ACCOUNT_ID,
+      UNREAD_INBOX,
+      { pages: [page], pageParams: [0] }
+    )
+
+    expect(refreshed?.pages[0]?.emails.map(email => email.id)).toEqual([
+      'e0',
+      'e2'
+    ])
+    expect(refreshed?.pages[0]?.count).toBe(3)
   })
 })

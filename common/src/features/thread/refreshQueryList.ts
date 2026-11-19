@@ -9,6 +9,7 @@ import {
   EMAIL_LIST_PAGE_SIZE,
   EMAIL_LIST_PROPERTIES,
   fetchThreadMembersInChunks,
+  matchesFilter,
   orderByIds,
   type EmailListData,
   type EmailListItemData,
@@ -137,9 +138,7 @@ export async function refreshQueryList(
           )
         )
       : null
-    for (const email of orderByIds(listed.list, missing)) {
-      known.set(email.id, email)
-    }
+    const fetched = orderByIds(listed.list, missing)
     if (found.ok) {
       for (const { emailId, subject, preview } of found.value.list) {
         snippets.set(emailId, { subject, preview })
@@ -157,25 +156,37 @@ export async function refreshQueryList(
         threads.set(threadId, [...list].sort(byReceivedAt))
       }
     }
+    // A stale index may return emails that no longer match: they are not
+    // listed (the ones already listed stay as push patched them)
+    for (const email of fetched) {
+      if (matchesFilter(filter, email, threads.get(email.threadId))) {
+        known.set(email.id, email)
+      }
+    }
   }
 
-  const emails = query.ids.flatMap((id): EmailListItemData[] => {
-    const email = known.get(id)
-    return email ? [email] : []
-  })
   const total = query.total ?? null
   const isComplete = query.ids.length < windowSize
   // Fetched emails may be newer: the window keeps the state it was patched
   // to, and the next changes bring them again, harmlessly
   const state = firstPage.state
-  const pageCount = Math.max(1, Math.ceil(emails.length / EMAIL_LIST_PAGE_SIZE))
+  const pageCount = Math.max(
+    1,
+    Math.ceil(query.ids.length / EMAIL_LIST_PAGE_SIZE)
+  )
   const pages = Array.from({ length: pageCount }, (_, index): EmailListPage => {
     const position = index * EMAIL_LIST_PAGE_SIZE
-    const slice = emails.slice(position, position + EMAIL_LIST_PAGE_SIZE)
+    const ids = query.ids.slice(position, position + EMAIL_LIST_PAGE_SIZE)
+    // Pages cover the positions of the server's results, those of emails
+    // not listed included, so that the next page starts after them
+    const slice = ids.flatMap((id): EmailListItemData[] => {
+      const email = known.get(id)
+      return email ? [email] : []
+    })
     const page: EmailListPage = {
       emails: slice,
       position,
-      count: slice.length,
+      count: ids.length,
       total,
       isLast: index === pageCount - 1 && isComplete,
       state,

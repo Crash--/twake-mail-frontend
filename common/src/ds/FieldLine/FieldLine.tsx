@@ -2,25 +2,37 @@
 // not the flat line of a mail form (Figma "Mail composer fields"): a label on
 // the left, the value inline, a full width divider below, 37 px high.
 import { Box, Typography, type SxProps, type Theme } from '@linagora/twake-mui'
+import type { SystemStyleObject } from '@mui/system'
 import type { ReactElement, ReactNode } from 'react'
 
 /** Height of a line, divider included, in px */
 export const FIELD_LINE_HEIGHT = 37
 
 /**
- * The text of the fields of a mail form: body2 (Figma), but 16 px under
- * `md` as twake-mui's inputs, so that iOS Safari does not zoom into them
+ * Where twake-mui's fields take 14 px text: from `md`, but not on a touch
+ * screen, which keeps 16 px as wide (a tablet, a phone held sideways), as
+ * iOS Safari zooms the page into a field whose text is under 16 px
  */
-export const FIELD_TEXT_SX = {
-  typography: { xs: 'body1', md: 'body2' },
-  // In the same breakpoint as body1, or body1's weight wins
-  fontWeight: { xs: 'fontWeightMedium' }
-} as const
+export function mouseFromMd(theme: Theme): string {
+  return `${theme.breakpoints.up('md')} and (not (pointer: coarse))`
+}
+
+/**
+ * The text of the fields of a mail form: body2 (Figma) where twake-mui's
+ * fields take 14 px, else 16 px with the same weight
+ */
+export function fieldTextSx(theme: Theme): SystemStyleObject<Theme> {
+  return {
+    ...theme.typography.body1,
+    fontWeight: theme.typography.fontWeightMedium,
+    [mouseFromMd(theme)]: theme.typography.body2
+  }
+}
 
 /**
  * The look of a line, shared with the fields that build their own markup
  * (`RecipientField`): 37 px, 16 px from the sides, a divider below, the
- * text of the inputs in `FIELD_TEXT_SX` and the placeholders in the
+ * text of the inputs in `fieldTextSx` and the placeholders in the
  * secondary colour.
  */
 export const FIELD_LINE_SX = {
@@ -36,10 +48,10 @@ export const FIELD_LINE_SX = {
   borderBottom: 1,
   borderColor: 'divider',
   '& .MuiInputBase-input': { p: 0 },
-  '& .MuiInputBase-input, & .MuiSelect-select': {
-    ...FIELD_TEXT_SX,
+  '& .MuiInputBase-input, & .MuiSelect-select': (theme: Theme) => ({
+    ...fieldTextSx(theme),
     color: 'text.primary'
-  },
+  }),
   '& .MuiInputBase-input::placeholder': {
     color: 'text.secondary',
     opacity: 1

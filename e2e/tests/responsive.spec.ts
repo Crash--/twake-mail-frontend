@@ -233,6 +233,28 @@ test.describe('RESP responsive layout', () => {
       await email.back()
       await expect(mailbox.emailRow('sideways')).toBeVisible()
     })
+
+    test('RESP-08 past md on a touch screen, the fields of the composer stay 16 px, so that iOS Safari does not zoom into them', { tag: '@desktop-only' }, async ({
+      page,
+      user
+    }) => {
+      const mailbox = await new LoginPage(page).loginAs(user)
+      expect(
+        await page.evaluate(() => matchMedia('(pointer: coarse)').matches)
+      ).toBe(true)
+      const composer = await mailbox.compose()
+      await expect(composer.editor).toBeVisible()
+      for (const field of [
+        composer.editor,
+        composer.recipientInput('to'),
+        composer.subjectInput
+      ]) {
+        const fontSize = await field.evaluate(
+          element => getComputedStyle(element).fontSize
+        )
+        expect(Number.parseFloat(fontSize)).toBeGreaterThanOrEqual(16)
+      }
+    })
   })
 
   test.describe('on a desktop', () => {

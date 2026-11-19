@@ -24,7 +24,7 @@ import {
   type ReactElement
 } from 'react'
 
-import { FIELD_TEXT_SX } from '@/ds/FieldLine/FieldLine'
+import { fieldTextSx, mouseFromMd } from '@/ds/FieldLine/FieldLine'
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
 
 import { BOXED_FONT_SIZE } from './boxedToolbar'
@@ -617,14 +617,16 @@ export function RichTextEditor({
             border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
-            // 16 px under `md`, as twake-mui's inputs, so that iOS Safari
-            // does not zoom into it, 14 px from `md`: the composer's body in
-            // body2 (Figma), the others in the page's text. On screen only:
-            // the message keeps its own sizes
+            // 14 px where twake-mui's fields are 14 px (`mouseFromMd`), 16 px
+            // elsewhere so that iOS Safari does not zoom into it: the
+            // composer's body in body2 (Figma), the others in the page's
+            // text. On screen only: the message keeps its own sizes
             ...(fill
-              ? { ...FIELD_TEXT_SX, color: 'text.primary' }
+              ? { ...fieldTextSx(theme), color: 'text.primary' }
               : {
-                  fontSize: { md: theme.typography.body3.fontSize },
+                  [mouseFromMd(theme)]: {
+                    fontSize: theme.typography.body3.fontSize
+                  },
                   lineHeight: 1.5
                 }),
             overflowWrap: 'anywhere'

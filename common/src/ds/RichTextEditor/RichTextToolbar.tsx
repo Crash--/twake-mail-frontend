@@ -23,6 +23,7 @@ import {
   type RefObject
 } from 'react'
 
+import { mouseFromMd } from '@/ds/FieldLine/FieldLine'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 import {
@@ -234,11 +235,13 @@ export function RichTextToolbar({
   const isComposer = look === 'composer'
   const theme = useTheme()
   // The size the editor shows its text in (RichTextEditor's typography)
-  const isBelowMd = useMediaQuery(theme.breakpoints.down('md'), {
-    noSsr: true
+  // A desktop where the browser cannot tell, as `useScreenSize`
+  const isMouseFromMd = useMediaQuery(mouseFromMd(theme), {
+    noSsr: true,
+    defaultMatches: true
   })
   const editorFontSize = Number(
-    theme.typography[isBelowMd ? 'body1' : 'body3'].fontSize
+    theme.typography[isMouseFromMd ? 'body3' : 'body1'].fontSize
   )
   const defaultSize =
     defaultFontSize ?? (isBoxed ? BOXED_FONT_SIZE : editorFontSize)

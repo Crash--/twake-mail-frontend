@@ -24,6 +24,9 @@ export const LEGACY_MEDIA_LISTENERS = {
 type MatchMedia = (query: string) => MediaQueryListMock
 
 function matchesCondition(condition: string, viewport: Viewport): boolean {
+  // `(not (pointer: coarse))`: the opposite of the condition inside
+  const negated = /^\s*\(\s*not\s+(\(.*\))\s*\)\s*$/.exec(condition)
+  if (negated) return !matchesCondition(negated[1] ?? '', viewport)
   const feature = /\(\s*([a-z-]+)\s*:\s*([^)]+?)\s*\)/.exec(condition)
   if (!feature) return false
   const [, name, rawValue = ''] = feature

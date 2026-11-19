@@ -724,6 +724,11 @@ describe('ConversationView', () => {
       })
     })
 
+    // Read, its sender is Medium; unread, Bold
+    const bob = (): HTMLElement =>
+      within(toggle(/Bob Dupont/)).getByText('Bob Dupont')
+    expect(bob()).toHaveStyle({ fontWeight: 500 })
+
     await userEvent.click(
       within(await openConversationMenu()).getByRole('menuitem', {
         name: 'Mark as unread'
@@ -731,6 +736,7 @@ describe('ConversationView', () => {
     )
 
     expect(toggle(/Dan/)).toHaveAttribute('aria-expanded', 'false')
+    expect(bob()).toHaveStyle({ fontWeight: 700 })
     await waitFor(() => {
       expect(
         server.emails

@@ -481,7 +481,7 @@ export function ConversationMessage({
               </span>
             ) : (
               <>
-                <MessageText variant="compactName" className={emphasis}>
+                <MessageText variant="compactName" isStrong={isUnread}>
                   {sender ? formatAddressName(sender) : ''}
                 </MessageText>
                 {email.hasAttachment ? (

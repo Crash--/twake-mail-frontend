@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { Editor } from '@tiptap/core'
 import userEvent from '@testing-library/user-event'
 
@@ -323,5 +323,39 @@ describe('IdentityFormDialog signature editor', () => {
     // The toolbar pushes its buttons down: they are brought back in view
     expect(scroll.mock.contexts).toContain(formatting.parentElement)
     scroll.mockRestore()
+  })
+})
+
+describe('IdentityFormDialog address', () => {
+  it('picks the address in a menu of twake-mui, not a list of the browser', async () => {
+    const server = makeFakeJmapServer({
+      identities: [
+        makeIdentity({ id: 'own' }),
+        makeIdentity({ id: 'sales', email: 'sales@example.com' })
+      ]
+    })
+    renderWithProviders(
+      <IdentityFormDialog
+        identity={null}
+        identities={server.identities.map(identity => ({
+          ...identity,
+          sortOrder: 0
+        }))}
+        hasSortOrder={false}
+        onClose={jest.fn()}
+      />,
+      { jmapServer: server, withJmapSession: true }
+    )
+    const select = await screen.findByTestId('identity-email-select')
+    expect(document.querySelector('select')).toBe(null)
+
+    await userEvent.click(select)
+    const listbox = await screen.findByRole('listbox')
+    await userEvent.click(
+      within(listbox).getByRole('option', { name: 'sales@example.com' })
+    )
+
+    expect(screen.queryByRole('listbox')).toBe(null)
+    expect(select).toHaveTextContent('sales@example.com')
   })
 })

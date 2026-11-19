@@ -1,10 +1,17 @@
 import {
   Icon,
+  Answer,
   Attachment,
   Check,
   Cross,
   Dots,
+  EmailNotification,
+  InfoOutlined,
+  Link,
+  Note,
   Paperplane,
+  Printer,
+  Template,
   Trash,
   Warning,
   Assistant,
@@ -14,7 +21,6 @@ import {
   Box,
   InputBase,
   ListItemIcon,
-  ListItemText,
   Menu,
   MenuItem,
   Select,
@@ -42,13 +48,14 @@ import {
   ActionIconButton
 } from '@/ds/ActionIconButton/ActionIconButton'
 import { FieldLine } from '@/ds/FieldLine/FieldLine'
+import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import {
   FileDropZone,
   ignoreFileDropsOutsideZones
 } from '@/ds/FileDropZone/FileDropZone'
 import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { IMAGE_TYPES, RichTextEditor } from '@/ds/RichTextEditor/RichTextEditor'
-import { EditorIcon } from '@/ds/RichTextEditor/editorIcons'
+import { EditorIcon, EmojiMenuIcon } from '@/ds/RichTextEditor/editorIcons'
 import type { InlineImageAttributes } from '@/ds/RichTextEditor/inlineImage'
 import { PillButton } from '@/ds/PillButton/PillButton'
 import { SendingDialog } from '@/ds/SendingDialog/SendingDialog'
@@ -1749,7 +1756,10 @@ function LoadedComposerForm({
           }}
           data-testid="composer-link-item"
         >
-          <ListItemText inset primary={labels.link} />
+          <ListItemIcon>
+            <Icon icon={Link} aria-hidden="true" />
+          </ListItemIcon>
+          <MenuItemLabel label={labels.link} />
         </MenuItem>
       ) : null}
       {isPhone ? (
@@ -1757,7 +1767,10 @@ function LoadedComposerForm({
           onClick={handleSaveDraft}
           data-testid="composer-save-draft-item"
         >
-          <ListItemText inset primary={t('composer.saveAsDraft')} />
+          <ListItemIcon>
+            <Icon icon={FileOutline} aria-hidden="true" />
+          </ListItemIcon>
+          <MenuItemLabel label={t('composer.saveAsDraft')} />
         </MenuItem>
       ) : null}
       {isPhone ? null : (
@@ -1768,7 +1781,10 @@ function LoadedComposerForm({
           }}
           data-testid="composer-emoji-item"
         >
-          <ListItemText inset primary={t('composer.emoji.open')} />
+          <ListItemIcon>
+            <EmojiMenuIcon />
+          </ListItemIcon>
+          <MenuItemLabel label={t('composer.emoji.open')} />
         </MenuItem>
       )}
       {isPhone || shown.has('replyTo') ? null : (
@@ -1781,38 +1797,52 @@ function LoadedComposerForm({
           }}
           data-testid="composer-show-reply-to-item"
         >
-          <ListItemText inset primary={t('composer.fields.replyTo')} />
+          <ListItemIcon>
+            <Icon icon={Answer} aria-hidden="true" />
+          </ListItemIcon>
+          <MenuItemLabel label={t('composer.fields.replyTo')} />
         </MenuItem>
       )}
       <MenuItem
         onClick={handleOpenTemplatePicker}
         data-testid="composer-insert-template-item"
       >
-        <ListItemText inset primary={t('composer.template.insert')} />
+        <ListItemIcon>
+          <Icon icon={Template} aria-hidden="true" />
+        </ListItemIcon>
+        <MenuItemLabel label={t('composer.template.insert')} />
       </MenuItem>
       <MenuItem
         onClick={handleSaveTemplate}
         data-testid="composer-save-template-item"
       >
-        <ListItemText inset primary={t('composer.template.save')} />
+        <ListItemIcon>
+          <Icon icon={Note} aria-hidden="true" />
+        </ListItemIcon>
+        <MenuItemLabel label={t('composer.template.save')} />
       </MenuItem>
       <MenuItem onClick={handlePrint} data-testid="composer-print-item">
-        <ListItemText inset primary={t('composer.print')} />
+        <ListItemIcon>
+          <Icon icon={Printer} aria-hidden="true" />
+        </ListItemIcon>
+        <MenuItemLabel label={t('composer.print')} />
       </MenuItem>
       {(
         [
           [
             'requestReadReceipt',
+            EmailNotification,
             'composer.options.readReceipt',
             'composer-read-receipt-item'
           ],
           [
             'isImportant',
+            InfoOutlined,
             'composer.options.markAsImportant',
             'composer-mark-important-item'
           ]
         ] as const
-      ).map(([option, label, testId]) => (
+      ).map(([option, icon, label, testId]) => (
         <MenuItem
           key={option}
           role="menuitemcheckbox"
@@ -1822,12 +1852,18 @@ function LoadedComposerForm({
           }}
           data-testid={testId}
         >
+          <ListItemIcon>
+            <Icon icon={icon} aria-hidden="true" />
+          </ListItemIcon>
+          <MenuItemLabel label={t(label)} />
           {options[option] ? (
-            <ListItemIcon>
-              <Icon icon={Check} aria-hidden="true" />
-            </ListItemIcon>
+            <Icon
+              icon={Check}
+              aria-hidden="true"
+              className="u-ml-1 u-flex-shrink-0"
+              data-testid={`${testId}-check`}
+            />
           ) : null}
-          <ListItemText inset={!options[option]} primary={t(label)} />
         </MenuItem>
       ))}
       {isPhone ? (
@@ -1838,7 +1874,10 @@ function LoadedComposerForm({
           }}
           data-testid="composer-delete-draft-item"
         >
-          <ListItemText inset primary={t('composer.draft.delete')} />
+          <ListItemIcon>
+            <Icon icon={Trash} aria-hidden="true" />
+          </ListItemIcon>
+          <MenuItemLabel label={t('composer.draft.delete')} />
         </MenuItem>
       ) : null}
     </Menu>

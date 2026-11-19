@@ -381,7 +381,7 @@ twake-ui would need a `Nav` `subheader` with a toggle next to the title, an
 | Toolbar menu button | Bordered 32 px box showing its value ("Aa", size, font), with a menu (`menuitemradio`) | Text style, size, font, alignment, lists and indentation of the composer | `ds/RichTextEditor/RichTextToolbar` | A `Toolbar` pattern with menu buttons, with the APG roving tabindex |
 | Colour popover | Swatches (two rows of 10), reset, free colour (native input), current colour as a 10 x 2 bar under the button | Text colour and highlight | `ds/RichTextEditor/ColorMenu` (composes `ds/ColorSwatchPicker`) | A `ColorPicker` popover |
 | Emoji picker | Popover with category tabs, search field, grid, recent; data given by the caller | Emoji button of the composer footer (not on phones: the native keyboard has one) | `ds/EmojiPicker` | An `EmojiPicker` fed by an optional lazy dataset |
-| Icons | `twake-icons` has no highlighter, indent, outdent, emoji nor text style icon; Material Icons paths are used (as for bold, italic…) | Toolbar and footer | `ds/RichTextEditor/editorIcons` | Add them to `twake-icons` |
+| Icons | `twake-icons` has no highlighter, indent, outdent, emoji nor text style icon; Material Icons paths are used (as for bold, italic…) | Toolbar, footer and More menu | `ds/RichTextEditor/editorIcons` | Add them to `twake-icons` |
 | Category pictograms | The tabs of the emoji picker are emojis (greyed unless selected), not the outlined icons of the design | Emoji picker tabs | `ds/EmojiPicker` | Outlined category icons in `twake-icons` |
 
 Differences kept from the design and from tmail-flutter:

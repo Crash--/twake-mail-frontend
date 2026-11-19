@@ -92,6 +92,18 @@ export interface EditorIconProps extends Omit<SvgIconProps, 'children'> {
   name: EditorIconName
 }
 
+/**
+ * The emoji glyph drawn edge to edge in a 16 px box, as the twake-icons
+ * beside it in a menu: its Material path spans 2 to 22 of a 24 grid
+ */
+export function EmojiMenuIcon(): ReactElement {
+  return (
+    <SvgIcon viewBox="2 2 20 20" sx={{ fontSize: 16 }} aria-hidden="true">
+      <path d={PATHS.emoji} />
+    </SvgIcon>
+  )
+}
+
 /** A decorative toolbar icon: the button carries the accessible name */
 export function EditorIcon({ name, ...props }: EditorIconProps): ReactElement {
   const twakeIcon = TWAKE_ICONS[name]

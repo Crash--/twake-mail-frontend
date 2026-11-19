@@ -59,6 +59,19 @@ async function showFrom(composer: HTMLElement): Promise<void> {
   )
 }
 
+/** The labels of the menu items that do not start with an icon */
+function itemsWithoutLeadingIcon(menu: HTMLElement): (string | null)[] {
+  return [
+    ...within(menu).getAllByRole('menuitem'),
+    ...within(menu).getAllByRole('menuitemcheckbox')
+  ]
+    .filter(item => {
+      const first = item.firstElementChild
+      return first?.querySelector('svg') === null || first?.textContent !== ''
+    })
+    .map(item => item.textContent)
+}
+
 jest.mock('@common/features/email/printDocument', () => ({
   ...jest.requireActual<object>('@common/features/email/printDocument'),
   printHtmlDocument: jest.fn().mockResolvedValue(undefined)
@@ -172,7 +185,21 @@ describe('ComposerForm', () => {
           'Delete draft'
         ].sort()
       )
+      expect(itemsWithoutLeadingIcon(menu)).toEqual([])
     })
+  })
+
+  it('puts an icon before every item of the More menu', async () => {
+    renderComposer()
+    const composer = await openComposer()
+
+    await userEvent.click(
+      within(composer).getByRole('button', { name: 'More' })
+    )
+
+    const menu = await screen.findByRole('menu')
+    expect(within(menu).getAllByRole('menuitem').length).toBeGreaterThan(1)
+    expect(itemsWithoutLeadingIcon(menu)).toEqual([])
   })
 
   describe('sending', () => {
@@ -345,15 +372,20 @@ describe('ComposerForm', () => {
         )
         const item = screen.getByRole('menuitemcheckbox', { name })
         expect(item).toHaveAttribute('aria-checked', 'false')
+        expect(within(item).queryByTestId(/-check$/)).toBe(null)
         await userEvent.click(item)
         expect(await screen.findByTestId('toast')).toHaveTextContent(toast)
       }
       await userEvent.click(
         within(composer).getByRole('button', { name: 'More' })
       )
+      const important = screen.getByRole('menuitemcheckbox', {
+        name: 'Mark as important'
+      })
+      expect(important).toHaveAttribute('aria-checked', 'true')
       expect(
-        screen.getByRole('menuitemcheckbox', { name: 'Mark as important' })
-      ).toHaveAttribute('aria-checked', 'true')
+        within(important).getByTestId('composer-mark-important-item-check')
+      ).toBeInTheDocument()
       await userEvent.keyboard('{Escape}')
 
       await userEvent.click(

@@ -823,7 +823,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-74` The signature shows after its `---` line, whose chevron button ("Hide signature" / "Show signature", `aria-expanded`, Enter keeps the focus on it) folds it in the view only: the `---` line stays and the message still carries it. — web app only, no Patrol test (Figma "Signature")
   - Spec: `tests/composer-attachments-ui.spec.ts`.
-- [x] `CMP-75` The recipients folded (focus on the subject or the body) show their chips with a "+N" counter for those that do not fit, in one button named after every recipient; a click unfolds them and focuses To, whose chips stay out of the tab order (ArrowLeft reaches them). — web app only, no Patrol test (`RecipientsCollapsedComposerWidget`)
+- [x] `CMP-75` The recipients folded (focus on the subject or the body) show their chips with a "+N" counter for those that do not fit, in one button named after every recipient; a click unfolds them and focuses To, which shows its first chips on three rows at most and a "+N" chip for the others; its chips stay out of the tab order (ArrowLeft reaches them, showing them all when it reaches one behind "+N"). — web app only, no Patrol test (`RecipientsCollapsedComposerWidget`)
   - Spec: `tests/composer-attachments-ui.spec.ts`.
 - [x] `CMP-76` On a phone, more than nine uploads at once stay chips in the list, no popup. — web app only, no Patrol test
   - Spec: `tests/composer-attachments-ui.spec.ts`.

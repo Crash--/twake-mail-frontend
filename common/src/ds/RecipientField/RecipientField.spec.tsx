@@ -24,7 +24,7 @@ const LABELS = {
       : `${labels.length} recipients added`,
   count: (count: number) => `${count} recipients`,
   more: (count: number) => `+${count}`,
-  showAll: (count: number) => `Show the ${count} others`
+  showAll: (count: number) => `+${count}, show the ${count} others`
 }
 
 const CONTACTS: RecipientFieldSuggestion[] = [
@@ -401,9 +401,11 @@ describe('RecipientField', () => {
     expect(style.overflowY).toBe('auto')
   })
 
-  it('shows the chips of its first three rows and "+N", which shows them all', async () => {
-    // jsdom lays nothing out: chips 200 px wide, two per row of 36 px, in
-    // a field 420 px wide
+  /**
+   * jsdom lays nothing out: chips 200 px wide, two per row of 36 px, in a
+   * field 420 px wide
+   */
+  function layOutTwoChipsPerRow(): void {
     jest
       .spyOn(Element.prototype, 'getBoundingClientRect')
       .mockImplementation(function (this: Element) {
@@ -416,13 +418,20 @@ describe('RecipientField', () => {
         return DOMRect.fromRect({ x: left, y: top, width: 200, height: 32 })
       })
     jest.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(420)
+  }
+
+  it('shows the chips of its first three rows and "+N", which shows them all', async () => {
+    layOutTwoChipsPerRow()
     try {
       const many = Array.from({ length: 200 }, (_, index) => `u${index}@x.org`)
       renderDs(<Harness initial={many} />)
 
       // Three rows, the last keeping room for "+N" and the input
       expect(chipNames()).toHaveLength(5)
-      const more = screen.getByRole('button', { name: 'Show the 195 others' })
+      // Named after what it shows first (WCAG 2.5.3)
+      const more = screen.getByRole('button', {
+        name: '+195, show the 195 others'
+      })
       expect(more).toHaveTextContent('+195')
       expect(
         screen.getByRole('combobox', { name: 'To' })
@@ -432,6 +441,25 @@ describe('RecipientField', () => {
       expect(chipNames()).toHaveLength(200)
       // The keyboard goes on from the first chip it showed
       expect(screen.getAllByTestId('chip')[5]).toHaveFocus()
+    } finally {
+      jest.restoreAllMocks()
+    }
+  })
+
+  it('never folds the chips added or pasted once shown', async () => {
+    layOutTwoChipsPerRow()
+    try {
+      renderDs(<Harness initial={['first@x.org']} />)
+      const pasted = Array.from(
+        { length: 200 },
+        (_, index) => `p${index}@x.org`
+      ).join(', ')
+
+      await userEvent.click(screen.getByRole('combobox', { name: 'To' }))
+      await userEvent.paste(pasted)
+
+      expect(chipNames()).toHaveLength(201)
+      expect(screen.queryByRole('button', { name: /^\+\d/ })).toBe(null)
     } finally {
       jest.restoreAllMocks()
     }

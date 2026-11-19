@@ -414,7 +414,7 @@
       "added": "Đã thêm %{address}",
       "addedMany": "Đã thêm %{smart_count} người nhận",
       "count": "%{smart_count} người nhận",
-      "showAll": "Hiển thị %{smart_count} người nhận khác",
+      "showAll": "+%{smart_count}, hiển thị %{smart_count} người nhận khác",
       "suggestionCount": "%{smart_count} gợi ý",
       "summary": "Hiện tất cả người nhận:",
       "others": "+%{smart_count}",

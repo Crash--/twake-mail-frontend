@@ -170,15 +170,15 @@ export function PreferencesSettings({
             <PreferenceOption
               description={t('settings.preferences.remoteImagesDescription')}
               toggleLabel={t('settings.preferences.remoteImagesToggle')}
-              isChecked={isShowingRemoteImages(settings)}
-              warning={
-                isShowingRemoteImages(settings)
-                  ? t('settings.preferences.remoteImagesWarning')
-                  : null
-              }
+              // "Block remote images", kept in "Show remote images": a
+              // value the user chose before stays
+              isChecked={!isShowingRemoteImages(settings)}
               isDisabled={saving === REMOTE_IMAGES_SETTING_KEY}
-              onChange={isOn => {
-                changeServerSetting(REMOTE_IMAGES_SETTING_KEY, String(isOn))
+              onChange={isBlocking => {
+                changeServerSetting(
+                  REMOTE_IMAGES_SETTING_KEY,
+                  String(!isBlocking)
+                )
               }}
               data-testid="remote-images-setting-toggle"
             />

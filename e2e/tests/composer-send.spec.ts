@@ -6,6 +6,7 @@ import { makePng } from '../support/clipboard'
 import { keptComposers } from '../support/composerStorage'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient, MailboxRole } from '../support/jmap'
+import { blockRemoteContent } from '../support/remoteContent'
 
 /** A 1 × 1 transparent PNG */
 const PIXEL = Buffer.from(
@@ -814,6 +815,7 @@ test.describe('CMP composer: sending, drafts and attachments', () => {
     user,
     jmap
   }) => {
+    await blockRemoteContent(jmap)
     const tracker = 'http://tracker.invalid/pixel.png'
     let loads = 0
     await page.route(tracker, async route => {

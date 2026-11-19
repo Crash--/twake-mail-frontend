@@ -19,8 +19,8 @@ describe('server settings', () => {
     )
   })
 
-  it('asks before showing remote images unless the user turned it on', () => {
-    expect(isShowingRemoteImages({})).toBe(false)
+  it('shows remote images unless the user chose to block them', () => {
+    expect(isShowingRemoteImages({})).toBe(true)
     expect(isShowingRemoteImages({ 'display.remote.images': 'true' })).toBe(
       true
     )

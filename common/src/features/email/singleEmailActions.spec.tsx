@@ -13,8 +13,12 @@ import {
   type FakeEmail,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
+import { REMOTE_IMAGES_SETTING_KEY } from '@common/features/settings/serverSettings'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
-import { FAKE_LINAGORA_CAPABILITIES } from '@common/testing/fakeLinagora'
+import {
+  FAKE_LINAGORA_CAPABILITIES,
+  installFakeSettings
+} from '@common/testing/fakeLinagora'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { saveBlob } from '@common/utils/saveBlob'
 
@@ -158,8 +162,17 @@ describe('actions of an open email', () => {
       expect(document).toContain('alice@example.com')
     })
 
+    /** The user chose to block remote content */
+    function blockingServer(
+      overrides: Partial<FakeEmail> = {}
+    ): FakeJmapServer {
+      const server = makeServer(overrides, FAKE_LINAGORA_CAPABILITIES)
+      installFakeSettings(server, { [REMOTE_IMAGES_SETTING_KEY]: 'false' })
+      return server
+    }
+
     it('keeps the remote images the reader hides out of the printed document', async () => {
-      await openEmail(makeServer({ from: [OUTSIDER] }))
+      await openEmail(blockingServer({ from: [OUTSIDER] }))
       const menu = await openMoreMenu()
       await userEvent.click(
         within(menu).getByRole('menuitem', { name: 'Print' })
@@ -174,7 +187,7 @@ describe('actions of an open email', () => {
 
     it('prints the remote images the reader shows', async () => {
       // A sender of the domain of the user (alice@example.com)
-      await openEmail(makeServer())
+      await openEmail(blockingServer())
       const menu = await openMoreMenu()
       await userEvent.click(
         within(menu).getByRole('menuitem', { name: 'Print' })
@@ -188,7 +201,7 @@ describe('actions of an open email', () => {
     })
 
     it('prints the remote images of an outside sender once shown', async () => {
-      await openEmail(makeServer({ from: [OUTSIDER] }))
+      await openEmail(blockingServer({ from: [OUTSIDER] }))
       await userEvent.click(await screen.findByRole('button', { name: 'Show' }))
       const menu = await openMoreMenu()
       await userEvent.click(

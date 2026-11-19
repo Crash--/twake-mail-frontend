@@ -155,7 +155,7 @@ describe('PreferencesSettings', () => {
     })
   })
 
-  it('shows remote images without asking once the user turns it on', async () => {
+  it('blocks remote images once the user turns it on, off by default', async () => {
     const server = makeFakeJmapServer({
       capabilities: FAKE_LINAGORA_CAPABILITIES
     })
@@ -165,34 +165,44 @@ describe('PreferencesSettings', () => {
       { jmapServer: server, withJmapSession: true }
     )
 
-    const remoteImages = await screen.findByRole('switch', {
-      name: 'Show remote images'
+    const blockRemote = await screen.findByRole('switch', {
+      name: 'Block remote images and third-party content'
     })
-    expect(remoteImages).toHaveAccessibleDescription(
+    expect(blockRemote).toHaveAccessibleDescription(
       expect.stringContaining('when and where you read the email')
     )
-    const warning =
-      'Always showing remote images exposes you to activity tracking and thus could harm your privacy.'
-    // Off by default: the reader asks for each email
-    expect(remoteImages).not.toBeChecked()
-    expect(screen.queryByText(warning)).toBe(null)
+    // Off by default: the reader shows remote images
+    expect(blockRemote).not.toBeChecked()
 
-    await userEvent.click(remoteImages)
+    await userEvent.click(blockRemote)
     await waitFor(() => {
-      expect(remoteImages).toBeChecked()
+      expect(blockRemote).toBeChecked()
+    })
+    // The key of "Show remote images": a value chosen before stays
+    expect(settings.settings()).toEqual({ 'display.remote.images': 'false' })
+
+    await userEvent.click(blockRemote)
+    await waitFor(() => {
+      expect(blockRemote).not.toBeChecked()
     })
     expect(settings.settings()).toEqual({ 'display.remote.images': 'true' })
-    expect(screen.getByText(warning)).toBeVisible()
-    expect(remoteImages).toHaveAccessibleDescription(
-      expect.stringContaining(warning)
+  })
+
+  it('keeps blocking for a user who chose it before', async () => {
+    const server = makeFakeJmapServer({
+      capabilities: FAKE_LINAGORA_CAPABILITIES
+    })
+    installFakeSettings(server, { 'display.remote.images': 'false' })
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { jmapServer: server, withJmapSession: true }
     )
 
-    await userEvent.click(remoteImages)
-    await waitFor(() => {
-      expect(remoteImages).not.toBeChecked()
-    })
-    expect(settings.settings()).toEqual({ 'display.remote.images': 'false' })
-    expect(screen.queryByText(warning)).toBe(null)
+    expect(
+      await screen.findByRole('switch', {
+        name: 'Block remote images and third-party content'
+      })
+    ).toBeChecked()
   })
 
   it('only has the conversations without server settings', async () => {

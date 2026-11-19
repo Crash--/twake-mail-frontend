@@ -414,7 +414,7 @@
       "added": "%{address}-г нэмсэн",
       "addedMany": "%{smart_count} хүлээн авагч нэмсэн |||| %{smart_count} хүлээн авагч нэмсэн",
       "count": "%{smart_count} хүлээн авагч |||| %{smart_count} хүлээн авагч",
-      "showAll": "Бусад %{smart_count} хүлээн авагчийг харуулах |||| Бусад %{smart_count} хүлээн авагчийг харуулах",
+      "showAll": "+%{smart_count}, бусад %{smart_count} хүлээн авагчийг харуулах |||| +%{smart_count}, бусад %{smart_count} хүлээн авагчийг харуулах",
       "suggestionCount": "%{smart_count} санал |||| %{smart_count} санал",
       "summary": "Бүх хүлээн авагчийг харуулах:",
       "others": "+%{smart_count}",

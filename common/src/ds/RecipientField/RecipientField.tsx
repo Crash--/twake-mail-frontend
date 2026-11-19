@@ -238,7 +238,10 @@ export interface RecipientFieldLabels {
    * it the chips scroll instead
    */
   more?: (count: number) => string
-  /** The name of that chip, which shows them all */
+  /**
+   * The name of that chip, which shows them all; it starts with the visible
+   * text ("+299, show the 299 other recipients", WCAG 2.5.3)
+   */
   showAll?: (count: number) => string
 }
 

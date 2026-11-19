@@ -414,7 +414,7 @@
       "added": "%{address} aggiunto",
       "addedMany": "%{smart_count} destinatario aggiunto |||| %{smart_count} destinatari aggiunti",
       "count": "%{smart_count} destinatario |||| %{smart_count} destinatari",
-      "showAll": "Mostra l'altro destinatario |||| Mostra gli altri %{smart_count} destinatari",
+      "showAll": "+%{smart_count}, mostra l'altro destinatario |||| +%{smart_count}, mostra gli altri %{smart_count} destinatari",
       "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
       "summary": "Mostra tutti i destinatari:",
       "others": "+%{smart_count}",

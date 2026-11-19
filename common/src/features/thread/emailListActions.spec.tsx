@@ -21,6 +21,7 @@ import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
 
 import { EmailList } from './EmailList'
+import { ListFilterProvider } from './ListFilterProvider'
 import { EMAIL_LIST_PAGE_SIZE } from './queries'
 import { DRAGGED_EMAILS_TYPE } from './useEmailListActions'
 
@@ -209,6 +210,57 @@ describe('Acting on emails of the list', () => {
         server.emails.filter(email => 'mailbox-trash' in email.mailboxIds)
       ).toHaveLength(total)
     })
+  })
+
+  it('selects only the emails matching the list filter in the whole folder', async () => {
+    const unread = EMAIL_LIST_PAGE_SIZE + 5
+    const read = makeEmails(3).map((email, index) => ({
+      ...email,
+      id: `read${index}`,
+      subject: `Read ${index}`,
+      receivedAt: `2025-01-0${index + 1}T00:00:00Z`,
+      keywords: { $seen: true as const }
+    }))
+    const server = makeServer([...makeEmails(unread), ...read])
+    renderWithProviders(
+      <ListFilterProvider>
+        <ListPage viewportHeight={560} />
+      </ListFilterProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    await screen.findAllByTestId('email-list-item')
+    await userEvent.click(screen.getByTestId('list-filter-button'))
+    await userEvent.click(await screen.findByTestId('quick-filter-unread'))
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'Select all messages of this page'
+      })
+    )
+
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: `Select all ${unread} messages in this folder`
+      })
+    )
+    await userEvent.click(
+      screen.getByTestId('selected-email-action-move-to-trash')
+    )
+
+    await waitFor(() => {
+      expect(
+        server.emails.filter(email => 'mailbox-trash' in email.mailboxIds)
+      ).toHaveLength(unread)
+    })
+    expect(
+      server.emails
+        .filter(email => email.id.startsWith('read'))
+        .map(email => Object.keys(email.mailboxIds))
+    ).toEqual([['mailbox-inbox'], ['mailbox-inbox'], ['mailbox-inbox']])
   })
 
   it('focuses the selection toolbar once the page is selected from the toolbar of the list', async () => {

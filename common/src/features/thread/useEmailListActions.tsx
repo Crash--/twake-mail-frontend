@@ -29,6 +29,7 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
 import { isEmailRow } from './EmailCell'
 import { EmailListToolbar } from './EmailListToolbar'
+import { listFilterCondition, type ListFilter } from './listFilter'
 import type { EmailListItemData } from './queries'
 import { SpamReportBanner } from './SpamReportBanner'
 import type { EmailSelection } from './useEmailSelection'
@@ -94,6 +95,7 @@ export function useEmailListActions({
   selection,
   mailbox,
   mailboxId,
+  filter,
   total,
   expandTargets = rows => [...rows],
   onFocusList,
@@ -104,6 +106,8 @@ export function useEmailListActions({
   /** The folder shown, null for search results */
   mailbox: MailboxSummary | null
   mailboxId: string | null
+  /** The filter of the list: selecting the whole folder keeps to it */
+  filter: ListFilter
   total: number | null
   /** The emails rows act on: all the emails of a conversation */
   expandTargets?: (rows: readonly EmailListItemData[]) => TargetEmail[]
@@ -157,12 +161,14 @@ export function useEmailListActions({
       return selectedTargets
     }
     return fetchMailboxEmails(client, accountId, mailboxId, {
-      extraCapabilities
+      extraCapabilities,
+      filter: listFilterCondition(filter)
     })
   }, [
     selection.isAllInFolder,
     selectedTargets,
     mailboxId,
+    filter,
     client,
     accountId,
     extraCapabilities

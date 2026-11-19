@@ -42,6 +42,11 @@ export function availableListFilters(
   )
 }
 
+/** The `Email/query` condition of `filter`, empty for `all` */
+export function listFilterCondition(filter: ListFilter): EmailFilterCondition {
+  return filter === 'all' ? {} : CONDITIONS[filter]
+}
+
 /**
  * The request of a list narrowed by `filter`: the same sort, the filter
  * ANDed. Search lists are patched by push, with paging, so a filtered folder

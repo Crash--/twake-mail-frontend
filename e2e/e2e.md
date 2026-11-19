@@ -1052,6 +1052,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer.spec.ts`.
 - [x] `CMP-113` A `mailto:` link with 300 recipients opens the composer with them folded ("+N"); unfolded, To shows its first recipients on three rows at most (two per row in a desktop window, whole addresses on a phone) and a "+N" chip, the input reading "300 recipients"; "+N" shows them all, the focus on the first it stood for, the bottom faded while more follow (issue #1062). — web app only, no Patrol test
   - Spec: `tests/composer-templates.spec.ts`.
+- [x] `CMP-114` In dark mode, the composer casts the shadow of the dark scheme, edged with a light line, not the one of the light scheme (issue #1043). — web app only, no Patrol test
+  - Spec: `tests/composer-format.spec.ts`.
 - [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
 - [x] `DLG-01` Settings → Delegation opens on "My delegates", empty ("No one has access yet", axe); "+ Add" opens "Delegate access", "Add" disabled; a contact of the domain picked by its name (the suggestions whole, below the field, not cut by the dialog) becomes a chip (axe), "Add", in one step, says "<name> has been added", lists the delegate, and the account is in the JMAP session of the delegate. — tmail-flutter#4977

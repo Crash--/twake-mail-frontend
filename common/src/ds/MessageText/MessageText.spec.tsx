@@ -23,6 +23,20 @@ describe('MessageText', () => {
     })
   })
 
+  it('draws the sender of a collapsed message Medium, Bold when strong', () => {
+    renderDs(
+      <>
+        <MessageText variant="compactName">Read</MessageText>
+        <MessageText variant="compactName" isStrong>
+          Unread
+        </MessageText>
+      </>
+    )
+
+    expect(screen.getByText('Read')).toHaveStyle({ fontWeight: 500 })
+    expect(screen.getByText('Unread')).toHaveStyle({ fontWeight: 700 })
+  })
+
   it('draws "To:" and the recipients as body2', () => {
     renderDs(
       <>

@@ -1,6 +1,7 @@
 import { EmailPage, LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
+import { blockRemoteContent } from '../support/remoteContent'
 
 /** A 1×1 PNG, served for the remote images */
 const PNG = Buffer.from(
@@ -147,11 +148,12 @@ test.describe('EML reading an email', () => {
     }
   )
 
-  test('EML-29 remote images wait for the user, then always show for a trusted sender', async ({
+  test('EML-29 with blocking on, remote images wait for the user, then always show for a trusted sender', async ({
     page,
     user,
     jmap
   }) => {
+    await blockRemoteContent(jmap)
     const requested: string[] = []
     const referrers: string[] = []
     await page.route(`${REMOTE_HOST}/**`, async route => {
@@ -227,6 +229,7 @@ test.describe('EML reading an email', () => {
     user,
     jmap
   }) => {
+    await blockRemoteContent(jmap)
     await page.route(`${REMOTE_HOST}/**`, async route => {
       await route.fulfill({ contentType: 'image/png', body: PNG })
     })
@@ -249,6 +252,7 @@ test.describe('EML reading an email', () => {
     user,
     jmap
   }) => {
+    await blockRemoteContent(jmap)
     await page.route(`${REMOTE_HOST}/**`, async route => {
       await route.fulfill({ contentType: 'image/png', body: PNG })
     })
@@ -267,7 +271,7 @@ test.describe('EML reading an email', () => {
     await expect(mailbox.emailRow('back newsletter')).toBeVisible()
   })
 
-  test('EML-29d with "Show remote images" on, every email shows them without asking, until turned off', async ({
+  test('EML-29d "Block remote images" is off by default: emails show them without a banner, until the user turns it on (issue #1085)', async ({
     page,
     user,
     jmap
@@ -277,44 +281,33 @@ test.describe('EML reading an email', () => {
       requested.push(new URL(route.request().url()).pathname)
       await route.fulfill({ contentType: 'image/png', body: PNG })
     })
-    await jmap.importEmlContent(newsletterEml('always', user.email))
-    await jmap.importEmlContent(newsletterEml('asked', user.email))
+    await jmap.importEmlContent(newsletterEml('shown', user.email))
+    await jmap.importEmlContent(newsletterEml('blocked', user.email))
 
     const mailbox = await new LoginPage(page).loginAs(user)
-    let settings = await mailbox.openSettings()
+    let email = await mailbox.openEmail('shown newsletter')
+    await expect(email.body()).toContainText('shown news')
+    await expect
+      .poll(() => [...requested].sort())
+      .toEqual(['/shown/background.png', '/shown/pixel.png'])
+    await expect(email.remoteContentBanner).toBeHidden()
+    await email.back()
+
+    const settings = await mailbox.openSettings()
     await settings.open('preferences')
-    const toggle = page.getByRole('switch', { name: 'Show remote images' })
-    // Off by default: the reader asks
+    const toggle = page.getByRole('switch', {
+      name: 'Block remote images and third-party content'
+    })
     await expect(toggle).not.toBeChecked()
     await toggle.click()
     await expect(toggle).toBeChecked()
-    // Warned, in one line under the switch
-    await expect(
-      page.getByText(
-        'Always showing remote images exposes you to activity tracking and thus could harm your privacy.'
-      )
-    ).toBeVisible()
     await expectNoA11yViolations(page)
     await settings.backToMail()
 
-    let email = await mailbox.openEmail('always newsletter')
-    await expect(email.body()).toContainText('always news')
-    await expect(email.remoteContentBanner).toBeHidden()
-    await expect
-      .poll(() => [...requested].sort())
-      .toEqual(['/always/background.png', '/always/pixel.png'])
-    await email.back()
-
-    settings = await mailbox.openSettings()
-    await settings.open('preferences')
-    await toggle.click()
-    await expect(toggle).not.toBeChecked()
-    await settings.backToMail()
-
-    email = await mailbox.openEmail('asked newsletter')
-    await expect(email.body()).toContainText('asked news')
+    email = await mailbox.openEmail('blocked newsletter')
+    await expect(email.body()).toContainText('blocked news')
     await expect(email.remoteContentBanner).toBeVisible()
-    expect(requested.filter(path => path.startsWith('/asked/'))).toEqual([])
+    expect(requested.filter(path => path.startsWith('/blocked/'))).toEqual([])
   })
 
   test('EML-29e an Outlook email declaring its fonts without a source shows no remote images banner', async ({

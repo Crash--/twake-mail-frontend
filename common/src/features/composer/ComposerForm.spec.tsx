@@ -2310,8 +2310,9 @@ describe('ComposerForm', () => {
     const TRACKED =
       '<p>News <img src="https://tracker.example/p.png" alt="pixel"></p>'
 
-    function serverWithSource(email: string): FakeJmapServer {
-      return makeFakeJmapServer({
+    /** The source of the answer, its reader blocking remote content unless `isShown` */
+    function serverWithSource(email: string, isShown = false): FakeJmapServer {
+      const server = makeFakeJmapServer({
         capabilities: FAKE_LINAGORA_CAPABILITIES,
         emails: [
           makeEmailWithBody(
@@ -2324,6 +2325,10 @@ describe('ComposerForm', () => {
           )
         ]
       })
+      if (!isShown) {
+        installFakeSettings(server, { [REMOTE_IMAGES_SETTING_KEY]: 'false' })
+      }
+      return server
     }
 
     const quotedImage = (composer: HTMLElement): Element | null =>
@@ -2331,6 +2336,17 @@ describe('ComposerForm', () => {
 
     afterEach(() => {
       window.localStorage.clear()
+    })
+
+    it('shows them when the user does not block remote content, as the reader', async () => {
+      renderComposer(serverWithSource('news@newsletter.example.org', true))
+      const composer = await openComposer('Answer forward')
+
+      expect(quotedImage(composer)).toHaveAttribute(
+        'src',
+        'https://tracker.example/p.png'
+      )
+      expect(within(composer).queryByTestId('remote-content-banner')).toBe(null)
     })
 
     it('waits for the user for an outside sender, as the reader', async () => {

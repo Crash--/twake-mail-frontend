@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 import { Route } from 'react-router'
@@ -11,6 +11,7 @@ import {
   makeFakeJmapServer,
   makeIdentity,
   makeMailbox,
+  type FakeEmail,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { AIBOT_CAPABILITY } from '@common/features/scribe/scribe'
@@ -419,9 +420,20 @@ describe('EmailView', () => {
       window.localStorage.clear()
     })
 
-    it('hides remote images until the user shows them', async () => {
+    /** A server whose user chose to block remote content */
+    function blockingServer(emails: FakeEmail[]): FakeJmapServer {
+      const server = makeFakeJmapServer({
+        capabilities: FAKE_LINAGORA_CAPABILITIES,
+        emails
+      })
+      installFakeSettings(server, { [REMOTE_IMAGES_SETTING_KEY]: 'false' })
+      return server
+    }
+
+    it('shows remote images without a banner when the user did not choose to block them', async () => {
       renderView(
         makeFakeJmapServer({
+          capabilities: FAKE_LINAGORA_CAPABILITIES,
           emails: [
             makeEmailWithBody(
               { id: 'e1', from: [OUTSIDER] },
@@ -429,6 +441,96 @@ describe('EmailView', () => {
             )
           ]
         })
+      )
+
+      await waitFor(async () => {
+        expect(await findBodyDocument()).toContain(
+          'src="https://tracker.example.com/open.gif"'
+        )
+      })
+      expect(await findBodyDocument()).toContain('referrerpolicy="no-referrer"')
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('shows remote images, as by default, until the settings are read, then follows them', async () => {
+      const server = blockingServer([
+        makeEmailWithBody(
+          { id: 'e1', from: [OUTSIDER] },
+          { html: TRACKED_HTML }
+        )
+      ])
+      const release = server.holdRequests('Settings/get')
+      renderView(server)
+
+      await waitFor(async () => {
+        expect(await findBodyDocument()).toContain(
+          'src="https://tracker.example.com/open.gif"'
+        )
+      })
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+
+      release()
+      expect(
+        await screen.findByTestId('remote-content-banner')
+      ).toHaveTextContent('Remote images hidden')
+      expect(await findBodyDocument()).not.toContain('tracker.example.com')
+    })
+
+    it('shows remote images, as by default, when the settings cannot be read', async () => {
+      const server = blockingServer([
+        makeEmailWithBody(
+          { id: 'e1', from: [OUTSIDER] },
+          { html: TRACKED_HTML }
+        )
+      ])
+      server.methodErrors.set('Settings/get', 'serverFail')
+      const { queryClient } = renderView(server)
+
+      await waitFor(() => {
+        expect(
+          queryClient
+            .getQueryCache()
+            .findAll({ queryKey: ['settings'] })
+            .some(query => query.state.status === 'error')
+        ).toBe(true)
+      })
+      await waitFor(async () => {
+        expect(await findBodyDocument()).toContain(
+          'src="https://tracker.example.com/open.gif"'
+        )
+      })
+      expect(screen.queryByTestId('remote-content-banner')).toBe(null)
+    })
+
+    it('keeps blocking when reading the settings again fails', async () => {
+      const server = blockingServer([
+        makeEmailWithBody(
+          { id: 'e1', from: [OUTSIDER] },
+          { html: TRACKED_HTML }
+        )
+      ])
+      const { queryClient } = renderView(server)
+      await screen.findByTestId('remote-content-banner')
+
+      server.methodErrors.set('Settings/get', 'serverFail')
+      await act(async () => {
+        await queryClient.refetchQueries({ queryKey: ['settings'] })
+        // The body is built again after the settings change
+        await new Promise(resolve => setTimeout(resolve, 100))
+      })
+
+      expect(screen.getByTestId('remote-content-banner')).toBeVisible()
+      expect(await findBodyDocument()).not.toContain('tracker.example.com')
+    })
+
+    it('hides remote images until the user shows them', async () => {
+      renderView(
+        blockingServer([
+          makeEmailWithBody(
+            { id: 'e1', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          )
+        ])
       )
 
       const banner = await screen.findByTestId('remote-content-banner')
@@ -472,14 +574,12 @@ describe('EmailView', () => {
         route: '/mailbox/mailbox-inbox/email/e1',
         path: '/mailbox/:mailboxId/email/:emailId',
         withJmapSession: true,
-        jmapServer: makeFakeJmapServer({
-          emails: [
-            makeEmailWithBody(
-              { id: 'e1', from: [OUTSIDER] },
-              { html: TRACKED_HTML }
-            )
-          ]
-        })
+        jmapServer: blockingServer([
+          makeEmailWithBody(
+            { id: 'e1', from: [OUTSIDER] },
+            { html: TRACKED_HTML }
+          )
+        ])
       })
 
       await screen.findByTestId('remote-content-banner')
@@ -491,18 +591,16 @@ describe('EmailView', () => {
     })
 
     it('always shows the remote images of a trusted sender', async () => {
-      const server = makeFakeJmapServer({
-        emails: [
-          makeEmailWithBody(
-            { id: 'e1', from: [OUTSIDER] },
-            { html: TRACKED_HTML }
-          ),
-          makeEmailWithBody(
-            { id: 'e2', from: [OUTSIDER] },
-            { html: TRACKED_HTML }
-          )
-        ]
-      })
+      const server = blockingServer([
+        makeEmailWithBody(
+          { id: 'e1', from: [OUTSIDER] },
+          { html: TRACKED_HTML }
+        ),
+        makeEmailWithBody(
+          { id: 'e2', from: [OUTSIDER] },
+          { html: TRACKED_HTML }
+        )
+      ])
       const { unmount } = renderView(server)
 
       await userEvent.click(
@@ -524,9 +622,9 @@ describe('EmailView', () => {
 
     it('shows the remote images of a sender of the domain of the user', async () => {
       renderView(
-        makeFakeJmapServer({
-          emails: [makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })]
-        })
+        blockingServer([
+          makeEmailWithBody({ id: 'e1' }, { html: TRACKED_HTML })
+        ])
       )
 
       expect(await findBodyDocument()).toContain('tracker.example.com')
@@ -552,25 +650,6 @@ describe('EmailView', () => {
         )
       })
       expect(screen.queryByTestId('remote-content-banner')).toBe(null)
-    })
-
-    it('still asks when the preference is off', async () => {
-      const server = makeFakeJmapServer({
-        capabilities: FAKE_LINAGORA_CAPABILITIES,
-        emails: [
-          makeEmailWithBody(
-            { id: 'e1', from: [OUTSIDER] },
-            { html: TRACKED_HTML }
-          )
-        ]
-      })
-      installFakeSettings(server, { [REMOTE_IMAGES_SETTING_KEY]: 'false' })
-      renderView(server)
-
-      expect(
-        await screen.findByTestId('remote-content-banner')
-      ).toHaveTextContent('Remote images hidden')
-      expect(await findBodyDocument()).not.toContain('tracker.example.com')
     })
 
     it('shows no banner for an email without remote content', async () => {

@@ -11,6 +11,7 @@ import { expectNoA11yViolations } from '../support/a11y'
 import { makePng } from '../support/clipboard'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient, MailboxRole } from '../support/jmap'
+import { blockRemoteContent } from '../support/remoteContent'
 
 /**
  * Reply, reply all, reply to list and forward: the recipients of
@@ -466,6 +467,7 @@ test.describe('CMP: the quote', () => {
     jmap
   }) => {
     // From outside the domain of the user: the reader asks before showing it
+    await blockRemoteContent(jmap)
     await jmap.importEmlContent(
       Buffer.from(
         [
@@ -511,8 +513,11 @@ test.describe('CMP: the quote', () => {
     page,
     user,
     users,
+    jmap,
     jmapFor
   }) => {
+    // Shown even so: the sender is of the domain of the user
+    await blockRemoteContent(jmap)
     const bob = await users.create({ prefix: 'bob' })
     await jmapFor(bob).sendEmail({
       to: user.email,

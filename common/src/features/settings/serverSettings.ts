@@ -19,8 +19,9 @@ export type ServerSettingKey =
   KnownSettingKey | 'sentry.user-opt-in' | typeof REMOTE_IMAGES_SETTING_KEY
 
 /**
- * "Show remote images" (not in tmail-flutter, which always shows them): the
- * remote content of every email shows without asking
+ * Whether the remote content of every email shows without asking ("Block
+ * remote images" is its opposite; not in tmail-flutter, which always shows
+ * them)
  */
 export const REMOTE_IMAGES_SETTING_KEY = 'display.remote.images'
 
@@ -74,7 +75,10 @@ export interface ServerSettingsState {
   settings: ServerSettings | null
   /** Read, failed, or not offered: what to use is known */
   isSettled: boolean
-  /** The settings were read from the server (not failed, not unsupported) */
+  /**
+   * The settings were read from the server (not failed, not unsupported);
+   * a read again that fails keeps the ones read last
+   */
   isRead: boolean
 }
 
@@ -90,14 +94,13 @@ export function useServerSettings(): ServerSettingsState {
     ...serverSettingsQueryOptions(client, ownAccountId),
     enabled: isOffered
   })
+  if (query.data !== undefined) {
+    return { settings: query.data, isSettled: true, isRead: true }
+  }
   if (!isOffered || query.isError) {
     return { settings: {}, isSettled: true, isRead: false }
   }
-  return {
-    settings: query.data ?? null,
-    isSettled: query.data !== undefined,
-    isRead: query.data !== undefined
-  }
+  return { settings: null, isSettled: false, isRead: false }
 }
 
 /**
@@ -136,12 +139,16 @@ export function useShowsSenderPriority(): boolean {
   return isShowingSenderPriority(settings ?? {})
 }
 
-/** "Show remote images": off by default and when unreadable */
+/** Remote images show unless the user chose to block them */
 export function isShowingRemoteImages(settings: ServerSettings): boolean {
-  return readBooleanSetting(settings, REMOTE_IMAGES_SETTING_KEY, false)
+  return readBooleanSetting(settings, REMOTE_IMAGES_SETTING_KEY, true)
 }
 
-/** Whether to show the remote content of every email without asking */
+/**
+ * Whether to show the remote content of every email without asking: the
+ * default while the user's choice is unknown (not read yet, the read failed,
+ * no settings on the server)
+ */
 export function useShowsRemoteImages(): boolean {
   const { settings } = useServerSettings()
   return isShowingRemoteImages(settings ?? {})

@@ -257,9 +257,10 @@ describe('IdentitiesSettings', () => {
       })
     )
     const dialog = screen.getByRole('dialog', { name: 'Edit identity' })
+    // twake-mui's select: disabled through aria-disabled
     expect(
       within(dialog).getByRole('combobox', { name: 'Email' })
-    ).toBeDisabled()
+    ).toHaveAttribute('aria-disabled', 'true')
     const replyTo = within(dialog).getByRole('textbox', { name: 'Reply to' })
     expect(replyTo).toHaveValue('team@example.com')
     await userEvent.clear(replyTo)

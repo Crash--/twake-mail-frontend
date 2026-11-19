@@ -4,6 +4,7 @@ import {
   Checkbox,
   FixedDialog,
   FormControlLabel,
+  MenuItem,
   TextField,
   Typography
 } from '@linagora/twake-mui'
@@ -576,14 +577,18 @@ export function IdentityFormDialog({
               setEmail(event.target.value)
             }}
             slotProps={{
-              select: { native: true },
-              htmlInput: { 'data-testid': 'identity-email-select' }
+              select: {
+                SelectDisplayProps: {
+                  // @ts-expect-error data attributes are valid on the display
+                  'data-testid': 'identity-email-select'
+                }
+              }
             }}
           >
             {emails.map(option => (
-              <option key={option} value={option}>
+              <MenuItem key={option} value={option}>
                 {option}
-              </option>
+              </MenuItem>
             ))}
           </TextField>
           <TextField

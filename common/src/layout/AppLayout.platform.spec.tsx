@@ -345,6 +345,11 @@ describe('AppLayout with the platform bar', () => {
       expect(bar).toHaveAttribute('data-status', 'public')
     })
     expect(within(bar).queryByRole('button', { name: 'Account' })).toBe(null)
+    expect(
+      within(screen.getByTestId('search-row')).getByRole('button', {
+        name: 'Settings'
+      })
+    ).toBeVisible()
     await userEvent.click(within(bar).getByTestId('account-menu-button'))
     await userEvent.click(screen.getByTestId('logout-button'))
 
@@ -360,6 +365,11 @@ describe('AppLayout with the platform bar', () => {
     const bar = await screen.findByTestId('twake-bar')
     expect(bar).toHaveAttribute('data-status', 'public')
     expect(within(bar).getByTestId('account-menu-button')).toBeVisible()
+    expect(
+      within(screen.getByTestId('search-row')).getByRole('button', {
+        name: 'Settings'
+      })
+    ).toBeVisible()
     expect(platformRequests(fetchMock)).toEqual([])
   })
 
@@ -371,6 +381,12 @@ describe('AppLayout with the platform bar', () => {
       'data-status',
       'public'
     )
+    // As tmail-flutter: the settings only behind the initial of the user
+    expect(
+      within(screen.getByTestId('search-row')).queryByRole('button', {
+        name: 'Settings'
+      })
+    ).toBe(null)
     expect(platformRequests(fetchMock)).toEqual([])
   })
 

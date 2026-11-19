@@ -144,6 +144,16 @@ test.describe('RESP responsive layout', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     // A field of twake-mui that Mail does not size itself
     expect(await fontSize(page.getByTestId('search-input'))).toBeGreaterThanOrEqual(16)
+    // The folder search of the drawer, whose theme has wide-screen breakpoints
+    await page.getByTestId('mobile-mailbox-menu-button').click()
+    await page.getByTestId('mailbox-search-button').click()
+    expect(
+      await fontSize(page.getByTestId('mailbox-search-input'))
+    ).toBeGreaterThanOrEqual(16)
+    // The first Escape closes the folder search, the second the drawer
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('mailbox-drawer')).toBeHidden()
 
     const composer = await mailbox.compose()
     await expect(composer.editor).toBeVisible()

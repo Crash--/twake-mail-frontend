@@ -30,13 +30,37 @@ const DRAWER_GAP = 40
 const NEVER = '@media not all'
 const ALWAYS = '@media all'
 
+type StyleOverrides = Record<string, unknown>
+
+/**
+ * twake-mui's style overrides of a component, computed with `theme` rather
+ * than the theme they are rendered in
+ */
+function withTheme(
+  overrides: StyleOverrides | undefined,
+  theme: Theme
+): StyleOverrides | undefined {
+  if (overrides === undefined) return undefined
+  return Object.fromEntries(
+    Object.entries(overrides).map(([slot, style]) => [
+      slot,
+      typeof style === 'function'
+        ? (props: object): unknown =>
+            (style as (props: object) => unknown)({ ...props, theme })
+        : style
+    ])
+  )
+}
+
 /**
  * The theme with its wide-screen breakpoints whatever the viewport: inside
  * the drawer, twake-mui renders its desktop variant of `Nav`, `NavItem`,
  * `NavLink`, `NavIcon` and `NavText` (a vertical list) instead of the bottom
- * tabs it switches to below `lg`.
+ * tabs it switches to below `lg`. Its fields keep the breakpoints of the
+ * viewport: 16 px text under `md`, or iOS Safari zooms into them.
  */
 function wideScreenTheme(theme: Theme): Theme {
+  const inputBase = theme.components?.MuiInputBase
   return {
     ...theme,
     breakpoints: {
@@ -46,6 +70,13 @@ function wideScreenTheme(theme: Theme): Theme {
       between: () => NEVER,
       only: () => NEVER,
       not: () => NEVER
+    },
+    components: {
+      ...theme.components,
+      MuiInputBase: {
+        ...inputBase,
+        styleOverrides: withTheme(inputBase?.styleOverrides, theme)
+      }
     }
   }
 }

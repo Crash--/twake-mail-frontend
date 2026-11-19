@@ -81,6 +81,7 @@ import {
   type EmailListSource
 } from './emailListSource'
 import {
+  listedTotal,
   type EmailListData,
   type EmailListItemData,
   type SearchRequest,
@@ -377,7 +378,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     },
     [emails]
   )
-  const total = query.data?.pages[0]?.total ?? null
+  const total = listedTotal(query.data?.pages ?? [])
   const location = useLocation()
   const focusEmailId = readFocusEmailId(location.state)
   // Back from an email that left the list (deleted, moved), the focus goes
@@ -485,16 +486,26 @@ export function EmailList(props: EmailListProps): ReactElement {
   // ends in view: check after each page, and fetch a few rows ahead. Not
   // during a refetch (push cuts the list to its first page when it cannot
   // compute the changes): the call would not fetch, and the refetch may
-  // leave as many rows; check again once it is done
+  // leave as many rows; check again once it is done. A next page that
+  // failed waits for Retry, instead of being fetched again and again
+  const { isFetchNextPageError } = query
   useEffect(() => {
     if (
       hasNextPage &&
       !isFetching &&
+      !isFetchNextPageError &&
       lastVisibleIndex >= emails.length - 1 - PRELOAD_ROWS
     ) {
       void fetchNextPage({ cancelRefetch: false })
     }
-  }, [hasNextPage, isFetching, fetchNextPage, lastVisibleIndex, emails.length])
+  }, [
+    hasNextPage,
+    isFetching,
+    isFetchNextPageError,
+    fetchNextPage,
+    lastVisibleIndex,
+    emails.length
+  ])
 
   // A conversation is starred, or unread, when one of its emails is: the
   // toggles apply to all of them
@@ -711,9 +722,13 @@ export function EmailList(props: EmailListProps): ReactElement {
         data-testid="email-list-offline"
       />
     )
-  } else if (query.isPending || (emails.length === 0 && hasNextPage)) {
+  } else if (
+    query.isPending ||
+    (emails.length === 0 && hasNextPage && !query.isError)
+  ) {
     // A page may list nothing (its results no longer match the filter: the
-    // index lagged behind): the next ones are loading, the list is not empty
+    // index lagged behind): the next ones are loading, the list is not empty.
+    // A next page that failed shows the error instead
     content = (
       <EmailListSkeleton
         isCompact={isCompact}

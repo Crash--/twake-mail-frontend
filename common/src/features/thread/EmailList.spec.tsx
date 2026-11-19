@@ -639,6 +639,42 @@ describe('EmailList', () => {
       ])
     })
     expect(screen.queryByTestId('empty-thread-view')).toBe(null)
+    // The rows left out do not count: two rows, and the header row
+    expect(screen.getByRole('table')).toHaveAttribute('aria-rowcount', '3')
+  })
+
+  it('shows the error of a next page when the pages loaded list nothing', async () => {
+    const read = makeEmails(EMAIL_LIST_PAGE_SIZE + 2)
+    const indexed = read.map(email => ({ ...email, keywords: {} }))
+    const server = makeFakeJmapServer({ emails: read })
+    renderWithProviders(
+      <ListFilterProvider>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </ListFilterProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    await screen.findAllByTestId('email-list-item')
+    answerQueriesFromStaleIndex(server, indexed)
+    const staleQuery = server.handlers.get('Email/query')
+    // The first page, all stale, loads; the next one fails
+    server.handlers.set('Email/query', args => {
+      server.methodErrors.set('Email/query', 'serverFail')
+      return staleQuery?.(args)
+    })
+
+    await userEvent.click(screen.getByTestId('list-filter-button'))
+    await userEvent.click(await screen.findByTestId('quick-filter-unread'))
+
+    expect(await screen.findByTestId('email-list-error')).toBeInTheDocument()
   })
 
   describe('offline', () => {

@@ -19,7 +19,9 @@ import {
   fetchEmailListPage,
   fetchListPage,
   getNextPosition,
+  listedTotal,
   MAILBOX_SORT,
+  type EmailListPage,
   type ListPageOptions,
   type SearchRequest
 } from './queries'
@@ -410,5 +412,37 @@ describe('a search index behind the emails', () => {
       'e2'
     ])
     expect(refreshed?.pages[0]?.count).toBe(3)
+  })
+})
+
+describe('listedTotal', () => {
+  function page(
+    count: number,
+    listed: number,
+    total: number | null
+  ): EmailListPage {
+    return {
+      emails: Array.from({ length: listed }, (_, index) =>
+        makeEmail({ id: `e${index}` })
+      ),
+      position: 0,
+      count,
+      total,
+      isLast: false,
+      state: 's1'
+    }
+  }
+
+  it('leaves out of the total the results the loaded pages do not list', () => {
+    expect(listedTotal([page(30, 0, 32), page(2, 2, 32)])).toBe(2)
+  })
+
+  it('is the server total when every result is listed', () => {
+    expect(listedTotal([page(30, 30, 100)])).toBe(100)
+  })
+
+  it('is unknown without a page or a server total', () => {
+    expect(listedTotal([])).toBe(null)
+    expect(listedTotal([page(3, 1, null)])).toBe(null)
   })
 })

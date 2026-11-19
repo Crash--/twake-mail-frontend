@@ -3,7 +3,13 @@
 // row is how a row opens like a link (middle click, Ctrl+click, "Open in a
 // new tab", keyboard focus) without breaking the table semantics.
 import { Link } from '@linagora/twake-mui'
-import type { MouseEvent, ReactElement, ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode
+} from 'react'
 
 import {
   FOCUS_RING,
@@ -31,6 +37,17 @@ export interface RowLinkProps {
    */
   current?: boolean
   'data-testid'?: string
+}
+
+const InRowLinkContext = createContext(false)
+
+/**
+ * Inside a row link, under its overlay: what must take the pointer (a
+ * tooltip) lifts itself above it, and only there, or it would also rise
+ * above the sticky bars of the page
+ */
+export function useIsInRowLink(): boolean {
+  return useContext(InRowLinkContext)
 }
 
 function isPlainClick(event: MouseEvent<HTMLAnchorElement>): boolean {
@@ -80,7 +97,7 @@ export function RowLink({
         '&:focus-visible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET }
       }}
     >
-      {children}
+      <InRowLinkContext.Provider value>{children}</InRowLinkContext.Provider>
     </Link>
   )
 }

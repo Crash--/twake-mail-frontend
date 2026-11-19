@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { RowLink } from '@/ds/RowLink/RowLink'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { ColorTag, tagTextColor } from './ColorTag'
@@ -96,5 +97,32 @@ describe('ColorTag', () => {
     expect(
       screen.getByRole('button', { name: 'Remove the label' })
     ).toHaveStyle({ flexShrink: '0' })
+  })
+
+  it('rises above the overlay of a row link only, not above the bars of a page (#1040)', () => {
+    renderDs(
+      <>
+        <RowLink href="/email/1" onNavigate={jest.fn()}>
+          <ColorTag
+            label="Design"
+            color="#273891"
+            hasTooltip
+            data-testid="row"
+          />
+        </RowLink>
+        <ColorTag
+          label="Design"
+          color="#273891"
+          hasTooltip
+          data-testid="view"
+        />
+      </>
+    )
+
+    expect(screen.getByTestId('row')).toHaveStyle({
+      position: 'relative',
+      zIndex: '1'
+    })
+    expect(getComputedStyle(screen.getByTestId('view')).zIndex).not.toBe('1')
   })
 })

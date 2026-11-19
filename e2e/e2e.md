@@ -968,6 +968,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/labels.spec.ts`.
 - [x] `LBL-15` A label with a colour out of the palette opens with the custom swatch checked and its hexadecimal value; editing it is kept by the server; a coloured label has no "No color" (tmail-backend refuses `color: null` in `Label/set` update), a label without colour keeps it; the arrows reach the custom swatch and Tab goes to its field. — web app (issue #59, `@mobile`)
   - Spec: `tests/labels.spec.ts`.
+- [x] `LBL-16` Scrolling an email, its labels go under the bar of the reading view, as the rest of the email: in the middle of the bar, the point of a tag hits the bar (issue #1040). — web app (`@mobile`)
+  - Spec: `tests/labels.spec.ts`.
 
 - [x] `LOAD-01` The list shows skeleton rows of the geometry of the real ones while its emails load (a 44 px row with checkbox, avatar, sender, subject, date on a desktop; the narrow row of sender, subject and two lines of preview on a tablet and a phone), busy (`aria-busy`) and hidden to screen readers; when the emails land the first row, and the toolbar, are on the same boxes (±1 px, ±3 px of the narrow rows, which grow to their content) and the layout shift stays under 0.01. — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.

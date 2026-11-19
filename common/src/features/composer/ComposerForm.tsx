@@ -1880,7 +1880,10 @@ function LoadedComposerForm({
           <ListItemIcon>
             <Icon icon={Trash} aria-hidden="true" />
           </ListItemIcon>
-          <MenuItemLabel label={t('composer.draft.delete')} />
+          <MenuItemLabel
+            label={t('composer.draft.delete')}
+            color="error.dark"
+          />
         </MenuItem>
       ) : null}
     </Menu>

@@ -24,4 +24,11 @@ describe('matchesViewport', () => {
       matchesViewport('(pointer: coarse), (max-width:899.95px)', tablet)
     ).toBe(true)
   })
+
+  it('reads a negated condition', () => {
+    const query = '@media (min-width:769px) and (not (pointer: coarse))'
+
+    expect(matchesViewport(query, { width: 1280 })).toBe(true)
+    expect(matchesViewport(query, { width: 874, touch: true })).toBe(false)
+  })
 })

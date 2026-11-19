@@ -11,7 +11,8 @@ import {
   Stack,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  type Theme
 } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import {
@@ -22,7 +23,7 @@ import {
   type ReactElement
 } from 'react'
 
-import { FIELD_TEXT_SX } from '@/ds/FieldLine/FieldLine'
+import { fieldTextSx } from '@/ds/FieldLine/FieldLine'
 import { StackedField } from '@/ds/StackedField/StackedField'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
@@ -109,7 +110,10 @@ const RULE_FIELD_PROPS = {
   size: 'small',
   // White and body2 in the Figma, and twake-mui has no prop for it
   sx: {
-    '& .MuiInputBase-root': { bgcolor: 'background.paper', ...FIELD_TEXT_SX }
+    '& .MuiInputBase-root': (theme: Theme) => ({
+      bgcolor: 'background.paper',
+      ...fieldTextSx(theme)
+    })
   }
 } as const
 

@@ -185,6 +185,26 @@ describe('RichTextToolbar controls', () => {
     }
   })
 
+  it.each([
+    // A phone held sideways, or a tablet: 16, as twake-mui's fields
+    { width: 874, touch: true, size: 16 },
+    { width: 1280, touch: false, size: 14 }
+  ])(
+    'says $size from md on a screen with touch $touch',
+    async ({ width, touch, size }) => {
+      mockViewport({ width, touch })
+      try {
+        await renderEditor()
+
+        expect(
+          screen.getByRole('button', { name: `Text size ${String(size)}` })
+        ).toBeInTheDocument()
+      } finally {
+        resetViewport()
+      }
+    }
+  )
+
   it('picks a text colour and a highlight in a popover, and resets them', async () => {
     const editor = await renderEditor()
 

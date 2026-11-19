@@ -604,8 +604,12 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/responsive.spec.ts`.
 - [x] `RESP-07` On a phone, the search, the body of the composer, its recipients, its subject and
   the fields of the link dialog are 16 px, the size twake-mui gives its inputs under `md`, so that
-  iOS Safari does not zoom into them when they take the focus. From `md` (769 px: a tablet, a phone held sideways) they are 14 px, as twake-mui's
-  inputs. — `mobile` project
+  iOS Safari does not zoom into them when they take the focus. From `md` (769 px) they are 14 px with
+  a mouse only. — `mobile` project
+  - Spec: `tests/responsive.spec.ts`.
+- [x] `RESP-08` A touch screen past `md` (a phone held sideways, 844 px), the body of the composer,
+  its recipients and its subject stay 16 px, so that iOS Safari does not zoom into them. — web app
+  only
   - Spec: `tests/responsive.spec.ts`.
 - [x] `LAYOUT-01` The document never scrolls (`scrollHeight <= clientHeight`) on the mailbox, the
   reading view and the settings, on a desktop and a tablet, standalone and framed as in Twake

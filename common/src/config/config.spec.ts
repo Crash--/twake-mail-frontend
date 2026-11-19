@@ -65,6 +65,7 @@ describe('resolveConfig', () => {
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveEnabled: false,
+        appGridAvailable: false,
         newVersionCheckEnabled: false,
         appVersion: 'dev'
       })
@@ -89,6 +90,18 @@ describe('resolveConfig', () => {
     expect(result.ok && result.value.forwardWarningMessage).toBe(
       'No external forward.'
     )
+  })
+
+  it('turns the apps of app_dashboard.json on with APP_GRID_AVAILABLE, as tmail-flutter web', () => {
+    expect(
+      resolveConfig(
+        { ...FLUTTER_ENV_FILE, SSO_BASE_URL: 'https://sso' },
+        ORIGIN
+      )
+    ).toMatchObject({ value: { appGridAvailable: true } })
+    expect(resolveConfig(OIDC_SOURCE, ORIGIN)).toMatchObject({
+      value: { appGridAvailable: false }
+    })
   })
 
   it('reads the languages offered from ALLOWED_LANGUAGES', () => {

@@ -25,6 +25,7 @@ import {
 import {
   draftsOf,
   fill,
+  MAILTO_RECIPIENTS,
   openComposer,
   renderComposer
 } from '@common/testing/composerHarness'
@@ -1137,7 +1138,8 @@ describe('ComposerForm', () => {
         images: [],
         attachments: [],
         draftId: null,
-        savedFingerprint: null
+        savedFingerprint: null,
+        opensOn: 'recipients'
       }
       await keepComposer('Before the reload', snapshot)
       renderComposer()
@@ -2191,6 +2193,32 @@ describe('ComposerForm', () => {
           expect((await kept())[0]?.snapshot?.opensOn).toBe('text')
         })
       })
+    })
+
+    it('opens a new message given its recipients folded, on the subject; unfolded, To lists them all from the first', async () => {
+      renderComposer()
+      const composer = await openComposer('Open mailto')
+
+      await waitFor(() => {
+        expect(
+          within(composer).getByRole('textbox', { name: 'Subject' })
+        ).toHaveFocus()
+      })
+      expect(
+        within(composer).getByTestId('composer-recipients-summary')
+      ).toBeVisible()
+      expect(within(composer).queryByRole('combobox', { name: 'To' })).toBe(
+        null
+      )
+
+      await userEvent.click(
+        within(composer).getByTestId('composer-recipients-summary')
+      )
+      const to = within(composer).getByRole('combobox', { name: 'To' })
+      expect(to).toHaveFocus()
+      const chips = within(composer).getAllByTestId('recipient-chip')
+      expect(chips).toHaveLength(MAILTO_RECIPIENTS.length)
+      expect(chips[0]).toHaveTextContent('guest1@example.com')
     })
 
     it('replies to all but the user, Cc kept', async () => {

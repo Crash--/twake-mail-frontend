@@ -128,6 +128,7 @@ test.describe('EML reading an email', () => {
 
       // mailto: writes the message in the app, with the keyboard
       const composer = await plain.writeFromBodyLink('bob@example.com')
+      await composer.showRecipients()
       await expect(
         composer.recipients('to').filter({ hasText: 'bob@example.com' })
       ).toBeVisible()
@@ -684,6 +685,7 @@ test.describe('EML reading an email', () => {
       const composer = await email.openComposerFromBodyLink(
         'Write to the digest'
       )
+      await composer.showRecipients()
       await expect(
         composer.recipients('to').filter({ hasText: 'digest@example.com' })
       ).toBeVisible()

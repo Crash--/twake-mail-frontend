@@ -176,6 +176,7 @@ test.describe('EACT email actions of the reading view', () => {
     const composer = new ComposerPage(page)
     await expect(composer.root).toBeVisible()
     await expect(composer.subjectInput).toHaveValue('Draft this again')
+    await composer.showRecipients()
     await expect(composer.recipients('to')).toContainText(bob.email)
     await expect(composer.recipients('cc')).toContainText(user.email)
     await expect(composer.editor).toContainText('Original words')
@@ -311,6 +312,7 @@ test.describe('EACT email actions of the reading view', () => {
 
       const composer = new ComposerPage(page)
       await expect(composer.subjectInput).toHaveValue('unsubscribe me')
+      await composer.showRecipients()
       await expect(composer.recipients('to')).toContainText(list.email)
       // Not unsubscribed until the message goes
       expect(

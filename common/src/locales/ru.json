@@ -413,6 +413,8 @@
       "removed": "%{address} удалён",
       "added": "%{address} добавлен",
       "addedMany": "Добавлен %{smart_count} получатель |||| Добавлено %{smart_count} получателя |||| Добавлено %{smart_count} получателей",
+      "count": "%{smart_count} получатель |||| %{smart_count} получателя |||| %{smart_count} получателей",
+      "showAll": "Показать ещё %{smart_count} получателя |||| Показать ещё %{smart_count} получателей |||| Показать ещё %{smart_count} получателей",
       "suggestionCount": "%{smart_count} предложение |||| %{smart_count} предложения |||| %{smart_count} предложений",
       "summary": "Показать всех получателей:",
       "others": "+%{smart_count}",

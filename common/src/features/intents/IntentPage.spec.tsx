@@ -150,7 +150,9 @@ describe('IntentPage', () => {
     expect(await screen.findByRole('textbox', { name: 'Subject' })).toHaveValue(
       'Lunch'
     )
-    expect(screen.getByText('bob@example.com')).toBeInTheDocument()
+    expect(
+      screen.getByTestId('composer-recipients-summary')
+    ).toHaveAccessibleName(/bob@example\.com/)
     expect(fake.createService).toHaveBeenCalledWith('intent-1', window)
     await waitFor(() => {
       expect(fake.service.notifyReadyToUse).toHaveBeenCalledTimes(1)

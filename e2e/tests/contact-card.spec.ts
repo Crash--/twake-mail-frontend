@@ -100,6 +100,7 @@ test.describe('CRD the contact card of an address', () => {
       await expect(card).toBeHidden()
       const composer = new ComposerPage(page)
       await expect(composer.root).toBeVisible()
+      await composer.showRecipients()
       await expect(
         composer.recipients('to').filter({ hasText: carol.email })
       ).toBeVisible()

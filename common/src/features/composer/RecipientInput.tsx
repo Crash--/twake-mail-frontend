@@ -190,7 +190,11 @@ export function RecipientInput({
             ? t('composer.recipients.added', { address: addresses[0] ?? '' })
             : t('composer.recipients.addedMany', {
                 smart_count: addresses.length
-              })
+              }),
+        count: count => t('composer.recipients.count', { smart_count: count }),
+        more: count => t('composer.recipients.others', { smart_count: count }),
+        showAll: count =>
+          t('composer.recipients.showAll', { smart_count: count })
       }}
       chips={chips}
       inputValue={inputValue}
@@ -216,7 +220,8 @@ export function RecipientInput({
         field: `composer-${field}-field`,
         input: `composer-${field}-input`,
         chip: 'recipient-chip',
-        listbox: `composer-${field}-suggestions`
+        listbox: `composer-${field}-suggestions`,
+        more: `composer-${field}-more`
       }}
     />
   )

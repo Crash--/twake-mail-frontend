@@ -454,6 +454,7 @@ export function EmailList(props: EmailListProps): ReactElement {
     selection,
     mailbox: search === null ? mailbox : null,
     mailboxId,
+    filter,
     total,
     expandTargets,
     onFocusList: focusList,

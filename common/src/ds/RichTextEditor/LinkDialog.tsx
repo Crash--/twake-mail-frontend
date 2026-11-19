@@ -98,8 +98,6 @@ const INPUT_SX = {
   border: 1,
   borderColor: 'border.main',
   borderRadius: '10px',
-  fontSize: 14,
-  lineHeight: '18px',
   color: 'text.primary',
   '&.Mui-focused': { borderColor: 'primary.main' },
   '& .MuiInputBase-input': { p: 0 },

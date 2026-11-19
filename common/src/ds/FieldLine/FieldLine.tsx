@@ -8,10 +8,20 @@ import type { ReactElement, ReactNode } from 'react'
 export const FIELD_LINE_HEIGHT = 37
 
 /**
+ * The text of the fields of a mail form: body2 (Figma), but 16 px under
+ * `md` as twake-mui's inputs, so that iOS Safari does not zoom into them
+ */
+export const FIELD_TEXT_SX = {
+  typography: { xs: 'body1', md: 'body2' },
+  // In the same breakpoint as body1, or body1's weight wins
+  fontWeight: { xs: 'fontWeightMedium' }
+} as const
+
+/**
  * The look of a line, shared with the fields that build their own markup
  * (`RecipientField`): 37 px, 16 px from the sides, a divider below, the
- * text of the inputs in `body2` and the placeholders in the secondary
- * colour.
+ * text of the inputs in `FIELD_TEXT_SX` and the placeholders in the
+ * secondary colour.
  */
 export const FIELD_LINE_SX = {
   display: 'flex',
@@ -27,7 +37,7 @@ export const FIELD_LINE_SX = {
   borderColor: 'divider',
   '& .MuiInputBase-input': { p: 0 },
   '& .MuiInputBase-input, & .MuiSelect-select': {
-    typography: 'body2',
+    ...FIELD_TEXT_SX,
     color: 'text.primary'
   },
   '& .MuiInputBase-input::placeholder': {

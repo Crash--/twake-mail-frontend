@@ -2,6 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import type { Editor } from '@tiptap/core'
 import userEvent from '@testing-library/user-event'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import { RichTextEditor, type RichTextEditorProps } from './RichTextEditor'
@@ -168,6 +169,20 @@ describe('RichTextToolbar controls', () => {
       ).toBeInTheDocument()
     })
     expect(screen.getByRole('button', { name: 'Text size 24' })).toBeVisible()
+  })
+
+  it('says the size the text is shown in, 16 on a phone, without writing it into the message', async () => {
+    mockViewport({ width: 390, touch: true })
+    try {
+      const editor = await renderEditor()
+
+      expect(
+        screen.getByRole('button', { name: 'Text size 16' })
+      ).toBeInTheDocument()
+      expect(editor.getHTML()).toBe('<p>Hello</p>')
+    } finally {
+      resetViewport()
+    }
   })
 
   it('picks a text colour and a highlight in a popover, and resets them', async () => {

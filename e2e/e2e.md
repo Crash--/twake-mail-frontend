@@ -602,6 +602,11 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   sidebar, the search is in the page under it (820 px at most) with the settings button at the far
   end of its row, and the list toolbar sits under the search; axe. — `chromium` project only
   - Spec: `tests/responsive.spec.ts`.
+- [x] `RESP-07` On a phone, the search, the body of the composer, its recipients, its subject and
+  the fields of the link dialog are 16 px, the size twake-mui gives its inputs under `md`, so that
+  iOS Safari does not zoom into them when they take the focus. From `md` (769 px: a tablet, a phone held sideways) they are 14 px, as twake-mui's
+  inputs. — `mobile` project
+  - Spec: `tests/responsive.spec.ts`.
 - [x] `LAYOUT-01` The document never scrolls (`scrollHeight <= clientHeight`) on the mailbox, the
   reading view and the settings, on a desktop and a tablet, standalone and framed as in Twake
   Workplace. — `chromium` project only
@@ -696,6 +701,7 @@ session with `page.route`; the setting `ai.label-categorization.enabled` is stor
 - [x] `AI-04` Without the AI capability, even with the setting on and the keyword set: no folder (`/action-required` goes back to the inbox), no tag, no AI option in Preferences. — web app only
 - [x] `AI-05` Selecting text in the composer shows an assistant button under it; the menu works on the selection; the answer is copied ("Result copied to clipboard"). — web app only (tmail-flutter `AiSelectionOverlay`, copy of the suggestion)
 - [x] `AI-06` The "AI Scribe" preference (kept in this browser) hides the assistant of the composer. — web app only
+- [x] `AI-08` On a phone, the prompt of the assistant is 16 px, the size twake-mui gives its inputs under `md`, so that iOS Safari does not zoom into it. — `mobile` project
 
 ## List toolbar and rows (batch P4)
 

@@ -2,7 +2,7 @@
 // TipTap (MIT) dressed in twake-mui, accessible (RGAA), and knows nothing
 // about email: images, quoted content and signatures arrive through props
 // and generic extensions (InlineImage, HtmlBlock).
-import { Box, CircularProgress } from '@linagora/twake-mui'
+import { Box, CircularProgress, useTheme } from '@linagora/twake-mui'
 import { Extension, type AnyExtension } from '@tiptap/core'
 import FileHandler from '@tiptap/extension-file-handler'
 import { TableKit } from '@tiptap/extension-table'
@@ -24,6 +24,7 @@ import {
   type ReactElement
 } from 'react'
 
+import { FIELD_TEXT_SX } from '@/ds/FieldLine/FieldLine'
 import { FOCUS_RING_INSET } from '@/ds/FocusIndicator/focusIndicator'
 
 import { BOXED_FONT_SIZE } from './boxedToolbar'
@@ -43,7 +44,6 @@ import { RichTextToolbar } from './RichTextToolbar'
 import { SelectionAction } from './SelectionAction'
 import { SmartTrailingBlock } from './smartTrailingBlock'
 import {
-  DEFAULT_FONT_SIZE,
   type EditorActions,
   type RichTextColor,
   type RichTextEditorActions,
@@ -345,6 +345,7 @@ export function RichTextEditor({
   testIds = {},
   selectionAction
 }: RichTextEditorProps): ReactElement {
+  const theme = useTheme()
   const isSettingsLook = look === 'settings'
   const editorId = useId()
   const helpId = useId()
@@ -611,15 +612,21 @@ export function RichTextEditor({
             // Filling a window, the outline of the focus is drawn inside
             ...(fill ? FOCUS_RING_INSET : { '--focus-ring-offset': '1px' }),
             minHeight: fill ? undefined : 240,
-            // The body of a window (Figma): 24 px above, 16 px at the sides, body2
+            // The body of a window (Figma): 24 px above, 16 px at the sides
             padding: fill ? '24px 16px' : 1.5,
             border: fill ? 'none' : '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
-            fontSize: DEFAULT_FONT_SIZE,
+            // 16 px under `md`, as twake-mui's inputs, so that iOS Safari
+            // does not zoom into it, 14 px from `md`: the composer's body in
+            // body2 (Figma), the others in the page's text. On screen only:
+            // the message keeps its own sizes
             ...(fill
-              ? { typography: 'body2', color: 'text.primary' }
-              : { lineHeight: 1.5 }),
+              ? { ...FIELD_TEXT_SX, color: 'text.primary' }
+              : {
+                  fontSize: { md: theme.typography.body3.fontSize },
+                  lineHeight: 1.5
+                }),
             overflowWrap: 'anywhere'
           },
           // Greyed as the other disabled fields of twake-mui (the settings

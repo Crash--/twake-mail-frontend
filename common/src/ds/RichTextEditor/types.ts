@@ -2,9 +2,6 @@ import type { ReactNode } from 'react'
 
 import type { InlineImageAttributes } from './inlineImage'
 
-/** The size of the text, in px, when the user chose none */
-export const DEFAULT_FONT_SIZE = 14
-
 /** A colour of the text colour menu; `value: null` resets to the default */
 export interface RichTextColor {
   value: string | null

@@ -6,12 +6,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-19
+
+New setting since 0.14.0: `APP_GRID_AVAILABLE`. Set to `supported`, the image
+reads `/assets/configurations/app_dashboard.json` (tmail-flutter's file and
+format; the `linagora/tmail-frontend` chart writes it from `config.appGrid`)
+and lists its apps when the Workplace of the user is out of reach. Unset,
+nothing changes. The production build no longer targets iOS Safari 15 nor UC
+Browser 15.
+
 ### Added
 
 - Without the Workplace of the user, the top bar of a desktop lists the apps
   of `app_dashboard.json` when `APP_GRID_AVAILABLE` is `supported`, as
   tmail-flutter web (same file, same format; the `linagora/tmail-frontend`
   chart writes it from `config.appGrid`), before the account menu.
+- Files over the size limits of the mail server go to the Mail folder of
+  Twake Drive, each with its progress and its cancel, and the email gets a
+  read-only public link to each one. The `driveAttachment` section of the
+  server's ecosystem turns Drive in the composer on or off, as in
+  tmail-flutter.
+- The signature of an identity is written with the composer's editor and its
+  formatting bar.
+- Each action of the composer's More menu has an icon.
+
+### Changed
+
+- The answered or forwarded icon of a list row comes first in the subject.
+- The desktop list rows, the search filter chips and the sidebar section
+  actions follow the spacing of the design.
+- The address of an identity is picked in a twake-mui menu.
+- A message opened with hundreds of recipients folds them behind a "+N"
+  chip.
+- A toast goes beside the docked windows instead of over them.
+
+### Fixed
+
+- The sender of a read collapsed message is Medium, not bold.
+- On iPhones and tablets, the fields of the composer, the settings and the
+  drawer are 16 px, so iOS Safari no longer zooms into them.
+- The settings gear stays after a single sign-on without the Workplace.
+- The labels of an email scroll under the reading bar.
+- In dark mode, the composer casts a dark shadow.
+- Selecting the whole folder keeps to the list filter.
+- A list leaves out the emails a stale search index still returns (a read
+  email under "Unread"), and shows an error with Retry when its next page
+  fails.
+- A toast is no longer drawn inside a popover such as the contact card.
 
 ## [0.14.0] - 2026-11-18
 

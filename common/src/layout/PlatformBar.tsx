@@ -1,4 +1,8 @@
-import { SdkProvider, TwakeBar } from '@linagora/twake-bar'
+import {
+  SdkProvider,
+  TwakeBar,
+  type TwakeBarFallback
+} from '@linagora/twake-bar'
 import type { Sdk } from '@linagora/twake-sdk'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -21,6 +25,8 @@ export interface PlatformBarProps {
   left?: ReactNode
   /** Between the title and the menus: the search on a desktop */
   search?: ReactNode
+  /** The apps grid and the account menu off the platform */
+  fallback?: TwakeBarFallback
 }
 
 /**
@@ -33,7 +39,8 @@ export function PlatformBar({
   sdk,
   actions,
   left,
-  search
+  search,
+  fallback
 }: PlatformBarProps): ReactElement {
   const { t } = useI18n()
   const handleLogout = useLogout()
@@ -49,6 +56,7 @@ export function PlatformBar({
         }}
         onLogOut={handleLogout}
         slots={{ left, search, right: actions }}
+        fallback={fallback}
       />
     </SdkProvider>
   )

@@ -87,12 +87,6 @@ var CHAT_SPA_URL =
 // button instead of its account menu.
 var WORKPLACE_FQDN_FALLBACK = '{localpart}.twake.example.com'
 
-// [tmail-flutter] Optional. 'supported': without the Workplace, the top bar
-// of a desktop lists the apps of /assets/configurations/app_dashboard.json,
-// in the format of tmail-flutter ({ "apps": [{ "appName": "Drive",
-// "appLink": "https://drive.example.com", "icon": "ic_tdrive_app.svg" }] }).
-var APP_GRID_AVAILABLE = 'unsupported'
-
 // [tmail-flutter] Optional. The languages offered in Settings > Language and
 // region, in that order, e.g. 'mn,en' (case and region ignored, unknown codes
 // skipped). A language that is not listed is never applied: English if

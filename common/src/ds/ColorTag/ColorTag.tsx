@@ -3,8 +3,6 @@
 import { Box, ButtonBase, Tooltip } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
-import { useIsInRowLink } from '@/ds/RowLink/RowLink'
-
 const WHITE = '#FFFFFF'
 const DARK_NEUTRAL = '#424244'
 /** Below this contrast with white, the background is light or pastel */
@@ -116,8 +114,6 @@ export function ColorTag({
       ? `${label.slice(0, maxLength - 1)}...`
       : label
   const isCut = shown !== label
-  const isInRowLink = useIsInRowLink()
-  const isOverRowLink = hasTooltip && isInRowLink
   // A name too long for the room left ends with an ellipsis, rather than
   // pushing the × out of its line
   const text = (
@@ -159,7 +155,7 @@ export function ColorTag({
         verticalAlign: 'middle',
         // Above the overlay of a row link (its `::after`), so that the
         // pointer reaches the tooltip; a click still goes to the link
-        ...(isOverRowLink ? { position: 'relative', zIndex: 1 } : {})
+        ...(hasTooltip ? { position: 'relative', zIndex: 1 } : {})
       }}
     >
       {hasTooltip ? (

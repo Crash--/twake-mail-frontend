@@ -6,13 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Without the Workplace of the user, the top bar of a desktop lists the apps
-  of `app_dashboard.json` when `APP_GRID_AVAILABLE` is `supported`, as
-  tmail-flutter web (same file, same format; the `linagora/tmail-frontend`
-  chart writes it from `config.appGrid`), before the account menu.
-
 ## [0.14.0] - 2026-11-18
 
 New setting since 0.13.0: `NEW_VERSION_CHECK_ENABLED` (Helm chart:

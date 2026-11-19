@@ -55,11 +55,11 @@ the React app. One line per Patrol test, 116 lines.
 | `RULE` | Email rules | 3 | 1 | 0 |
 | `CAL` | Calendar events | 7 | 0 | 0 |
 | `PUSH` | Real-time updates | 1 | 0 | 0 |
-| `APPGRID` | App grid and platform bar | 3 | 0 | 0 |
+| `APPGRID` | App grid and platform bar | 3 | 0 | 1 |
 | `DRIVE` | Twake Drive picker | 4 | 0 | 0 |
 | `AI` | AI assistant of the composer | 2 | 0 | 0 |
 | `MISC` | Misc | 1 | 0 | 0 |
-| | **Total** | **168** | **24** | **6** |
+| | **Total** | **168** | **24** | **7** |
 
 Plus `A11Y`, accessibility scenarios (RGAA 4.1), `KBD`, keyboard shortcuts, and `RESP`, phone and
 tablet layouts, with no Patrol counterpart, at the end.
@@ -488,7 +488,7 @@ put the event first, as esn-sabre does when the invitation arrives.
 
 - [ ] `APPGRID-01` The app-grid button is visible in the thread view; opening it lists exactly the expected apps in order (iOS: "Twake Drive", "Twake Chat"), and launching each app and coming back to Twake Mail still shows the same list. — `app_grid/app_grid_test.dart` · tags: `ios (default)`
   - Data: needs `APP_GRID_AVAILABLE=supported` and the server app-grid configuration. The mobile robot launches the native apps and returns via the Home button. A web robot also exists (dashboard items Twake, Contacts, Calendar, TMail, TDrive, Teleskop, each opened in a new tab then closed with Ctrl+W); port that variant.
-  - Web: with the Workplace the apps are those of the platform bar (`@linagora/twake-bar`), which the stack cannot serve (no cozy-stack). Without it, a desktop lists the apps of `app_dashboard.json`: spec `tests/chart-image.spec.ts` (the chart stack mounts the file), opening order and links checked, not the launch of each app.
+  - N/A web: the app has no app grid of its own any more; the apps are those of the Workplace of the user, in the menu of the platform bar (`@linagora/twake-bar`), which the stack cannot serve (no cozy-stack). The bar itself is covered by APPGRID-03 and its unit specs (`common/src/layout/AppLayout.platform.spec.tsx`).
 - [ ] `APPGRID-02` Inside an iframe of Twake Workplace (`WORKPLACE_EMBEDDING`), the app shows no platform bar (the container has it) and its settings stay in the page. — web app only
   - Spec: `tests/platform-bar.spec.ts`; the container is `/e2e/workplace.html` of the stack, on `localhost` (another origin than the app on `127.0.0.1`). CI to confirm.
 - [ ] `APPGRID-03` Without a Workplace (the stack has none), the platform bar shows the logotype and a log out button instead of the menus of the platform; the button signs out. — web app only
@@ -968,8 +968,6 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/labels.spec.ts`.
 - [x] `LBL-15` A label with a colour out of the palette opens with the custom swatch checked and its hexadecimal value; editing it is kept by the server; a coloured label has no "No color" (tmail-backend refuses `color: null` in `Label/set` update), a label without colour keeps it; the arrows reach the custom swatch and Tab goes to its field. — web app (issue #59, `@mobile`)
   - Spec: `tests/labels.spec.ts`.
-- [x] `LBL-16` Scrolling an email, its labels go under the bar of the reading view, as the rest of the email: in the middle of the bar, the point of a tag hits the bar (issue #1040). — web app (`@mobile`)
-  - Spec: `tests/labels.spec.ts`.
 
 - [x] `LOAD-01` The list shows skeleton rows of the geometry of the real ones while its emails load (a 44 px row with checkbox, avatar, sender, subject, date on a desktop; the narrow row of sender, subject and two lines of preview on a tablet and a phone), busy (`aria-busy`) and hidden to screen readers; when the emails land the first row, and the toolbar, are on the same boxes (±1 px, ±3 px of the narrow rows, which grow to their content) and the layout shift stays under 0.01. — web app (batch D8, `@mobile`)
   - Spec: `tests/loading-states.spec.ts`.
@@ -1054,8 +1052,6 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/composer.spec.ts`.
 - [x] `CMP-113` A `mailto:` link with 300 recipients opens the composer with them folded ("+N"); unfolded, To shows its first recipients on three rows at most (two per row in a desktop window, whole addresses on a phone) and a "+N" chip, the input reading "300 recipients"; "+N" shows them all, the focus on the first it stood for, the bottom faded while more follow (issue #1062). — web app only, no Patrol test
   - Spec: `tests/composer-templates.spec.ts`.
-- [x] `CMP-114` In dark mode, the composer casts the shadow of the dark scheme, edged with a light line, not the one of the light scheme (issue #1043). — web app only, no Patrol test
-  - Spec: `tests/composer-format.spec.ts`.
 - [x] `ATT-12` A password-protected PDF (RC4 128 bits, built by the spec) asks its password in the viewer, the field focused; a wrong one keeps the form ("Incorrect password", `aria-invalid`, focused again); the right one draws the page and leaves the focus on the Close button of the viewer, not the body (axe); one Escape closes the viewer only, gives the focus back to the card and keeps the email open (issue #667). — tmail-flutter `PDFViewer` (no Patrol test)
   - Spec: `tests/attachments.spec.ts`.
 - [x] `DLG-01` Settings → Delegation opens on "My delegates", empty ("No one has access yet", axe); "+ Add" opens "Delegate access", "Add" disabled; a contact of the domain picked by its name (the suggestions whole, below the field, not cut by the dialog) becomes a chip (axe), "Add", in one step, says "<name> has been added", lists the delegate, and the account is in the JMAP session of the delegate. — tmail-flutter#4977

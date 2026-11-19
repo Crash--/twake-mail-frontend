@@ -106,10 +106,9 @@ also the Sentry release.
 at startup (an invalid configuration shows a screen listing the problems).
 
 Without `.env.js` (nor an `env.file`, see below) the app shows its "refresh"
-fallback page: the configuration is required. The [platform top
-bar](#platform-top-bar) lists the apps of the Workplace of the user; off the
-Workplace, those of `app_dashboard.json` with `APP_GRID_AVAILABLE`
-(`appList.js` is no longer read).
+fallback page: the configuration is required. The other apps are not
+configured here: the [platform top bar](#platform-top-bar) lists those of the
+Workplace of the user (`appList.js` is no longer read).
 
 ## Same configuration as tmail-flutter
 
@@ -125,7 +124,7 @@ configuration serves both apps. The values of an `env.file` are strings
 | `DOMAIN_REDIRECT_URL` | URL of the web app; OIDC redirect `<it>/login-callback.html`, post-logout `<it>/logout-callback.html` | Same, the two routes are served by the app. `SSO_REDIRECT_URI` and `SSO_POST_LOGOUT_REDIRECT` override them. Without any of them `<origin>/callback` and `<origin>/` |
 | `WEB_OIDC_CLIENT_ID` | OIDC public client of the web app | Same. Former `SSO_CLIENT_ID` still read |
 | `OIDC_SCOPES` | Scopes separated by commas, default `openid,profile,email,offline_access` | Same; spaces work too. Former `SSO_SCOPE` (spaces) still read |
-| `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | Same file and format (`appName`, `appLink`, `icon` naming a tmail-flutter icon, or `publicIconUri`), at `/assets/configurations/app_dashboard.json`, used on a desktop when the Workplace is out of reach; with the Workplace, the [platform top bar](#platform-top-bar) lists its apps. The `linagora/tmail-frontend` chart writes the file from `config.appGrid` |
+| `APP_GRID_AVAILABLE` | `supported` loads `configurations/app_dashboard.json` into the app grid, anything else hides it | Ignored: the apps are those of the Workplace, in the [platform top bar](#platform-top-bar) |
 | `FORWARD_WARNING_MESSAGE` | Warning of Settings > Forwarding | Same |
 | `ALLOWED_LANGUAGES` | Comma-separated languages offered on the web (`mn,en`), in the order of the picker; a language not listed is skipped at start-up (English if listed, else the first one); unset or no known code: every language | Same; the language of the account is never overwritten |
 | `SENTRY_FEEDBACK_ENABLED` | Not in tmail-flutter | `true` offers the draggable user feedback button (position kept per browser, moved from the keyboard with Shift+F10) to the users who opted in to error reporting (off by default; Sentry 24.4.2 or later). See [sentry.md](sentry.md) |
@@ -176,9 +175,7 @@ The bar talks to the Workplace (cozy-stack) of the user through
 
 Without a Workplace to ask (basic mode, no `workplaceFqdn` nor
 `WORKPLACE_FQDN_FALLBACK`) or when it refuses the exchange, the bar shows the
-logotype only, with a log out button instead of the account menu. On a
-desktop it keeps the apps of `app_dashboard.json` when `APP_GRID_AVAILABLE`
-is `supported`. Inside an
+logotype only, with a log out button instead of the account menu. Inside an
 iframe of the Workplace (`WORKPLACE_EMBEDDING`), the container shows the bar:
 the app shows none.
 

@@ -88,11 +88,6 @@ export interface AppConfig {
    */
   tdriveEnabled: boolean
   /**
-   * Off the Workplace, the apps grid lists the apps of
-   * `app_dashboard.json` (`APP_GRID_AVAILABLE=supported`, as tmail-flutter web)
-   */
-  appGridAvailable: boolean
-  /**
    * Reads `/version.json` and offers a reload when it names another build
    * than the bundle's (`NEW_VERSION_CHECK_ENABLED`)
    */
@@ -112,7 +107,6 @@ export type FlutterConfigKey =
   | 'FORWARD_WARNING_MESSAGE'
   | 'ALLOWED_LANGUAGES'
   | 'COZY_INTEGRATION'
-  | 'APP_GRID_AVAILABLE'
   | 'SENTRY_ENABLED'
   | 'SENTRY_DSN'
   | 'SENTRY_ENVIRONMENT'
@@ -427,7 +421,6 @@ export function resolveConfig(
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
-      appGridAvailable: source.APP_GRID_AVAILABLE === 'supported',
       newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }

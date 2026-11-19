@@ -93,20 +93,10 @@ function requestUrl(input: RequestInfo | URL): string {
   return input instanceof URL ? input.href : input
 }
 
-function mockPlatform(
-  isExchangeAccepted = true,
-  appDashboard: unknown = null
-): FetchMock {
+function mockPlatform(isExchangeAccepted = true): FetchMock {
   const fetchMock: FetchMock = jest.fn(
     (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = new URL(requestUrl(input))
-      if (
-        url.origin === window.location.origin &&
-        url.pathname === '/assets/configurations/app_dashboard.json' &&
-        appDashboard !== null
-      ) {
-        return Promise.resolve(jsonResponse(appDashboard))
-      }
       // The ecosystem document of the server, for error reporting
       if (url.origin !== PLATFORM) return Promise.resolve(jsonResponse({}, 404))
       return Promise.resolve(platformResponse(url, init, isExchangeAccepted))
@@ -130,8 +120,7 @@ function withConfig(ui: ReactElement): ReactElement {
       SSO_BASE_URL: 'https://sso.example.com',
       WEB_OIDC_CLIENT_ID: 'twake-mail',
       TDRIVE_ENABLED: true,
-      WORKPLACE_EMBEDDING: true,
-      APP_GRID_AVAILABLE: 'supported'
+      WORKPLACE_EMBEDDING: true
     },
     'https://mail.example.com'
   )
@@ -381,36 +370,7 @@ describe('AppLayout with the platform bar', () => {
         name: 'Settings'
       })
     ).toBeVisible()
-    // No app_dashboard.json: no apps grid
-    expect(within(bar).queryByTestId('twake-bar-apps-button')).toBe(null)
     expect(platformRequests(fetchMock)).toEqual([])
-  })
-
-  it('lists the apps of app_dashboard.json off the platform, before the account menu', async () => {
-    mockPlatform(true, {
-      apps: [
-        {
-          appName: 'Drive',
-          appLink: 'https://drive.example.com',
-          icon: 'ic_tdrive_app.svg'
-        }
-      ]
-    })
-    renderLayout({ authService: oidcService(null) })
-
-    const bar = await screen.findByTestId('twake-bar')
-    const appsButton = await within(bar).findByTestId('twake-bar-apps-button')
-    const accountButton = within(bar).getByTestId('account-menu-button')
-    expect(
-      appsButton.compareDocumentPosition(accountButton) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-    expect(within(bar).queryByTestId('twake-bar-user-button')).toBe(null)
-    await userEvent.click(appsButton)
-    expect(await screen.findByTitle('Drive')).toHaveAttribute(
-      'href',
-      'https://drive.example.com'
-    )
   })
 
   it('asks no platform in basic mode, which has no ID token', async () => {

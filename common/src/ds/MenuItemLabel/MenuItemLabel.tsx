@@ -43,7 +43,8 @@ export function MenuItemLabel({
       <ListItemText
         primary={label}
         slotProps={{
-          primary: { ref: textRef, noWrap: true, color }
+          // The Typography `color` prop takes palette keys only, not `error.dark`
+          primary: { ref: textRef, noWrap: true, sx: { color } }
         }}
       />
     </Tooltip>

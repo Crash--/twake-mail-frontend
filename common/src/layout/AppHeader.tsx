@@ -8,6 +8,7 @@ import {
   usePlatformSdk,
   usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
+import { useAppDashboard } from '@common/features/apps/appDashboard'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { AppTitle } from '@injected/layout/AppTitle'
 
@@ -54,6 +55,9 @@ export function AppHeader({
     isDesktop ||
     (isEmailFullScreen && (status === 'public' || isPhone)) ||
     (isPhone && isSettingsMenu)
+  const fallbackApps = useAppDashboard(
+    sdk !== null && isDesktop && status === 'public'
+  )
   const mailBar = isMailBarHidden ? null : (
     <TopBar onOpenFolders={onOpenFolders} />
   )
@@ -79,6 +83,10 @@ export function AppHeader({
   // the platform: its home, the title, help, apps and account. The same
   // bar, only dressed otherwise, when the platform answers late or refuses
   const isFlutterBar = status === 'public'
+  // As tmail-flutter: the settings and the sign out are behind the initial
+  // of the user, after the apps of the deployment when it lists some
+  const hasFallbackApps = isFlutterBar && fallbackApps.length > 0
+  const accountMenu = isFlutterBar ? <AccountMenu /> : null
   return (
     <AppBarFrame isPlain={!isFlutterBar}>
       <PlatformBar
@@ -93,10 +101,13 @@ export function AppHeader({
         actions={
           <>
             <HelpButton size="small" />
-            {/* As tmail-flutter: the settings and the sign out are behind
-                the initial of the user */}
-            {isFlutterBar ? <AccountMenu /> : null}
+            {hasFallbackApps ? null : accountMenu}
           </>
+        }
+        fallback={
+          hasFallbackApps
+            ? { apps: fallbackApps, userMenu: accountMenu }
+            : undefined
         }
       />
     </AppBarFrame>

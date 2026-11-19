@@ -36,7 +36,29 @@ test.describe('CHART the image under the chart of tmail-frontend', () => {
     const mailbox = await login.loginAs(user)
     await mailbox.expectFolderSelected({ role: 'inbox' })
 
-    // app_dashboard.json is served but not read: the apps are those of the platform bar
     await expect(page.getByTestId('twake-bar')).toBeVisible()
+  })
+
+  test('APPGRID-01 without a Workplace the bar lists the apps of app_dashboard.json, before the account menu', async ({
+    page,
+    user
+  }) => {
+    const login = await new LoginPage(page).goto()
+    const mailbox = await login.loginAs(user)
+    await mailbox.expectFolderSelected({ role: 'inbox' })
+
+    const bar = page.getByTestId('twake-bar')
+    await bar.getByTestId('twake-bar-apps-button').click()
+    const apps = [
+      ['Twake Chat', 'https://chat.workplace.example.test/'],
+      ['Twake Drive', 'https://drive.workplace.example.test/'],
+      ['Legacy app', 'https://legacy.workplace.example.test/']
+    ] as const
+    for (const [name, href] of apps) {
+      await expect(page.getByTitle(name)).toHaveAttribute('href', href)
+    }
+    await page.keyboard.press('Escape')
+    await bar.getByTestId('account-menu-button').click()
+    await expect(page.getByTestId('settings-button')).toBeVisible()
   })
 })

@@ -164,7 +164,7 @@ const OUTLINED_SX = {
     p: 0,
     bgcolor: 'transparent'
   },
-  '&& .MuiInputBase-input': { p: 0, height: '24px', fontSize: 14 }
+  '&& .MuiInputBase-input': { p: 0, height: '24px' }
 } as const
 const OUTLINED_OVER_SX = {
   ...OUTLINED_SX,

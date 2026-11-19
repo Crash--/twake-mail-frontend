@@ -182,4 +182,21 @@ test.describe('AI composer assistant', () => {
     ).toHaveCount(0)
     await composer.deleteDraftButton.click()
   })
+
+  test('AI-08 on a phone the prompt is 16 px, so that iOS Safari does not zoom into it', { tag: '@phone-only' }, async ({
+    page,
+    user
+  }) => {
+    await offerAssistant(page)
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+
+    await composer.root.getByTestId('composer-scribe-button').click()
+    const prompt = page.getByRole('textbox', { name: 'Help me write' })
+    await expect(prompt).toBeFocused()
+    const fontSize = await prompt.evaluate(
+      element => getComputedStyle(element).fontSize
+    )
+    expect(Number.parseFloat(fontSize)).toBeGreaterThanOrEqual(16)
+  })
 })

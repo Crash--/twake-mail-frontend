@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { LoginPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
@@ -129,6 +129,41 @@ test.describe('RESP responsive layout', () => {
     await page.keyboard.press('Escape')
     await expect(quickFilters).toBeHidden()
     await expect(input).toBeFocused()
+  })
+
+  // twake-mui's inputs are 16 px under `md` (769 px) and 14 px from it,
+  // whatever the pointer: a tablet or a phone held sideways stay at 14 px
+  test('RESP-07 on a phone the fields are 16 px, so that iOS Safari does not zoom into them', { tag: '@phone-only' }, async ({
+    page,
+    user
+  }) => {
+    const fontSize = async (locator: Locator): Promise<number> =>
+      Number.parseFloat(
+        await locator.evaluate(element => getComputedStyle(element).fontSize)
+      )
+    const mailbox = await new LoginPage(page).loginAs(user)
+    // A field of twake-mui that Mail does not size itself
+    expect(await fontSize(page.getByTestId('search-input'))).toBeGreaterThanOrEqual(16)
+
+    const composer = await mailbox.compose()
+    await expect(composer.editor).toBeVisible()
+    // The editor is the editable node itself, the one iOS looks at
+    await expect(composer.editor).toHaveAttribute('contenteditable', 'true')
+    for (const field of [
+      composer.editor,
+      composer.recipientInput('to'),
+      composer.subjectInput
+    ]) {
+      expect(await fontSize(field)).toBeGreaterThanOrEqual(16)
+    }
+
+    await composer.editor.click()
+    await page.keyboard.press('Control+K')
+    const dialog = page.getByRole('dialog', { name: 'Insert link' })
+    await expect(dialog).toBeVisible()
+    for (const testId of ['link-dialog-text-input', 'link-dialog-url-input']) {
+      expect(await fontSize(dialog.getByTestId(testId))).toBeGreaterThanOrEqual(16)
+    }
   })
 
   test.describe('on a large tablet', () => {

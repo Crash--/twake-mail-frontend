@@ -7,7 +7,9 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Tooltip
+  Tooltip,
+  useMediaQuery,
+  useTheme
 } from '@linagora/twake-mui'
 import type { Node as ProseNode } from '@tiptap/pm/model'
 import { useEditorState, type Editor } from '@tiptap/react'
@@ -33,7 +35,6 @@ import {
 import { ColorMenu } from './ColorMenu'
 import { EditorIcon, type EditorIconName } from './editorIcons'
 import {
-  DEFAULT_FONT_SIZE,
   TEXT_STYLES,
   type EditorActions,
   type RichTextColor,
@@ -231,8 +232,16 @@ export function RichTextToolbar({
   const isMobile = useScreenSize() === 'mobile' || isOneLine
   const isBoxed = look === 'boxed'
   const isComposer = look === 'composer'
+  const theme = useTheme()
+  // The size the editor shows its text in (RichTextEditor's typography)
+  const isBelowMd = useMediaQuery(theme.breakpoints.down('md'), {
+    noSsr: true
+  })
+  const editorFontSize = Number(
+    theme.typography[isBelowMd ? 'body1' : 'body3'].fontSize
+  )
   const defaultSize =
-    defaultFontSize ?? (isBoxed ? BOXED_FONT_SIZE : DEFAULT_FONT_SIZE)
+    defaultFontSize ?? (isBoxed ? BOXED_FONT_SIZE : editorFontSize)
   const state = useEditorState({
     editor,
     selector: ({ editor: current }) => {

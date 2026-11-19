@@ -37,7 +37,8 @@ const FIELD_SX = {
 const INPUT_SX = {
   flex: 1,
   py: 1,
-  fontSize: 14,
+  // The size of twake-mui's inputs: 16 px under `md`, so that iOS Safari
+  // does not zoom into it, 14 px from `md`
   lineHeight: '24px',
   letterSpacing: '0.4px',
   color: 'text.primary',

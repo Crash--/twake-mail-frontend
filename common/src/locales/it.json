@@ -413,6 +413,8 @@
       "removed": "%{address} rimosso",
       "added": "%{address} aggiunto",
       "addedMany": "%{smart_count} destinatario aggiunto |||| %{smart_count} destinatari aggiunti",
+      "count": "%{smart_count} destinatario |||| %{smart_count} destinatari",
+      "showAll": "Mostra l'altro destinatario |||| Mostra gli altri %{smart_count} destinatari",
       "suggestionCount": "%{smart_count} suggerimento |||| %{smart_count} suggerimenti",
       "summary": "Mostra tutti i destinatari:",
       "others": "+%{smart_count}",

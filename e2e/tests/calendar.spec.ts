@@ -109,6 +109,7 @@ test.describe('CAL calendar events', () => {
       const composer = await card.mailToAttendees()
 
       await expect(composer.subjectInput).toHaveValue('Re: Come for a chat')
+      await composer.showRecipients()
       await expect(composer.recipients('to')).toHaveText([
         'tddang@linagora.com'
       ])

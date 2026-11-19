@@ -17,6 +17,12 @@ import { renderWithProviders } from './renderWithProviders'
 // in a fresh jsdom (one file of them all grew its heap until its last tests,
 // the attachments, went over their timeout on a loaded machine; #368)
 
+/** The addresses of the "Open mailto" button, a list of guests */
+export const MAILTO_RECIPIENTS = Array.from(
+  { length: 300 },
+  (_, index) => `guest${index + 1}@example.com`
+)
+
 function Opener(): ReactElement {
   const { openComposer } = useComposer()
   return (
@@ -44,6 +50,22 @@ function Opener(): ReactElement {
         }}
       >
         Open template
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          openComposer({
+            mailto: {
+              to: MAILTO_RECIPIENTS,
+              cc: [],
+              bcc: [],
+              subject: null,
+              body: null
+            }
+          })
+        }}
+      >
+        Open mailto
       </button>
       {(['reply', 'replyAll', 'forward'] as const).map(action => (
         <button

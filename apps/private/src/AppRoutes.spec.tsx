@@ -67,9 +67,10 @@ describe('AppRoutes', () => {
     expect(
       await screen.findByRole('textbox', { name: 'Message body' })
     ).toHaveTextContent('World')
-    expect(screen.getByTestId('recipient-chip')).toHaveTextContent(
-      'shared-recipient@example.com'
-    )
+    // Given its recipients, it opens them folded
+    expect(
+      screen.getByTestId('composer-recipients-summary')
+    ).toHaveAccessibleName(/shared-recipient@example\.com/)
     expect(await screen.findByTestId('mailbox-page')).toHaveAttribute(
       'data-mailbox-id',
       'mailbox-inbox'

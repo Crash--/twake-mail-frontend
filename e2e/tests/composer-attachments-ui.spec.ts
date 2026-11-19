@@ -174,9 +174,16 @@ test.describe('CMP: attachments, signature and recipient chips of the composer',
 
     await composer.recipientsSummary.click()
     await expect(composer.recipientInput('to')).toBeFocused()
-    await expect(composer.recipients('to')).toHaveCount(8)
-    // The chips are out of the tab order, the keyboard moves between them
+    // Past three rows, "+N" stands for the others
+    const shown = await composer.recipients('to').count()
+    expect(shown).toBeLessThan(8)
+    await expect(composer.root.getByTestId('composer-to-more')).toHaveText(
+      `+${String(8 - shown)}`
+    )
+    // The chips are out of the tab order, the keyboard moves between them;
+    // reaching one behind "+N" shows them all
     await page.keyboard.press('ArrowLeft')
+    await expect(composer.recipients('to')).toHaveCount(8)
     await expect(composer.recipients('to').last()).toBeFocused()
     await expectNoA11yViolations(page)
   })

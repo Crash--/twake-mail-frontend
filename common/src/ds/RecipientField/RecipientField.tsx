@@ -16,8 +16,10 @@ import {
   type Theme
 } from '@linagora/twake-mui'
 import {
+  useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -117,8 +119,19 @@ const CONTENT_SX = {
   rowGap: `${CHIP_GAP}px`,
   minHeight: 28
 } as const
+/** Room kept for the "+N" chip of the folded rows ("+299"), in px */
+const MORE_CHIP_WIDTH = 64
+/** Once all the chips show and scroll, a fade while more follow */
+const MORE_BELOW_SX = {
+  maskImage: 'linear-gradient(to bottom, #000 calc(100% - 24px), transparent)'
+} as const
 const ACTIONS_SX = { gap: '7px', height: 28, flexShrink: 0 } as const
-const CHIP_SX = { maxWidth: 267 } as const
+// From `md`, two per row at least: the actions beside the field leave a
+// composer window room for one address and a half. A phone keeps whole
+// addresses, one per row
+const CHIP_SX = {
+  maxWidth: { xs: 267, md: `min(267px, calc(50% - ${CHIP_GAP / 2}px))` }
+} as const
 /** Tags that can be dragged show it (tmail-flutter's `grab` cursor) */
 const GRAB_SX = { cursor: 'grab' } as const
 /** A field a dragged tag (or email) may land in: a 1 px primary border, drawn inside so nothing moves */
@@ -218,6 +231,15 @@ export interface RecipientFieldLabels {
    * (a pasted list can add hundreds)
    */
   added: (labels: readonly string[]) => string
+  /** Read by the input once the chips fold or scroll ("300 recipients") */
+  count?: (count: number) => string
+  /**
+   * The chip standing for the chips past the first rows ("+299"); without
+   * it the chips scroll instead
+   */
+  more?: (count: number) => string
+  /** The name of that chip, which shows them all */
+  showAll?: (count: number) => string
 }
 
 /**
@@ -313,6 +335,7 @@ export interface RecipientFieldProps {
     input?: string
     chip?: string
     listbox?: string
+    more?: string
   }
 }
 
@@ -426,10 +449,119 @@ export function RecipientField({
   const optionId = (optionKey: string): string => `${id}-option-${optionKey}`
 
   useEffect(() => {
-    if (autoFocus) inputRef.current?.focus()
+    // Hundreds of chips show from the first: typing brings the input in
+    if (autoFocus) inputRef.current?.focus({ preventScroll: true })
     // Once shown only
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /** The chips scroll, and some are still below */
+  const [scroll, setScroll] = useState({ overflows: false, moreBelow: false })
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const setContentElement = useCallback((element: HTMLDivElement | null) => {
+    contentRef.current = element
+    setContent(element)
+  }, [])
+  const measureScroll = useCallback((): void => {
+    const content = contentRef.current
+    if (content === null) return
+    const overflows = content.scrollHeight > content.clientHeight + 1
+    const moreBelow =
+      overflows &&
+      content.scrollHeight - content.scrollTop - content.clientHeight > 1
+    setScroll(previous =>
+      previous.overflows === overflows && previous.moreBelow === moreBelow
+        ? previous
+        : { overflows, moreBelow }
+    )
+  }, [])
+
+  /**
+   * Past `MAX_CHIP_ROWS` rows, the chips it is shown with fold: the chips of
+   * the first rows and "+N" for the others, measured with `total` chips.
+   * Chips added or removed since, or a click on "+N", show them all
+   */
+  const shownWith = useRef(chips.length)
+  const [rows, setRows] = useState<{ shown: number; total: number } | null>(
+    null
+  )
+  const [isShowingAll, setIsShowingAll] = useState(false)
+  const canFold =
+    labels.more !== undefined &&
+    look === 'line' &&
+    chips.length === shownWith.current
+  const measureRows = useCallback((): void => {
+    const box = contentRef.current
+    if (box === null || !canFold || isShowingAll || rows !== null) return
+    const area = box.getBoundingClientRect()
+    const places = chipRefs.current.slice(0, chips.length).map(chip => {
+      const rect = chip?.getBoundingClientRect()
+      return rect === undefined
+        ? null
+        : {
+            top: Math.round(rect.top - area.top + box.scrollTop),
+            end: rect.right - area.left
+          }
+    })
+    const tops = [...new Set(places.map(place => place?.top ?? 0))].sort(
+      (a, b) => a - b
+    )
+    const lastTop = tops[MAX_CHIP_ROWS - 1]
+    if (tops.length <= MAX_CHIP_ROWS || lastTop === undefined) return
+    let shown = places.filter(place => (place?.top ?? 0) <= lastTop).length
+    // The last row keeps room for "+N" and the input
+    const room = MORE_CHIP_WIDTH + INPUT_MIN_WIDTH + 2 * CHIP_GAP
+    for (;;) {
+      const place = places[shown - 1]
+      if (shown <= 1 || !place || place.top < lastTop) break
+      if (place.end + room <= box.clientWidth) break
+      shown -= 1
+    }
+    setRows({ shown, total: chips.length })
+  }, [canFold, isShowingAll, rows, chips.length])
+
+  useLayoutEffect(() => {
+    measureRows()
+  }, [measureRows])
+
+  const isFolded = rows !== null && rows.total === chips.length && !isShowingAll
+  const shownChips = isFolded ? chips.slice(0, rows.shown) : chips
+
+  useLayoutEffect(() => {
+    measureScroll()
+  }, [measureScroll, shownChips.length])
+  /** The chip to focus once they all show */
+  const focusOnceShown = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    const index = focusOnceShown.current
+    focusOnceShown.current = null
+    if (isShowingAll && index !== null) chipRefs.current[index]?.focus()
+  }, [isShowingAll])
+  const showAll = (focusIndex: number | null): void => {
+    focusOnceShown.current = focusIndex
+    setIsShowingAll(true)
+  }
+
+  const shownWidth = useRef(0)
+  useEffect(() => {
+    if (content === null || typeof ResizeObserver === 'undefined') return
+    // The window the field is rendered in, maybe not this one
+    const view = content.ownerDocument.defaultView ?? window
+    const observer = new view.ResizeObserver(() => {
+      measureScroll()
+      // Another width, other rows: measured again
+      if (content.clientWidth !== shownWidth.current) {
+        shownWidth.current = content.clientWidth
+        setRows(null)
+      }
+    })
+    observer.observe(content)
+    return () => {
+      observer.disconnect()
+    }
+  }, [content, measureScroll])
+  const countId = `${id}-count`
+  const isCounted = (isFolded || scroll.overflows) && labels.count !== undefined
 
   const dndGroup = dnd?.group ?? null
   const dndField = dnd?.field ?? null
@@ -468,10 +600,18 @@ export function RecipientField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chips])
 
-  // Chips added above the input push it down in the scrolled field
+  // Chips added above the input push it down in the scrolled field; those it
+  // is shown with stay seen from the first
+  const shownCount = useRef(chips.length)
   useEffect(() => {
+    const isChanged = chips.length !== shownCount.current
+    shownCount.current = chips.length
     const input = inputRef.current
-    if (input !== null && input.ownerDocument.activeElement === input) {
+    if (
+      isChanged &&
+      input !== null &&
+      input.ownerDocument.activeElement === input
+    ) {
       input.scrollIntoView({ block: 'nearest' })
     }
   }, [chips.length])
@@ -550,6 +690,11 @@ export function RecipientField({
     if (index < 0) return
     if (index >= chips.length) {
       inputRef.current?.focus()
+      return
+    }
+    // A chip behind "+N": they all show first
+    if (isFolded && index >= rows.shown) {
+      showAll(index)
       return
     }
     chipRefs.current[index]?.focus()
@@ -804,12 +949,21 @@ export function RecipientField({
             {labels.field}
           </Typography>
         )}
+        {isCounted ? (
+          <span id={countId} className="u-visuallyhidden">
+            {labels.count?.(chips.length)}
+          </span>
+        ) : null}
         <Box
-          ref={setContent}
+          ref={setContentElement}
           className="u-flex-auto"
-          sx={look === 'outlined' ? OUTLINED_CONTENT_SX : CONTENT_SX}
+          onScroll={measureScroll}
+          sx={[
+            look === 'outlined' ? OUTLINED_CONTENT_SX : CONTENT_SX,
+            scroll.moreBelow && MORE_BELOW_SX
+          ]}
         >
-          {chips.map((chip, index) => (
+          {shownChips.map((chip, index) => (
             <Chip
               key={chip.id}
               ref={(element: HTMLDivElement | null) => {
@@ -905,6 +1059,17 @@ export function RecipientField({
               data-invalid={chip.isInvalid ? 'true' : undefined}
             />
           ))}
+          {isFolded ? (
+            <Chip
+              size="medium"
+              label={labels.more?.(chips.length - rows.shown)}
+              aria-label={labels.showAll?.(chips.length - rows.shown)}
+              onClick={() => {
+                showAll(rows.shown)
+              }}
+              data-testid={testIds.more}
+            />
+          ) : null}
           <InputBase
             inputRef={inputRef}
             value={inputValue}
@@ -912,6 +1077,9 @@ export function RecipientField({
               setIsOpen(true)
               setActiveId(null)
               onInputChange(event.target.value)
+              // Typed at the end of hundreds of chips: the whole input,
+              // not only its caret
+              event.target.scrollIntoView({ block: 'nearest' })
             }}
             onFocus={() => {
               setIsOpen(true)
@@ -927,7 +1095,10 @@ export function RecipientField({
               'aria-controls': isShown ? listboxId : undefined,
               'aria-autocomplete': 'list',
               'aria-invalid': hasError || undefined,
-              'aria-describedby': describedBy,
+              'aria-describedby':
+                [describedBy, isCounted ? countId : undefined]
+                  .filter(Boolean)
+                  .join(' ') || undefined,
               'aria-activedescendant':
                 active === null ? undefined : optionId(active.id),
               autoComplete: 'off',

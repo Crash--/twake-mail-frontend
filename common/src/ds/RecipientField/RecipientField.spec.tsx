@@ -21,7 +21,10 @@ const LABELS = {
   added: (labels: readonly string[]) =>
     labels.length === 1
       ? `${labels[0] ?? ''} added`
-      : `${labels.length} recipients added`
+      : `${labels.length} recipients added`,
+  count: (count: number) => `${count} recipients`,
+  more: (count: number) => `+${count}`,
+  showAll: (count: number) => `Show the ${count} others`
 }
 
 const CONTACTS: RecipientFieldSuggestion[] = [
@@ -396,6 +399,66 @@ describe('RecipientField', () => {
     const style = getComputedStyle(content)
     expect(style.maxHeight).toBe('104px')
     expect(style.overflowY).toBe('auto')
+  })
+
+  it('shows the chips of its first three rows and "+N", which shows them all', async () => {
+    // jsdom lays nothing out: chips 200 px wide, two per row of 36 px, in
+    // a field 420 px wide
+    jest
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: Element) {
+        const index =
+          this.getAttribute('data-testid') === 'chip'
+            ? Array.from(this.parentElement?.children ?? []).indexOf(this)
+            : 0
+        const top = Math.floor(index / 2) * 36
+        const left = (index % 2) * 204
+        return DOMRect.fromRect({ x: left, y: top, width: 200, height: 32 })
+      })
+    jest.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(420)
+    try {
+      const many = Array.from({ length: 200 }, (_, index) => `u${index}@x.org`)
+      renderDs(<Harness initial={many} />)
+
+      // Three rows, the last keeping room for "+N" and the input
+      expect(chipNames()).toHaveLength(5)
+      const more = screen.getByRole('button', { name: 'Show the 195 others' })
+      expect(more).toHaveTextContent('+195')
+      expect(
+        screen.getByRole('combobox', { name: 'To' })
+      ).toHaveAccessibleDescription('200 recipients')
+
+      await userEvent.click(more)
+      expect(chipNames()).toHaveLength(200)
+      // The keyboard goes on from the first chip it showed
+      expect(screen.getAllByTestId('chip')[5]).toHaveFocus()
+    } finally {
+      jest.restoreAllMocks()
+    }
+  })
+
+  it('reads the number of its chips once they scroll', () => {
+    jest.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(1000)
+    jest.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(104)
+    try {
+      const many = Array.from({ length: 200 }, (_, index) => `u${index}@x.org`)
+      renderDs(<Harness initial={many} />)
+
+      expect(
+        screen.getByRole('combobox', { name: 'To' })
+      ).toHaveAccessibleDescription('200 recipients')
+    } finally {
+      jest.restoreAllMocks()
+    }
+  })
+
+  it('says nothing of the chips while they all show', () => {
+    renderDs(<Harness initial={['a@x.org', 'b@x.org']} />)
+
+    expect(screen.queryByText('2 recipients')).toBe(null)
+    expect(screen.getByRole('combobox', { name: 'To' })).not.toHaveAttribute(
+      'aria-describedby'
+    )
   })
 
   it('takes the focus once shown when asked to', () => {

@@ -422,7 +422,16 @@ function LoadedComposerForm({
     content.opensOn === null
       ? content.answering !== null && content.draftId === null && hasRecipients
       : content.opensOn === 'text' && hasRecipients
-  const [isCollapsed, setIsCollapsed] = useState(opensOnText)
+  // A new message given its recipients (a mailto link, the participants of
+  // an event) opens folded as well, maybe on hundreds: on the subject first
+  const isPrefilled =
+    content.opensOn === null &&
+    content.answering === null &&
+    content.draftId === null &&
+    hasRecipients
+  const opensOnSubject = isPrefilled && content.subject === ''
+  const opensOnBody = opensOnText || (isPrefilled && !opensOnSubject)
+  const [isCollapsed, setIsCollapsed] = useState(opensOnText || isPrefilled)
   const [subject, setSubject] = useState(content.subject)
   const [options, setOptions] = useState<SendOptions>(content.options)
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null)
@@ -1937,7 +1946,7 @@ function LoadedComposerForm({
               setFocusField(null)
               setIsCollapsed(false)
             }}
-            autoFocusTo={autoFocus && !opensOnText}
+            autoFocusTo={autoFocus && !opensOnText && !isPrefilled}
           />
           <FieldLine
             label={t('composer.fields.subject')}
@@ -1952,6 +1961,7 @@ function LoadedComposerForm({
                 setSubject(event.target.value)
               }}
               onFocus={collapseRecipients}
+              autoFocus={autoFocus && opensOnSubject}
               fullWidth
               inputProps={{ 'data-testid': 'composer-subject-input' }}
             />
@@ -2025,7 +2035,7 @@ function LoadedComposerForm({
                   : undefined
               }
               footerBlockKinds={['signature']}
-              autoFocus={autoFocus && opensOnText}
+              autoFocus={autoFocus && opensOnBody}
               fill
               onReady={handleEditorReady}
               onUpdate={handleEditorUpdate}

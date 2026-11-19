@@ -181,10 +181,74 @@ test.describe('CMP composer: templates and mailto links', () => {
     const composer = new ComposerPage(page)
     await expect(composer.subjectInput).toHaveValue('Hello')
     await expect(composer.editor).toContainText('World')
+    // Given its recipients, it opens them folded
+    await expect(composer.recipientsSummary).toContainText(
+      'shared-recipient@example.com'
+    )
+    await composer.recipientsSummary.click()
     await expect(composer.recipients('to')).toHaveText([
       'shared-recipient@example.com'
     ])
     await expectNoA11yViolations(page)
+  })
+
+  test('CMP-113 hundreds of recipients open folded; unfolded, To shows three rows and "+N", which shows them all', { tag: '@mobile' }, async ({
+    page,
+    user
+  }) => {
+    const guests = Array.from(
+      { length: 300 },
+      (_, index) => `guest${String(index + 1).padStart(3, '0')}@example.com`
+    )
+    await new LoginPage(page).loginAs(user)
+    // Inside the app: the address of 300 recipients is too long to go
+    // through the sign in
+    await page.evaluate(url => {
+      window.history.pushState({}, '', url)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }, `/mailto?uri=${encodeURIComponent(`mailto:${guests.join(',')}?subject=Team%20meeting`)}`)
+
+    const composer = new ComposerPage(page)
+    await expect(composer.subjectInput).toHaveValue('Team meeting')
+    await expect(composer.recipientsSummary).toContainText('+')
+    await expect(composer.recipientInput('to')).toHaveCount(0)
+
+    await composer.recipientsSummary.click()
+    await expect(composer.recipientInput('to')).toBeFocused()
+    // The first recipients on three rows at most, then "+N"
+    const chips = composer.recipients('to')
+    const more = composer.root.getByTestId('composer-to-more')
+    await expect(more).toBeVisible()
+    const shown = await chips.count()
+    expect(shown).toBeGreaterThan(0)
+    expect(shown).toBeLessThanOrEqual(6)
+    await expect(more).toHaveText(`+${300 - shown}`)
+    await expect(chips.first()).toContainText('guest001@example.com')
+    const tops = new Set(
+      await chips.evaluateAll(all =>
+        all.map(chip => Math.round(chip.getBoundingClientRect().top))
+      )
+    )
+    expect(tops.size).toBeLessThanOrEqual(3)
+    // Two per row in a window of a desktop; a phone keeps whole addresses
+    const isPhone = (page.viewportSize()?.width ?? 0) < 769
+    expect(tops.size < shown).toBe(!isPhone)
+    // Screen readers hear how many there are
+    await expect(composer.recipientInput('to')).toHaveAccessibleDescription(
+      '300 recipients'
+    )
+    await expectNoA11yViolations(page)
+
+    await more.click()
+    await expect(chips).toHaveCount(300)
+    await expect(more).toHaveCount(0)
+    // The keyboard goes on from the first recipient "+N" stood for
+    await expect(chips.nth(shown)).toBeFocused()
+    expect(
+      await chips
+        .first()
+        .evaluate(chip => getComputedStyle(chip.parentElement as Element).maskImage)
+    ).toContain('gradient')
   })
 })
 

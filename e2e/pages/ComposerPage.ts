@@ -241,6 +241,17 @@ export class ComposerPage {
     return this.root.getByTestId(`composer-${field}-input`)
   }
 
+  /**
+   * Unfolds the recipients: a new message given its recipients (a mailto
+   * link, "Edit as new") opens them folded
+   */
+  async showRecipients(): Promise<ComposerPage> {
+    await expect(this.recipientsSummary).toBeVisible()
+    await this.recipientsSummary.click()
+    await expect(this.recipientInput('to')).toBeVisible()
+    return this
+  }
+
   /** Recipient chips already in a field */
   recipients(field: RecipientField): Locator {
     return this.root

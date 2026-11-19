@@ -303,8 +303,10 @@ describe('actions of an open email', () => {
       expect(
         await within(composer).findByRole('textbox', { name: 'Subject' })
       ).toHaveValue('Weekly: news / 2')
-      expect(within(composer).getByText('Alice')).toBeVisible()
-      expect(within(composer).getByText('carol@example.com')).toBeVisible()
+      // Given its recipients, it opens them folded
+      expect(
+        within(composer).getByTestId('composer-recipients-summary')
+      ).toHaveAccessibleName(/Alice, carol@example\.com/)
       // Its files come along
       expect(await within(composer).findByText('report.pdf')).toBeVisible()
       expect(
@@ -429,7 +431,9 @@ describe('actions of an open email', () => {
       const composer = await screen.findByRole('dialog', {
         name: 'unsubscribe'
       })
-      expect(within(composer).getByText('leave@example.com')).toBeVisible()
+      expect(
+        within(composer).getByTestId('composer-recipients-summary')
+      ).toHaveAccessibleName(/leave@example\.com/)
       expect(openSpy).not.toHaveBeenCalled()
       // Not unsubscribed until the message is sent
       expect(server.emails[0]?.keywords).toEqual({ $seen: true })

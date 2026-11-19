@@ -29,6 +29,8 @@ import type {
 import { getInChunks } from '@common/jmap/maxObjectsInGet'
 import { settle } from '@common/jmap/settle'
 
+import { filterVerdict } from './filterVerdict'
+
 /** Emails fetched per page of the list */
 export const EMAIL_LIST_PAGE_SIZE = 30
 
@@ -270,6 +272,23 @@ export async function fetchThreadMembersInChunks(
   )
 }
 
+/**
+ * Whether a row `Email/query` returned matches its filter as far as
+ * `Email/get` tells: the search index may lag behind the emails (a missed
+ * flag update lists a read email under "Unread"). On a list of
+ * conversations, one email of the thread matching is enough. `maybe` stays:
+ * only the server knows.
+ */
+export function matchesFilter(
+  filter: Filter<EmailFilterCondition>,
+  email: EmailListItemData,
+  members: readonly ThreadMember[] | undefined
+): boolean {
+  return (members ?? [email]).some(
+    member => filterVerdict(filter, member) !== 'no'
+  )
+}
+
 function toSnippets(
   list: readonly SearchSnippet[]
 ): Record<string, EmailSnippet> {
@@ -372,7 +391,16 @@ export async function fetchListPage(
   const { ids } = queryResult.value
   const total = queryResult.value.total ?? null
   const next = queryResult.value.position + ids.length
-  const listed = orderByIds(emailsResult.value.list, ids)
+  const fetched = orderByIds(emailsResult.value.list, ids)
+  const members = membersResult?.ok
+    ? groupThreadMembers(fetched, membersResult.value.list)
+    : null
+  // A stale index may return emails that no longer match: they are not
+  // listed, but still count, so that the next page starts where the
+  // server's results go on
+  const listed = fetched.filter(email =>
+    matchesFilter(filter, email, members?.[email.threadId])
+  )
   return {
     emails: listed,
     position: queryResult.value.position,
@@ -383,11 +411,13 @@ export async function fetchListPage(
     ...(snippetsResult?.ok
       ? { snippets: toSnippets(snippetsResult.value.list) }
       : {}),
-    ...(membersResult?.ok
-      ? {
-          threads: groupThreadMembers(listed, membersResult.value.list)
-        }
-      : {})
+    ...(members === null
+      ? {}
+      : {
+          threads: Object.fromEntries(
+            listed.map(email => [email.threadId, members[email.threadId] ?? []])
+          )
+        })
   }
 }
 

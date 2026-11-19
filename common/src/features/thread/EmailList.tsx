@@ -712,7 +712,9 @@ export function EmailList(props: EmailListProps): ReactElement {
         data-testid="email-list-offline"
       />
     )
-  } else if (query.isPending) {
+  } else if (query.isPending || (emails.length === 0 && hasNextPage)) {
+    // A page may list nothing (its results no longer match the filter: the
+    // index lagged behind): the next ones are loading, the list is not empty
     content = (
       <EmailListSkeleton
         isCompact={isCompact}

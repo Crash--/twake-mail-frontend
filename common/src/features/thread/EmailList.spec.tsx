@@ -23,6 +23,7 @@ import {
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
+import { answerQueriesFromStaleIndex } from '@common/testing/staleIndex'
 
 import { EmailList } from './EmailList'
 import { ListFilterProvider } from './ListFilterProvider'
@@ -595,6 +596,49 @@ describe('EmailList', () => {
       'There are no emails that match your current filter.'
     )
     expect(empty).not.toHaveTextContent('Start to compose emails.')
+  })
+
+  it('lists under "Unread" only unread emails when the index lags behind', async () => {
+    // The index still sees the first page of emails unread: they were read
+    // since
+    const read = makeEmails(EMAIL_LIST_PAGE_SIZE + 2)
+    const indexed = read.map(email => ({ ...email, keywords: {} }))
+    const server = makeFakeJmapServer({
+      emails: [
+        ...read.slice(0, EMAIL_LIST_PAGE_SIZE),
+        ...indexed.slice(EMAIL_LIST_PAGE_SIZE)
+      ]
+    })
+    renderWithProviders(
+      <ListFilterProvider>
+        <VirtuosoMockContext.Provider
+          value={{ viewportHeight: 100_000, itemHeight: 56 }}
+        >
+          <EmailList mailboxId="mailbox-inbox" />
+        </VirtuosoMockContext.Provider>
+      </ListFilterProvider>,
+      {
+        route: '/mailbox/mailbox-inbox',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: server
+      }
+    )
+    await screen.findAllByTestId('email-list-item')
+    answerQueriesFromStaleIndex(server, indexed)
+
+    await userEvent.click(screen.getByTestId('list-filter-button'))
+    await userEvent.click(await screen.findByTestId('quick-filter-unread'))
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByTestId('email-list-item').map(row => row.textContent)
+      ).toEqual([
+        expect.stringContaining('Email 30'),
+        expect.stringContaining('Email 31')
+      ])
+    })
+    expect(screen.queryByTestId('empty-thread-view')).toBe(null)
   })
 
   describe('offline', () => {

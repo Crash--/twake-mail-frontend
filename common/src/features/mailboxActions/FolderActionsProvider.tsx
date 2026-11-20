@@ -45,6 +45,7 @@ import { threadKeys } from '@common/features/thread/queries'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { maxCallsInRequest } from '@common/jmap/maxCallsInRequest'
 import {
   focusTargetsAround,
   keepFocusInPage
@@ -61,7 +62,7 @@ import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
 import { SubaddressingDialog } from './SubaddressingDialog'
 import { anyoneRightsWith, subaddress, subaddressDetail } from './subaddressing'
 import { useCreateFolder } from './useCreateFolder'
-import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
+import { useEmptyFolder } from './useEmptyFolder'
 
 export interface FolderActions {
   /**

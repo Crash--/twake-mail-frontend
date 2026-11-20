@@ -1,8 +1,11 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect, useState, type ReactElement } from 'react'
 
+import { identitiesQueryOptions } from '@common/features/identities/queries'
+import { mailboxesQueryOptions } from '@common/features/mailbox/queries'
+import { serverSettingsQueryOptions } from '@common/features/settings/serverSettings'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_SESSION_URL,
@@ -97,6 +100,38 @@ describe('JmapSessionProvider', () => {
 
     expect(await screen.findByText(/mailboxes$/)).toBeVisible()
     expect(server.requests[0]?.using).toContain(SHARES_CAPABILITY)
+  })
+
+  it('sends the queries the screens start together in one request, an error failing only its own', async () => {
+    const server = makeFakeJmapServer()
+    server.methodErrors.set('Identity/get', 'serverFail')
+    function StartUp(): ReactElement {
+      const client = useJmapClient()
+      const { accountId } = useJmapSession()
+      const mailboxes = useQuery(mailboxesQueryOptions(client, accountId))
+      const settings = useQuery(serverSettingsQueryOptions(client, accountId))
+      const identities = useQuery(
+        identitiesQueryOptions(client, accountId, false, FAKE_USERNAME)
+      )
+      return (
+        <p>
+          {[mailboxes, settings, identities]
+            .map(query => query.status)
+            .join(' ')}
+        </p>
+      )
+    }
+    renderWithProviders(
+      <JmapSessionProvider>
+        <StartUp />
+      </JmapSessionProvider>,
+      { jmapServer: server }
+    )
+
+    expect(await screen.findByText('success success error')).toBeVisible()
+    expect(
+      server.requests.map(request => request.methodCalls.map(([name]) => name))
+    ).toEqual([['Mailbox/get', 'Settings/get', 'Identity/get']])
   })
 })
 

@@ -20,6 +20,7 @@ import {
   FAKE_LINAGORA_CAPABILITIES,
   installFakeLabels
 } from '@common/testing/fakeLinagora'
+import { RecoveryProvider } from '@common/features/recovery/RecoveryProvider'
 import { TeamMailboxEmbedProvider } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { listEmailsOneByOne } from '@common/testing/emailsOneByOne'
@@ -598,17 +599,7 @@ describe('EmailList', () => {
     expect(empty).not.toHaveTextContent('Start to compose emails.')
   })
 
-  it('lists under "Unread" only unread emails when the index lags behind', async () => {
-    // The index still sees the first page of emails unread: they were read
-    // since
-    const read = makeEmails(EMAIL_LIST_PAGE_SIZE + 2)
-    const indexed = read.map(email => ({ ...email, keywords: {} }))
-    const server = makeFakeJmapServer({
-      emails: [
-        ...read.slice(0, EMAIL_LIST_PAGE_SIZE),
-        ...indexed.slice(EMAIL_LIST_PAGE_SIZE)
-      ]
-    })
+  function renderFilteredList(server: FakeJmapServer): void {
     renderWithProviders(
       <ListFilterProvider>
         <VirtuosoMockContext.Provider
@@ -624,6 +615,25 @@ describe('EmailList', () => {
         jmapServer: server
       }
     )
+  }
+
+  async function filterUnread(): Promise<void> {
+    await userEvent.click(await screen.findByTestId('list-filter-button'))
+    await userEvent.click(await screen.findByTestId('quick-filter-unread'))
+  }
+
+  it('lists under "Unread" only unread emails when the index lags behind', async () => {
+    // The index still sees the first page of emails unread: they were read
+    // since
+    const read = makeEmails(EMAIL_LIST_PAGE_SIZE + 2)
+    const indexed = read.map(email => ({ ...email, keywords: {} }))
+    const server = makeFakeJmapServer({
+      emails: [
+        ...read.slice(0, EMAIL_LIST_PAGE_SIZE),
+        ...indexed.slice(EMAIL_LIST_PAGE_SIZE)
+      ]
+    })
+    renderFilteredList(server)
     await screen.findAllByTestId('email-list-item')
     answerQueriesFromStaleIndex(server, indexed)
 
@@ -647,21 +657,7 @@ describe('EmailList', () => {
     const read = makeEmails(EMAIL_LIST_PAGE_SIZE + 2)
     const indexed = read.map(email => ({ ...email, keywords: {} }))
     const server = makeFakeJmapServer({ emails: read })
-    renderWithProviders(
-      <ListFilterProvider>
-        <VirtuosoMockContext.Provider
-          value={{ viewportHeight: 100_000, itemHeight: 56 }}
-        >
-          <EmailList mailboxId="mailbox-inbox" />
-        </VirtuosoMockContext.Provider>
-      </ListFilterProvider>,
-      {
-        route: '/mailbox/mailbox-inbox',
-        path: '/mailbox/:mailboxId',
-        withJmapSession: true,
-        jmapServer: server
-      }
-    )
+    renderFilteredList(server)
     await screen.findAllByTestId('email-list-item')
     answerQueriesFromStaleIndex(server, indexed)
     const staleQuery = server.handlers.get('Email/query')
@@ -675,6 +671,110 @@ describe('EmailList', () => {
     await userEvent.click(await screen.findByTestId('quick-filter-unread'))
 
     expect(await screen.findByTestId('email-list-error')).toBeInTheDocument()
+  })
+
+  it('clears a filter that leaves nothing and focuses the first row', async () => {
+    renderFilteredList(makeFakeJmapServer({ emails: makeEmails(2) }))
+    await screen.findAllByTestId('email-list-item')
+    await filterUnread()
+
+    await userEvent.click(
+      await screen.findByTestId('empty-filter-clear-button')
+    )
+
+    const rows = await screen.findAllByTestId('email-list-item')
+    expect(rows).toHaveLength(2)
+    await waitFor(() => {
+      expect(rows[0]).toContainElement(document.activeElement as HTMLElement)
+    })
+  })
+
+  it('focuses the title of an empty folder once its filter is cleared', async () => {
+    renderFilteredList(makeFakeJmapServer({ emails: [] }))
+    await screen.findByTestId('empty-thread-view')
+    await filterUnread()
+
+    await userEvent.click(
+      await screen.findByTestId('empty-filter-clear-button')
+    )
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveTextContent(
+        'You don’t have any emails in this folder.'
+      )
+    })
+  })
+
+  it('offers to recover deleted messages in an empty Trash', async () => {
+    renderWithProviders(
+      <RecoveryProvider>
+        <EmailList mailboxId="mailbox-trash" />
+      </RecoveryProvider>,
+      {
+        route: '/mailbox/mailbox-trash',
+        path: '/mailbox/:mailboxId',
+        withJmapSession: true,
+        jmapServer: makeFakeJmapServer({
+          emails: [],
+          capabilities: {
+            'com:linagora:params:jmap:messages:vault': {
+              maxEmailRecoveryPerRequest: '5',
+              restorationHorizon: '15 days'
+            }
+          }
+        })
+      }
+    )
+
+    const empty = await screen.findByTestId('empty-thread-view')
+    expect(empty).toHaveTextContent(
+      'Deleted something by mistake? You can recover recently deleted messages.'
+    )
+    const recover = within(empty).getByRole('button', {
+      name: 'Recover deleted messages'
+    })
+    expect(recover).toHaveAttribute('data-testid', 'empty-trash-recover-button')
+
+    await userEvent.click(recover)
+    expect(
+      screen.getByRole('dialog', { name: 'Recover deleted messages' })
+    ).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => {
+      expect(recover).toHaveFocus()
+    })
+  })
+
+  it('has no recovery in an empty Trash when the server keeps nothing', async () => {
+    renderList(makeFakeJmapServer({ emails: [] }), 'mailbox-trash')
+
+    const empty = await screen.findByTestId('empty-thread-view')
+    expect(empty).toHaveTextContent('Deleted something by mistake?')
+    expect(within(empty).queryByRole('button')).toBe(null)
+  })
+
+  it.each([
+    ['mailbox-spam', 'Emails detected as spam will appear here.'],
+    [
+      'mailbox-drafts',
+      'Messages you start writing without sending are saved here.'
+    ],
+    ['mailbox-sent', 'Emails you send will appear here.']
+  ])('says what the empty %s is for', async (mailboxId, hint) => {
+    renderList(makeFakeJmapServer({ emails: [] }), mailboxId)
+
+    const empty = await screen.findByTestId('empty-thread-view')
+    expect(empty).toHaveTextContent(hint)
+    expect(empty).not.toHaveTextContent('Start to compose emails.')
+    expect(within(empty).queryByRole('button')).toBe(null)
+  })
+
+  it('shows the title alone in an empty Inbox', async () => {
+    renderList(makeFakeJmapServer({ emails: [] }))
+
+    const empty = await screen.findByTestId('empty-thread-view')
+    expect(empty.querySelectorAll('p')).toHaveLength(1)
+    expect(within(empty).queryByRole('button')).toBe(null)
   })
 
   describe('offline', () => {

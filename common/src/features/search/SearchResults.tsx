@@ -109,7 +109,8 @@ export function SearchResults({ filter }: SearchResultsProps): ReactElement {
             openEmailId,
             empty,
             toolbarEnd,
-            opensAtMatch: true
+            opensAtMatch: true,
+            isTransient: true
           },
     [request, emailPath, openEmailId, empty, toolbarEnd]
   )

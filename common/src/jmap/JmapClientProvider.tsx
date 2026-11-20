@@ -1,4 +1,4 @@
-import type { createClient, JmapClient } from 'jmap-client-ts'
+import type { createClient, FetchFunction, JmapClient } from 'jmap-client-ts'
 import {
   createContext,
   useContext,
@@ -14,6 +14,7 @@ import {
 } from '@common/features/auth/AuthProvider'
 
 import { makeJmapAuth } from './makeJmapAuth'
+import { serveSessionOnce } from './serveSessionOnce'
 
 /** `createClient` of jmap-client-ts, or a wrapper of it in tests */
 export type JmapClientFactory = typeof createClient
@@ -23,7 +24,13 @@ const JmapClientContext = createContext<JmapClient | null>(null)
 export interface JmapClientProviderProps {
   createClient: JmapClientFactory
   sessionUrl: string
+  /** `fetch` of the client, the browser's by default */
+  fetch?: FetchFunction
   children: ReactNode
+}
+
+function browserFetch(input: string, init?: RequestInit): Promise<Response> {
+  return fetch(input, init)
 }
 
 /**
@@ -33,25 +40,32 @@ export interface JmapClientProviderProps {
  * A new client is created at each sign-in: the client caches the JMAP
  * session, which belongs to the user who signed in. Renewing the tokens does
  * not change the authentication status, hence keeps the client.
+ *
+ * A basic sign-in has just read the session to check the credentials: the
+ * client starts from that answer rather than fetching it a second time.
  */
 export function JmapClientProvider({
   createClient,
   sessionUrl,
+  fetch: fetchFunction = browserFetch,
   children
 }: JmapClientProviderProps): ReactElement {
   const authService = useAuthService()
   const { status } = useAuthState()
-  const client = useMemo(
-    () =>
-      status === 'authenticated'
-        ? createClient({
-            sessionUrl,
-            auth: makeJmapAuth(authService),
-            methodCapabilities: METHOD_CAPABILITIES
-          })
-        : null,
-    [createClient, sessionUrl, authService, status]
-  )
+  const client = useMemo(() => {
+    if (status !== 'authenticated') return null
+    const sessionBody =
+      authService.mode === 'basic' ? authService.getValidatedSession() : null
+    return createClient({
+      sessionUrl,
+      auth: makeJmapAuth(authService),
+      methodCapabilities: METHOD_CAPABILITIES,
+      fetch:
+        sessionBody === null
+          ? fetchFunction
+          : serveSessionOnce(fetchFunction, sessionUrl, sessionBody)
+    })
+  }, [createClient, sessionUrl, fetchFunction, authService, status])
 
   return (
     <JmapClientContext.Provider value={client}>

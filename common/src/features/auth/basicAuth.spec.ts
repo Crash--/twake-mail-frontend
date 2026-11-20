@@ -8,6 +8,7 @@ import type {
 } from './basicSessionSharing'
 
 const SESSION_URL = 'https://jmap.example.com/jmap/session'
+const SESSION_BODY = '{"username":"alice@example.com"}'
 
 function makeFetch(
   response: { ok: boolean; status: number } | Error
@@ -15,7 +16,10 @@ function makeFetch(
   return jest.fn(() =>
     response instanceof Error
       ? Promise.reject(response)
-      : Promise.resolve(response)
+      : Promise.resolve({
+          ...response,
+          text: () => Promise.resolve(SESSION_BODY)
+        })
   )
 }
 
@@ -57,6 +61,39 @@ describe('createBasicAuthService', () => {
     await expect(service.getAuthorizationHeader()).resolves.toBe(
       makeBasicAuthorizationHeader('alice@example.com', 'secret')
     )
+  })
+
+  it('keeps the session read by the credentials check until the session ends', async () => {
+    const service = createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch: makeFetch({ ok: true, status: 200 }) }
+    )
+    expect(service.getValidatedSession()).toBe(null)
+
+    await service.login('alice@example.com', 'secret')
+    expect(service.getValidatedSession()).toBe(SESSION_BODY)
+
+    service.clearLocalSession()
+    expect(service.getValidatedSession()).toBe(null)
+  })
+
+  it('signs in without a session when its body cannot be read', async () => {
+    const fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.reject(new TypeError('network error'))
+      })
+    )
+    const service = createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch }
+    )
+
+    await expect(service.login('alice@example.com', 'secret')).resolves.toEqual(
+      { ok: true }
+    )
+    expect(service.getValidatedSession()).toBe(null)
   })
 
   it('reports bad credentials on 401 and stays signed out', async () => {

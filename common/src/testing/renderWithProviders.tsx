@@ -12,10 +12,7 @@ import type { AppConfig } from '@common/config/config'
 import { AuthProvider } from '@common/features/auth/AuthProvider'
 import type { AuthService } from '@common/features/auth/types'
 import type { SupportedLanguage } from '@common/i18n/languages'
-import {
-  JmapClientProvider,
-  type JmapClientFactory
-} from '@common/jmap/JmapClientProvider'
+import { JmapClientProvider } from '@common/jmap/JmapClientProvider'
 import { JmapSessionProvider } from '@common/jmap/JmapSessionProvider'
 
 import {
@@ -80,8 +77,6 @@ export function renderWithProviders(
     ...defaultOptions,
     queries: { ...defaultOptions.queries, retry: false }
   })
-  const createFakeClient: JmapClientFactory = options =>
-    createClient({ ...options, fetch: jmapServer.fetch })
   const session = withJmapSession ? (
     <JmapSessionProvider>{ui}</JmapSessionProvider>
   ) : (
@@ -102,8 +97,9 @@ export function renderWithProviders(
     >
       <AuthProvider service={authService}>
         <JmapClientProvider
-          createClient={createFakeClient}
+          createClient={createClient}
           sessionUrl={FAKE_SESSION_URL}
+          fetch={jmapServer.fetch}
         >
           <MemoryRouter initialEntries={[route]}>
             <Routes>

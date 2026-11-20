@@ -98,6 +98,12 @@ export interface BasicAuthService extends AuthServiceBase {
   readonly mode: 'basic'
   /** Checks the credentials against the JMAP session endpoint, keeps them if valid */
   login: (username: string, password: string) => Promise<BasicLoginResult>
+  /**
+   * Body of the JMAP session resource read when the credentials were
+   * checked, null without one (restored from another tab, signed out): the
+   * JMAP client starts from it instead of fetching the session again
+   */
+  getValidatedSession: () => string | null
 }
 
 export type AuthService = OidcAuthService | BasicAuthService

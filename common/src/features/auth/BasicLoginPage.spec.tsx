@@ -2,20 +2,52 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
+import { resolveConfig, type AppConfig } from '@common/config/config'
 import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 
 import { BasicLoginPage } from './BasicLoginPage'
+import type { LoginRouteState } from './RequireAuth'
+
+interface RenderOptions {
+  routeState?: LoginRouteState
+  config?: AppConfig
+}
 
 function renderLoginPage(
-  service = makeFakeBasicAuthService({ status: 'anonymous' })
+  service = makeFakeBasicAuthService({ status: 'anonymous' }),
+  { routeState = { returnTo: '/mailbox/42' }, config }: RenderOptions = {}
 ): ReturnType<typeof renderWithProviders> {
   return renderWithProviders(<BasicLoginPage />, {
-    route: { pathname: '/login', state: { returnTo: '/mailbox/42' } },
+    route: { pathname: '/login', state: routeState },
     path: '/login',
     authService: service,
+    config,
     routes: <Route path="/mailbox/:mailboxId" element={<p>Mailbox page</p>} />
   })
+}
+
+function makeConfig(loginAllowUsername: boolean): AppConfig {
+  const result = resolveConfig(
+    {
+      SERVER_URL: 'https://jmap.example.com',
+      AUTH_MODE: 'basic',
+      LOGIN_ALLOW_USERNAME: loginAllowUsername
+    },
+    'https://mail.example.com',
+    () => undefined
+  )
+  if (!result.ok) throw new Error(result.errors.join(', '))
+  return result.value
+}
+
+function rejectingLogin(): jest.Mock {
+  return jest.fn(() =>
+    Promise.resolve({
+      ok: false as const,
+      error: 'invalid-credentials' as const
+    })
+  )
 }
 
 describe('BasicLoginPage', () => {
@@ -33,6 +65,56 @@ describe('BasicLoginPage', () => {
       'type',
       'password'
     )
+    expect(screen.getByText('Email')).toBeVisible()
+    expect(screen.getByText('Password')).toBeVisible()
+    expect(screen.getByTestId('login-username-input')).not.toHaveAttribute(
+      'placeholder'
+    )
+    expect(screen.getByTestId('login-form')).toHaveTextContent(
+      'Enter your credentials to sign in'
+    )
+  })
+
+  it('says why the form is back after a lost session', () => {
+    renderLoginPage(undefined, {
+      routeState: { returnTo: '/mailbox/42', reason: 'session-missing' }
+    })
+
+    expect(
+      screen.getByText(
+        'For your security, Twake Mail does not keep your password after a reload. Sign in again to continue.'
+      )
+    ).toBeVisible()
+    expect(screen.queryByTestId('login-error')).toBe(null)
+  })
+
+  it('asks for the domain of an email without calling the server', async () => {
+    const service = makeFakeBasicAuthService({ status: 'anonymous' })
+    renderLoginPage(service)
+    const usernameInput = screen.getByTestId('login-username-input')
+
+    await userEvent.type(usernameInput, 'bob')
+    await userEvent.type(screen.getByTestId('login-password-input'), 'bob')
+    await userEvent.keyboard('{Enter}')
+
+    expect(service.login).not.toHaveBeenCalled()
+    expect(usernameInput).toHaveAttribute('aria-invalid', 'true')
+    expect(usernameInput).toHaveAccessibleDescription(
+      'Enter your full email address, including the part after @.'
+    )
+    expect(usernameInput).toHaveFocus()
+  })
+
+  it('sends a user name without domain with LOGIN_ALLOW_USERNAME', async () => {
+    const service = makeFakeBasicAuthService({ status: 'anonymous' })
+    service.login = rejectingLogin()
+    renderLoginPage(service, { config: makeConfig(true) })
+
+    await userEvent.type(screen.getByTestId('login-username-input'), 'bob')
+    await userEvent.type(screen.getByTestId('login-password-input'), 'bob')
+    await userEvent.click(screen.getByTestId('login-submit-button'))
+
+    expect(service.login).toHaveBeenCalledWith('bob', 'bob')
   })
 
   it('shows and masks the password again with the toggle', async () => {
@@ -105,12 +187,7 @@ describe('BasicLoginPage', () => {
 
   it('shows an error when the server refuses the credentials', async () => {
     const service = makeFakeBasicAuthService({ status: 'anonymous' })
-    service.login = jest.fn(() =>
-      Promise.resolve({
-        ok: false as const,
-        error: 'invalid-credentials' as const
-      })
-    )
+    service.login = rejectingLogin()
     renderLoginPage(service)
 
     await userEvent.type(
@@ -121,7 +198,7 @@ describe('BasicLoginPage', () => {
     await userEvent.click(screen.getByTestId('login-submit-button'))
 
     expect(await screen.findByTestId('login-error')).toHaveTextContent(
-      'Bad credentials'
+      'Incorrect email address or password.'
     )
     expect(screen.getByTestId('login-submit-button')).toBeEnabled()
     expect(screen.queryByText('Mailbox page')).toBe(null)
@@ -129,12 +206,7 @@ describe('BasicLoginPage', () => {
 
   it('puts the focus back on the password after a refused sign-in', async () => {
     const service = makeFakeBasicAuthService({ status: 'anonymous' })
-    service.login = jest.fn(() =>
-      Promise.resolve({
-        ok: false as const,
-        error: 'invalid-credentials' as const
-      })
-    )
+    service.login = rejectingLogin()
     renderLoginPage(service)
 
     await userEvent.type(
@@ -155,7 +227,10 @@ describe('BasicLoginPage', () => {
     )
     renderLoginPage(service)
 
-    await userEvent.type(screen.getByTestId('login-username-input'), 'alice')
+    await userEvent.type(
+      screen.getByTestId('login-username-input'),
+      'alice@example.com'
+    )
     await userEvent.type(screen.getByTestId('login-password-input'), 'secret')
     await userEvent.click(screen.getByTestId('login-submit-button'))
 

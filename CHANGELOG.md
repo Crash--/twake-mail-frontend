@@ -65,6 +65,19 @@ New setting since 0.13.0: `NEW_VERSION_CHECK_ENABLED` (Helm chart:
   before a new version was deployed offers to reload the page ("What's new in
   Twake Mail"). "Not now" declines that version: the dialog comes back with
   the next one. The image serves `/version.json`, never cached.
+- `LOGIN_ALLOW_USERNAME` (`false` by default): in basic authentication, the
+  sign-in form sends a user name without domain (`bob`) to the server. Off,
+  it asks for the full email address before sending anything.
+
+### Changed
+
+- The sign-in form shows "Email" and "Password" above their fields, kept
+  while typing, and the fields have no placeholder any more.
+- A refused sign-in says "Incorrect email address or password." instead of
+  "Bad credentials".
+- A tab that lands on the sign-in form after a reload or a link (basic
+  authentication) says the password is not kept after a reload. Not after a
+  sign-out.
 
 ### Changed
 

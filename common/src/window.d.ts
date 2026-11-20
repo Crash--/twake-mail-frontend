@@ -62,6 +62,8 @@ declare global {
     TDRIVE_ENABLED?: boolean | string
     /** Offers a reload when the server serves a newer build than the tab's */
     NEW_VERSION_CHECK_ENABLED?: boolean | string
+    /** The basic sign-in form accepts a user name without domain */
+    LOGIN_ALLOW_USERNAME?: boolean | string
 
     APP_VERSION?: string
   }

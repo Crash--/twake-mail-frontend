@@ -67,6 +67,7 @@ describe('resolveConfig', () => {
         tdriveEnabled: false,
         appGridAvailable: false,
         newVersionCheckEnabled: false,
+        loginAllowUsername: false,
         appVersion: 'dev'
       })
     })
@@ -117,6 +118,12 @@ describe('resolveConfig', () => {
     expect(
       resolveConfig({ ...OIDC_SOURCE, TDRIVE_ENABLED: 'true' }, ORIGIN)
     ).toMatchObject({ value: { tdriveEnabled: true } })
+  })
+
+  it('lets the sign-in form send user names with LOGIN_ALLOW_USERNAME', () => {
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, LOGIN_ALLOW_USERNAME: true }, ORIGIN)
+    ).toMatchObject({ value: { loginAllowUsername: true } })
   })
 
   it('accepts the basic mode without any SSO setting', () => {

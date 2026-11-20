@@ -1,8 +1,8 @@
-// Upstream to twake-ui: no. The sign-in fields: the name inside the field
-// until something is typed, a primary border with the focus, an error one in
-// error. The name stays the label of the input for assistive technologies.
-// twake-mui's `PasswordField` is not used: it shows its own label and its
-// own visibility button, the form here names the input out of sight.
+// Upstream to twake-ui: no. The sign-in fields: the name shown above the
+// field, kept while typing (RGAA 11.1, WCAG 3.3.2), the box of tmail-flutter,
+// a primary border with the focus, an error one in error. No placeholder: the
+// name is never repeated. twake-mui's `PasswordField` is not used: it shows
+// its own visibility button.
 import { Box, FormHelperText, InputBase } from '@linagora/twake-mui'
 import {
   useId,
@@ -29,17 +29,21 @@ const FIELD_SX = {
     px: '26px'
   },
   '& .MuiIconButton-root': { color: 'text.icon' },
-  '&.Mui-error': { borderColor: 'error.main' },
-  '& .MuiInputBase-input::placeholder': {
-    color: 'text.secondary',
-    opacity: 1
-  }
+  '&.Mui-error': { borderColor: 'error.main' }
+} as const
+
+const LABEL_SX = {
+  display: 'block',
+  mb: 0.5,
+  typography: 'body2',
+  color: 'text.secondary',
+  overflowWrap: 'anywhere'
 } as const
 
 const ERROR_SX = { mx: '24px' } as const
 
 export interface LoginTextFieldProps {
-  /** The name of the field, shown inside it while empty */
+  /** The name of the field, shown above it */
   label: string
   value: string
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
@@ -77,16 +81,15 @@ export function LoginTextField({
   const hasError = errorText !== null
   return (
     <Box className="u-w-100">
-      <label htmlFor={id} className="u-visuallyhidden">
+      <Box component="label" htmlFor={id} sx={LABEL_SX}>
         {label}
-      </label>
+      </Box>
       <InputBase
         id={id}
         value={value}
         onChange={onChange}
         type={type}
         autoComplete={autoComplete}
-        placeholder={label}
         required={required}
         error={hasError}
         endAdornment={endAdornment}

@@ -200,6 +200,33 @@ describe('EmailList', () => {
     expect(await screen.findByText(`Email ${total - 1}`)).toBeVisible()
   })
 
+  it('waits for a scroll before loading the next page when the first one fills the viewport', async () => {
+    const server = makeFakeJmapServer({
+      emails: makeEmails(EMAIL_LIST_PAGE_SIZE * 2)
+    })
+    // 16 rows in view: with the overscan, rows up to the 20th are rendered
+    renderList(server, 'mailbox-inbox', null, 56 * 16)
+    const queriedPositions = (): unknown[] =>
+      server.requests.flatMap(({ methodCalls }) =>
+        methodCalls
+          .filter(([name]) => name === 'Email/query')
+          .map(([, args]) => args.position)
+      )
+
+    await screen.findAllByTestId('email-list-item')
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
+    expect(queriedPositions()).toEqual([0])
+
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+    fireEvent.scroll(scroller, { target: { scrollTop: 56 * 5 } })
+    await waitFor(() => {
+      expect(queriedPositions()).toEqual([0, EMAIL_LIST_PAGE_SIZE])
+    })
+  })
+
   it('shows the most recent emails again on Refresh, as tmail-flutter', async () => {
     const server = makeFakeJmapServer({ emails: makeEmails(40) })
     renderList(server, 'mailbox-inbox', null, 56 * 10)

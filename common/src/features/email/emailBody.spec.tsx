@@ -8,7 +8,8 @@ import {
   plainTextToHtml,
   plainTextToLinkedHtml,
   inspectBodyValues,
-  renderBodyParts
+  renderBodyParts,
+  type EmailDocumentColors
 } from './emailBody'
 
 function textPart(value: string): {
@@ -68,7 +69,25 @@ describe('renderBodyParts', () => {
       }
     )
 
-    expect(content).toEqual({ html: '<img>', blockedRemoteContent: 1 })
+    expect(content).toEqual({
+      html: '<img>',
+      blockedRemoteContent: 1,
+      declaresColors: false
+    })
+  })
+
+  it('says whether one of its HTML parts sets colours, a text part never does', () => {
+    const render = (html: string): boolean =>
+      renderBodyParts(
+        [
+          makeBodyPart({ partId: '1', type: 'text/plain' }),
+          makeBodyPart({ partId: '2', type: 'text/html' })
+        ],
+        { '1': textPart('color: red'), '2': textPart(html) }
+      ).declaresColors
+
+    expect(render('<p>Hi</p>')).toBe(false)
+    expect(render('<p style="color: #1f497d">Hi</p>')).toBe(true)
   })
 
   it('links the bare URLs and addresses of text and HTML parts', () => {
@@ -167,16 +186,39 @@ describe('plainTextToHtml', () => {
 })
 
 describe('buildEmailDocument', () => {
-  const textColor = 'rgba(1, 2, 3, 0.9)'
+  const colors: EmailDocumentColors = {
+    scheme: 'dark',
+    background: '#212121',
+    text: 'rgba(1, 2, 3, 0.9)',
+    quoteBorder: '#111111',
+    historyButton: '#222222',
+    historyButtonHover: '#333333',
+    historyDots: '#444444',
+    link: '#bfdfff'
+  }
 
-  it('sets the body in the text colour it is given', () => {
-    const document = buildEmailDocument('<p>Hi</p>', { textColor })
+  it('draws the page, the text, the links and the quotes in the colours it is given', () => {
+    const document = buildEmailDocument('<p>Hi</p>', { colors })
 
-    expect(document).toContain(`color: ${textColor};`)
+    expect(document).toContain(
+      'html { background: #212121; color-scheme: dark; }'
+    )
+    expect(document).toContain('color: rgba(1, 2, 3, 0.9);')
+    expect(document).toContain('a { color: #bfdfff; }')
+    expect(document).toContain('border-left: 2px solid #111111;')
+    expect(document).toContain('summary:hover { background: #333333; }')
+  })
+
+  it("leaves the links in the browser's colour without a link colour", () => {
+    const document = buildEmailDocument('<p>Hi</p>', {
+      colors: { ...colors, link: null }
+    })
+
+    expect(document).not.toContain('a { color')
   })
 
   it('forbids scripts and remote content by Content Security Policy', () => {
-    const document = buildEmailDocument('<p>Hi</p>', { textColor })
+    const document = buildEmailDocument('<p>Hi</p>', { colors })
 
     expect(document).toContain(
       "default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'; font-src data: http://localhost/fonts/InterVariable.ttf\""
@@ -186,7 +228,7 @@ describe('buildEmailDocument', () => {
   })
 
   it('draws the body with the Inter of the app, by its absolute URL', () => {
-    const document = buildEmailDocument('<p>Hi</p>', { textColor })
+    const document = buildEmailDocument('<p>Hi</p>', { colors })
 
     expect(document).toContain(
       '@font-face { font-family: Inter; src: url("http://localhost/fonts/InterVariable.ttf")'
@@ -195,7 +237,7 @@ describe('buildEmailDocument', () => {
 
   it('lets remote images and fonts load once allowed, without referrer', () => {
     const document = buildEmailDocument('<p>Hi</p>', {
-      textColor,
+      colors,
       allowRemoteContent: true
     })
 
@@ -207,7 +249,7 @@ describe('buildEmailDocument', () => {
   })
 
   it('applies the zoom that fits a wide element in the frame (#653)', () => {
-    const document = buildEmailDocument('<p>Hi</p>', { textColor })
+    const document = buildEmailDocument('<p>Hi</p>', { colors })
 
     expect(document).toContain(
       '.tmail-fit-scaled { zoom: var(--tmail-fit-zoom) !important; }'

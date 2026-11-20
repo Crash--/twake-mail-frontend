@@ -1,4 +1,4 @@
-import { Icon, Refresh, Cloud } from '@linagora/twake-icons'
+import { Refresh, Cloud } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
 
@@ -8,6 +8,7 @@ import { StorageGauge } from '@/ds/StorageGauge/StorageGauge'
 import { formatSize } from '@common/features/email/formatSize'
 import { UpgradeStorageLink } from '@common/features/paywall/UpgradeStorageLink'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { useStorageQuota } from './quota'
 

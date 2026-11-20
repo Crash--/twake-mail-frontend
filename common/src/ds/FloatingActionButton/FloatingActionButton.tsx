@@ -1,11 +1,11 @@
 // Upstream to twake-ui: yes, as a placement option of `ExtendableFab`
 // (`position="fixed"` at the bottom end, above the safe area). twake-mui
 // leaves the position to each app, which then needs `sx`.
-import type { IconProps } from '@linagora/twake-icons'
 import { ExtendableFab, type SxProps, type Theme } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 /** Distance to the edges of the screen, in theme spacing units */
 const OFFSET = 2

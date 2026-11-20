@@ -25,7 +25,9 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 - Import components from `@linagora/twake-mui` only. Never import
   `@mui/material`, `@mui/lab` or `@mui/icons-material` directly (ESLint
   enforces it): twake-mui re-exports MUI. Icons come from
-  `@linagora/twake-icons`.
+  `@linagora/twake-icons`, drawn with `Icon` of `@/ds/Icon/Icon` (ESLint
+  enforces it): it hides a decorative icon from assistive technologies; a
+  meaningful one takes `role="img"` and an `aria-label`.
 - Outside `@/ds/`: no `sx`, no `style`, no `styled`, no local MUI override,
   no custom CSS: plain components with their standard API. If layout truly
   needs it, use twake-css classes (`u-flex`, `u-p-1`, `u-h-100`…).

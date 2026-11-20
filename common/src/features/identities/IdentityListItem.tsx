@@ -1,6 +1,5 @@
 import {
   CheckCircle,
-  Icon,
   Trash,
   PenOutlined,
   RadioUnchecked
@@ -15,6 +14,7 @@ import {
   SettingsListText
 } from '@/ds/SettingsList/SettingsList'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { formatIdentityAddresses, signatureHtml } from './identityForm'
 import { identityDisplayName } from './identityName'

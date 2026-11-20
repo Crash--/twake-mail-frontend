@@ -1,4 +1,4 @@
-import { Icon, Setting } from '@linagora/twake-icons'
+import { Setting } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 import { Link } from 'react-router'
@@ -8,6 +8,7 @@ import { NavTreeItem } from '@/ds/NavTreeItem/NavTreeItem'
 import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 /**
  * The settings at the foot of the folder drawer of a phone, under the

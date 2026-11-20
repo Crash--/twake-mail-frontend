@@ -3,7 +3,6 @@
 // size, progress, retry, remove, and a "show more / less" fold. twake-mui
 // has neither the list nor the item.
 import {
-  Icon,
   Bottom,
   CheckCircle,
   Cross,
@@ -21,6 +20,8 @@ import {
   Typography
 } from '@linagora/twake-mui'
 import { useState, type ReactElement, type ReactNode } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 export type UploadStatus = 'uploading' | 'done' | 'failed'
 

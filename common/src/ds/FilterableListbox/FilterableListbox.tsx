@@ -1,7 +1,6 @@
 // Upstream to twake-ui: yes. A filter field driving a list that is always
 // shown (a picker in a dialog: folder, address book, calendar), with the
 // ARIA 1.2 combobox pattern; MUI `Autocomplete` only knows a popup list.
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Box,
   List,
@@ -20,6 +19,8 @@ import {
   type KeyboardEvent,
   type ReactElement
 } from 'react'
+
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 export interface FilterableListboxOption {
   id: string

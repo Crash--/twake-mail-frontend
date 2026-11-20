@@ -5,7 +5,7 @@
 // `role="alert"` of MUI, and an action beside a labelled dismiss button
 // (MUI's `action` replaces its own close button). See
 // docs/twake-mui-gaps.md "Message alerts".
-import { Icon, Cross } from '@linagora/twake-icons'
+import { Cross } from '@linagora/twake-icons'
 import {
   Alert,
   AlertTitle,
@@ -15,6 +15,8 @@ import {
   Tooltip
 } from '@linagora/twake-mui'
 import { useId, type ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 import { VISUALLY_HIDDEN } from './visuallyHidden'
 

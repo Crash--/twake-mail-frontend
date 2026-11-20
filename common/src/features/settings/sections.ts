@@ -6,7 +6,6 @@ import {
   Forward,
   Globe,
   GraphCircle,
-  type IconProps,
   Plane,
   Team
 } from '@linagora/twake-icons'
@@ -16,6 +15,7 @@ import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { KeyboardSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import type { TranslationKey } from '@common/i18n/useI18n'
 import { DELEGATION_CAPABILITY } from '@common/jmap/methodCapabilities'
+import type { IconProps } from '@/ds/Icon/Icon'
 
 import { canChangeServerSetting } from './serverSettings'
 

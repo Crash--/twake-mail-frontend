@@ -1,4 +1,4 @@
-import { Drive, DriveText, Icon, ToTheCloud } from '@linagora/twake-icons'
+import { Drive, DriveText, ToTheCloud } from '@linagora/twake-icons'
 import { Button, Typography, useColorScheme } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
@@ -15,6 +15,7 @@ import {
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useDriveAttachmentPreference } from '@common/features/settings/driveAttachmentPreference'
 import { useI18n } from '@common/i18n/useI18n'
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface DriveAttachButtonProps {
   /** Largest file that can be attached, null when the server sets none */

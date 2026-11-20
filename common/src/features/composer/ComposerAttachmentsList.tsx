@@ -1,4 +1,3 @@
-import { Icon } from '@linagora/twake-icons'
 import type { EmailBodyPart } from 'jmap-client-ts'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 
@@ -18,6 +17,7 @@ import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { saveBlob } from '@common/utils/saveBlob'
+import { Icon } from '@/ds/Icon/Icon'
 
 import type { ComposerAttachment } from './composerContent'
 import type { ComposerAttachments } from './useComposerAttachments'

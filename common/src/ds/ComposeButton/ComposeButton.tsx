@@ -1,10 +1,10 @@
 // Upstream to twake-ui: yes, its 34 px height in a toolbar, as a `size` of
 // `Button` (docs/twake-mui-gaps.md).
-import { Icon, type IconProps } from '@linagora/twake-icons'
 import { Button } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
 
 import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 export interface ComposeButtonProps {
   label: string

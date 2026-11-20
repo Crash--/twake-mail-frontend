@@ -1,8 +1,10 @@
 // Upstream to twake-ui: no. The "Back" of the settings: a square twake-mui
 // `Chip` with a chevron before its text.
-import { Icon, Left } from '@linagora/twake-icons'
+import { Left } from '@linagora/twake-icons'
 import { Chip } from '@linagora/twake-mui'
 import type { ElementType, ReactElement } from 'react'
+
+import { Icon } from '@/ds/Icon/Icon'
 
 export interface ChipBackButtonProps {
   /** What it shows, e.g. "Back" */

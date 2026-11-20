@@ -4,7 +4,7 @@
 // puts the background on the row, indents by level without a cap, puts the
 // expand arrow after the label as a control of its own, and overlays the
 // actions on hover instead of reserving room for them.
-import { Icon, Dropdown, Right } from '@linagora/twake-icons'
+import { Dropdown, Right } from '@linagora/twake-icons'
 import { Box, IconButton, Tooltip } from '@linagora/twake-mui'
 import { ListItem } from '@mui/material'
 import { NavLink } from '@/ds/NavLink/NavLink'
@@ -26,6 +26,7 @@ import {
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
 import { useLongPress } from '@/ds/useLongPress/useLongPress'
+import { Icon } from '@/ds/Icon/Icon'
 
 /** What each level below the first moves the whole row (the design) */
 const LEVEL_STEP = 16

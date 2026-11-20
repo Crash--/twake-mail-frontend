@@ -10,14 +10,7 @@
 // folder with subfolders is reached too (`aria-disabled`, Enter ignored) to
 // unfold it; the headers of the blocks are buttons (`aria-expanded`). An
 // optional "New folder" icon button, with its tooltip, follows the search.
-import {
-  Icon,
-  type IconProps,
-  Bottom,
-  CheckCircle,
-  Right,
-  Plus
-} from '@linagora/twake-icons'
+import { Bottom, CheckCircle, Right, Plus } from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
@@ -41,6 +34,7 @@ import {
 } from 'react'
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { Icon, type IconProps } from '@/ds/Icon/Icon'
 
 export interface FolderPickerOption {
   id: string

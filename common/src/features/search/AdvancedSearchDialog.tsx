@@ -1,4 +1,4 @@
-import { CalendarToday, Icon } from '@linagora/twake-icons'
+import { CalendarToday } from '@linagora/twake-icons'
 import {
   Box,
   Button,
@@ -39,6 +39,7 @@ import {
 import { useI18n } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { Icon } from '@/ds/Icon/Icon'
 
 import { AddressFilterField, mergeEntries } from './AddressFilterField'
 

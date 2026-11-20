@@ -35,6 +35,52 @@ function Mailbox({ initiallyOpen }: { initiallyOpen: boolean }): ReactElement {
   )
 }
 
+function CountingList({ onOpen }: { onOpen: () => void }): ReactElement {
+  const [count, setCount] = useState(0)
+  const handleCount = (): void => {
+    setCount(value => value + 1)
+  }
+  return (
+    <>
+      <button type="button" onClick={handleCount}>
+        {`Counted ${String(count)}`}
+      </button>
+      <button type="button" onClick={onOpen}>
+        Hello Alice
+      </button>
+    </>
+  )
+}
+
+function CountingMailbox(): ReactElement {
+  const [isOpen, setIsOpen] = useState(false)
+  const handleOpen = (): void => {
+    setIsOpen(true)
+  }
+  const handleClose = (): void => {
+    setIsOpen(false)
+  }
+  return (
+    <ListDetailLayout
+      list={<CountingList onOpen={handleOpen} />}
+      detail={
+        isOpen ? (
+          <button type="button" onClick={handleClose}>
+            Back
+          </button>
+        ) : null
+      }
+      placeholder={<p>No email selected</p>}
+    />
+  )
+}
+
+async function countOpenAndGoBack(): Promise<void> {
+  await userEvent.click(screen.getByRole('button', { name: 'Counted 0' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Hello Alice' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+}
+
 describe('ListDetailLayout', () => {
   afterEach(resetViewport)
 
@@ -62,6 +108,51 @@ describe('ListDetailLayout', () => {
       expect(screen.queryByText('No email selected')).toBe(null)
     }
   )
+
+  it('keeps the list, hidden, while an item is open on a desktop', async () => {
+    mockViewport({ width: 1440 })
+    renderDs(<CountingMailbox />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hello Alice' }))
+
+    expect(screen.queryByRole('button', { name: 'Hello Alice' })).toBe(null)
+    expect(screen.getByText('Hello Alice')).not.toBeVisible()
+  })
+
+  it('shows the list again as it was when the item closes on a desktop', async () => {
+    mockViewport({ width: 1440 })
+    renderDs(<CountingMailbox />)
+
+    await countOpenAndGoBack()
+
+    expect(screen.getByRole('button', { name: 'Counted 1' })).toBeVisible()
+  })
+
+  it('does not mount the list hidden when an item is open first on a desktop', () => {
+    mockViewport({ width: 1440 })
+
+    renderDs(<Mailbox initiallyOpen />)
+
+    expect(screen.queryByText('Hello Alice')).toBe(null)
+  })
+
+  it('builds the list when an item opened first on a desktop closes', async () => {
+    mockViewport({ width: 1440 })
+    renderDs(<Mailbox initiallyOpen />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(screen.getByRole('button', { name: 'Hello Alice' })).toBeVisible()
+  })
+
+  it('builds the list again when the item closes on a phone', async () => {
+    mockViewport({ width: 390 })
+    renderDs(<CountingMailbox />)
+
+    await countOpenAndGoBack()
+
+    expect(screen.getByRole('button', { name: 'Counted 0' })).toBeVisible()
+  })
 
   it('shows the list beside the open item on a large tablet', () => {
     mockViewport({ width: 1024 })

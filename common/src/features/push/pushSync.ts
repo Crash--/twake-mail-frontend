@@ -476,6 +476,13 @@ export function createPushSync(
                 })
               : data
         )
+        // Their rights may have changed with them: only the cached ones
+        // are read again, and only when shown
+        for (const { id } of changes.changed) {
+          queryClient
+            .invalidateQueries({ queryKey: mailboxKeys.rights(accountId, id) })
+            .catch(logError)
+        }
       } else {
         refetchMailboxes()
       }

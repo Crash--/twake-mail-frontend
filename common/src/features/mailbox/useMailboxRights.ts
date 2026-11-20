@@ -6,8 +6,9 @@ import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 import { mailboxRightsQueryOptions } from './queries'
 
 /**
- * The rights of a mailbox (`rights`), read afresh each time it is asked;
- * nothing is read for a null mailbox
+ * The rights of a mailbox (`rights`), kept in the cache and read again when
+ * push reports the mailbox changed (`pushSync`); changing them reads them
+ * afresh (`FolderActionsProvider`). Nothing is read for a null mailbox
  */
 export function useMailboxRights(
   mailboxId: string | null
@@ -16,7 +17,6 @@ export function useMailboxRights(
   const { accountId } = useJmapSession()
   return useQuery({
     ...mailboxRightsQueryOptions(client, accountId, mailboxId ?? ''),
-    enabled: mailboxId !== null,
-    staleTime: 0
+    enabled: mailboxId !== null
   })
 }

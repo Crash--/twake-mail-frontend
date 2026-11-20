@@ -47,7 +47,7 @@ import {
   SelectableAvatar
 } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import type { ScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
@@ -175,6 +175,11 @@ export interface EmailCellProps {
    * (`getHoverActionsRoom`: 44 px actions on a touch screen)
    */
   hoverActionsRoom?: number
+  /**
+   * The screen size the list is laid out for, read once by the list rather
+   * than by each cell (issue #1091)
+   */
+  screenSize: ScreenSize
   /** Set by `VirtualizedTable` for each cell */
   row?: VirtualizedTableRow
   column?: VirtualizedTableColumn
@@ -207,6 +212,7 @@ export function EmailCell({
   labels = [],
   showActionRequired = false,
   hoverActionsRoom = getHoverActionsRoom(false),
+  screenSize,
   row,
   column
 }: EmailCellProps): ReactElement | null {
@@ -214,7 +220,6 @@ export function EmailCell({
   const selection = useEmailSelectionContext()
   const navigate = useNavigate()
   const ensureEmailViewReady = useEmailViewReady()
-  const screenSize = useScreenSize()
   const isPhone = screenSize === 'mobile'
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)

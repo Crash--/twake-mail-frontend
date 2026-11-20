@@ -29,8 +29,8 @@ import {
  * `Mailbox/set` (creations,
  * renames, moves, subscriptions, destructions) and `Mailbox/clear`, and
  * blob downloads. Changes made through
- * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail` and
- * `updateMailbox` helpers move the states and are reported by `/changes`;
+ * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail`,
+ * `addMailbox` and `updateMailbox` helpers move the states and are reported by `/changes`;
  * direct edits of `emails` and `mailboxes` are not.
  */
 
@@ -175,6 +175,8 @@ export interface FakeJmapServer {
   /** Changes an email (updated): keywords, mailboxes… */
   updateEmail: (id: string, patch: Partial<FakeEmail>) => void
   destroyEmail: (id: string) => void
+  /** Adds a mailbox (created), as another client would */
+  addMailbox: (mailbox: FakeMailbox) => void
   /** Changes a mailbox (updated), e.g. its counters */
   updateMailbox: (id: string, patch: Partial<FakeMailbox>) => void
   /**
@@ -715,6 +717,10 @@ export function makeFakeJmapServer(
     destroyEmail: id => {
       server.emails = server.emails.filter(email => email.id !== id)
       emailLog.record(id, 'destroyed')
+    },
+    addMailbox: mailbox => {
+      server.mailboxes.push(mailbox)
+      mailboxLog.record(mailbox.id, 'created')
     },
     updateMailbox: (id, patch) => {
       const mailbox = server.mailboxes.find(candidate => candidate.id === id)

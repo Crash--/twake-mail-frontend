@@ -98,9 +98,27 @@ const ROW_DIVIDER_COLOR = 'var(--twake-palette-divider)'
 const ROW_SELECTED_COLOR =
   'color-mix(in srgb, var(--twake-palette-primary-main) calc(var(--twake-palette-action-selectedOpacity) * 100%), transparent)'
 
+const ROW_SX = {
+  // Containing block of the `RowLink` overlay, under the row controls
+  position: 'relative',
+  '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
+  // The theme greys body cells with text.secondary, 3.6:1 on white: below
+  // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)
+  '& .MuiTableCell-body': { color: 'text.primary' },
+  // The unticked box in the hint grey of the design, the text colour at 38 %.
+  // TODO: text.hint and a discreet Checkbox in twake-mui (Crash--/twake-ui#32)
+  '& .MuiCheckbox-root:not(.Mui-checked):not(.MuiCheckbox-indeterminate)': {
+    color: 'rgb(var(--twake-palette-text-primaryChannel) / 0.38)'
+  }
+} as const
+
+/** The style of every row, built once per table rather than once per row */
+type RowSx =
+  typeof ROW_SX | (typeof ROW_SX & ReturnType<typeof makeRowLayoutSx>)
+
 interface ListTableSettings {
   label: string
-  rowLayout: RowLayout | null
+  rowSx: RowSx
   rowCount: number | null
   isBusy: boolean
   columns: readonly VirtualizedTableColumn[]
@@ -114,7 +132,7 @@ interface ListTableSettings {
 
 const ListTableContext = createContext<ListTableSettings>({
   label: '',
-  rowLayout: null,
+  rowSx: ROW_SX,
   rowCount: null,
   isBusy: false,
   columns: [],
@@ -129,20 +147,6 @@ export const COMPACT_BELOW = 600
 
 /** Marks the focusable element of a row that the arrow keys move between */
 export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
-
-const ROW_SX = {
-  // Containing block of the `RowLink` overlay, under the row controls
-  position: 'relative',
-  '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
-  // The theme greys body cells with text.secondary, 3.6:1 on white: below
-  // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)
-  '& .MuiTableCell-body': { color: 'text.primary' },
-  // The unticked box in the hint grey of the design, the text colour at 38 %.
-  // TODO: text.hint and a discreet Checkbox in twake-mui (Crash--/twake-ui#32)
-  '& .MuiCheckbox-root:not(.Mui-checked):not(.MuiCheckbox-indeterminate)': {
-    color: 'rgb(var(--twake-palette-text-primaryChannel) / 0.38)'
-  }
-} as const
 
 export function makeRowLayoutSx({
   paddingX,
@@ -186,6 +190,12 @@ export function makeRowLayoutSx({
     },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
+}
+
+function makeRowSx(layout: RowLayout | undefined): RowSx {
+  return layout === undefined
+    ? ROW_SX
+    : { ...ROW_SX, ...makeRowLayoutSx(layout) }
 }
 
 /**
@@ -349,7 +359,7 @@ function ListTableRow({
   context,
   ...props
 }: TableRowProps): ReactElement {
-  const { getRowProps, onRowMenu, onRowDragStart, rowLayout } =
+  const { getRowProps, onRowMenu, onRowDragStart, rowSx } =
     useContext(ListTableContext)
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -391,11 +401,7 @@ function ListTableRow({
       aria-rowindex={props['data-index'] + 2}
       selected={context.isSelectedItem(item)}
       hover
-      sx={
-        rowLayout === null
-          ? ROW_SX
-          : { ...ROW_SX, ...makeRowLayoutSx(rowLayout) }
-      }
+      sx={rowSx}
       {...(onRowMenu === null
         ? {}
         : { onContextMenu: handleContextMenu, onKeyDown: handleKeyDown })}
@@ -729,7 +735,7 @@ export function VirtualizedListTable({
       label,
       rowCount,
       isBusy,
-      rowLayout: isCompact ? (compactRowLayout ?? null) : (rowLayout ?? null),
+      rowSx: makeRowSx(isCompact ? compactRowLayout : rowLayout),
       columns,
       getRowProps: getRowProps ?? null,
       onRowMenu: onRowMenu ?? null,

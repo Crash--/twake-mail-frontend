@@ -671,7 +671,10 @@ export function EmailCell({
     }
     case 'trailing':
       return (
+        // Mounted once the row is hovered or focused: a list mounts its
+        // rows without these five buttons and their tooltips
         <RowHoverActions
+          lazy
           replaces={
             <>
               {/* As tmail-flutter: the folder right before the attachment */}

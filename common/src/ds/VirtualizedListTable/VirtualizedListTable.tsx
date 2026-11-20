@@ -102,6 +102,7 @@ interface ListTableSettings {
   label: string
   rowLayout: RowLayout | null
   rowCount: number | null
+  isBusy: boolean
   columns: readonly VirtualizedTableColumn[]
   getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
   onRowMenu: ((row: VirtualizedTableRow, anchor: RowMenuAnchor) => void) | null
@@ -115,6 +116,7 @@ const ListTableContext = createContext<ListTableSettings>({
   label: '',
   rowLayout: null,
   rowCount: null,
+  isBusy: false,
   columns: [],
   getRowProps: null,
   onRowMenu: null,
@@ -303,13 +305,14 @@ function ListTable({
   children,
   ...props
 }: TableProps): ReactElement {
-  const { label, rowCount, columns } = useContext(ListTableContext)
+  const { label, rowCount, isBusy, columns } = useContext(ListTableContext)
   return (
     <Table
       {...props}
       aria-label={label}
       // + 1: the header row
       aria-rowcount={rowCount === null ? -1 : rowCount + 1}
+      aria-busy={isBusy ? true : undefined}
       onKeyDown={handleArrowKeys}
       sx={{ tableLayout: 'fixed' }}
     >
@@ -481,6 +484,8 @@ export interface VirtualizedListTableProps extends Omit<
   footer?: ReactNode
   /** Number of rows of the whole list, loaded or not; null when unknown */
   rowCount?: number | null
+  /** The rows are being replaced (`aria-busy`), e.g. by the next results */
+  isBusy?: boolean
   /** Attributes of the `tr` of a row: `data-*` ids and states, `aria-*` */
   getRowProps?: (row: VirtualizedTableRow) => RowAttributes
   /**
@@ -629,6 +634,7 @@ function useFocusRowOnMount(tableId: string, index: number | null): void {
 export function VirtualizedListTable({
   label,
   rowCount = null,
+  isBusy = false,
   getRowProps,
   onRowMenu,
   onRowDragStart,
@@ -672,6 +678,7 @@ export function VirtualizedListTable({
     () => ({
       label,
       rowCount,
+      isBusy,
       rowLayout: isCompact ? (compactRowLayout ?? null) : (rowLayout ?? null),
       columns,
       getRowProps: getRowProps ?? null,
@@ -682,6 +689,7 @@ export function VirtualizedListTable({
     [
       label,
       rowCount,
+      isBusy,
       isCompact,
       rowLayout,
       compactRowLayout,

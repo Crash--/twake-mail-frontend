@@ -193,6 +193,34 @@ describe('SearchResults', () => {
     )
   })
 
+  it('keeps the results on screen while the next search loads', async () => {
+    const server = makeServer()
+    renderSearch(server, 'q=report')
+    await waitFor(() => {
+      expect(rows()).toHaveLength(2)
+    })
+    const table = screen.getByRole('table', { name: 'Search results' })
+    const release = server.holdRequests('Email/query')
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Has attachment' })
+    )
+
+    expect(await screen.findByTestId('email-list-updating')).toBeVisible()
+    expect(table).toHaveAttribute('aria-busy', 'true')
+    expect(rows()).toHaveLength(2)
+    expect(screen.queryByTestId('email-list-loading')).toBe(null)
+
+    release()
+
+    await waitFor(() => {
+      expect(rows()).toHaveLength(1)
+    })
+    expect(screen.queryByTestId('email-list-updating')).toBe(null)
+    expect(screen.getByRole('table', { name: 'Search results' })).toBe(table)
+    expect(table.hasAttribute('aria-busy')).toBe(false)
+  })
+
   it('orders the results as picked, and remembers the order', async () => {
     const server = makeServer()
     renderSearch(server, 'q=report')

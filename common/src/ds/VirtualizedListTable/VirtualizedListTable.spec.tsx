@@ -240,8 +240,31 @@ describe('VirtualizedListTable', () => {
   it('leaves room after the last row, hidden to screen readers', () => {
     const { container } = renderTable(jest.fn(), { bottomInset: 88 })
 
-    const spacer = container.querySelector('tfoot')
+    const spacer = container.querySelector('tfoot tr')
     expect(spacer).toHaveAttribute('aria-hidden', 'true')
     expect(screen.getAllByRole('row')).toHaveLength(ROWS.length + 1)
+  })
+
+  it('shows its footer inside the table, after the last row, before the room left', () => {
+    const { container } = renderTable(jest.fn(), {
+      bottomInset: 88,
+      footer: <span role="progressbar" aria-label="Loading" />
+    })
+
+    const footRows = container.querySelectorAll('tfoot tr')
+    expect(footRows).toHaveLength(2)
+    expect(footRows[0]).toContainElement(
+      screen.getByRole('progressbar', { name: 'Loading' })
+    )
+    expect(footRows[1]).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('files')).toContainElement(
+      container.querySelector('tfoot')
+    )
+  })
+
+  it('renders no footer without content nor room', () => {
+    const { container } = renderTable()
+
+    expect(container.querySelector('tfoot')).toBe(null)
   })
 })

@@ -485,17 +485,17 @@ export interface VirtualizedListTableProps extends Omit<
   'data-testid'?: string
 }
 
+function isInRange(index: number, range: ListTableRange | null): boolean {
+  return range !== null && index >= range.startIndex && index <= range.endIndex
+}
+
 function canRestore(
   scroll: ListTableScroll | null,
   rowCount: number,
   focusedRowIndex: number | null
 ): scroll is ListTableScroll {
   if (scroll === null || scroll.range.endIndex >= rowCount) return false
-  return (
-    focusedRowIndex === null ||
-    (focusedRowIndex >= scroll.range.startIndex &&
-      focusedRowIndex <= scroll.range.endIndex)
-  )
+  return focusedRowIndex === null || isInRange(focusedRowIndex, scroll.range)
 }
 
 /**
@@ -521,6 +521,7 @@ function useSaveScrollOnLeave(
   onLeave: ((scroll: ListTableScroll) => void) | null
 ): {
   tableRef: RefObject<ComponentRef<typeof VirtualizedTable> | null>
+  rangeRef: RefObject<ListTableRange | null>
   trackRange: (range: ListTableRange) => void
 } {
   const tableRef = useRef<ComponentRef<typeof VirtualizedTable>>(null)
@@ -545,7 +546,53 @@ function useSaveScrollOnLeave(
   const trackRange = useCallback((range: ListTableRange): void => {
     rangeRef.current = range
   }, [])
-  return { tableRef, trackRange }
+  return { tableRef, rangeRef, trackRange }
+}
+
+/**
+ * Keeps the place of a table hidden, then shown again, without unmounting
+ * (`<Activity mode="hidden">`, e.g. the list behind an item opened from
+ * it): the browser drops the scroll of a `display: none` scroller, given
+ * back before the table reads it, and the row to focus, out of view when
+ * the item went to its neighbours meanwhile, is scrolled to. Layout
+ * effects, run on mount and each time it shows: virtuoso reads the scroll
+ * in a passive effect, after them.
+ */
+function useKeepPlaceWhenShownAgain(
+  tableId: string,
+  tableRef: RefObject<ComponentRef<typeof VirtualizedTable> | null>,
+  rangeRef: RefObject<ListTableRange | null>,
+  focusedRowIndex: number | null
+): void {
+  const focusedRowIndexRef = useRef(focusedRowIndex)
+  const scrollTopRef = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    focusedRowIndexRef.current = focusedRowIndex
+  }, [focusedRowIndex])
+  useLayoutEffect(() => {
+    const scroller = document.getElementById(tableId)
+    if (scroller === null) return
+    const scrollTop = scrollTopRef.current
+    if (scrollTop !== null && scroller.scrollTop !== scrollTop) {
+      scroller.scrollTop = scrollTop
+    }
+    const index = focusedRowIndexRef.current
+    if (
+      scrollTop !== null &&
+      index !== null &&
+      !isInRange(index, rangeRef.current)
+    ) {
+      tableRef.current?.scrollToIndex({ index, align: 'center' })
+    }
+    const handleScroll = (): void => {
+      scrollTopRef.current = scroller.scrollTop
+    }
+    handleScroll()
+    scroller.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      scroller.removeEventListener('scroll', handleScroll)
+    }
+  }, [tableId, tableRef, rangeRef])
 }
 
 /** Frames to wait for the row to focus to be rendered */
@@ -628,7 +675,10 @@ export function VirtualizedListTable({
       ? savedScroll
       : null
   )
-  const { tableRef, trackRange } = useSaveScrollOnLeave(onLeave ?? null)
+  const { tableRef, rangeRef, trackRange } = useSaveScrollOnLeave(
+    onLeave ?? null
+  )
+  useKeepPlaceWhenShownAgain(tableId, tableRef, rangeRef, focusedRowIndex)
   const handleRangeChanged = useCallback(
     (range: ListTableRange): void => {
       trackRange(range)

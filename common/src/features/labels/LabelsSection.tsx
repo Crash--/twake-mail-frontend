@@ -12,6 +12,7 @@ import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
+import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { NavSectionAction } from '@/ds/NavSectionAction/NavSectionAction'
 import { NavSectionHeader } from '@/ds/NavSectionHeader/NavSectionHeader'
 import { NavTree } from '@/ds/NavTree/NavTree'
@@ -119,9 +120,7 @@ function LabelItem({ label }: { label: Label }): ReactElement {
                 }}
                 data-testid="label-delete-item"
               >
-                <ListItemText slotProps={{ primary: { color: 'error.dark' } }}>
-                  {t('common.delete')}
-                </ListItemText>
+                <MenuItemLabel label={t('common.delete')} color="error.dark" />
               </MenuItem>
             </Menu>
           </>

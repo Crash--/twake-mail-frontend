@@ -18,6 +18,7 @@ import { threadKeys, type EmailListData } from '@common/features/thread/queries'
 import { useI18n, type TranslationKey } from '@common/i18n/useI18n'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
+import { maxCallsInRequest } from '@common/jmap/maxCallsInRequest'
 
 import {
   clearsAtOnce,
@@ -25,21 +26,6 @@ import {
   type SubfoldersOutcome
 } from './emptyFolder'
 import { useFolderActionProgress } from './FolderActionProgress'
-
-/** Default `maxCallsInRequest` of a JMAP server (RFC 8620 suggests 16) */
-const DEFAULT_MAX_CALLS = 16
-
-export function maxCallsInRequest(
-  capabilities: Record<string, unknown>
-): number {
-  const core = capabilities['urn:ietf:params:jmap:core']
-  return typeof core === 'object' &&
-    core !== null &&
-    'maxCallsInRequest' in core &&
-    typeof core.maxCallsInRequest === 'number'
-    ? Math.max(1, core.maxCallsInRequest)
-    : DEFAULT_MAX_CALLS
-}
 
 const SUBFOLDER_TOASTS: Record<
   Exclude<SubfoldersOutcome, 'none'>,

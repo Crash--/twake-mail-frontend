@@ -8,12 +8,12 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@formatjs/intl-datetimeformat": "^8.0.3",
+    "@formatjs/intl-datetimeformat": "^8.1.0",
     "@linagora/twake-bar": "^1.2.0",
     "@linagora/twake-css": "^1.2.1",
     "@linagora/twake-embed": "^3.7.0",
     "@linagora/twake-feedback": "^1.1.2",
-    "@linagora/twake-icons": "^3.2.0",
+    "@linagora/twake-icons": "^3.2.1",
     "@linagora/twake-mui": "^19.10.0",
     "@linagora/twake-oidc": "^1.4.0",
     "@linagora/twake-react-new-version": "^1.1.1",
@@ -21,9 +21,9 @@
     "@linagora/twake-utils": "^1.2.2",
     "@mui/lab": "^9.0.0-beta.10",
     "@mui/material": "^9.4.0",
-    "@sentry/react": "^11.13.0",
-    "@tanstack/react-query": "^5.107.1",
-    "@tanstack/react-query-devtools": "^5.107.1",
+    "@sentry/react": "^11.14.0",
+    "@tanstack/react-query": "^5.108.0",
+    "@tanstack/react-query-devtools": "^5.108.0",
     "@tiptap/core": "^3.34.0",
     "@tiptap/extension-file-handler": "^3.34.0",
     "@tiptap/extension-image": "^3.34.0",
@@ -50,6 +50,6 @@
     "twake-i18n": "^0.7.1"
   },
   "devDependencies": {
-    "@sentry/webpack-plugin": "^11.13.0"
+    "@sentry/webpack-plugin": "^11.14.0"
   }
 }

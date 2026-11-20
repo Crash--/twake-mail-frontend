@@ -7,6 +7,7 @@ import { useState, type ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { writeMailboxView } from '@common/jmap/mailboxView'
+import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
@@ -586,6 +587,29 @@ describe('EmailList', () => {
 
     expect(await screen.findByText('Email 0')).toBeInTheDocument()
     expect(screen.queryByTestId('email-list-error')).toBe(null)
+  })
+
+  it('shows the error with Retry when the server never answers, and recovers once it does', async () => {
+    jest.useFakeTimers()
+    try {
+      const server = makeFakeJmapServer({ emails: makeEmails(2) })
+      const release = server.holdRequests('Email/query')
+      renderList(server)
+      await waitFor(() => {
+        expect(server.calledMethods()).toContain('Email/query')
+      })
+
+      act(() => {
+        jest.advanceTimersByTime(JMAP_REQUEST_TIMEOUT_MS)
+      })
+
+      const error = await screen.findByTestId('email-list-error')
+      release()
+      fireEvent.click(within(error).getByRole('button', { name: 'Retry' }))
+      expect(await screen.findByText('Email 0')).toBeInTheDocument()
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   it('shows the empty view for a mailbox without emails', async () => {

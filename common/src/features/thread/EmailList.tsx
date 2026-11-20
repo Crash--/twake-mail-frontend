@@ -800,43 +800,45 @@ export function EmailList(props: EmailListProps): ReactElement {
     )
   } else {
     content = (
-      <>
-        <VirtualizedListTable
-          label={
-            search === null
-              ? t('mailbox.emails')
-              : (search.title ?? t('search.results'))
-          }
-          className="u-flex-auto"
-          data-testid="email-list"
-          rows={emails}
-          rowCount={total}
-          columns={columns}
-          compactColumns={compactColumns}
-          rowLayout={ROW_LAYOUT}
-          compactRowLayout={compactRowLayout}
-          compact={isCompact}
-          bottomInset={bottomInset}
-          computeItemKey={computeRowKey}
-          getRowProps={getRowProps}
-          isSelectedItem={isHighlightedRow}
-          focusedRowIndex={focusedIndex}
-          savedScroll={savedScroll}
-          onLeave={handleLeave}
-          endReached={handleEndReached}
-          itemsRendered={handleItemsRendered}
-          increaseViewportBy={OVERSCAN_PX}
-          scrollerRef={scrollerRef}
-          onRowMenu={handleRowMenu}
-          onRowDragStart={listActions.onRowDragStart}
-          componentsProps={componentsProps}
-        />
-        {isFetchingNextPage ? (
-          <Box className="u-flex u-flex-justify-center u-p-half">
-            <CircularProgress size={24} aria-label={t('common.loading')} />
-          </Box>
-        ) : null}
-      </>
+      <VirtualizedListTable
+        label={
+          search === null
+            ? t('mailbox.emails')
+            : (search.title ?? t('search.results'))
+        }
+        className="u-flex-auto"
+        data-testid="email-list"
+        rows={emails}
+        rowCount={total}
+        columns={columns}
+        compactColumns={compactColumns}
+        rowLayout={ROW_LAYOUT}
+        compactRowLayout={compactRowLayout}
+        compact={isCompact}
+        bottomInset={bottomInset}
+        computeItemKey={computeRowKey}
+        getRowProps={getRowProps}
+        isSelectedItem={isHighlightedRow}
+        focusedRowIndex={focusedIndex}
+        savedScroll={savedScroll}
+        onLeave={handleLeave}
+        endReached={handleEndReached}
+        itemsRendered={handleItemsRendered}
+        increaseViewportBy={OVERSCAN_PX}
+        scrollerRef={scrollerRef}
+        onRowMenu={handleRowMenu}
+        onRowDragStart={listActions.onRowDragStart}
+        componentsProps={componentsProps}
+        // In the scroller: a box below it would shrink the list during
+        // each page load, a layout shift
+        footer={
+          isFetchingNextPage ? (
+            <Box className="u-flex u-flex-justify-center u-p-half">
+              <CircularProgress size={24} aria-label={t('common.loading')} />
+            </Box>
+          ) : null
+        }
+      />
     )
   }
 

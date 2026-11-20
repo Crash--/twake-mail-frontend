@@ -751,6 +751,27 @@ export function makeFakeJmapServer(
     return release
   }
 
+  /** A held request fails when its signal aborts, as `fetch` does */
+  function untilReleasedOrAborted(
+    released: Promise<void>,
+    signal: AbortSignal | null | undefined
+  ): Promise<void> {
+    if (!signal) return released
+    return new Promise<void>((resolve, reject) => {
+      const abort = (): void => {
+        const reason: unknown = signal.reason
+        reject(
+          reason instanceof Error || reason instanceof DOMException
+            ? reason
+            : new DOMException('The request was aborted', 'AbortError')
+        )
+      }
+      if (signal.aborted) abort()
+      signal.addEventListener('abort', abort, { once: true })
+      released.then(resolve, reject)
+    })
+  }
+
   function isHeld(request: FakeJmapRequest): boolean {
     if (!held) return false
     const { method } = held
@@ -1547,7 +1568,9 @@ export function makeFakeJmapServer(
     if (input === FAKE_API_URL && typeof init?.body === 'string') {
       const request = parseRequest(JSON.parse(init.body))
       server.requests.push(request)
-      if (held && isHeld(request)) await held.released
+      if (held && isHeld(request)) {
+        await untilReleasedOrAborted(held.released, init.signal)
+      }
       const response = respond(request)
       if (
         losing !== null &&

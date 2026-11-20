@@ -1,4 +1,8 @@
-import type { createClient, JmapClient } from '@linagora/jmap-client-ts'
+import type {
+  createClient,
+  FetchFunction,
+  JmapClient,
+} from '@linagora/jmap-client-ts'
 import {
   createContext,
   useContext,
@@ -14,15 +18,22 @@ import {
 } from '@common/features/auth/AuthProvider'
 
 import { makeJmapAuth } from './makeJmapAuth'
+import { withRequestDeadline } from './requestDeadline'
 
 /** `createClient` of jmap-client-ts, or a wrapper of it in tests */
 export type JmapClientFactory = typeof createClient
 
 const JmapClientContext = createContext<JmapClient | null>(null)
 
+/** Bound when called, so that a `fetch` replaced later (tests) is used */
+const globalFetch: FetchFunction = (input, init) =>
+  globalThis.fetch(input, init)
+
 export interface JmapClientProviderProps {
   createClient: JmapClientFactory
   sessionUrl: string
+  /** What the client sends its requests with; `fetch` by default */
+  fetch?: FetchFunction
   children: ReactNode
 }
 
@@ -33,10 +44,15 @@ export interface JmapClientProviderProps {
  * A new client is created at each sign-in: the client caches the JMAP
  * session, which belongs to the user who signed in. Renewing the tokens does
  * not change the authentication status, hence keeps the client.
+ *
+ * Its API calls have a deadline (`withRequestDeadline`): a request that
+ * never answers fails, so the screen shows its error instead of loading
+ * forever.
  */
 export function JmapClientProvider({
   createClient,
   sessionUrl,
+  fetch = globalFetch,
   children
 }: JmapClientProviderProps): ReactElement {
   const authService = useAuthService()
@@ -47,10 +63,11 @@ export function JmapClientProvider({
         ? createClient({
             sessionUrl,
             auth: makeJmapAuth(authService),
-            methodCapabilities: METHOD_CAPABILITIES
+            methodCapabilities: METHOD_CAPABILITIES,
+            fetch: withRequestDeadline(fetch)
           })
         : null,
-    [createClient, sessionUrl, authService, status]
+    [createClient, sessionUrl, fetch, authService, status]
   )
 
   return (

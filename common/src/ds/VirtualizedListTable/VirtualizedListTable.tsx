@@ -98,38 +98,6 @@ const ROW_DIVIDER_COLOR = 'var(--twake-palette-divider)'
 const ROW_SELECTED_COLOR =
   'color-mix(in srgb, var(--twake-palette-primary-main) calc(var(--twake-palette-action-selectedOpacity) * 100%), transparent)'
 
-interface ListTableSettings {
-  label: string
-  rowLayout: RowLayout | null
-  rowCount: number | null
-  isBusy: boolean
-  columns: readonly VirtualizedTableColumn[]
-  getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
-  onRowMenu: ((row: VirtualizedTableRow, anchor: RowMenuAnchor) => void) | null
-  onRowDragStart:
-    ((row: VirtualizedTableRow, event: DragEvent<HTMLElement>) => void) | null
-  /** Reports the width of the scroller, null when nobody listens */
-  onWidthChange: ((width: number) => void) | null
-}
-
-const ListTableContext = createContext<ListTableSettings>({
-  label: '',
-  rowLayout: null,
-  rowCount: null,
-  isBusy: false,
-  columns: [],
-  getRowProps: null,
-  onRowMenu: null,
-  onRowDragStart: null,
-  onWidthChange: null
-})
-
-/** Width below which `compactColumns` replace `columns`, in pixels */
-export const COMPACT_BELOW = 600
-
-/** Marks the focusable element of a row that the arrow keys move between */
-export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
-
 const ROW_SX = {
   // Containing block of the `RowLink` overlay, under the row controls.
   // Safari 18 ignores `position: relative` on a `tr`: a transform makes the
@@ -147,6 +115,42 @@ const ROW_SX = {
     color: 'rgb(var(--twake-palette-text-primaryChannel) / 0.38)'
   }
 } as const
+
+/** The style of every row, built once per table rather than once per row */
+type RowSx =
+  typeof ROW_SX | (typeof ROW_SX & ReturnType<typeof makeRowLayoutSx>)
+
+interface ListTableSettings {
+  label: string
+  rowSx: RowSx
+  rowCount: number | null
+  isBusy: boolean
+  columns: readonly VirtualizedTableColumn[]
+  getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
+  onRowMenu: ((row: VirtualizedTableRow, anchor: RowMenuAnchor) => void) | null
+  onRowDragStart:
+    ((row: VirtualizedTableRow, event: DragEvent<HTMLElement>) => void) | null
+  /** Reports the width of the scroller, null when nobody listens */
+  onWidthChange: ((width: number) => void) | null
+}
+
+const ListTableContext = createContext<ListTableSettings>({
+  label: '',
+  rowSx: ROW_SX,
+  rowCount: null,
+  isBusy: false,
+  columns: [],
+  getRowProps: null,
+  onRowMenu: null,
+  onRowDragStart: null,
+  onWidthChange: null
+})
+
+/** Width below which `compactColumns` replace `columns`, in pixels */
+export const COMPACT_BELOW = 600
+
+/** Marks the focusable element of a row that the arrow keys move between */
+export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
 
 export function makeRowLayoutSx({
   paddingX,
@@ -190,6 +194,12 @@ export function makeRowLayoutSx({
     },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
+}
+
+function makeRowSx(layout: RowLayout | undefined): RowSx {
+  return layout === undefined
+    ? ROW_SX
+    : { ...ROW_SX, ...makeRowLayoutSx(layout) }
 }
 
 /**
@@ -353,7 +363,7 @@ function ListTableRow({
   context,
   ...props
 }: TableRowProps): ReactElement {
-  const { getRowProps, onRowMenu, onRowDragStart, rowLayout } =
+  const { getRowProps, onRowMenu, onRowDragStart, rowSx } =
     useContext(ListTableContext)
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -395,11 +405,7 @@ function ListTableRow({
       aria-rowindex={props['data-index'] + 2}
       selected={context.isSelectedItem(item)}
       hover
-      sx={
-        rowLayout === null
-          ? ROW_SX
-          : { ...ROW_SX, ...makeRowLayoutSx(rowLayout) }
-      }
+      sx={rowSx}
       {...(onRowMenu === null
         ? {}
         : { onContextMenu: handleContextMenu, onKeyDown: handleKeyDown })}
@@ -733,7 +739,7 @@ export function VirtualizedListTable({
       label,
       rowCount,
       isBusy,
-      rowLayout: isCompact ? (compactRowLayout ?? null) : (rowLayout ?? null),
+      rowSx: makeRowSx(isCompact ? compactRowLayout : rowLayout),
       columns,
       getRowProps: getRowProps ?? null,
       onRowMenu: onRowMenu ?? null,

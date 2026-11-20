@@ -199,4 +199,46 @@ test.describe('AI composer assistant', () => {
     )
     expect(Number.parseFloat(fontSize)).toBeGreaterThanOrEqual(16)
   })
+
+  test('AI-09 on a phone the send button of the prompt is a 32 px disc with a 44 px touch target, 6 px inside the field', { tag: '@phone-only' }, async ({
+    page,
+    user
+  }) => {
+    await offerAssistant(page)
+    const mailbox = await new LoginPage(page).loginAs(user)
+    const composer = await mailbox.compose()
+
+    await composer.root.getByTestId('composer-scribe-button').click()
+    await page
+      .getByRole('textbox', { name: 'Help me write' })
+      .fill('Greet Alice')
+    const send = page.getByTestId('composer-scribe-task-send')
+    const disc = await send.boundingBox()
+    const field = await page
+      .getByTestId('composer-scribe-task')
+      .locator('..')
+      .boundingBox()
+    if (disc === null || field === null) throw new Error('Not visible')
+
+    expect([disc.width, disc.height]).toEqual([32, 32])
+    expect(disc.y - field.y).toBeGreaterThanOrEqual(6)
+    expect(field.y + field.height - (disc.y + disc.height)).toBeGreaterThanOrEqual(6)
+    // A tap 5.5 px outside the disc, on each side, still hits the button
+    const centreX = disc.x + disc.width / 2
+    const centreY = disc.y + disc.height / 2
+    const hits = await send.evaluate(
+      (button, points) =>
+        points.map(({ x, y }) => {
+          const target = document.elementFromPoint(x, y)
+          return target !== null && button.contains(target)
+        }),
+      [
+        { x: disc.x - 5.5, y: centreY },
+        { x: disc.x + disc.width + 5.5, y: centreY },
+        { x: centreX, y: disc.y - 5.5 },
+        { x: centreX, y: disc.y + disc.height + 5.5 }
+      ]
+    )
+    expect(hits).toEqual([true, true, true, true])
+  })
 })

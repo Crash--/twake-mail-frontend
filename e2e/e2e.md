@@ -706,6 +706,7 @@ session with `page.route`; the setting `ai.label-categorization.enabled` is stor
 - [x] `AI-05` Selecting text in the composer shows an assistant button under it; the menu works on the selection; the answer is copied ("Result copied to clipboard"). — web app only (tmail-flutter `AiSelectionOverlay`, copy of the suggestion)
 - [x] `AI-06` The "AI Scribe" preference (kept in this browser) hides the assistant of the composer. — web app only
 - [x] `AI-08` On a phone, the prompt of the assistant is 16 px, the size twake-mui gives its inputs under `md`, so that iOS Safari does not zoom into it. — `mobile` project
+- [x] `AI-09` On a phone, the send button of the prompt keeps the 32 px disc of desktop, 6 px inside the field, and a 44 px touch target. — `mobile` project
 
 ## List toolbar and rows (batch P4)
 

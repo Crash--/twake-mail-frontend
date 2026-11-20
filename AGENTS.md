@@ -3,6 +3,8 @@
 React rewrite of the web version of [tmail-flutter](https://github.com/linagora/tmail-flutter):
 a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 
+- Decisions: `docs/decisions.md`, mandatory. Search it before asking a question or proposing a change; record every decision there, in the commit that applies it (skill `twake-decisions`).
+
 ## Stack (decided, do not re-discuss)
 
 - npm workspaces: `apps/private` (the application) and `common` (shared
@@ -21,6 +23,8 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 
 ## UI rules
 
+- Before changing a screen, read [`UX.md`](UX.md) (Mail's own UX rules) on
+  top of the rules shared by every Twake app in the `twake-ux` skill.
 - **Never use cozy-ui.**
 - Import components from `@linagora/twake-mui` only. Never import
   `@mui/material`, `@mui/lab` or `@mui/icons-material` directly (ESLint

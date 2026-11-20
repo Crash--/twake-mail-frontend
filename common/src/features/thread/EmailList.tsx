@@ -34,7 +34,6 @@ import { useFloatingActionInset } from '@/ds/FloatingActionButton/FloatingAction
 import { useIsHandheld, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
-  type ListTableRange,
   type ListTableScroll,
   type RowAttributes
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
@@ -123,6 +122,7 @@ import {
   ROW_LAYOUT,
   useRowPointer
 } from './emailListGeometry'
+import { lastRowInView, type RenderedRow } from './lastRowInView'
 
 /** Folders whose list shows the recipients rather than the sender */
 const RECIPIENT_ROLES: readonly string[] = [
@@ -481,9 +481,15 @@ export function EmailList(props: EmailListProps): ReactElement {
     void fetchNextPage({ cancelRefetch: false })
   }, [fetchNextPage])
 
-  const handleRangeChanged = useCallback((range: ListTableRange): void => {
-    setLastVisibleIndex(range.endIndex)
-  }, [])
+  // Not the rendered range (rangeChanged): it includes the overscan, which
+  // would ask for the next page on the first render, before any scroll
+  const handleItemsRendered = useCallback(
+    (rows: readonly RenderedRow[]): void => {
+      const lastInView = lastRowInView(rows, OVERSCAN_PX)
+      if (lastInView !== null) setLastVisibleIndex(lastInView)
+    },
+    []
+  )
 
   // endReached is not reported again when the page just appended still
   // ends in view: check after each page, and fetch a few rows ahead. Not
@@ -818,7 +824,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           savedScroll={savedScroll}
           onLeave={handleLeave}
           endReached={handleEndReached}
-          rangeChanged={handleRangeChanged}
+          itemsRendered={handleItemsRendered}
           increaseViewportBy={OVERSCAN_PX}
           scrollerRef={scrollerRef}
           onRowMenu={handleRowMenu}

@@ -67,7 +67,8 @@ export function FolderActionsMenu({
   const { session, accountId } = useJmapSession()
   const { run } = useFolderActions()
   // Sub-addressing, for a personal folder of a server that delivers it:
-  // whether it is on is read from the rights of the folder, at each opening
+  // whether it is on is read from the rights of the folder, kept in the
+  // cache until push reports the folder changed
   const hasSubaddressing =
     mailbox !== null &&
     anchor !== null &&

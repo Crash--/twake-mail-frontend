@@ -228,6 +228,33 @@ describe('EmailList', () => {
     })
   })
 
+  it('shows the progress of the next page inside the list, after its last row', async () => {
+    const server = makeFakeJmapServer({
+      emails: makeEmails(EMAIL_LIST_PAGE_SIZE * 2)
+    })
+    renderList(server, 'mailbox-inbox', null, 56 * 10)
+    await screen.findAllByTestId('email-list-item')
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+    const release = server.holdRequests('Email/query')
+
+    fireEvent.scroll(scroller, {
+      target: { scrollTop: 56 * (EMAIL_LIST_PAGE_SIZE - 5) }
+    })
+
+    // In the table: a box below it would shrink the list, moving its rows
+    const progress = await screen.findByRole('progressbar', {
+      name: 'Loading... Please wait!'
+    })
+    expect(screen.getByTestId('email-list')).toContainElement(progress)
+    expect(progress.closest('tfoot')).not.toBe(null)
+    release()
+    expect(await screen.findByText('Email 30')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(progress).not.toBeInTheDocument()
+    })
+  })
+
   it('shows the most recent emails again on Refresh, as tmail-flutter', async () => {
     const server = makeFakeJmapServer({ emails: makeEmails(40) })
     renderList(server, 'mailbox-inbox', null, 56 * 10)
@@ -1155,7 +1182,7 @@ describe('EmailList', () => {
       )
 
       await screen.findAllByTestId('email-list-item')
-      expect(container.querySelector('tfoot')).toHaveAttribute(
+      expect(container.querySelector('tfoot tr')).toHaveAttribute(
         'aria-hidden',
         'true'
       )

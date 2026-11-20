@@ -37,7 +37,8 @@ export function makeFakeBasicAuthService(
       store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
     ),
     logout: jest.fn(() => Promise.resolve()),
-    login: jest.fn(() => Promise.resolve({ ok: true as const }))
+    login: jest.fn(() => Promise.resolve({ ok: true as const })),
+    getValidatedSession: jest.fn((): string | null => null)
   }
 }
 

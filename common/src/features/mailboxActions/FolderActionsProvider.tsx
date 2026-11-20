@@ -31,7 +31,6 @@ import {
 } from '@common/features/mailbox/mailboxTree'
 import {
   mailboxesQueryOptions,
-  mailboxKeys,
   mailboxRightsQueryOptions,
   type MailboxSummary
 } from '@common/features/mailbox/queries'
@@ -60,6 +59,7 @@ import { MailboxNameDialog } from './MailboxNameDialog'
 import { moveFolderContent, undoMoveFolderContent } from './moveFolderContent'
 import { SubaddressingDialog } from './SubaddressingDialog'
 import { anyoneRightsWith, subaddress, subaddressDetail } from './subaddressing'
+import { syncMailboxes } from './syncMailboxes'
 import { useCreateFolder } from './useCreateFolder'
 import { maxCallsInRequest, useEmptyFolder } from './useEmptyFolder'
 
@@ -163,18 +163,15 @@ export function FolderActionsProvider({
    * created since the last push must go (delete) or hide with their parent
    */
   const fetchMailboxes = useCallback(async (): Promise<MailboxSummary[]> => {
-    const data = await queryClient.query({
-      ...mailboxesQueryOptions(client, accountId),
-      staleTime: 0
-    })
+    const data = await syncMailboxes(client, queryClient, accountId)
     return data.list
   }, [queryClient, client, accountId])
 
+  /** After our own `Mailbox/set`: its changes, not every folder again */
   const refreshMailboxes = useCallback((): void => {
-    queryClient
-      .invalidateQueries({ queryKey: mailboxKeys.list(accountId) })
-      .catch(() => undefined)
-  }, [queryClient, accountId])
+    // Push catches the folders up when this fails
+    syncMailboxes(client, queryClient, accountId).catch(() => undefined)
+  }, [client, queryClient, accountId])
 
   /** One `Mailbox/set`; throws when the server refuses any part of it */
   const sendMailboxSet = useCallback(

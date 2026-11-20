@@ -88,6 +88,23 @@ describe('VirtualizedListTable', () => {
     expect(screen.getByTestId('files')).toContainElement(table)
   })
 
+  it('says that its rows are being replaced while it is busy', () => {
+    renderTable(jest.fn(), { isBusy: true })
+
+    expect(screen.getByRole('table', { name: 'Files' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
+  })
+
+  it('is not busy by default', () => {
+    renderTable()
+
+    expect(
+      screen.getByRole('table', { name: 'Files' }).hasAttribute('aria-busy')
+    ).toBe(false)
+  })
+
   it('goes from the control before it to the first row with Tab', async () => {
     renderDs(
       <>

@@ -14,6 +14,7 @@ import {
   type ReactElement
 } from 'react'
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useQueryClient,
   type UseInfiniteQueryResult
@@ -30,6 +31,7 @@ import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { ListPane } from '@/ds/ListPane/ListPane'
 import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
+import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { useFloatingActionInset } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
@@ -56,6 +58,7 @@ import {
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
+import { PAST_SEARCH_GC_TIME } from '@common/features/search/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
@@ -226,6 +229,12 @@ export interface EmailListSearch {
   isStarredView?: boolean
   /** The list is the Action required view: it is unread-only, no "unread" filter */
   isActionRequiredView?: boolean
+  /**
+   * The results of a query the user typed: the next query keeps them on
+   * screen while its own load (the table is updated, not rebuilt), and they
+   * leave the cache soon after they are no longer shown
+   */
+  isTransient?: boolean
 }
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
@@ -251,8 +260,17 @@ function useListQuery(props: EmailListProps, filter: ListFilter): ListQuery {
         }
       : mailboxListSource(props.mailboxId, filter, collapseThreads)
   const options = emailListSourceQueryOptions(client, accountId, source)
+  const isTransient = 'search' in props && props.search.isTransient === true
   return {
-    query: useInfiniteQuery(options),
+    query: useInfiniteQuery(
+      isTransient
+        ? {
+            ...options,
+            placeholderData: keepPreviousData,
+            gcTime: PAST_SEARCH_GC_TIME
+          }
+        : options
+    ),
     listKey: JSON.stringify(options.queryKey)
   }
 }
@@ -415,7 +433,13 @@ export function EmailList(props: EmailListProps): ReactElement {
   const openMailboxEmailId =
     useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
-  const newEmailCount = useNewEmailCount(emails, query.isSuccess)
+  // The results of the previous search, shown while the next ones load
+  const isShowingPrevious = query.isPlaceholderData
+  const newEmailCount = useNewEmailCount(
+    emails,
+    query.isSuccess && !isShowingPrevious,
+    listKey
+  )
   const selection = useEmailSelection(emails, listKey)
   // As tmail-flutter: below the desktop size, a selected row keeps its
   // background (its avatar is ticked); only the open email is highlighted
@@ -450,6 +474,13 @@ export function EmailList(props: EmailListProps): ReactElement {
       scrollToTop()
     }
   }, [location, focusEmailId, scrollToTop])
+  // Another search keeps the table: its results start from the top
+  const previousListKey = useRef(listKey)
+  useEffect(() => {
+    if (previousListKey.current === listKey) return
+    previousListKey.current = listKey
+    scrollToTop()
+  }, [listKey, scrollToTop])
   const listActions = useEmailListActions({
     emails,
     selection,
@@ -780,6 +811,13 @@ export function EmailList(props: EmailListProps): ReactElement {
   } else {
     content = (
       <>
+        {isShowingPrevious ? (
+          <ThinProgressBar
+            value={null}
+            label={t('common.loading')}
+            data-testid="email-list-updating"
+          />
+        ) : null}
         <VirtualizedListTable
           label={
             search === null
@@ -809,6 +847,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           onRowMenu={listActions.onRowMenu}
           onRowDragStart={listActions.onRowDragStart}
           componentsProps={componentsProps}
+          isBusy={isShowingPrevious}
         />
         {isFetchingNextPage ? (
           <Box className="u-flex u-flex-justify-center u-p-half">

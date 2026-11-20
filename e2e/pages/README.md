@@ -366,4 +366,4 @@ Conventions:
 | `mailbox-context-banner` / `mailbox-context-back-button` | #698: the info banner above the mail screens of a mailbox delegated to the user or a team mailbox picked in the switcher ("You are in the mailbox of <name> (<address>)…"), with "Back to your mailbox", which does what `mailbox-switcher-back-button` doe
 | `composer-signature-toggle` | the chevron button on the `---` line of the signature, folding it in the editor ("Hide signature" / "Show signature", `aria-expanded`) | none (Figma) |
 | `other-users-section` / `other-users-section-toggle` | "Other users" category of the Folders section and its tree, after the team mailboxes: the folders other users share (namespace `Delegated[<owner>]`), their top folder with the address of its owner on a second line; its title collapses it | — (issue #714) |
-
+| `email-list-updating` | the thin progress bar above the search results while the results of the next query load: the previous rows stay, the table is `aria-busy="true"` (the first search shows `email-list-loading`) | — |

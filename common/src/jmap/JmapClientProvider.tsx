@@ -15,6 +15,7 @@ import {
 
 import { makeJmapAuth } from './makeJmapAuth'
 import { withRequestDeadline } from './requestDeadline'
+import { serveSessionOnce } from './serveSessionOnce'
 
 /** `createClient` of jmap-client-ts, or a wrapper of it in tests */
 export type JmapClientFactory = typeof createClient
@@ -44,6 +45,9 @@ export interface JmapClientProviderProps {
  * Its API calls have a deadline (`withRequestDeadline`): a request that
  * never answers fails, so the screen shows its error instead of loading
  * forever.
+ *
+ * A basic sign-in has just read the session to check the credentials: the
+ * client starts from that answer rather than fetching it a second time.
  */
 export function JmapClientProvider({
   createClient,
@@ -53,18 +57,21 @@ export function JmapClientProvider({
 }: JmapClientProviderProps): ReactElement {
   const authService = useAuthService()
   const { status } = useAuthState()
-  const client = useMemo(
-    () =>
-      status === 'authenticated'
-        ? createClient({
-            sessionUrl,
-            auth: makeJmapAuth(authService),
-            methodCapabilities: METHOD_CAPABILITIES,
-            fetch: withRequestDeadline(fetch)
-          })
-        : null,
-    [createClient, sessionUrl, fetch, authService, status]
-  )
+  const client = useMemo(() => {
+    if (status !== 'authenticated') return null
+    const sessionBody =
+      authService.mode === 'basic' ? authService.getValidatedSession() : null
+    const deadlineFetch = withRequestDeadline(fetch)
+    return createClient({
+      sessionUrl,
+      auth: makeJmapAuth(authService),
+      methodCapabilities: METHOD_CAPABILITIES,
+      fetch:
+        sessionBody === null
+          ? deadlineFetch
+          : serveSessionOnce(deadlineFetch, sessionUrl, sessionBody)
+    })
+  }, [createClient, sessionUrl, fetch, authService, status])
 
   return (
     <JmapClientContext.Provider value={client}>

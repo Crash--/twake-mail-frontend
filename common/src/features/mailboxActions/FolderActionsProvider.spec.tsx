@@ -486,7 +486,7 @@ describe('Folder actions', () => {
     const server = makeServer()
     await renderTree(server)
     // Not pushed: the tree does not know it
-    server.mailboxes.push(
+    server.addMailbox(
       makeMailbox({ id: 'fresh', name: 'Fresh', parentId: 'clients' })
     )
 

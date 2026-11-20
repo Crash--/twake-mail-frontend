@@ -82,6 +82,13 @@ export const searchKeys = {
   ]
 }
 
+/**
+ * How long a past search stays in the cache once nothing shows it (ms): a
+ * query typed once is rarely shown again, and every cached list is kept up to
+ * date by push
+ */
+export const PAST_SEARCH_GC_TIME = 30_000
+
 /** The first emails a search typed so far finds, with their snippets */
 export function emailSuggestionsQueryOptions(
   client: JmapClient,
@@ -99,7 +106,8 @@ export function emailSuggestionsQueryOptions(
         EMAIL_SUGGESTION_COUNT,
         signal
       ),
-    staleTime: 10_000
+    staleTime: 10_000,
+    gcTime: PAST_SEARCH_GC_TIME
   })
 }
 
@@ -119,6 +127,7 @@ export function contactSuggestionsQueryOptions(
       )
       return response.list
     },
-    staleTime: 60_000
+    staleTime: 60_000,
+    gcTime: PAST_SEARCH_GC_TIME
   })
 }

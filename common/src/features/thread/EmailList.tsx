@@ -7,6 +7,7 @@ import {
 } from '@linagora/twake-mui'
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -301,7 +302,12 @@ export function EmailList(props: EmailListProps): ReactElement {
     mailbox.totalEmails <= 0
   // Only a desktop has the filter button: one set there would hide emails
   // with nothing to clear it once the window narrows, so it waits
-  const isDesktopSize = useScreenSize() === 'desktop'
+  const screenSize = useScreenSize()
+  // The rows follow a breakpoint once the frame has painted: switching
+  // between the wide and compact columns remounts every cell, an
+  // interruptible render rather than a blocking one (issue #1091)
+  const listScreenSize = useDeferredValue(screenSize)
+  const isDesktopSize = screenSize === 'desktop'
   const filter: ListFilter =
     isEmptyTrashOrSpam || !isDesktopSize ? 'all' : listFilter.filter
   const { query, listKey } = useListQuery(props, filter)
@@ -445,7 +451,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   // 1.1); on a tablet with a mouse, as tmail-flutter, it keeps its
   // background (its avatar is ticked) and only the open email is
   const isHandheld = useIsHandheld()
-  const isSelectionHighlighted = useScreenSize() === 'desktop' || isHandheld
+  const isSelectionHighlighted = isDesktopSize || isHandheld
   const isHighlightedRow = useCallback(
     (row: VirtualizedTableRow): boolean =>
       row.id === openEmailId ||
@@ -621,7 +627,7 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   // Below the desktop size, as tmail-flutter's compact tiles: the avatar
   // (which selects the row) and the three lines of the email
-  const isPhoneList = useScreenSize() === 'mobile'
+  const isPhoneList = listScreenSize === 'mobile'
   // As tmail-flutter: while emails are selected, "New message" makes way
   // and the dividers go
   const isSelecting = selection.selected.length > 0 || selection.isAllInFolder
@@ -664,7 +670,6 @@ export function EmailList(props: EmailListProps): ReactElement {
     [t, compactRowLayout]
   )
 
-  const screenSize = useScreenSize()
   const { refetch } = query
   const queryClient = useQueryClient()
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -685,7 +690,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   // Narrow from the first render below the desktop size, as tmail-flutter (its
   // wide tile is for `isWebDesktop` only); the table also measures itself for
   // the other cases (zoom, an email open beside the list)
-  const isCompact = screenSize !== 'desktop'
+  const isCompact = listScreenSize !== 'desktop'
   const bottomInset = useFloatingActionInset()
   const isFramed = useTeamMailboxEmbed() !== null
 
@@ -739,12 +744,16 @@ export function EmailList(props: EmailListProps): ReactElement {
             labels={labels}
             showActionRequired={showActionRequired}
             hoverActionsRoom={getHoverActionsRoom(isTouch)}
+            screenSize={listScreenSize}
+            isHandheld={isHandheld}
           />
         )
       }
     }),
     [
       isTouch,
+      isHandheld,
+      listScreenSize,
       getEmailPath,
       openState,
       getMailboxNames,

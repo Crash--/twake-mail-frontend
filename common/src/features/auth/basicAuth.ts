@@ -1,3 +1,5 @@
+import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
+
 import { makeAuthStore } from './authStore'
 import {
   makeBasicSessionSharing,
@@ -45,7 +47,8 @@ export function makeBasicAuthorizationHeader(
 }
 
 /**
- * Checks credentials by fetching the JMAP session resource with them.
+ * Checks credentials by fetching the JMAP session resource with them. A
+ * server that never answers counts as a network error after the deadline.
  */
 export async function validateBasicCredentials(
   sessionUrl: string,
@@ -61,7 +64,8 @@ export async function validateBasicCredentials(
         Authorization: authorizationHeader
       },
       credentials: 'omit',
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(JMAP_REQUEST_TIMEOUT_MS)
     })
   } catch {
     return { ok: false, error: 'network-error' }

@@ -1,3 +1,5 @@
+import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
+
 import {
   createBasicAuthService,
   makeBasicAuthorizationHeader
@@ -81,6 +83,30 @@ describe('createBasicAuthService', () => {
     await expect(service.login('alice@example.com', 'secret')).resolves.toEqual(
       { ok: false, error: 'network-error' }
     )
+  })
+
+  it('reports a network error when the server never answers', async () => {
+    const timeout = jest
+      .spyOn(AbortSignal, 'timeout')
+      .mockReturnValue(
+        AbortSignal.abort(new DOMException('Timed out', 'TimeoutError'))
+      )
+    const fetch = jest.fn(
+      (_input: string, init: RequestInit) =>
+        new Promise<never>((_resolve, reject) => {
+          if (init.signal?.aborted) reject(new TypeError('Aborted'))
+        })
+    )
+    const service = createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch }
+    )
+
+    await expect(service.login('alice@example.com', 'secret')).resolves.toEqual(
+      { ok: false, error: 'network-error' }
+    )
+    expect(timeout).toHaveBeenCalledWith(JMAP_REQUEST_TIMEOUT_MS)
+    timeout.mockRestore()
   })
 
   it('reports an unexpected response on a server error', async () => {

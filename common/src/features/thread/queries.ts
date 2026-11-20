@@ -26,7 +26,7 @@ import type {
   InfiniteQueryOptionsFor,
   QueryOptionsFor
 } from '@common/app/queryOptionsTypes'
-import { getInChunks } from '@common/jmap/maxObjectsInGet'
+import { getInChunks, isRequestTooLarge } from '@common/jmap/maxObjectsInGet'
 import { settle } from '@common/jmap/settle'
 
 import { filterVerdict } from './filterVerdict'
@@ -317,6 +317,7 @@ interface ListCalls {
   emails: PromiseLike<{ state: string; list: EmailListItemData[] }>
   snippets: PromiseLike<{ list: SearchSnippet[] }> | null
   threads: PromiseLike<{ list: Pick<Thread, 'emailIds'>[] }> | null
+  members: PromiseLike<{ list: ThreadMember[] }> | null
 }
 
 export interface ListPageOptions {
@@ -330,9 +331,11 @@ export interface ListPageOptions {
  * One page of an email list: `Email/query`, then the `Email/get` of its ids
  * and, through back-references, the `SearchSnippet/get` of a search and,
  * for a list showing one row per conversation, the `Thread/get` of the
- * threads listed, in one request; then the `Email/get` of all their emails
- * (their members), in chunks of `maxObjectsInGet`. Snippets and members are
- * optional: a server failing on them still lists the emails.
+ * threads listed and the `Email/get` of all their emails (their members,
+ * the `emailIds` of the threads, RFC 8620 section 3.7), in one request.
+ * Members the server refuses in one call (`requestTooLarge`) are fetched
+ * again in chunks of `maxObjectsInGet`. Snippets and members are optional:
+ * a server failing on them still lists the emails.
  */
 export async function fetchListPage(
   client: JmapClient,
@@ -372,35 +375,53 @@ export async function fetchListPage(
             '#ids': emails.ref('/list/*/threadId')
           })
         : null
-      calls.current = { query, emails, snippets, threads }
+      const members = threads
+        ? builder.call('Email/get', {
+            accountId,
+            '#ids': threads.ref('/list/*/emailIds'),
+            properties: [...THREAD_MEMBER_PROPERTIES]
+          })
+        : null
+      calls.current = { query, emails, snippets, threads, members }
       return [
         query,
         emails,
         ...(snippets ? [snippets] : []),
-        ...(threads ? [threads] : [])
+        ...(threads ? [threads] : []),
+        ...(members ? [members] : [])
       ]
     },
     signal ? { signal } : {}
   )
   if (calls.current === null) throw new Error('The list request was not built')
-  const { query, emails, snippets, threads } = calls.current
-  const [queryResult, emailsResult, snippetsResult, threadsResult] =
-    await Promise.all([
-      settle(query),
-      settle(emails),
-      snippets === null ? null : settle(snippets),
-      threads === null ? null : settle(threads)
-    ])
-  const membersResult = threadsResult?.ok
-    ? await settle(
-        fetchThreadMembersInChunks(
-          client,
-          accountId,
-          threadsResult.value.list.flatMap(thread => thread.emailIds),
-          signal
+  const { query, emails, snippets, threads, members: inline } = calls.current
+  const [
+    queryResult,
+    emailsResult,
+    snippetsResult,
+    threadsResult,
+    inlineResult
+  ] = await Promise.all([
+    settle(query),
+    settle(emails),
+    snippets === null ? null : settle(snippets),
+    threads === null ? null : settle(threads),
+    inline === null ? null : settle(inline)
+  ])
+  // More members than one call takes: fetched again, in chunks
+  const membersResult =
+    threadsResult?.ok === true &&
+    inlineResult?.ok === false &&
+    isRequestTooLarge(inlineResult.error)
+      ? await settle(
+          fetchThreadMembersInChunks(
+            client,
+            accountId,
+            threadsResult.value.list.flatMap(thread => thread.emailIds),
+            signal
+          )
         )
-      )
-    : null
+      : inlineResult
   if (!queryResult.ok) throw queryResult.error
   if (!emailsResult.ok) throw emailsResult.error
   const { ids } = queryResult.value
@@ -529,9 +550,10 @@ async function fetchOpenedEmail(
 }
 
 /**
- * The emails of a conversation, the oldest first: `Thread/get`, then the
- * `Email/get` of its emails in chunks of `maxObjectsInGet`, as
- * tmail-flutter. Its thread not found, the opened email `emailId` alone.
+ * The emails of a conversation, the oldest first: `Thread/get` and the
+ * `Email/get` of its emails (by back-reference) in one request; again in
+ * chunks of `maxObjectsInGet`, as tmail-flutter, when the server refuses
+ * them in one call. Its thread not found, the opened email `emailId` alone.
  * Push keeps it up to date.
  */
 export function conversationQueryOptions(
@@ -546,25 +568,41 @@ export function conversationQueryOptions(
   return queryOptions({
     queryKey: conversationKeys.detail(accountId, threadId),
     queryFn: async ({ signal }): Promise<ConversationData> => {
-      const thread = await client.call(
-        'Thread/get',
-        { accountId, ids: [threadId] },
+      const [thread, inline] = await client.requestSettled(
+        builder => {
+          const threads = builder.call('Thread/get', {
+            accountId,
+            ids: [threadId]
+          })
+          return [
+            threads,
+            builder.call('Email/get', {
+              accountId,
+              '#ids': threads.ref('/list/*/emailIds'),
+              properties: [...EMAIL_LIST_PROPERTIES]
+            })
+          ] as const
+        },
         { signal }
       )
-      if (thread.list.length === 0) {
+      if (!thread.ok) throw thread.error
+      if (thread.value.list.length === 0) {
         return fetchOpenedEmail(client, accountId, threadId, emailId, signal)
       }
-      const emails = await getInChunks(
-        client,
-        thread.list.flatMap(found => found.emailIds),
-        (builder, chunk) =>
-          builder.call('Email/get', {
-            accountId,
-            ids: chunk,
-            properties: [...EMAIL_LIST_PROPERTIES]
-          }),
-        { fallbackSize: THREAD_EMAILS_PER_GET, signal }
-      )
+      if (!inline.ok && !isRequestTooLarge(inline.error)) throw inline.error
+      const emails = inline.ok
+        ? inline.value
+        : await getInChunks(
+            client,
+            thread.value.list.flatMap(found => found.emailIds),
+            (builder, chunk) =>
+              builder.call('Email/get', {
+                accountId,
+                ids: chunk,
+                properties: [...EMAIL_LIST_PROPERTIES]
+              }),
+            { fallbackSize: THREAD_EMAILS_PER_GET, signal }
+          )
       return {
         state: emails.state,
         emails: [...emails.list].sort(byReceivedAt)

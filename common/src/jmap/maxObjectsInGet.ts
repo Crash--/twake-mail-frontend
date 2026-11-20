@@ -29,7 +29,8 @@ export function maxObjectsInGet(
   return typeof value === 'number' ? Math.max(1, value) : fallback
 }
 
-function isRequestTooLarge(error: unknown): boolean {
+/** Whether a call failed for asking more ids than the server takes at once */
+export function isRequestTooLarge(error: unknown): boolean {
   return error instanceof JmapMethodError && error.type === 'requestTooLarge'
 }
 

@@ -415,6 +415,73 @@ describe('a search index behind the emails', () => {
   })
 })
 
+describe('the members of the listed conversations', () => {
+  function makeConversation(): FakeEmail[] {
+    return [
+      makeEmail({
+        id: 'first',
+        threadId: 'plan',
+        receivedAt: '2026-08-01T00:00:00Z'
+      }),
+      makeEmail({
+        id: 'reply',
+        threadId: 'plan',
+        receivedAt: '2026-08-02T00:00:00Z'
+      })
+    ]
+  }
+
+  it('come in the request of the page', async () => {
+    const server = makeFakeJmapServer({ emails: makeConversation() })
+
+    const page = await fetchEmailListPage(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      'mailbox-inbox',
+      0,
+      new AbortController().signal,
+      true
+    )
+
+    expect(page.threads?.plan?.map(member => member.id)).toEqual([
+      'first',
+      'reply'
+    ])
+    expect(server.requests).toHaveLength(1)
+  })
+
+  it('cost no request on an empty page', async () => {
+    const server = makeFakeJmapServer()
+
+    await fetchEmailListPage(
+      makeClient(server),
+      FAKE_ACCOUNT_ID,
+      'mailbox-inbox',
+      0,
+      new AbortController().signal,
+      true
+    )
+
+    expect(server.requests).toHaveLength(1)
+  })
+
+  it('come in the request of an opened conversation', async () => {
+    const server = makeFakeJmapServer({ emails: makeConversation() })
+
+    const data = await new QueryClient().query(
+      conversationQueryOptions(
+        makeClient(server),
+        FAKE_ACCOUNT_ID,
+        'plan',
+        'reply'
+      )
+    )
+
+    expect(data.emails.map(email => email.id)).toEqual(['first', 'reply'])
+    expect(server.requests).toHaveLength(1)
+  })
+})
+
 describe('listedTotal', () => {
   function page(
     count: number,

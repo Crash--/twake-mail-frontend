@@ -128,6 +128,23 @@ describe('ListDetailLayout', () => {
     expect(screen.getByRole('button', { name: 'Counted 1' })).toBeVisible()
   })
 
+  it('does not mount the list hidden when an item is open first on a desktop', () => {
+    mockViewport({ width: 1440 })
+
+    renderDs(<Mailbox initiallyOpen />)
+
+    expect(screen.queryByText('Hello Alice')).toBe(null)
+  })
+
+  it('builds the list when an item opened first on a desktop closes', async () => {
+    mockViewport({ width: 1440 })
+    renderDs(<Mailbox initiallyOpen />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(screen.getByRole('button', { name: 'Hello Alice' })).toBeVisible()
+  })
+
   it('builds the list again when the item closes on a phone', async () => {
     mockViewport({ width: 390 })
     renderDs(<CountingMailbox />)

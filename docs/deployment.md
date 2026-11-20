@@ -604,6 +604,15 @@ Two layouts work:
   (`Access-Control-Allow-Origin: *`); add the JMAP origin and its `wss://`
   origin to `CSP_CONNECT_SRC`.
 
+In both layouts, have the proxy or the ingress compress `application/json` on the
+JMAP paths: tmail-backend sends its JMAP responses uncompressed, and that JSON
+shrinks by about 85% with gzip (the 94 kB of the start-up become 14 kB). With
+nginx: `gzip on; gzip_proxied any; gzip_types application/json;` in their
+`location` (downloads, uploads and the WebSocket are not `application/json` and
+pass as is; see `deploy/docker-compose/demo/nginx.conf`). With ingress-nginx,
+gzip is off by default: set `use-gzip: "true"` and add `application/json` to
+`gzip-types` in its ConfigMap.
+
 ## Embedding in Twake Workplace (iframe)
 
 Inside Twake Workplace, the app runs in an iframe of the Workplace container:

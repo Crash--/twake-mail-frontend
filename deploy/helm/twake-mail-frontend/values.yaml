@@ -209,7 +209,9 @@ ingress:
     secretName: twake-mail-frontend-tls
   # -- Route the JMAP paths of the hosts to tmail-backend, so that JMAP is on
   # the origin of the app (then set config.serverUrl to / and
-  # make tmail-backend advertise URLs of this host, url.prefix)
+  # make tmail-backend advertise URLs of this host, url.prefix). tmail-backend
+  # sends its JSON uncompressed: enable gzip of application/json on the ingress
+  # controller (ingress-nginx: use-gzip and gzip-types in its ConfigMap)
   jmap:
     enabled: false
     service:

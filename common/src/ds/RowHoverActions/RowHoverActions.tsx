@@ -5,11 +5,19 @@ import { Box } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
 import { ROW_CONTAINERS } from './rowContainers'
+import { useRowActivation } from './useRowActivation'
 
 export interface RowHoverActionsProps {
   children: ReactNode
   /** What holds the actions: a table row, or a list item (a folder) */
   in?: keyof typeof ROW_CONTAINERS
+  /**
+   * Mounts the actions only once the row is hovered or holds the focus (or
+   * the row after it does, for Shift+Tab), on a screen with hover: a long
+   * list then mounts its rows without their buttons and tooltips. They stay
+   * mounted afterwards. Only with `replaces`, whose actions take no room
+   */
+  lazy?: boolean
   /**
    * What the actions take the place of on hover or focus (a date): it stays
    * in the DOM and the layout, only faded. On a screen without hover the
@@ -23,17 +31,24 @@ export interface RowHoverActionsProps {
 /**
  * Actions of a table row (or a list item), shown when it is hovered or holds the focus:
  * keyboard users tab to them like to any control, touch screens (no hover)
- * always show them.
+ * always show them. `lazy` ones are mounted the first time the row is
+ * hovered or focused.
  */
 export function RowHoverActions({
   children,
   in: container = 'tableRow',
+  lazy = false,
   replaces
 }: RowHoverActionsProps): ReactElement {
   const row = ROW_CONTAINERS[container]
+  const { ref: rowRef, isActive } = useRowActivation(
+    row,
+    lazy && replaces !== undefined
+  )
   if (replaces !== undefined) {
     return (
       <Box
+        ref={rowRef}
         className="u-flex u-flex-items-center u-flex-justify-end"
         sx={{ position: 'relative', width: '100%' }}
       >
@@ -73,7 +88,7 @@ export function RowHoverActions({
             }
           }}
         >
-          {children}
+          {isActive ? children : null}
         </Box>
       </Box>
     )

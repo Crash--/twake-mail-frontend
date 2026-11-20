@@ -1,3 +1,5 @@
+import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
+
 import { makeAuthStore } from './authStore'
 import {
   makeBasicSessionSharing,
@@ -9,6 +11,7 @@ import {
   ANONYMOUS,
   SIGNED_OUT,
   type BasicAuthService,
+  type BasicLoginError,
   type BasicLoginResult,
   type SessionEndReason
 } from './types'
@@ -16,7 +19,16 @@ import {
 type FetchFunction = (
   input: string,
   init: RequestInit
-) => Promise<Pick<Response, 'ok' | 'status'>>
+) => Promise<Pick<Response, 'ok' | 'status' | 'text'>>
+
+/**
+ * Outcome of the credentials check: on success, the body of the JMAP
+ * session resource it read (null when it could not be read), for the JMAP
+ * client not to fetch it again
+ */
+export type CredentialsCheck =
+  | { ok: true; sessionBody: string | null }
+  | { ok: false; error: BasicLoginError }
 
 export interface BasicDependencies {
   fetch: FetchFunction
@@ -44,15 +56,27 @@ export function makeBasicAuthorizationHeader(
   return `Basic ${btoa(binary)}`
 }
 
+async function readBody(
+  response: Pick<Response, 'text'>
+): Promise<string | null> {
+  try {
+    return await response.text()
+  } catch {
+    return null
+  }
+}
+
 /**
- * Checks credentials by fetching the JMAP session resource with them.
+ * Checks credentials by fetching the JMAP session resource with them, and
+ * keeps the session it answers. A server that never answers counts as a
+ * network error after the deadline.
  */
 export async function validateBasicCredentials(
   sessionUrl: string,
   authorizationHeader: string,
   fetchFunction: FetchFunction
-): Promise<BasicLoginResult> {
-  let response: Pick<Response, 'ok' | 'status'>
+): Promise<CredentialsCheck> {
+  let response: Pick<Response, 'ok' | 'status' | 'text'>
   try {
     response = await fetchFunction(sessionUrl, {
       method: 'GET',
@@ -61,13 +85,14 @@ export async function validateBasicCredentials(
         Authorization: authorizationHeader
       },
       credentials: 'omit',
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(JMAP_REQUEST_TIMEOUT_MS)
     })
   } catch {
     return { ok: false, error: 'network-error' }
   }
 
-  if (response.ok) return { ok: true }
+  if (response.ok) return { ok: true, sessionBody: await readBody(response) }
   if (response.status === 401 || response.status === 403) {
     return { ok: false, error: 'invalid-credentials' }
   }
@@ -88,9 +113,16 @@ export function createBasicAuthService(
   const store = makeAuthStore()
   const sessionSharing = dependencies.sessionSharing ?? null
   let authorizationHeader: string | null = null
+  /** The session read by the last credentials check of this tab */
+  let validatedSession: string | null = null
 
-  function signIn(email: string, header: string): void {
+  function signIn(
+    email: string,
+    header: string,
+    sessionBody: string | null
+  ): void {
     authorizationHeader = header
+    validatedSession = sessionBody
     store.setState({
       status: 'authenticated',
       user: { email, name: null, workplaceFqdn: null }
@@ -117,7 +149,7 @@ export function createBasicAuthService(
     if (store.getState().status !== 'restoring') return
 
     if (session === null) store.setState(ANONYMOUS)
-    else signIn(session.email, session.authorizationHeader)
+    else signIn(session.email, session.authorizationHeader, null)
   }
 
   if (sessionSharing !== null) {
@@ -139,12 +171,14 @@ export function createBasicAuthService(
       header,
       dependencies.fetch
     )
-    if (result.ok) signIn(username.trim(), header)
-    return result
+    if (!result.ok) return result
+    signIn(username.trim(), header, result.sessionBody)
+    return { ok: true }
   }
 
   function clearLocalSession(reason: SessionEndReason = 'lost'): void {
     authorizationHeader = null
+    validatedSession = null
     store.setState(reason === 'signed-out' ? SIGNED_OUT : ANONYMOUS)
   }
 
@@ -153,6 +187,7 @@ export function createBasicAuthService(
     getState: store.getState,
     subscribe: store.subscribe,
     getAuthorizationHeader: () => Promise.resolve(authorizationHeader),
+    getValidatedSession: () => validatedSession,
     // The server refuses the credentials: nothing to renew them with, the
     // user signs in again
     onUnauthorized: () => {

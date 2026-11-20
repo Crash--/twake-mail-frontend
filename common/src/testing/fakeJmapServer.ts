@@ -29,8 +29,8 @@ import {
  * `Mailbox/set` (creations,
  * renames, moves, subscriptions, destructions) and `Mailbox/clear`, and
  * blob downloads. Changes made through
- * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail` and
- * `updateMailbox` helpers move the states and are reported by `/changes`;
+ * `Email/set` or the `addEmail`, `updateEmail`, `destroyEmail`,
+ * `addMailbox` and `updateMailbox` helpers move the states and are reported by `/changes`;
  * direct edits of `emails` and `mailboxes` are not.
  */
 
@@ -175,6 +175,8 @@ export interface FakeJmapServer {
   /** Changes an email (updated): keywords, mailboxes… */
   updateEmail: (id: string, patch: Partial<FakeEmail>) => void
   destroyEmail: (id: string) => void
+  /** Adds a mailbox (created), as another client would */
+  addMailbox: (mailbox: FakeMailbox) => void
   /** Changes a mailbox (updated), e.g. its counters */
   updateMailbox: (id: string, patch: Partial<FakeMailbox>) => void
   /**
@@ -716,6 +718,10 @@ export function makeFakeJmapServer(
       server.emails = server.emails.filter(email => email.id !== id)
       emailLog.record(id, 'destroyed')
     },
+    addMailbox: mailbox => {
+      server.mailboxes.push(mailbox)
+      mailboxLog.record(mailbox.id, 'created')
+    },
     updateMailbox: (id, patch) => {
       const mailbox = server.mailboxes.find(candidate => candidate.id === id)
       if (!mailbox) throw new Error(`No mailbox ${id}`)
@@ -749,6 +755,27 @@ export function makeFakeJmapServer(
     })
     held = { method: method ?? null, released }
     return release
+  }
+
+  /** A held request fails when its signal aborts, as `fetch` does */
+  function untilReleasedOrAborted(
+    released: Promise<void>,
+    signal: AbortSignal | null | undefined
+  ): Promise<void> {
+    if (!signal) return released
+    return new Promise<void>((resolve, reject) => {
+      const abort = (): void => {
+        const reason: unknown = signal.reason
+        reject(
+          reason instanceof Error || reason instanceof DOMException
+            ? reason
+            : new DOMException('The request was aborted', 'AbortError')
+        )
+      }
+      if (signal.aborted) abort()
+      signal.addEventListener('abort', abort, { once: true })
+      released.then(resolve, reject)
+    })
   }
 
   function isHeld(request: FakeJmapRequest): boolean {
@@ -1547,7 +1574,9 @@ export function makeFakeJmapServer(
     if (input === FAKE_API_URL && typeof init?.body === 'string') {
       const request = parseRequest(JSON.parse(init.body))
       server.requests.push(request)
-      if (held && isHeld(request)) await held.released
+      if (held && isHeld(request)) {
+        await untilReleasedOrAborted(held.released, init.signal)
+      }
       const response = respond(request)
       if (
         losing !== null &&

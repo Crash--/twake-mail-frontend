@@ -486,7 +486,7 @@ describe('Folder actions', () => {
     const server = makeServer()
     await renderTree(server)
     // Not pushed: the tree does not know it
-    server.mailboxes.push(
+    server.addMailbox(
       makeMailbox({ id: 'fresh', name: 'Fresh', parentId: 'clients' })
     )
 
@@ -854,6 +854,29 @@ describe('Folder actions', () => {
       expect(await screen.findByTestId('toast')).toHaveTextContent(
         'Email subaddress copied to clipboard'
       )
+    })
+
+    it('reads the rights of a folder once, however often its menu opens', async () => {
+      const user = userEvent.setup()
+      const server = makeSubaddressingServer()
+      await renderTree(server)
+      const rightsReads = (): Record<string, unknown>[] =>
+        server
+          .callsOf('Mailbox/get')
+          .filter(({ ids }) => Array.isArray(ids) && ids.includes('projects'))
+
+      for (let opening = 0; opening < 3; opening++) {
+        const menu = await openMenu('Projects')
+        await within(menu).findByRole('menuitem', {
+          name: 'Allow subaddressing'
+        })
+        await user.keyboard('{Escape}')
+        await waitFor(() => {
+          expect(screen.queryByRole('menu')).toBe(null)
+        })
+      }
+
+      expect(rightsReads()).toHaveLength(1)
     })
 
     it('leaves the folder as it was when the allowing is cancelled', async () => {

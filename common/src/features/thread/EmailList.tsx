@@ -7,6 +7,7 @@ import {
 } from '@linagora/twake-mui'
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -14,6 +15,7 @@ import {
   type ReactElement
 } from 'react'
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useQueryClient,
   type UseInfiniteQueryResult
@@ -30,11 +32,11 @@ import { EmptyListView } from '@/ds/EmptyListView/EmptyListView'
 import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { ListPane } from '@/ds/ListPane/ListPane'
 import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
+import { ThinProgressBar } from '@/ds/ThinProgressBar/ThinProgressBar'
 import { useFloatingActionInset } from '@/ds/FloatingActionButton/FloatingActionButton'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
-  type ListTableRange,
   type ListTableScroll,
   type RowAttributes
 } from '@/ds/VirtualizedListTable/VirtualizedListTable'
@@ -56,6 +58,7 @@ import {
 import { useAiNeedsActionEnabled } from '@common/features/ai/aiNeedsAction'
 import { useLabels, useLabelsAvailable } from '@common/features/labels/queries'
 import { mailboxKeys } from '@common/features/mailbox/queries'
+import { PAST_SEARCH_GC_TIME } from '@common/features/search/queries'
 import { useShowsSenderPriority } from '@common/features/settings/serverSettings'
 import { useTeamMailboxEmbed } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { useMailboxName } from '@common/features/mailbox/useMailboxName'
@@ -123,6 +126,7 @@ import {
   ROW_LAYOUT,
   useRowPointer
 } from './emailListGeometry'
+import { lastRowInView, type RenderedRow } from './lastRowInView'
 
 /** Folders whose list shows the recipients rather than the sender */
 const RECIPIENT_ROLES: readonly string[] = [
@@ -226,6 +230,12 @@ export interface EmailListSearch {
   isStarredView?: boolean
   /** The list is the Action required view: it is unread-only, no "unread" filter */
   isActionRequiredView?: boolean
+  /**
+   * The results of a query the user typed: the next query keeps them on
+   * screen while its own load (the table is updated, not rebuilt), and they
+   * leave the cache soon after they are no longer shown
+   */
+  isTransient?: boolean
 }
 
 export type EmailListProps = { mailboxId: string } | { search: EmailListSearch }
@@ -251,8 +261,17 @@ function useListQuery(props: EmailListProps, filter: ListFilter): ListQuery {
         }
       : mailboxListSource(props.mailboxId, filter, collapseThreads)
   const options = emailListSourceQueryOptions(client, accountId, source)
+  const isTransient = 'search' in props && props.search.isTransient === true
   return {
-    query: useInfiniteQuery(options),
+    query: useInfiniteQuery(
+      isTransient
+        ? {
+            ...options,
+            placeholderData: keepPreviousData,
+            gcTime: PAST_SEARCH_GC_TIME
+          }
+        : options
+    ),
     listKey: JSON.stringify(options.queryKey)
   }
 }
@@ -283,7 +302,12 @@ export function EmailList(props: EmailListProps): ReactElement {
     mailbox.totalEmails <= 0
   // Only a desktop has the filter button: one set there would hide emails
   // with nothing to clear it once the window narrows, so it waits
-  const isDesktopSize = useScreenSize() === 'desktop'
+  const screenSize = useScreenSize()
+  // The rows follow a breakpoint once the frame has painted: switching
+  // between the wide and compact columns remounts every cell, an
+  // interruptible render rather than a blocking one (issue #1091)
+  const listScreenSize = useDeferredValue(screenSize)
+  const isDesktopSize = screenSize === 'desktop'
   const filter: ListFilter =
     isEmptyTrashOrSpam || !isDesktopSize ? 'all' : listFilter.filter
   const { query, listKey } = useListQuery(props, filter)
@@ -415,11 +439,17 @@ export function EmailList(props: EmailListProps): ReactElement {
   const openMailboxEmailId =
     useMatch('/mailbox/:mailboxId/email/:emailId')?.params.emailId ?? null
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
-  const newEmailCount = useNewEmailCount(emails, query.isSuccess)
+  // The results of the previous search, shown while the next ones load
+  const isShowingPrevious = query.isPlaceholderData
+  const newEmailCount = useNewEmailCount(
+    emails,
+    query.isSuccess && !isShowingPrevious,
+    listKey
+  )
   const selection = useEmailSelection(emails, listKey)
   // As tmail-flutter: below the desktop size, a selected row keeps its
   // background (its avatar is ticked); only the open email is highlighted
-  const isSelectionHighlighted = useScreenSize() === 'desktop'
+  const isSelectionHighlighted = isDesktopSize
   const isHighlightedRow = useCallback(
     (row: VirtualizedTableRow): boolean =>
       row.id === openEmailId ||
@@ -450,6 +480,13 @@ export function EmailList(props: EmailListProps): ReactElement {
       scrollToTop()
     }
   }, [location, focusEmailId, scrollToTop])
+  // Another search keeps the table: its results start from the top
+  const previousListKey = useRef(listKey)
+  useEffect(() => {
+    if (previousListKey.current === listKey) return
+    previousListKey.current = listKey
+    scrollToTop()
+  }, [listKey, scrollToTop])
   const listActions = useEmailListActions({
     emails,
     selection,
@@ -479,9 +516,15 @@ export function EmailList(props: EmailListProps): ReactElement {
     void fetchNextPage({ cancelRefetch: false })
   }, [fetchNextPage])
 
-  const handleRangeChanged = useCallback((range: ListTableRange): void => {
-    setLastVisibleIndex(range.endIndex)
-  }, [])
+  // Not the rendered range (rangeChanged): it includes the overscan, which
+  // would ask for the next page on the first render, before any scroll
+  const handleItemsRendered = useCallback(
+    (rows: readonly RenderedRow[]): void => {
+      const lastInView = lastRowInView(rows, OVERSCAN_PX)
+      if (lastInView !== null) setLastVisibleIndex(lastInView)
+    },
+    []
+  )
 
   // endReached is not reported again when the page just appended still
   // ends in view: check after each page, and fetch a few rows ahead. Not
@@ -582,7 +625,7 @@ export function EmailList(props: EmailListProps): ReactElement {
 
   // Below the desktop size, as tmail-flutter's compact tiles: the avatar
   // (which selects the row) and the three lines of the email
-  const isPhoneList = useScreenSize() === 'mobile'
+  const isPhoneList = listScreenSize === 'mobile'
   // As tmail-flutter: while emails are selected, "New message" makes way
   // and the dividers go
   const isSelecting = selection.selected.length > 0 || selection.isAllInFolder
@@ -612,7 +655,6 @@ export function EmailList(props: EmailListProps): ReactElement {
     [t, compactRowLayout]
   )
 
-  const screenSize = useScreenSize()
   const { refetch } = query
   const queryClient = useQueryClient()
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -633,7 +675,7 @@ export function EmailList(props: EmailListProps): ReactElement {
   // Narrow from the first render below the desktop size, as tmail-flutter (its
   // wide tile is for `isWebDesktop` only); the table also measures itself for
   // the other cases (zoom, an email open beside the list)
-  const isCompact = screenSize !== 'desktop'
+  const isCompact = listScreenSize !== 'desktop'
   const bottomInset = useFloatingActionInset()
   const isFramed = useTeamMailboxEmbed() !== null
 
@@ -687,12 +729,14 @@ export function EmailList(props: EmailListProps): ReactElement {
             labels={labels}
             showActionRequired={showActionRequired}
             hoverActionsRoom={getHoverActionsRoom(isTouch)}
+            screenSize={listScreenSize}
           />
         )
       }
     }),
     [
       isTouch,
+      listScreenSize,
       getEmailPath,
       openState,
       getMailboxNames,
@@ -780,6 +824,13 @@ export function EmailList(props: EmailListProps): ReactElement {
   } else {
     content = (
       <>
+        {isShowingPrevious ? (
+          <ThinProgressBar
+            value={null}
+            label={t('common.loading')}
+            data-testid="email-list-updating"
+          />
+        ) : null}
         <VirtualizedListTable
           label={
             search === null
@@ -803,18 +854,23 @@ export function EmailList(props: EmailListProps): ReactElement {
           savedScroll={savedScroll}
           onLeave={handleLeave}
           endReached={handleEndReached}
-          rangeChanged={handleRangeChanged}
+          itemsRendered={handleItemsRendered}
           increaseViewportBy={OVERSCAN_PX}
           scrollerRef={scrollerRef}
           onRowMenu={listActions.onRowMenu}
           onRowDragStart={listActions.onRowDragStart}
           componentsProps={componentsProps}
+          isBusy={isShowingPrevious}
+          // In the scroller: a box below it would shrink the list during
+          // each page load, a layout shift
+          footer={
+            isFetchingNextPage ? (
+              <Box className="u-flex u-flex-justify-center u-p-half">
+                <CircularProgress size={24} aria-label={t('common.loading')} />
+              </Box>
+            ) : null
+          }
         />
-        {isFetchingNextPage ? (
-          <Box className="u-flex u-flex-justify-center u-p-half">
-            <CircularProgress size={24} aria-label={t('common.loading')} />
-          </Box>
-        ) : null}
       </>
     )
   }

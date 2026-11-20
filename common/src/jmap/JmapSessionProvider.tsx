@@ -17,6 +17,7 @@ import { useDocumentTitle } from '@common/app/DocumentTitleProvider'
 import { FullPageLoader } from '@common/components/FullPageLoader'
 import { useI18n } from '@common/i18n/useI18n'
 
+import { withBatchedCalls } from './batchCalls'
 import { ScopedJmapClient, useJmapClient } from './JmapClientProvider'
 import {
   mailboxViewKey,
@@ -26,6 +27,7 @@ import {
   writeMailboxView,
   type MailboxView
 } from './mailboxView'
+import { maxCallsInRequest } from './maxCallsInRequest'
 import { jmapKeys, sessionQueryOptions, type JmapSessionInfo } from './queries'
 import { withExtraCapabilities } from './withExtraCapabilities'
 
@@ -91,9 +93,13 @@ export function JmapSessionProvider({
   const queryClient = useQueryClient()
   const query = useQuery(sessionQueryOptions(client))
   const extraCapabilities = query.data?.extraCapabilities
+  const capabilities = query.data?.session.capabilities
   const scopedClient = useMemo(
-    () => withExtraCapabilities(client, extraCapabilities ?? []),
-    [client, extraCapabilities]
+    () =>
+      withBatchedCalls(withExtraCapabilities(client, extraCapabilities ?? []), {
+        maxCalls: maxCallsInRequest(capabilities ?? {})
+      }),
+    [client, extraCapabilities, capabilities]
   )
   const username = query.data?.session.username ?? null
   const [chosenView, setChosenView] = useState<MailboxView | null>(null)

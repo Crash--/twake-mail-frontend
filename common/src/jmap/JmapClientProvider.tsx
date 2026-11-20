@@ -1,4 +1,4 @@
-import type { createClient, JmapClient } from 'jmap-client-ts'
+import type { createClient, FetchFunction, JmapClient } from 'jmap-client-ts'
 import {
   createContext,
   useContext,
@@ -14,15 +14,23 @@ import {
 } from '@common/features/auth/AuthProvider'
 
 import { makeJmapAuth } from './makeJmapAuth'
+import { withRequestDeadline } from './requestDeadline'
+import { serveSessionOnce } from './serveSessionOnce'
 
 /** `createClient` of jmap-client-ts, or a wrapper of it in tests */
 export type JmapClientFactory = typeof createClient
 
 const JmapClientContext = createContext<JmapClient | null>(null)
 
+/** Bound when called, so that a `fetch` replaced later (tests) is used */
+const globalFetch: FetchFunction = (input, init) =>
+  globalThis.fetch(input, init)
+
 export interface JmapClientProviderProps {
   createClient: JmapClientFactory
   sessionUrl: string
+  /** What the client sends its requests with; `fetch` by default */
+  fetch?: FetchFunction
   children: ReactNode
 }
 
@@ -33,25 +41,37 @@ export interface JmapClientProviderProps {
  * A new client is created at each sign-in: the client caches the JMAP
  * session, which belongs to the user who signed in. Renewing the tokens does
  * not change the authentication status, hence keeps the client.
+ *
+ * Its API calls have a deadline (`withRequestDeadline`): a request that
+ * never answers fails, so the screen shows its error instead of loading
+ * forever.
+ *
+ * A basic sign-in has just read the session to check the credentials: the
+ * client starts from that answer rather than fetching it a second time.
  */
 export function JmapClientProvider({
   createClient,
   sessionUrl,
+  fetch = globalFetch,
   children
 }: JmapClientProviderProps): ReactElement {
   const authService = useAuthService()
   const { status } = useAuthState()
-  const client = useMemo(
-    () =>
-      status === 'authenticated'
-        ? createClient({
-            sessionUrl,
-            auth: makeJmapAuth(authService),
-            methodCapabilities: METHOD_CAPABILITIES
-          })
-        : null,
-    [createClient, sessionUrl, authService, status]
-  )
+  const client = useMemo(() => {
+    if (status !== 'authenticated') return null
+    const sessionBody =
+      authService.mode === 'basic' ? authService.getValidatedSession() : null
+    const deadlineFetch = withRequestDeadline(fetch)
+    return createClient({
+      sessionUrl,
+      auth: makeJmapAuth(authService),
+      methodCapabilities: METHOD_CAPABILITIES,
+      fetch:
+        sessionBody === null
+          ? deadlineFetch
+          : serveSessionOnce(deadlineFetch, sessionUrl, sessionBody)
+    })
+  }, [createClient, sessionUrl, fetch, authService, status])
 
   return (
     <JmapClientContext.Provider value={client}>

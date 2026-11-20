@@ -205,10 +205,8 @@ describe('EmailView', () => {
     expect(frame.getAttribute('sandbox')).not.toContain('allow-scripts')
     expect(document).toContain('<p>Hello <b>Alice</b></p>')
     expect(document).not.toMatch(/<script|XSSRobot|onerror/)
-    const [request] = server.requests.filter(({ methodCalls }) =>
-      methodCalls.some(([name]) => name === 'Email/get')
-    )
-    expect(request?.methodCalls[0]?.[1]).toEqual(
+    // Sent with the other calls the view makes at once (Mailbox/get…)
+    expect(server.callsOf('Email/get')[0]).toEqual(
       expect.objectContaining({
         ids: ['e1'],
         fetchHTMLBodyValues: true,

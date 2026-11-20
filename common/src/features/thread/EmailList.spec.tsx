@@ -7,6 +7,7 @@ import { useState, type ReactElement } from 'react'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { writeMailboxView } from '@common/jmap/mailboxView'
+import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
@@ -198,6 +199,60 @@ describe('EmailList', () => {
     })
     fireEvent.scroll(scroller, { target: { scrollTop: 56 * total } })
     expect(await screen.findByText(`Email ${total - 1}`)).toBeVisible()
+  })
+
+  it('waits for a scroll before loading the next page when the first one fills the viewport', async () => {
+    const server = makeFakeJmapServer({
+      emails: makeEmails(EMAIL_LIST_PAGE_SIZE * 2)
+    })
+    // 16 rows in view: with the overscan, rows up to the 20th are rendered
+    renderList(server, 'mailbox-inbox', null, 56 * 16)
+    const queriedPositions = (): unknown[] =>
+      server.requests.flatMap(({ methodCalls }) =>
+        methodCalls
+          .filter(([name]) => name === 'Email/query')
+          .map(([, args]) => args.position)
+      )
+
+    await screen.findAllByTestId('email-list-item')
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
+    expect(queriedPositions()).toEqual([0])
+
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+    fireEvent.scroll(scroller, { target: { scrollTop: 56 * 5 } })
+    await waitFor(() => {
+      expect(queriedPositions()).toEqual([0, EMAIL_LIST_PAGE_SIZE])
+    })
+  })
+
+  it('shows the progress of the next page inside the list, after its last row', async () => {
+    const server = makeFakeJmapServer({
+      emails: makeEmails(EMAIL_LIST_PAGE_SIZE * 2)
+    })
+    renderList(server, 'mailbox-inbox', null, 56 * 10)
+    await screen.findAllByTestId('email-list-item')
+    const scroller = document.querySelector('[data-virtuoso-scroller]')
+    if (!scroller) throw new Error('No scroller')
+    const release = server.holdRequests('Email/query')
+
+    fireEvent.scroll(scroller, {
+      target: { scrollTop: 56 * (EMAIL_LIST_PAGE_SIZE - 5) }
+    })
+
+    // In the table: a box below it would shrink the list, moving its rows
+    const progress = await screen.findByRole('progressbar', {
+      name: 'Loading... Please wait!'
+    })
+    expect(screen.getByTestId('email-list')).toContainElement(progress)
+    expect(progress.closest('tfoot')).not.toBe(null)
+    release()
+    expect(await screen.findByText('Email 30')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(progress).not.toBeInTheDocument()
+    })
   })
 
   it('shows the most recent emails again on Refresh, as tmail-flutter', async () => {
@@ -559,6 +614,29 @@ describe('EmailList', () => {
 
     expect(await screen.findByText('Email 0')).toBeInTheDocument()
     expect(screen.queryByTestId('email-list-error')).toBe(null)
+  })
+
+  it('shows the error with Retry when the server never answers, and recovers once it does', async () => {
+    jest.useFakeTimers()
+    try {
+      const server = makeFakeJmapServer({ emails: makeEmails(2) })
+      const release = server.holdRequests('Email/query')
+      renderList(server)
+      await waitFor(() => {
+        expect(server.calledMethods()).toContain('Email/query')
+      })
+
+      act(() => {
+        jest.advanceTimersByTime(JMAP_REQUEST_TIMEOUT_MS)
+      })
+
+      const error = await screen.findByTestId('email-list-error')
+      release()
+      fireEvent.click(within(error).getByRole('button', { name: 'Retry' }))
+      expect(await screen.findByText('Email 0')).toBeInTheDocument()
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   it('shows the empty view for a mailbox without emails', async () => {
@@ -1104,7 +1182,7 @@ describe('EmailList', () => {
       )
 
       await screen.findAllByTestId('email-list-item')
-      expect(container.querySelector('tfoot')).toHaveAttribute(
+      expect(container.querySelector('tfoot tr')).toHaveAttribute(
         'aria-hidden',
         'true'
       )

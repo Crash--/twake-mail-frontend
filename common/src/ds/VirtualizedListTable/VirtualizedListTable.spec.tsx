@@ -5,7 +5,7 @@ import {
 } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ReactElement } from 'react'
+import { Activity, useState, type ReactElement } from 'react'
 
 import type { VirtualizedListTableProps } from './VirtualizedListTable'
 
@@ -76,7 +76,50 @@ function renderTable(
   )
 }
 
+function HideableTable(): ReactElement {
+  const [isHidden, setIsHidden] = useState(false)
+  const handleToggle = (): void => {
+    setIsHidden(value => !value)
+  }
+  return (
+    <VirtuosoMockContext.Provider
+      value={{ viewportHeight: 10_000, itemHeight: 40 }}
+    >
+      <button type="button" onClick={handleToggle}>
+        Toggle
+      </button>
+      <Activity mode={isHidden ? 'hidden' : 'visible'}>
+        <VirtualizedListTable
+          label="Files"
+          rows={ROWS}
+          columns={COLUMNS}
+          computeItemKey={(_index, row) => String(row.id)}
+          componentsProps={{ rowContent: { children: <NameCell /> } }}
+          data-testid="files"
+        />
+      </Activity>
+    </VirtuosoMockContext.Provider>
+  )
+}
+
 describe('VirtualizedListTable', () => {
+  it('gives its scroll back when it shows again after being hidden', async () => {
+    renderDs(<HideableTable />)
+    const scroller = screen.getByTestId('files')
+    scroller.scrollTop = 120
+    act(() => {
+      scroller.dispatchEvent(new Event('scroll'))
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle' }))
+    // The browser drops the scroll of a `display: none` element
+    scroller.scrollTop = 0
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle' }))
+
+    expect(screen.getByTestId('files')).toBe(scroller)
+    expect(scroller.scrollTop).toBe(120)
+  })
+
   it('is a named table whose column headers name the cells', () => {
     renderTable()
 
@@ -86,6 +129,23 @@ describe('VirtualizedListTable', () => {
       screen.getAllByRole('columnheader').map(header => header.textContent)
     ).toEqual(['Name', 'Size'])
     expect(screen.getByTestId('files')).toContainElement(table)
+  })
+
+  it('says that its rows are being replaced while it is busy', () => {
+    renderTable(jest.fn(), { isBusy: true })
+
+    expect(screen.getByRole('table', { name: 'Files' })).toHaveAttribute(
+      'aria-busy',
+      'true'
+    )
+  })
+
+  it('is not busy by default', () => {
+    renderTable()
+
+    expect(
+      screen.getByRole('table', { name: 'Files' }).hasAttribute('aria-busy')
+    ).toBe(false)
   })
 
   it('goes from the control before it to the first row with Tab', async () => {
@@ -240,8 +300,31 @@ describe('VirtualizedListTable', () => {
   it('leaves room after the last row, hidden to screen readers', () => {
     const { container } = renderTable(jest.fn(), { bottomInset: 88 })
 
-    const spacer = container.querySelector('tfoot')
+    const spacer = container.querySelector('tfoot tr')
     expect(spacer).toHaveAttribute('aria-hidden', 'true')
     expect(screen.getAllByRole('row')).toHaveLength(ROWS.length + 1)
+  })
+
+  it('shows its footer inside the table, after the last row, before the room left', () => {
+    const { container } = renderTable(jest.fn(), {
+      bottomInset: 88,
+      footer: <span role="progressbar" aria-label="Loading" />
+    })
+
+    const footRows = container.querySelectorAll('tfoot tr')
+    expect(footRows).toHaveLength(2)
+    expect(footRows[0]).toContainElement(
+      screen.getByRole('progressbar', { name: 'Loading' })
+    )
+    expect(footRows[1]).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('files')).toContainElement(
+      container.querySelector('tfoot')
+    )
+  })
+
+  it('renders no footer without content nor room', () => {
+    const { container } = renderTable()
+
+    expect(container.querySelector('tfoot')).toBe(null)
   })
 })

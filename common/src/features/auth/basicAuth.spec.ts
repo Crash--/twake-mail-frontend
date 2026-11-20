@@ -1,3 +1,5 @@
+import { JMAP_REQUEST_TIMEOUT_MS } from '@common/jmap/requestDeadline'
+
 import {
   createBasicAuthService,
   makeBasicAuthorizationHeader
@@ -8,6 +10,7 @@ import type {
 } from './basicSessionSharing'
 
 const SESSION_URL = 'https://jmap.example.com/jmap/session'
+const SESSION_BODY = '{"username":"alice@example.com"}'
 
 function makeFetch(
   response: { ok: boolean; status: number } | Error
@@ -15,7 +18,10 @@ function makeFetch(
   return jest.fn(() =>
     response instanceof Error
       ? Promise.reject(response)
-      : Promise.resolve(response)
+      : Promise.resolve({
+          ...response,
+          text: () => Promise.resolve(SESSION_BODY)
+        })
   )
 }
 
@@ -59,6 +65,39 @@ describe('createBasicAuthService', () => {
     )
   })
 
+  it('keeps the session read by the credentials check until the session ends', async () => {
+    const service = createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch: makeFetch({ ok: true, status: 200 }) }
+    )
+    expect(service.getValidatedSession()).toBe(null)
+
+    await service.login('alice@example.com', 'secret')
+    expect(service.getValidatedSession()).toBe(SESSION_BODY)
+
+    service.clearLocalSession()
+    expect(service.getValidatedSession()).toBe(null)
+  })
+
+  it('signs in without a session when its body cannot be read', async () => {
+    const fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.reject(new TypeError('network error'))
+      })
+    )
+    const service = createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch }
+    )
+
+    await expect(service.login('alice@example.com', 'secret')).resolves.toEqual(
+      { ok: true }
+    )
+    expect(service.getValidatedSession()).toBe(null)
+  })
+
   it('reports bad credentials on 401 and stays signed out', async () => {
     const service = createBasicAuthService(
       { jmapSessionUrl: SESSION_URL },
@@ -81,6 +120,30 @@ describe('createBasicAuthService', () => {
     await expect(service.login('alice@example.com', 'secret')).resolves.toEqual(
       { ok: false, error: 'network-error' }
     )
+  })
+
+  it('reports a network error when the server never answers', async () => {
+    const timeout = jest
+      .spyOn(AbortSignal, 'timeout')
+      .mockReturnValue(
+        AbortSignal.abort(new DOMException('Timed out', 'TimeoutError'))
+      )
+    const fetch = jest.fn(
+      (_input: string, init: RequestInit) =>
+        new Promise<never>((_resolve, reject) => {
+          if (init.signal?.aborted) reject(new TypeError('Aborted'))
+        })
+    )
+    const service = createBasicAuthService(
+      { jmapSessionUrl: SESSION_URL },
+      { fetch }
+    )
+
+    await expect(service.login('alice@example.com', 'secret')).resolves.toEqual(
+      { ok: false, error: 'network-error' }
+    )
+    expect(timeout).toHaveBeenCalledWith(JMAP_REQUEST_TIMEOUT_MS)
+    timeout.mockRestore()
   })
 
   it('reports an unexpected response on a server error', async () => {

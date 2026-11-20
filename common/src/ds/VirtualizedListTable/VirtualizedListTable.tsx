@@ -36,6 +36,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement,
+  type ReactNode,
   type RefObject
 } from 'react'
 
@@ -97,36 +98,6 @@ const ROW_DIVIDER_COLOR = 'var(--twake-palette-divider)'
 const ROW_SELECTED_COLOR =
   'color-mix(in srgb, var(--twake-palette-primary-main) calc(var(--twake-palette-action-selectedOpacity) * 100%), transparent)'
 
-interface ListTableSettings {
-  label: string
-  rowLayout: RowLayout | null
-  rowCount: number | null
-  columns: readonly VirtualizedTableColumn[]
-  getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
-  onRowMenu: ((row: VirtualizedTableRow, anchor: RowMenuAnchor) => void) | null
-  onRowDragStart:
-    ((row: VirtualizedTableRow, event: DragEvent<HTMLElement>) => void) | null
-  /** Reports the width of the scroller, null when nobody listens */
-  onWidthChange: ((width: number) => void) | null
-}
-
-const ListTableContext = createContext<ListTableSettings>({
-  label: '',
-  rowLayout: null,
-  rowCount: null,
-  columns: [],
-  getRowProps: null,
-  onRowMenu: null,
-  onRowDragStart: null,
-  onWidthChange: null
-})
-
-/** Width below which `compactColumns` replace `columns`, in pixels */
-export const COMPACT_BELOW = 600
-
-/** Marks the focusable element of a row that the arrow keys move between */
-export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
-
 const ROW_SX = {
   // Containing block of the `RowLink` overlay, under the row controls
   position: 'relative',
@@ -140,6 +111,42 @@ const ROW_SX = {
     color: 'rgb(var(--twake-palette-text-primaryChannel) / 0.38)'
   }
 } as const
+
+/** The style of every row, built once per table rather than once per row */
+type RowSx =
+  typeof ROW_SX | (typeof ROW_SX & ReturnType<typeof makeRowLayoutSx>)
+
+interface ListTableSettings {
+  label: string
+  rowSx: RowSx
+  rowCount: number | null
+  isBusy: boolean
+  columns: readonly VirtualizedTableColumn[]
+  getRowProps: ((row: VirtualizedTableRow) => RowAttributes) | null
+  onRowMenu: ((row: VirtualizedTableRow, anchor: RowMenuAnchor) => void) | null
+  onRowDragStart:
+    ((row: VirtualizedTableRow, event: DragEvent<HTMLElement>) => void) | null
+  /** Reports the width of the scroller, null when nobody listens */
+  onWidthChange: ((width: number) => void) | null
+}
+
+const ListTableContext = createContext<ListTableSettings>({
+  label: '',
+  rowSx: ROW_SX,
+  rowCount: null,
+  isBusy: false,
+  columns: [],
+  getRowProps: null,
+  onRowMenu: null,
+  onRowDragStart: null,
+  onWidthChange: null
+})
+
+/** Width below which `compactColumns` replace `columns`, in pixels */
+export const COMPACT_BELOW = 600
+
+/** Marks the focusable element of a row that the arrow keys move between */
+export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
 
 export function makeRowLayoutSx({
   paddingX,
@@ -183,6 +190,12 @@ export function makeRowLayoutSx({
     },
     '& .MuiTableCell-root:last-of-type': { paddingRight: `${paddingX}px` }
   }
+}
+
+function makeRowSx(layout: RowLayout | undefined): RowSx {
+  return layout === undefined
+    ? ROW_SX
+    : { ...ROW_SX, ...makeRowLayoutSx(layout) }
 }
 
 /**
@@ -302,13 +315,14 @@ function ListTable({
   children,
   ...props
 }: TableProps): ReactElement {
-  const { label, rowCount, columns } = useContext(ListTableContext)
+  const { label, rowCount, isBusy, columns } = useContext(ListTableContext)
   return (
     <Table
       {...props}
       aria-label={label}
       // + 1: the header row
       aria-rowcount={rowCount === null ? -1 : rowCount + 1}
+      aria-busy={isBusy ? true : undefined}
       onKeyDown={handleArrowKeys}
       sx={{ tableLayout: 'fixed' }}
     >
@@ -345,7 +359,7 @@ function ListTableRow({
   context,
   ...props
 }: TableRowProps): ReactElement {
-  const { getRowProps, onRowMenu, onRowDragStart, rowLayout } =
+  const { getRowProps, onRowMenu, onRowDragStart, rowSx } =
     useContext(ListTableContext)
   // The menu key may also send a contextmenu event: open the menu once
   const openedByKey = useRef(false)
@@ -387,11 +401,7 @@ function ListTableRow({
       aria-rowindex={props['data-index'] + 2}
       selected={context.isSelectedItem(item)}
       hover
-      sx={
-        rowLayout === null
-          ? ROW_SX
-          : { ...ROW_SX, ...makeRowLayoutSx(rowLayout) }
-      }
+      sx={rowSx}
       {...(onRowMenu === null
         ? {}
         : { onContextMenu: handleContextMenu, onKeyDown: handleKeyDown })}
@@ -403,23 +413,40 @@ function ListTableRow({
 }
 
 /**
- * Room after the last row, scrolled with the rows: virtuoso makes its footer
- * sticky, this one drops that style. Hidden to screen readers
+ * What follows the last row (`footer`, `bottomInset`), scrolled with the
+ * rows: virtuoso makes its footer sticky, this one drops that style
  */
-const SpacerTableFoot = forwardRef<HTMLTableSectionElement, TableFootProps>(
-  function SpacerTableFoot(
-    { context: _context, style: _style, ...props },
-    ref
-  ) {
-    return <tfoot {...props} ref={ref} aria-hidden="true" />
+const ListTableFoot = forwardRef<HTMLTableSectionElement, TableFootProps>(
+  function ListTableFoot({ context: _context, style: _style, ...props }, ref) {
+    return <tfoot {...props} ref={ref} />
   }
 )
 
+/** Room after the last row, hidden to screen readers */
 function renderSpacer(height: number, columnCount: number): ReactElement {
   return (
-    <tr>
+    <tr aria-hidden="true">
       <Box component="td" colSpan={columnCount} sx={{ height, padding: 0 }} />
     </tr>
+  )
+}
+
+function renderFooter(
+  footer: ReactNode,
+  bottomInset: number,
+  columnCount: number
+): ReactElement {
+  return (
+    <>
+      {footer === null ? null : (
+        <tr>
+          <Box component="td" colSpan={columnCount} sx={{ padding: 0 }}>
+            {footer}
+          </Box>
+        </tr>
+      )}
+      {bottomInset > 0 ? renderSpacer(bottomInset, columnCount) : null}
+    </>
   )
 }
 
@@ -429,7 +456,7 @@ const COMPONENTS: TableComponents = {
   TableHead: HiddenTableHead,
   TableBody: ListTableBody,
   TableRow: ListTableRow,
-  TableFoot: SpacerTableFoot
+  TableFoot: ListTableFoot
 }
 
 export interface VirtualizedListTableProps extends Omit<
@@ -455,8 +482,16 @@ export interface VirtualizedListTableProps extends Omit<
   compactRowLayout?: RowLayout
   /** Free room after the last row, e.g. for a floating button, in pixels */
   bottomInset?: number
+  /**
+   * After the last row, scrolled with the rows, e.g. the progress of the
+   * next page. Inside the scroller, it never changes the height of the
+   * table, as a sibling would, moving the rows in view
+   */
+  footer?: ReactNode
   /** Number of rows of the whole list, loaded or not; null when unknown */
   rowCount?: number | null
+  /** The rows are being replaced (`aria-busy`), e.g. by the next results */
+  isBusy?: boolean
   /** Attributes of the `tr` of a row: `data-*` ids and states, `aria-*` */
   getRowProps?: (row: VirtualizedTableRow) => RowAttributes
   /**
@@ -485,17 +520,17 @@ export interface VirtualizedListTableProps extends Omit<
   'data-testid'?: string
 }
 
+function isInRange(index: number, range: ListTableRange | null): boolean {
+  return range !== null && index >= range.startIndex && index <= range.endIndex
+}
+
 function canRestore(
   scroll: ListTableScroll | null,
   rowCount: number,
   focusedRowIndex: number | null
 ): scroll is ListTableScroll {
   if (scroll === null || scroll.range.endIndex >= rowCount) return false
-  return (
-    focusedRowIndex === null ||
-    (focusedRowIndex >= scroll.range.startIndex &&
-      focusedRowIndex <= scroll.range.endIndex)
-  )
+  return focusedRowIndex === null || isInRange(focusedRowIndex, scroll.range)
 }
 
 /**
@@ -521,6 +556,7 @@ function useSaveScrollOnLeave(
   onLeave: ((scroll: ListTableScroll) => void) | null
 ): {
   tableRef: RefObject<ComponentRef<typeof VirtualizedTable> | null>
+  rangeRef: RefObject<ListTableRange | null>
   trackRange: (range: ListTableRange) => void
 } {
   const tableRef = useRef<ComponentRef<typeof VirtualizedTable>>(null)
@@ -545,7 +581,53 @@ function useSaveScrollOnLeave(
   const trackRange = useCallback((range: ListTableRange): void => {
     rangeRef.current = range
   }, [])
-  return { tableRef, trackRange }
+  return { tableRef, rangeRef, trackRange }
+}
+
+/**
+ * Keeps the place of a table hidden, then shown again, without unmounting
+ * (`<Activity mode="hidden">`, e.g. the list behind an item opened from
+ * it): the browser drops the scroll of a `display: none` scroller, given
+ * back before the table reads it, and the row to focus, out of view when
+ * the item went to its neighbours meanwhile, is scrolled to. Layout
+ * effects, run on mount and each time it shows: virtuoso reads the scroll
+ * in a passive effect, after them.
+ */
+function useKeepPlaceWhenShownAgain(
+  tableId: string,
+  tableRef: RefObject<ComponentRef<typeof VirtualizedTable> | null>,
+  rangeRef: RefObject<ListTableRange | null>,
+  focusedRowIndex: number | null
+): void {
+  const focusedRowIndexRef = useRef(focusedRowIndex)
+  const scrollTopRef = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    focusedRowIndexRef.current = focusedRowIndex
+  }, [focusedRowIndex])
+  useLayoutEffect(() => {
+    const scroller = document.getElementById(tableId)
+    if (scroller === null) return
+    const scrollTop = scrollTopRef.current
+    if (scrollTop !== null && scroller.scrollTop !== scrollTop) {
+      scroller.scrollTop = scrollTop
+    }
+    const index = focusedRowIndexRef.current
+    if (
+      scrollTop !== null &&
+      index !== null &&
+      !isInRange(index, rangeRef.current)
+    ) {
+      tableRef.current?.scrollToIndex({ index, align: 'center' })
+    }
+    const handleScroll = (): void => {
+      scrollTopRef.current = scroller.scrollTop
+    }
+    handleScroll()
+    scroller.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      scroller.removeEventListener('scroll', handleScroll)
+    }
+  }, [tableId, tableRef, rangeRef])
 }
 
 /** Frames to wait for the row to focus to be rendered */
@@ -605,6 +687,7 @@ function useFocusRowOnMount(tableId: string, index: number | null): void {
 export function VirtualizedListTable({
   label,
   rowCount = null,
+  isBusy = false,
   getRowProps,
   onRowMenu,
   onRowDragStart,
@@ -612,6 +695,7 @@ export function VirtualizedListTable({
   compactColumns,
   compact = false,
   bottomInset = 0,
+  footer = null,
   rowLayout,
   compactRowLayout,
   focusedRowIndex = null,
@@ -628,7 +712,10 @@ export function VirtualizedListTable({
       ? savedScroll
       : null
   )
-  const { tableRef, trackRange } = useSaveScrollOnLeave(onLeave ?? null)
+  const { tableRef, rangeRef, trackRange } = useSaveScrollOnLeave(
+    onLeave ?? null
+  )
+  useKeepPlaceWhenShownAgain(tableId, tableRef, rangeRef, focusedRowIndex)
   const handleRangeChanged = useCallback(
     (range: ListTableRange): void => {
       trackRange(range)
@@ -647,7 +734,8 @@ export function VirtualizedListTable({
     () => ({
       label,
       rowCount,
-      rowLayout: isCompact ? (compactRowLayout ?? null) : (rowLayout ?? null),
+      isBusy,
+      rowSx: makeRowSx(isCompact ? compactRowLayout : rowLayout),
       columns,
       getRowProps: getRowProps ?? null,
       onRowMenu: onRowMenu ?? null,
@@ -657,6 +745,7 @@ export function VirtualizedListTable({
     [
       label,
       rowCount,
+      isBusy,
       isCompact,
       rowLayout,
       compactRowLayout,
@@ -678,12 +767,12 @@ export function VirtualizedListTable({
         {...startAt(restored, focusedRowIndex)}
         columns={columns}
         components={COMPONENTS}
-        {...(bottomInset > 0
-          ? {
-              fixedFooterContent: () =>
-                renderSpacer(bottomInset, columns.length)
-            }
-          : {})}
+        // Always given: virtuoso keeps the last footer of a prop left out
+        fixedFooterContent={
+          bottomInset > 0 || footer !== null
+            ? () => renderFooter(footer, bottomInset, columns.length)
+            : undefined
+        }
       />
     </ListTableContext.Provider>
   )

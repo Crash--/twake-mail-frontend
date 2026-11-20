@@ -19,17 +19,25 @@ function isArrival(email: CountedEmail): boolean {
  * How many times emails more recent than the ones already listed have
  * arrived (by push) since the list was first loaded: what a live region
  * announces. Older emails, appended when scrolling, do not count, nor do
- * the drafts and sent messages the user just saved.
+ * the drafts and sent messages the user just saved. Another list
+ * (`listKey`: the results of another search) starts again from its first
+ * load: its emails are not arrivals.
  */
 export function useNewEmailCount(
   emails: readonly CountedEmail[],
-  isLoaded: boolean
+  isLoaded: boolean,
+  listKey: string
 ): number {
   const [count, setCount] = useState(0)
   // ISO 8601 dates in UTC compare as strings; null until loaded
   const newestRef = useRef<string | null>(null)
+  const listKeyRef = useRef(listKey)
 
   useEffect(() => {
+    if (listKeyRef.current !== listKey) {
+      listKeyRef.current = listKey
+      newestRef.current = null
+    }
     if (!isLoaded) return
     const newest = emails.reduce(
       (latest, email) =>
@@ -45,7 +53,7 @@ export function useNewEmailCount(
     if (hasArrival) {
       setCount(value => value + 1)
     }
-  }, [emails, isLoaded])
+  }, [emails, isLoaded, listKey])
 
   return count
 }

@@ -165,15 +165,143 @@
       window.addEventListener('unhandledrejection', function (e) {
         // AbortErrors are intentional (SSO redirect in progress, cancelled fetches)
         if (e.reason && e.reason.name === 'AbortError') return
-        // Only intervene when React has not rendered anything — i.e. a true blank page
+        // Only intervene when React has not rendered anything — i.e. the
+        // page still shows the boot shell (or nothing at all)
         var root = document.getElementById('root')
-        if (root && root.children.length > 0) return
+        var bootShell = document.getElementById('boot-shell')
+        if (root && root.children.length > 0 && !bootShell) return
         showFallbackUI()
       })
     </script>
   </head>
   <body class="u-h-100">
     <noscript>You need to enable JavaScript to run Twake Mail.</noscript>
-    <div id="root" class="u-h-100"></div>
+    <!--
+      The boot shell: painted before the bundle is downloaded, so that a slow
+      network shows a spinner and a status text instead of a blank page.
+      React replaces it with its first render (createRoot clears #root). The
+      colours follow the colour scheme the head script picked (color-scheme).
+    -->
+    <style>
+      .boot-shell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        height: 100%;
+        margin: 0;
+        padding: 24px;
+        box-sizing: border-box;
+        text-align: center;
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+        font-size: 1rem;
+      }
+      .boot-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(128, 128, 128, 0.3);
+        border-top-color: currentColor;
+        border-radius: 50%;
+        box-sizing: border-box;
+        animation: boot-spin 1s linear infinite;
+      }
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-spinner {
+          animation: none;
+        }
+      }
+    </style>
+    <div id="root" class="u-h-100">
+      <div id="boot-shell" class="boot-shell" role="status" aria-live="polite">
+        <span class="boot-spinner" aria-hidden="true"></span>
+        <span id="boot-text">Loading... Please wait!</span>
+      </div>
+    </div>
+    <script>
+      // The text of the boot shell in the language of the user (the one
+      // chosen in this browser, else the one of the browser), and a hint to
+      // check the connection when the bundle is still not there
+      ;(function () {
+        var BOOT_I18N = {
+          en: {
+            loading: 'Loading... Please wait!',
+            slow: 'Still loading. Check your connection.'
+          },
+          fr: {
+            loading: 'Chargement... Veuillez patienter !',
+            slow: 'Chargement toujours en cours. Vérifiez votre connexion.'
+          },
+          ru: {
+            loading: 'Загрузка... Подождите.',
+            slow: 'Загрузка продолжается. Проверьте подключение.'
+          },
+          vi: {
+            loading: 'Đang tiến hành ...',
+            slow: 'Vẫn đang tải. Hãy kiểm tra kết nối của bạn.'
+          },
+          it: {
+            loading: 'Caricamento… Attendere prego!',
+            slow: 'Caricamento ancora in corso. Controlla la connessione.'
+          },
+          de: {
+            loading: 'Lädt... Bitte warten!',
+            slow: 'Wird noch geladen. Prüfen Sie Ihre Verbindung.'
+          },
+          mn: {
+            loading: 'Ачааллаж байна... Түр хүлээнэ үү!',
+            slow: 'Ачаалсаар байна. Холболтоо шалгана уу.'
+          },
+          es: {
+            loading: 'Cargando… ¡Espere, por favor!',
+            slow: 'Todavía cargando. Compruebe su conexión.'
+          }
+        }
+        var SLOW_AFTER_MS = 8000
+
+        function bootLanguage() {
+          var candidates = []
+          try {
+            candidates.push(localStorage.getItem('lang'))
+          } catch (e) {
+            // Storage disabled by the browser settings
+          }
+          candidates = candidates.concat(
+            navigator.languages || [navigator.language]
+          )
+          for (var i = 0; i < candidates.length; i++) {
+            var tag = candidates[i]
+            if (!tag) continue
+            var primary = String(tag).toLowerCase().split(/[-_]/)[0]
+            if (BOOT_I18N.hasOwnProperty(primary)) return primary
+          }
+          return 'en'
+        }
+
+        var text = document.getElementById('boot-text')
+        if (!text) return
+        var lang = bootLanguage()
+        var messages = BOOT_I18N[lang]
+        text.setAttribute('lang', lang)
+        text.textContent = messages.loading
+        setTimeout(function () {
+          // Gone once React has rendered
+          if (text.isConnected) text.textContent = messages.slow
+        }, SLOW_AFTER_MS)
+      })()
+    </script>
   </body>
 </html>

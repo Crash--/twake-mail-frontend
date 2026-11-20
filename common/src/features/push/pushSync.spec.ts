@@ -11,6 +11,7 @@ import { sendEmailChanges } from '@common/features/emailActions/sendEmailChanges
 import { emailQueryOptions } from '@common/features/email/queries'
 import {
   mailboxesQueryOptions,
+  mailboxRightsQueryOptions,
   type MailboxListData
 } from '@common/features/mailbox/queries'
 import { emailListSourceQueryOptions } from '@common/features/thread/emailListSource'
@@ -590,6 +591,35 @@ describe('createPushSync', () => {
       9
     )
     expect(data?.state).toBe(setup.server.states().Mailbox)
+  })
+
+  it('invalidates the cached rights of the changed mailboxes only', async () => {
+    const setup = await makeSetup()
+    await setup.queryClient.query(
+      mailboxesQueryOptions(setup.client, FAKE_ACCOUNT_ID)
+    )
+    const inboxRights = mailboxRightsQueryOptions(
+      setup.client,
+      FAKE_ACCOUNT_ID,
+      INBOX
+    )
+    const archiveRights = mailboxRightsQueryOptions(
+      setup.client,
+      FAKE_ACCOUNT_ID,
+      ARCHIVE
+    )
+    setup.queryClient.setQueryData(inboxRights.queryKey, {})
+    setup.queryClient.setQueryData(archiveRights.queryKey, {})
+
+    setup.server.updateMailbox(INBOX, { unreadEmails: 9 })
+    await pushNow(setup)
+
+    expect(
+      setup.queryClient.getQueryState(inboxRights.queryKey)?.isInvalidated
+    ).toBe(true)
+    expect(
+      setup.queryClient.getQueryState(archiveRights.queryKey)?.isInvalidated
+    ).toBe(false)
   })
 
   it('follows the changes over several requests while the server has more', async () => {

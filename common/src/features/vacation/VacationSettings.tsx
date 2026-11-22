@@ -1,12 +1,5 @@
 import { CircleFilled, Icon } from '@linagora/twake-icons'
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  ToggleButton,
-  ToggleButtonGroup
-} from '@linagora/twake-mui'
+import { Alert, Box, Button, Chip, Tab, Tabs } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
 import type { VacationResponse } from 'jmap-client-ts'
@@ -278,28 +271,31 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           labelId={startsId}
           isDisabled={isOff}
         >
-          <ToggleButtonGroup
-            exclusive
-            size="small"
+          <Tabs
+            segmented
+            narrowed
             aria-labelledby={startsId}
             value={isRightAway ? 'now' : 'pick'}
-            disabled={isOff}
             onChange={(_event, choice: unknown) => {
-              // Pressing the chosen one again keeps it
-              if (choice === null) return
               setIsRightAway(choice === 'now')
               setIsStartTouched(true)
               setProblem(null)
             }}
             data-testid="vacation-start-choice"
           >
-            <ToggleButton value="now" data-testid="vacation-start-choice-now">
-              {t('vacation.rightAway')}
-            </ToggleButton>
-            <ToggleButton value="pick" data-testid="vacation-start-choice-pick">
-              {t('vacation.pickTime')}
-            </ToggleButton>
-          </ToggleButtonGroup>
+            <Tab
+              value="now"
+              label={t('vacation.rightAway')}
+              disabled={isOff}
+              data-testid="vacation-start-choice-now"
+            />
+            <Tab
+              value="pick"
+              label={t('vacation.pickTime')}
+              disabled={isOff}
+              data-testid="vacation-start-choice-pick"
+            />
+          </Tabs>
         </SettingsFormRow>
         {isRightAway ? null : (
           <SettingsFormPair
@@ -357,14 +353,12 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
           labelId={endsId}
           isDisabled={isOff}
         >
-          <ToggleButtonGroup
-            exclusive
-            size="small"
+          <Tabs
+            segmented
+            narrowed
             aria-labelledby={endsId}
             value={hasEnd ? 'pick' : 'off'}
-            disabled={isOff}
             onChange={(_event, choice: unknown) => {
-              if (choice === null) return
               const isPicked = choice === 'pick'
               setHasEnd(isPicked)
               setProblem(null)
@@ -375,13 +369,19 @@ function VacationForm({ vacation }: VacationFormProps): ReactElement {
             }}
             data-testid="vacation-end-choice"
           >
-            <ToggleButton value="off" data-testid="vacation-end-choice-off">
-              {t('vacation.untilTurnedOff')}
-            </ToggleButton>
-            <ToggleButton value="pick" data-testid="vacation-end-choice-pick">
-              {t('vacation.pickTime')}
-            </ToggleButton>
-          </ToggleButtonGroup>
+            <Tab
+              value="off"
+              label={t('vacation.untilTurnedOff')}
+              disabled={isOff}
+              data-testid="vacation-end-choice-off"
+            />
+            <Tab
+              value="pick"
+              label={t('vacation.pickTime')}
+              disabled={isOff}
+              data-testid="vacation-end-choice-pick"
+            />
+          </Tabs>
         </SettingsFormRow>
         {!hasEnd ? null : (
           <SettingsFormPair

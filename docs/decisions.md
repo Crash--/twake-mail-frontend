@@ -135,3 +135,17 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Gaps to the mockup: the selected rows keep twake-mui's pale blue selected background where the mockup draws them grey, the count reads "N selected" where the mockup shows the number alone, and the selection bar and the "Select all" band are white where the mockup draws them grey-blue. Decided by: Pending, Crash-- (CTO), [#1127](https://github.com/Crash--/twake-mail-frontend/pull/1127).
 - Why: in the hand, acting on several emails at once comes first; a focused bar of three actions and an overflow keeps the toolbar clear.
 - Scope: mobile and touch tablet, email lists.
+
+## 2026-11-24, [UI] The vacation start and end are twake-mui's segmented control
+
+- Decision: "Starts:" and "Ends:" in Settings > Vacation use twake-mui's `Tabs` `segmented`: a grey track, the chosen option raised on a white pill with its label in `primary.main`, as the Figma.
+- Decided by: Crash-- (CTO), from [#892](https://github.com/Crash--/twake-mail-frontend/issues/892); the chosen label became `primary.main` in twake-mui 21 ([linagora/twake-ui#267](https://github.com/linagora/twake-ui/pull/267), same change in [cozy/cozy-ui#2987](https://github.com/cozy/cozy-ui/pull/2987)); applied in [#1123](https://github.com/Crash--/twake-mail-frontend/pull/1123).
+- Why: the squared toggle group did not match the design, and twake-mui ships the pill control.
+- Scope: desktop and mobile, Settings > Vacation.
+
+## 2026-11-24, [UI] Pending: semantics of the vacation segmented control
+
+- Options: keep the semantics twake-mui gives `Tabs` `segmented` (tabs without panels, one Tab stop, the arrow keys then Enter or Space), as Twake Drive's Sharings tabs; or a radio group, which needs a segmented radio control in twake-mui.
+- To decide: Crash-- (CTO).
+- Why it matters: a screen reader announces tabs for what is a choice between two values.
+- Scope: desktop and mobile, Settings > Vacation.

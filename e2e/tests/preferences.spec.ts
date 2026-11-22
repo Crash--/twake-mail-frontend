@@ -165,7 +165,7 @@ test.describe('SET preferences', () => {
       const { fromDate } = await savedVacation()
       await expect(
         page.getByTestId('vacation-start-choice-now')
-      ).toHaveAttribute('aria-pressed', 'true')
+      ).toHaveAttribute('aria-selected', 'true')
       await page.getByTestId('vacation-subject-input').fill('Out of office')
       await page.getByTestId('vacation-save-button').click()
       await expect

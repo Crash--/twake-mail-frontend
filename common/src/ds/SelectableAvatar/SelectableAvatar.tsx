@@ -1,9 +1,9 @@
 // Upstream to twake-ui: no, the compact rows of the list: the avatar of the
 // sender is where a row is selected, and once selected it turns into
-// the glyph of twake-mui's checked `Checkbox`, in the middle of a 48 px touch
-// target. The avatar is a checkbox of its own, reached by keyboard and named by
-// its label.
-import { CheckSquare, Icon } from '@linagora/twake-icons'
+// the glyph of twake-mui's checked `Checkbox` (or a round check, the selection
+// of Teammail 1.1 on a phone), in the middle of a 48 px touch target. The
+// avatar is a checkbox of its own, reached by keyboard and named by its label.
+import { CheckCircle, CheckSquare, Icon } from '@linagora/twake-icons'
 import { ButtonBase } from '@linagora/twake-mui'
 import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react'
 
@@ -26,6 +26,8 @@ export interface SelectableAvatarProps {
   label: string
   /** `small`: 32 px, the recipients of the forwarding */
   size?: 'medium' | 'small'
+  /** Once checked: `square`, the checked Checkbox; `round`, a 20 px check */
+  checkedLook?: 'square' | 'round'
   ref?: Ref<HTMLButtonElement>
   'data-testid'?: string
 }
@@ -39,6 +41,7 @@ export function SelectableAvatar({
   onClick,
   label,
   size = 'medium',
+  checkedLook = 'square',
   ref,
   'data-testid': testId
 }: SelectableAvatarProps): ReactElement {
@@ -54,10 +57,11 @@ export function SelectableAvatar({
       data-testid={testId}
     >
       {checked ? (
-        // The glyph of the checked Checkbox: a real one here would nest two
-        // controls, this button already is the checkbox
+        // A glyph, not a Checkbox: a real one here would nest two controls,
+        // this button already is the checkbox
         <Icon
-          icon={CheckSquare}
+          icon={checkedLook === 'round' ? CheckCircle : CheckSquare}
+          size={checkedLook === 'round' ? 20 : undefined}
           color="var(--twake-palette-primary-main)"
           aria-hidden="true"
         />

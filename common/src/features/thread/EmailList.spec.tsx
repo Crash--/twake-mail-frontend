@@ -1098,6 +1098,75 @@ describe('EmailList', () => {
       expect(avatar).toHaveAttribute('aria-checked', 'true')
     })
 
+    it('selects a row held down (a context menu on Android), then selects a tapped row instead of opening it', async () => {
+      renderList(
+        makeFakeJmapServer({
+          emails: [
+            makeEmail({ id: 'first', subject: 'Fresh news' }),
+            makeEmail({ id: 'second', subject: 'Old news' })
+          ]
+        })
+      )
+      const [first, second] = await screen.findAllByTestId('email-list-item')
+      if (first === undefined || second === undefined) throw new Error('rows')
+      const avatarOf = (row: HTMLElement): HTMLElement =>
+        within(row).getByRole('checkbox', { name: /^Select / })
+
+      fireEvent.contextMenu(first)
+
+      expect(avatarOf(first)).toHaveAttribute('aria-checked', 'true')
+      expect(screen.queryByTestId('email-context-menu')).toBe(null)
+
+      await userEvent.click(within(second).getByRole('link'))
+
+      expect(avatarOf(second)).toHaveAttribute('aria-checked', 'true')
+      // Highlighted as the selected rows of Teammail 1.1
+      expect(second).toHaveClass('Mui-selected')
+      expect(screen.getByTestId('selection-toolbar-count')).toHaveTextContent(
+        '2 selected'
+      )
+    })
+
+    it('keeps the menu of a row on a right click in a narrow window with a mouse', async () => {
+      mockViewport({ width: 390, touch: false })
+      renderList(
+        makeFakeJmapServer({
+          emails: [makeEmail({ id: 'first', subject: 'Fresh news' })]
+        })
+      )
+      const row = await screen.findByTestId('email-list-item')
+
+      fireEvent.contextMenu(row, { clientX: 120, clientY: 80 })
+
+      expect(await screen.findByTestId('email-context-menu')).toBeVisible()
+      // Under the menu, out of the accessibility tree
+      expect(
+        within(row).getByTestId('email-list-item-checkbox')
+      ).toHaveAttribute('aria-checked', 'false')
+    })
+
+    it('selects every row from "Select all" under the selection bar, and clears them from it', async () => {
+      renderList(makeFakeJmapServer({ emails: makeEmails(3) }))
+      const [row] = await screen.findAllByTestId('email-list-item')
+      if (row === undefined) throw new Error('No row')
+      await userEvent.click(
+        within(row).getByRole('checkbox', { name: /^Select / })
+      )
+      const selectAll = screen.getByRole('checkbox', { name: 'Select all' })
+      expect(selectAll).not.toBeChecked()
+
+      await userEvent.click(selectAll)
+
+      expect(screen.getByTestId('selection-toolbar-count')).toHaveTextContent(
+        '3 selected'
+      )
+      expect(selectAll).toBeChecked()
+
+      await userEvent.click(selectAll)
+
+      expect(screen.queryByTestId('selection-toolbar')).toBe(null)
+    })
+
     it('leaves room for the floating button after the last row', async () => {
       const { container } = renderList(
         makeFakeJmapServer({ emails: makeEmails(2) })
@@ -1108,6 +1177,68 @@ describe('EmailList', () => {
         'aria-hidden',
         'true'
       )
+    })
+  })
+
+  describe('on a tablet', () => {
+    afterEach(resetViewport)
+
+    function renderTwoRows(): void {
+      renderList(
+        makeFakeJmapServer({
+          emails: [
+            makeEmail({ id: 'first', subject: 'Fresh news' }),
+            makeEmail({ id: 'second', subject: 'Old news' })
+          ]
+        })
+      )
+    }
+    const avatarOf = (row: HTMLElement): HTMLElement =>
+      within(row).getByTestId('email-list-item-checkbox')
+
+    it('with a touch screen, selects as a phone does: a long press, then a tap, a round check', async () => {
+      mockViewport({ width: 820, touch: true })
+      renderTwoRows()
+      const [first, second] = await screen.findAllByTestId('email-list-item')
+      if (first === undefined || second === undefined) throw new Error('rows')
+
+      // A long press, as Android reports it
+      fireEvent.contextMenu(first)
+      await userEvent.click(within(second).getByRole('link'))
+
+      expect(avatarOf(first)).toHaveAttribute('aria-checked', 'true')
+      expect(avatarOf(second)).toHaveAttribute('aria-checked', 'true')
+      expect(second).toHaveClass('Mui-selected')
+      expect(avatarOf(second).querySelector('svg')).toHaveAttribute(
+        'width',
+        '20'
+      )
+      expect(
+        screen.getByRole('checkbox', { name: 'Select all' })
+      ).toBeInTheDocument()
+    })
+
+    it('with a mouse, keeps the checked box, the menu of a row and its links', async () => {
+      mockViewport({ width: 820, touch: false })
+      renderTwoRows()
+      const [first] = await screen.findAllByTestId('email-list-item')
+      if (first === undefined) throw new Error('rows')
+
+      await userEvent.click(avatarOf(first))
+
+      expect(avatarOf(first)).toHaveAttribute('aria-checked', 'true')
+      expect(avatarOf(first).querySelector('svg')).not.toHaveAttribute(
+        'width',
+        '20'
+      )
+      expect(first).not.toHaveClass('Mui-selected')
+      expect(
+        screen.getByRole('button', { name: 'Select all' })
+      ).toHaveAttribute('aria-pressed', 'false')
+
+      fireEvent.contextMenu(first, { clientX: 120, clientY: 80 })
+
+      expect(await screen.findByTestId('email-context-menu')).toBeVisible()
     })
   })
 

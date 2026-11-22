@@ -15,6 +15,7 @@ import {
   FOCUS_RING,
   FOCUS_RING_INSET
 } from '@/ds/FocusIndicator/focusIndicator'
+import { useLongPress } from '@/ds/useLongPress/useLongPress'
 import { ROW_FOCUS_ATTRIBUTE } from '@/ds/VirtualizedListTable/VirtualizedListTable'
 
 export interface RowLinkProps {
@@ -36,6 +37,11 @@ export interface RowLinkProps {
    * current folder of the tree is the `page`)
    */
   current?: boolean
+  /**
+   * A finger held on the row; its end follows no link. A context menu the
+   * browser reports for the same press (Android) then reaches nothing else
+   */
+  onLongPress?: () => void
   'data-testid'?: string
 }
 
@@ -72,8 +78,10 @@ export function RowLink({
   children,
   multiline = false,
   current = false,
+  onLongPress,
   'data-testid': testId
 }: RowLinkProps): ReactElement {
+  const longPress = useLongPress(onLongPress)
   const handleClick = (event: MouseEvent<HTMLAnchorElement>): void => {
     if (!isPlainClick(event)) return
     event.preventDefault()
@@ -84,6 +92,13 @@ export function RowLink({
     <Link
       href={href}
       onClick={handleClick}
+      {...longPress.handlers}
+      onContextMenu={(event: MouseEvent<HTMLAnchorElement>) => {
+        if (longPress.cancel()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+      }}
       aria-current={current ? 'true' : undefined}
       variant="body1"
       color="inherit"
@@ -94,7 +109,11 @@ export function RowLink({
       sx={{
         '&::after': { content: '""', position: 'absolute', inset: 0 },
         '&:focus-visible': { outline: 'none' },
-        '&:focus-visible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET }
+        '&:focus-visible::after': { ...FOCUS_RING, ...FOCUS_RING_INSET },
+        // No link preview nor text selection under the held finger (iOS)
+        ...(onLongPress === undefined
+          ? {}
+          : { WebkitTouchCallout: 'none', userSelect: 'none' })
       }}
     >
       <InRowLinkContext.Provider value>{children}</InRowLinkContext.Provider>

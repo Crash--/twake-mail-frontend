@@ -96,3 +96,14 @@ export function useScreenSize(): ScreenSize {
   if (isBelowDesktop) return 'tabletLarge'
   return 'desktop'
 }
+
+/**
+ * A phone, or a tablet size with a touch screen: the screens held in the
+ * hand, where rows are selected with the fingers (a long press). A tablet
+ * size with a mouse is not one of them
+ */
+export function useIsHandheld(): boolean {
+  const screenSize = useScreenSize()
+  const isTouch = useMediaQuery(SCREEN_QUERIES.touch, MEDIA_OPTIONS)
+  return screenSize === 'mobile' || (screenSize !== 'desktop' && isTouch)
+}

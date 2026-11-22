@@ -31,7 +31,7 @@ import { ErrorScreen } from '@/ds/ErrorScreen/ErrorScreen'
 import { ListPane } from '@/ds/ListPane/ListPane'
 import { SENDER_WIDTH } from '@/ds/RowSender/RowSender'
 import { useFloatingActionInset } from '@/ds/FloatingActionButton/FloatingActionButton'
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { useIsHandheld, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   VirtualizedListTable,
   type ListTableRange,
@@ -417,9 +417,11 @@ export function EmailList(props: EmailListProps): ReactElement {
   const openEmailId = search === null ? openMailboxEmailId : search.openEmailId
   const newEmailCount = useNewEmailCount(emails, query.isSuccess)
   const selection = useEmailSelection(emails, listKey)
-  // As tmail-flutter: below the desktop size, a selected row keeps its
-  // background (its avatar is ticked); only the open email is highlighted
-  const isSelectionHighlighted = useScreenSize() === 'desktop'
+  // A selected row is highlighted on a desktop and in the hand (Teammail
+  // 1.1); on a tablet with a mouse, as tmail-flutter, it keeps its
+  // background (its avatar is ticked) and only the open email is
+  const isHandheld = useIsHandheld()
+  const isSelectionHighlighted = useScreenSize() === 'desktop' || isHandheld
   const isHighlightedRow = useCallback(
     (row: VirtualizedTableRow): boolean =>
       row.id === openEmailId ||
@@ -590,6 +592,19 @@ export function EmailList(props: EmailListProps): ReactElement {
   const compactRowLayout = useMemo(
     () => getCompactRowLayout(isPhoneList, isSelecting),
     [isPhoneList, isSelecting]
+  )
+  // The context menu of a phone or a tablet in the hand is a long press
+  // (Android reports one), which selects the row as on iOS; a narrow window
+  // with a mouse keeps the menu of the row
+  const { onRowMenu } = listActions
+  const { toggle: toggleSelected } = selection
+  const isLongPressMenu = isHandheld && !canHover
+  const handleRowMenu = useCallback<typeof onRowMenu>(
+    (row, anchor) => {
+      if (!isLongPressMenu) onRowMenu(row, anchor)
+      else if (isEmailRow(row)) toggleSelected(row.id, false)
+    },
+    [isLongPressMenu, onRowMenu, toggleSelected]
   )
   const compactColumns = useMemo<
     (VirtualizedTableColumn & { id: EmailColumnId })[]
@@ -806,7 +821,7 @@ export function EmailList(props: EmailListProps): ReactElement {
           rangeChanged={handleRangeChanged}
           increaseViewportBy={OVERSCAN_PX}
           scrollerRef={scrollerRef}
-          onRowMenu={listActions.onRowMenu}
+          onRowMenu={handleRowMenu}
           onRowDragStart={listActions.onRowDragStart}
           componentsProps={componentsProps}
         />

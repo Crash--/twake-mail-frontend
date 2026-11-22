@@ -89,7 +89,8 @@ describe('AppTopBar', () => {
     expect(screen.queryByRole('textbox')).toBe(null)
   })
 
-  it('makes what the overlay covers inert while it holds something', async () => {
+  it('on a tablet with a mouse, makes what the overlay covers inert while it holds something', async () => {
+    mockViewport({ width: 820, touch: false })
     renderDs(<CoveredBar back={false} />)
 
     expect(
@@ -121,7 +122,8 @@ describe('AppTopBar', () => {
     ).not.toHaveAttribute('inert')
   })
 
-  it('makes the back button and the search inert under the overlay in the search view', () => {
+  it('on a tablet with a mouse, makes the back button and the search inert under the overlay in the search view', () => {
+    mockViewport({ width: 820, touch: false })
     renderDs(<CoveredBar back />)
 
     expect(
@@ -130,5 +132,47 @@ describe('AppTopBar', () => {
     expect(
       screen.getByRole('textbox', { name: 'Search emails' }).parentElement
     ).toHaveAttribute('inert')
+  })
+
+  it.each([
+    ['a phone', 390],
+    ['a touch tablet', 820]
+  ])(
+    'on %s, puts the overlay in place of the bar and of the search while it holds something',
+    async (_screen, width) => {
+      mockViewport({ width, touch: true })
+      renderDs(<CoveredBar back={false} />)
+
+      expect(screen.queryByRole('button', { name: 'Show folders' })).toBe(null)
+      expect(screen.queryByRole('textbox', { name: 'Search emails' })).toBe(
+        null
+      )
+      expect(
+        screen.getByRole('button', { name: 'Clear the selection' })
+      ).toBeVisible()
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Clear the selection' })
+      )
+
+      expect(
+        await screen.findByRole('button', { name: 'Show folders' })
+      ).toBeVisible()
+      expect(
+        screen.getByRole('textbox', { name: 'Search emails' })
+      ).toBeVisible()
+    }
+  )
+
+  it('on a phone, puts the overlay in place of the search bar of the search view', () => {
+    renderDs(<CoveredBar back />)
+
+    expect(screen.queryByRole('button', { name: 'Back to the mailbox' })).toBe(
+      null
+    )
+    expect(screen.queryByRole('textbox', { name: 'Search emails' })).toBe(null)
+    expect(
+      screen.getByRole('button', { name: 'Clear the selection' })
+    ).toBeVisible()
   })
 })

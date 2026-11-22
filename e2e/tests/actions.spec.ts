@@ -4,6 +4,7 @@ import { LoginPage, type MailboxPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test, type E2EUser } from '../support/fixtures'
 import type { JmapClient, MailboxRole } from '../support/jmap'
+import { longPress } from '../support/longPress'
 
 /** Sends emails to self (each lands in the Inbox, its copy in Sent) and waits for them */
 async function seed(
@@ -558,7 +559,9 @@ test.describe('MBX selection and the reading view', () => {
 
   test(
     'MBX-61 the selection is still there back from an email opened from the list, and goes with another folder',
-    { tag: '@mobile' },
+    // Not in the hand (a phone, a touch tablet): a tap on a row selects it
+    // while emails are selected
+    { tag: '@desktop-only' },
     async ({ page, user, jmap }) => {
       await seed(jmap, user, ['keep 1', 'keep 2', 'keep 3'])
 
@@ -595,6 +598,53 @@ test.describe('MBX selection and the reading view', () => {
       await expect(mailbox.selectionToolbar).toBeHidden()
       await expect(isChecked('keep 1')).not.toBeChecked()
       await expect(isChecked('keep 2')).not.toBeChecked()
+    }
+  )
+})
+
+test.describe('MBX selection mode in the hand', () => {
+  test(
+    'MBX-65 a long press selects a row, a tap then selects another, Select all takes the place of the search, the cross ends it',
+    { tag: '@touch-only' },
+    async ({ page, user, jmap }) => {
+      await seed(jmap, user, ['mode 1', 'mode 2', 'mode 3'])
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const isChecked = (subject: string): Locator =>
+        mailbox.emailRow(subject).getByRole('checkbox')
+      const search = page.getByTestId('search-input')
+      await expect(search).toBeVisible()
+      const firstRowTop = async (): Promise<number | undefined> =>
+        (await mailbox.emailRow('mode 3').boundingBox())?.y
+      const topBefore = await firstRowTop()
+
+      // The finger lands on the link stretched over the row
+      await longPress(
+        page,
+        mailbox.emailRow('mode 1').getByTestId('email-list-item-subject')
+      )
+      await expect(mailbox.selectionToolbar).toContainText('1 selected')
+      await expect(isChecked('mode 1')).toBeChecked()
+      await expect(search).toBeHidden()
+      // "Select all" takes exactly the room of the search: the rows stay put
+      expect(await firstRowTop()).toBe(topBefore)
+
+      // A tap selects instead of opening
+      await mailbox
+        .emailRow('mode 2')
+        .getByTestId('email-list-item-subject')
+        .click()
+      await expect(mailbox.selectionToolbar).toContainText('2 selected')
+      await expect(mailbox.emailRow('mode 3')).toBeVisible()
+
+      const selectAll = page.getByRole('checkbox', { name: 'Select all' })
+      await selectAll.click()
+      await expect(mailbox.selectionToolbar).toContainText('3 selected')
+      await expectNoA11yViolations(page)
+
+      await page.getByTestId('selection-toolbar-clear').click()
+      await expect(mailbox.selectionToolbar).toBeHidden()
+      await expect(search).toBeVisible()
+      await expect(isChecked('mode 1')).not.toBeChecked()
     }
   )
 })

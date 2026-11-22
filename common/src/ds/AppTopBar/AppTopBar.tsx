@@ -16,7 +16,7 @@ import {
   type Ref
 } from 'react'
 
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { useIsHandheld, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
 /** The bar: 52 px, 16 px in on a phone, 32 px on a tablet */
 const BAR_HEIGHT = 52
@@ -34,20 +34,39 @@ function barSx(isPhone: boolean): Record<string, unknown> {
 }
 
 /**
- * Over the bar, as tall and white, hidden while empty: 16 px in on a phone,
- * 32 px on a tablet
+ * On a tablet with a mouse, over the bar, as tall and white, hidden while
+ * empty, 32 px in
  */
-function overlaySx(isPhone: boolean): Record<string, unknown> {
+const OVERLAY_SX = {
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  px: '32px',
+  bgcolor: 'background.paper',
+  '&:empty': { display: 'none' }
+} as const
+
+/**
+ * In the hand (a phone, a touch tablet), in place of the bar and of the
+ * search under it (hidden while it holds something): the selection bar of
+ * Teammail 1.1, whose "Select all" replaces the search. 16 px in on a
+ * phone, 32 px on a tablet, as the bar
+ */
+function handheldOverlaySx(isPhone: boolean): Record<string, unknown> {
   return {
-    position: 'absolute',
-    inset: 0,
     display: 'flex',
-    alignItems: 'center',
+    flexDirection: 'column',
+    flexShrink: 0,
     px: isPhone ? '16px' : '32px',
+    // The 8 px under the search it replaces: the list stays put
+    pb: '8px',
     bgcolor: 'background.paper',
     '&:empty': { display: 'none' }
   }
 }
+
+const HIDDEN_SX = { display: 'none' } as const
 
 /** Its menu button: a 28 px icon, 5 px around */
 const MENU_SX = { p: '5px' } as const
@@ -182,7 +201,9 @@ export interface AppTopBarProps {
   searchActions?: Ref<AppTopBarSearchActions>
   /**
    * A place over the bar, shown once something is rendered in it (a portal):
-   * tmail-flutter's selection bar takes the place of the app bar
+   * tmail-flutter's selection bar takes the place of the app bar. On a
+   * phone or a touch tablet it takes the place of the search too, laid out
+   * in the flow
    */
   overlayRef?: Ref<HTMLDivElement>
   /**
@@ -221,6 +242,7 @@ export function AppTopBar({
   'data-testid': testId
 }: AppTopBarProps): ReactElement {
   const isPhone = useScreenSize() === 'mobile'
+  const isHandheld = useIsHandheld()
   const searchRef = useRef<HTMLDivElement>(null)
   const [overlay, setOverlay] = useState<HTMLDivElement | null>(null)
   // What the overlay draws over stays out of reach of the keyboard and of
@@ -247,7 +269,7 @@ export function AppTopBar({
   if (back !== undefined) {
     return (
       <Box component="header" data-testid={testId}>
-        <Box sx={searchBarSx(isPhone)}>
+        <Box sx={isHandheld && isCovered ? HIDDEN_SX : searchBarSx(isPhone)}>
           <Tooltip title={back.label}>
             <IconButton
               aria-label={back.label}
@@ -265,8 +287,11 @@ export function AppTopBar({
           >
             {search}
           </Box>
-          <Box ref={overlayRefs} sx={overlaySx(isPhone)} />
+          {isHandheld ? null : <Box ref={overlayRefs} sx={OVERLAY_SX} />}
         </Box>
+        {isHandheld ? (
+          <Box ref={overlayRefs} sx={handheldOverlaySx(isPhone)} />
+        ) : null}
       </Box>
     )
   }
@@ -279,15 +304,17 @@ export function AppTopBar({
     >
       <Box
         sx={
-          start === undefined
-            ? barSx(isPhone)
-            : startTitle === 'strong'
-              ? {
-                  ...barSx(isPhone),
-                  borderBottom: 1,
-                  borderColor: 'divider'
-                }
-              : { ...barSx(isPhone), height: 64 }
+          isHandheld && isCovered
+            ? HIDDEN_SX
+            : start === undefined
+              ? barSx(isPhone)
+              : startTitle === 'strong'
+                ? {
+                    ...barSx(isPhone),
+                    borderBottom: 1,
+                    borderColor: 'divider'
+                  }
+                : { ...barSx(isPhone), height: 64 }
         }
       >
         {start !== undefined ? (
@@ -326,13 +353,37 @@ export function AppTopBar({
             </Box>
           </>
         )}
-        <Box ref={overlayRefs} sx={overlaySx(isPhone)} />
+        {isHandheld ? null : <Box ref={overlayRefs} sx={OVERLAY_SX} />}
       </Box>
       {search === null ? null : (
-        <Box ref={searchRef} sx={searchSx(isPhone)}>
+        <Box
+          ref={searchRef}
+          sx={isHandheld && isCovered ? HIDDEN_SX : searchSx(isPhone)}
+        >
           {search}
         </Box>
       )}
+      {isHandheld ? (
+        <Box ref={overlayRefs} sx={handheldOverlaySx(isPhone)} />
+      ) : null}
     </Box>
   )
+}
+
+const ROW_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  height: BAR_HEIGHT
+} as const
+
+/**
+ * A row as tall as the bar, for what takes its place on a phone (rendered
+ * in `overlayRef`)
+ */
+export function AppTopBarRow({
+  children
+}: {
+  children: ReactNode
+}): ReactElement {
+  return <Box sx={ROW_SX}>{children}</Box>
 }

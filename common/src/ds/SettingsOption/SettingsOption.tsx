@@ -1,8 +1,12 @@
 // Upstream to twake-ui: no. The options of the settings, as the Figma's
 // Preferences: groups under a `body2` heading, one row per option (its label
 // in `body1`, what it does in `caption` `text.secondary`, twake-mui's
-// `Switch` at the end), 24 px between two groups.
+// `Switch` at the end), 24 px between two groups. On a desktop the option
+// starts with its icon, in twake-mui's rounded `Avatar` on palette tokens:
+// twake-mui has no neutral tile with a dark value (docs/twake-mui-gaps.md).
+import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
+  Avatar,
   Box,
   FormControlLabel,
   Radio,
@@ -16,6 +20,12 @@ import {
   type ReactElement,
   type ReactNode
 } from 'react'
+
+import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+
+// Pending in docs/decisions.md: the token of the tile, #D9D9D9 in the Figma
+const ICON_TILE_COLOR = 'var(--twake-palette-border-main)'
+const ICON_TILE_TEXT_COLOR = 'var(--twake-palette-text-icon)'
 
 const SECTION_SX = { mb: 3, '&:last-child': { mb: 0 } } as const
 
@@ -174,14 +184,16 @@ export interface SettingsOptionProps {
    * announced when it appears, and describing the switch
    */
   warning?: string | null
+  /** Before the text, on a desktop only: a phone keeps the room for the text */
+  icon?: IconProps['icon']
   /** On the switch */
   'data-testid'?: string
 }
 
 /**
- * An option of the settings, one row: the label of the switch and what it
- * does, the switch at the end, named by the label and described by the text
- * (and by its warning)
+ * An option of the settings, one row: its icon on a desktop, the label of
+ * the switch and what it does, the switch at the end, named by the label and
+ * described by the text (and by its warning)
  */
 export function SettingsOption({
   toggleLabel,
@@ -190,8 +202,10 @@ export function SettingsOption({
   isDisabled = false,
   onChange,
   warning = null,
+  icon,
   'data-testid': testId
 }: SettingsOptionProps): ReactElement {
+  const isDesktop = useScreenSize() === 'desktop'
   const switchId = useId()
   const descriptionId = useId()
   const warningId = useId()
@@ -202,6 +216,18 @@ export function SettingsOption({
 
   return (
     <Box sx={OPTION_SX}>
+      {icon !== undefined && isDesktop ? (
+        <Avatar
+          variant="rounded"
+          size="m"
+          color={ICON_TILE_COLOR}
+          textColor={ICON_TILE_TEXT_COLOR}
+          aria-hidden="true"
+          data-testid="settings-option-icon"
+        >
+          <Icon icon={icon} />
+        </Avatar>
+      ) : null}
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Box
           component="label"

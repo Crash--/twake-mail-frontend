@@ -1,7 +1,9 @@
+import { Eye } from '@linagora/twake-icons'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
 
+import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
 
 import {
@@ -11,6 +13,35 @@ import {
 } from './SettingsOption'
 
 describe('SettingsOption', () => {
+  afterEach(resetViewport)
+
+  it.each([
+    [1280, 1],
+    [1199, 0],
+    [800, 0],
+    [400, 0]
+  ])('at %i px wide, shows %i icon before the text', (width, iconCount) => {
+    mockViewport({ width })
+    renderDs(
+      <SettingsOption
+        description="View related emails together"
+        toggleLabel="Enable thread"
+        isChecked={false}
+        onChange={jest.fn()}
+        icon={Eye}
+      />
+    )
+
+    const icons = screen.queryAllByTestId('settings-option-icon')
+    expect(icons).toHaveLength(iconCount)
+    icons.forEach(icon => {
+      expect(icon).toHaveAttribute('aria-hidden', 'true')
+    })
+    expect(
+      screen.getByRole('switch', { name: 'Enable thread' })
+    ).toHaveAccessibleDescription('View related emails together')
+  })
+
   it('names its switch by its label and describes it by its text', async () => {
     const onChange = jest.fn()
     renderDs(

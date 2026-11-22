@@ -1,8 +1,11 @@
+import type { IconProps } from '@linagora/twake-icons'
 import type { ReactElement } from 'react'
 
 import { SettingsOption } from '@/ds/SettingsOption/SettingsOption'
 
 export interface PreferenceOptionProps {
+  /** Before the text, on a desktop only */
+  icon: IconProps['icon']
   /** Label of the switch, e.g. "Enable thread" */
   toggleLabel: string
   description: string

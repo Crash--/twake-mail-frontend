@@ -99,3 +99,17 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), request of 2026-11-23 to the Mail team
 - Why: those runs test code that did not change.
 - Scope: GitHub Actions of the repository.
+
+## 2026-11-22, [UI] Preferences start with an icon on desktop only
+
+- Decision: on desktop, each switch of Settings > Preferences starts with its icon in twake-mui's rounded `Avatar` (32 px, a 20 px glyph, as the Figma); phones and tablets keep the rows without icons.
+- Decided by: Swann Maillard (design), [#894](https://github.com/Crash--/twake-mail-frontend/issues/894); applied with the go of Crash-- (CTO).
+- Why: the page reads as one long list of switches on desktop; on a narrow screen an icon would take room from the text and make the rows wrap.
+- Scope: desktop, Settings > Preferences.
+
+## 2026-11-22, [UI] Pending: colours of the preference icon tile
+
+- Options: [#1126](https://github.com/Crash--/twake-mail-frontend/pull/1126) puts the tile on `border.main` (Grey 900 at 16 %, the closest token to the Figma's `#D9D9D9`; white at 24 % in dark mode) with the glyph in `text.icon`; or `action.selected` (Grey 900 at 8 %), lighter than the Figma; or the white glyph of the Figma, which no token keeps readable in dark mode.
+- To decide: Swann Maillard (design).
+- Why it matters: twake-mui's only grey tile (`Avatar` `disabled`) is a fixed `#d6d8da`, light in dark mode too, so the tile has to be built on palette tokens.
+- Scope: desktop, Settings > Preferences.

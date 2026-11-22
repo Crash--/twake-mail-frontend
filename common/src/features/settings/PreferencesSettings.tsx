@@ -1,3 +1,16 @@
+import {
+  Ai,
+  BugReport,
+  CloudPlusOutlined,
+  Discuss,
+  Eye,
+  FlagOutlined,
+  Hand,
+  Image,
+  Label,
+  LabelOutlined,
+  WarningCircle
+} from '@linagora/twake-icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
@@ -163,6 +176,7 @@ export function PreferencesSettings({
               onChange={isOn => {
                 changeServerSetting('read.receipts.always', String(isOn))
               }}
+              icon={Eye}
               data-testid="read-receipts-setting-toggle"
             />
           ) : null}
@@ -180,6 +194,7 @@ export function PreferencesSettings({
                   String(!isBlocking)
                 )
               }}
+              icon={Image}
               data-testid="remote-images-setting-toggle"
             />
           ) : null}
@@ -192,6 +207,7 @@ export function PreferencesSettings({
               onChange={isOn => {
                 changeServerSetting('sentry.user-opt-in', String(isOn))
               }}
+              icon={BugReport}
               data-testid="error-reporting-setting-toggle"
             />
           ) : null}
@@ -203,6 +219,7 @@ export function PreferencesSettings({
           toggleLabel={t('settings.preferences.threadToggle')}
           isChecked={threadPreference.isEnabled}
           onChange={threadPreference.setEnabled}
+          icon={Discuss}
           data-testid="thread-setting-toggle"
         />
         {hasLabels ? (
@@ -211,6 +228,7 @@ export function PreferencesSettings({
             toggleLabel={t('settings.preferences.labelsToggle')}
             isChecked={isLabelVisible}
             onChange={setLabelVisible}
+            icon={LabelOutlined}
             data-testid="label-visibility-setting-toggle"
           />
         ) : null}
@@ -223,6 +241,7 @@ export function PreferencesSettings({
             onChange={isOn => {
               changeServerSetting('display.sender.priority', String(isOn))
             }}
+            icon={FlagOutlined}
             data-testid="sender-priority-setting-toggle"
           />
         ) : null}
@@ -231,6 +250,7 @@ export function PreferencesSettings({
           toggleLabel={t('settings.preferences.spamReportsToggle')}
           isChecked={spamReport.isEnabled}
           onChange={spamReport.setEnabled}
+          icon={WarningCircle}
           data-testid="spam-report-setting-toggle"
         />
       </SettingsOptionGroup>
@@ -244,6 +264,7 @@ export function PreferencesSettings({
               toggleLabel={t('settings.preferences.aiScribeToggle')}
               isChecked={isScribeOn}
               onChange={setScribeOn}
+              icon={Ai}
               data-testid="ai-scribe-setting-toggle"
             />
           ) : null}
@@ -260,6 +281,7 @@ export function PreferencesSettings({
               onChange={isOn => {
                 changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, String(isOn))
               }}
+              icon={Label}
               data-testid="ai-label-categorization-setting-toggle"
             />
           ) : null}
@@ -272,6 +294,7 @@ export function PreferencesSettings({
             toggleLabel={t('settings.preferences.driveAttachmentToggle')}
             isChecked={driveAttachment.isEnabled}
             onChange={driveAttachment.setEnabled}
+            icon={CloudPlusOutlined}
             data-testid="drive-attachment-setting-toggle"
           />
         </SettingsOptionGroup>
@@ -282,6 +305,7 @@ export function PreferencesSettings({
           toggleLabel={t('settings.preferences.accessibilityToggle')}
           isChecked={accessibility.isEnabled}
           onChange={accessibility.setEnabled}
+          icon={Hand}
           data-testid="accessibility-setting-toggle"
         />
       </SettingsOptionGroup>

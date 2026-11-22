@@ -176,6 +176,74 @@ test.describe('RESP responsive layout', () => {
     }
   })
 
+  test('RESP-09 the Compose button folds to its icon while the list scrolls, and unfolds once it stops', { tag: '@touch-only' }, async ({
+    page,
+    user,
+    jmap
+  }) => {
+    for (let index = 1; index <= 20; index += 1) {
+      await jmap.createEmailIn((await jmap.findMailboxByRole('inbox')).id, {
+        subject: `Row ${index}`
+      })
+    }
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await expect(mailbox.emailRow('Row 20')).toBeVisible()
+    const button = mailbox.composeButton
+    await expect(button).toHaveAttribute('data-folded', 'false')
+    const unfolded = await button.boundingBox()
+
+    const row = await mailbox.emailRow('Row 18').boundingBox()
+    await page.mouse.move(100, (row?.y ?? 300) + 10)
+    // One step every 100 ms, under the idle delay: the button stays folded
+    // while the steps go on, and is measured then, once the fold is drawn.
+    // The wait is the cadence of the scrolling itself, not a wait for a state
+    let folded: { width: number; height: number } | null = null
+    for (let step = 0; step < 10; step += 1) {
+      await page.mouse.wheel(0, 30)
+      await page.waitForTimeout(100)
+      if (step === 7) {
+        await expect(button).toHaveAttribute('data-folded', 'true')
+        await expect(button).toHaveAccessibleName('Compose')
+        folded = await button.boundingBox()
+      }
+    }
+    // The label has slid away: the button is a square
+    expect(Math.round((folded?.width ?? 0) - (folded?.height ?? 1))).toBe(0)
+    expect(folded?.width ?? 0).toBeLessThan(unfolded?.width ?? 0)
+    await expect(button).toHaveAttribute('data-folded', 'false')
+
+    // Back from an email, the list scrolls back to where it was: that is
+    // no scrolling by the user, the button never folds
+    const email = await mailbox.openEmail('Row 10')
+    await page.evaluate(() => {
+      const seen = { folded: false }
+      Object.assign(window, { e2eFabFolds: seen })
+      new MutationObserver(() => {
+        if (document.querySelector('[data-folded="true"]') !== null) {
+          seen.folded = true
+        }
+      }).observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['data-folded']
+      })
+    })
+    await email.back()
+    await expect(mailbox.emailRow('Row 10')).toBeVisible()
+    await expect(button).toHaveAttribute('data-folded', 'false')
+    // An absence has no state to wait for: the observer watches long enough
+    // for a late restore of the scroll, twice the idle delay
+    await page.waitForTimeout(600)
+    expect(
+      await page.evaluate(
+        () =>
+          (window as unknown as { e2eFabFolds: { folded: boolean } })
+            .e2eFabFolds.folded
+      )
+    ).toBe(false)
+  })
+
   test.describe('on a large tablet', () => {
     test.use({ viewport: { width: 1024, height: 768 } })
 

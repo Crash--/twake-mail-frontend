@@ -611,6 +611,11 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   its recipients and its subject stay 16 px, so that iOS Safari does not zoom into them. — web app
   only
   - Spec: `tests/responsive.spec.ts`.
+- [x] `RESP-09` On a phone and a tablet, the floating Compose button folds to a square with
+  its icon alone while the content scrolls (here the email list), keeps "Compose" as its name,
+  and unfolds once the scrolling stops; back from an email, the list scrolls back to where it was
+  and the button never folds. — `mobile` and `tablet` projects
+  - Spec: `tests/responsive.spec.ts`.
 - [x] `LAYOUT-01` The document never scrolls (`scrollHeight <= clientHeight`) on the mailbox, the
   reading view and the settings, on a desktop and a tablet, standalone and framed as in Twake
   Workplace. — `chromium` project only

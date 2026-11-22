@@ -117,6 +117,15 @@ describe('EmailRulesSettings', () => {
     expect(screen.getByText('1 rule')).toBeVisible()
   })
 
+  it('keeps only the name of a rule on a phone, without its condition', async () => {
+    mockViewport({ width: 390, touch: true })
+    setup([NEWSLETTERS])
+
+    const item = await screen.findByTestId('email-rule-item')
+    expect(item).toHaveTextContent('Newsletters')
+    expect(item).not.toHaveTextContent('From, contains')
+  })
+
   it('creates a rejecting rule from an address, once confirmed, at the top', async () => {
     const { filter } = setup([NEWSLETTERS], { newRuleFrom: 'spam@example.com' })
 

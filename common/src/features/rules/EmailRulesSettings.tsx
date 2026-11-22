@@ -5,9 +5,9 @@ import type { Rule } from 'jmap-client-ts/linagora'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { SettingsCardList } from '@/ds/SettingsCards/SettingsCards'
 import { SettingsEmptyState } from '@/ds/SettingsEmptyState/SettingsEmptyState'
 import { SettingsLabelPill } from '@/ds/SettingsFields/SettingsFields'
+import { SettingsList } from '@/ds/SettingsList/SettingsList'
 import { useConfirm } from '@common/features/confirm/ConfirmProvider'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -38,7 +38,7 @@ function readNewRuleFrom(state: unknown): string | null {
   return typeof newRuleFrom === 'string' ? newRuleFrom : null
 }
 
-/** The move buttons of a rule card, the one a move came from first */
+/** The move buttons of a rule row, the one a move came from first */
 const MOVE_BUTTONS = {
   up: [
     'email-rule-move-up-button',
@@ -293,8 +293,9 @@ export function EmailRulesSettings({
             label={t('rules.nameOfRules')}
             pill={t('rules.count', { smart_count: rules.length })}
           />
-          <SettingsCardList
+          <SettingsList
             label={t('rules.listLabel')}
+            look="filled"
             data-testid="email-rule-list"
           >
             {rules.map((rule, index) => (
@@ -324,7 +325,7 @@ export function EmailRulesSettings({
                 }
               />
             ))}
-          </SettingsCardList>
+          </SettingsList>
         </>
       )}
       {form === null ? null : (

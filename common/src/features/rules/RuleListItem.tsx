@@ -1,12 +1,15 @@
-import { Icon, Bottom, Top, Trash, Pen } from '@linagora/twake-icons'
-import { ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
+import { Icon, Bottom, Top, Trash, PenOutlined } from '@linagora/twake-icons'
+import { Chip, ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
 import type { Rule } from 'jmap-client-ts/linagora'
 import { useRef, useState, type ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
-import { SettingsCard } from '@/ds/SettingsCards/SettingsCards'
+import {
+  SettingsListItem,
+  SettingsListNameLine
+} from '@/ds/SettingsList/SettingsList'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useI18n } from '@common/i18n/useI18n'
 
@@ -26,8 +29,8 @@ export interface RuleListItemProps {
 }
 
 /**
- * A rule in Settings > Email rules, as tmail-flutter's card: its name, its
- * first condition in a grey pill ("From, contains: alice@example.com"),
+ * A rule in Settings > Email rules, a row as in Profiles: its name, its
+ * first condition in an outlined chip ("From, contains: alice@example.com"),
  * then move up and down, edit and delete; on a phone the name alone and
  * "More", opening them in a sheet from the bottom edge
  */
@@ -124,7 +127,7 @@ export function RuleListItem({
             data-testid="email-rule-edit-button"
           >
             <ListItemIcon>
-              <Icon icon={Pen} />
+              <Icon icon={PenOutlined} />
             </ListItemIcon>
             <ListItemText primary={t('common.edit')} />
           </MenuItem>,
@@ -152,6 +155,7 @@ export function RuleListItem({
         icon={Top}
         tone="icon"
         size={36}
+        iconSize={16}
         disabled={onMoveUp === null}
         onClick={event => {
           onMoveUp?.(event.currentTarget)
@@ -163,6 +167,7 @@ export function RuleListItem({
         icon={Bottom}
         tone="icon"
         size={36}
+        iconSize={16}
         disabled={onMoveDown === null}
         onClick={event => {
           onMoveDown?.(event.currentTarget)
@@ -171,9 +176,10 @@ export function RuleListItem({
       />
       <IconAction
         label={editLabel}
-        icon={Pen}
+        icon={PenOutlined}
         tone="icon"
         size={36}
+        iconSize={16}
         onClick={onEdit}
         data-testid="email-rule-edit-button"
       />
@@ -182,6 +188,7 @@ export function RuleListItem({
         icon={Trash}
         tone="icon"
         size={36}
+        iconSize={16}
         onClick={event => {
           onDelete(event.currentTarget)
         }}
@@ -191,13 +198,20 @@ export function RuleListItem({
   )
 
   return (
-    <SettingsCard
-      title={rule.name}
-      pill={isPhone ? null : summary}
+    <SettingsListItem
       actions={actions}
-      titleTestId="email-rule-name"
       data-testid="email-rule-item"
       dataAttributes={{ 'data-rule-name': rule.name }}
-    />
+    >
+      <SettingsListNameLine
+        name={rule.name}
+        chip={
+          isPhone || summary === null ? null : (
+            <Chip size="small" variant="outlined" label={summary} />
+          )
+        }
+        data-testid="email-rule-name"
+      />
+    </SettingsListItem>
   )
 }

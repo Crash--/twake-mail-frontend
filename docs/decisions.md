@@ -78,3 +78,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Swann Maillard (design), [#886](https://github.com/Crash--/twake-mail-frontend/issues/886), for the fold while scrolling; Crash-- (CTO), [#1124](https://github.com/Crash--/twake-mail-frontend/pull/1124), for the 250 ms delay and the fold on any scrolling content
 - Why: the unfolded button hides part of the list while the user scrolls through it.
 - Scope: mobile and tablet, email lists and the team mailbox facade.
+
+## 2026-11-22, [UI] The empty email list is a 100 px tile with an open envelope
+
+- Decision: every empty email list (a folder, a filter, Starred, Action required, a label, a search, offline) shows the white `EmailOpen` glyph of twake-icons in a 100 px tile in `action.selected`, the size the Twake Space empty states use today, where the TwakeSpace mockup draws a 200 px tile; then the title and the hint of the view, centred on desktop and on a phone alike, where the phone showed them at the top before.
+- Decided by: Pending, Crash-- (CTO) to confirm the 100 px size; applied in [#1122](https://github.com/Crash--/twake-mail-frontend/pull/1122), from [#900](https://github.com/Crash--/twake-mail-frontend/issues/900)
+- Why: the empty list takes the look of the Space empty states; the tile becomes `iconLook="tile"` of `Empty` with [linagora/twake-ui#241](https://github.com/linagora/twake-ui/pull/241).
+- Scope: desktop and mobile, email lists.

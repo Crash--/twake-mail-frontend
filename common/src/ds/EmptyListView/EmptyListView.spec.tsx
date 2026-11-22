@@ -16,8 +16,11 @@ describe('EmptyListView', () => {
 
     const view = screen.getByTestId('empty')
     expect(view).toHaveTextContent('Nothing hereStart to compose emails.')
-    expect(view.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(view.querySelector('svg')?.closest('[aria-hidden="true"]')).not.toBe(
+      null
+    )
     expect(screen.queryByRole('img')).toBe(null)
+    expect(screen.queryByRole('heading')).toBe(null)
   })
 
   it('has no hint without a text', () => {

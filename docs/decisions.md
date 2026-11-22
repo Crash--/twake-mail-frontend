@@ -71,3 +71,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - To decide: the Product team; Quentin (maintainer) takes the question to them. Source: analysis of 2026-11-20 by the Mail team (sent mails missing from Sent are the first sends of conversations that have a later send).
 - Why it matters: with conversations on (the default), Sent shows one row per conversation, at the date of its latest send.
 - Scope: desktop and mobile, Sent list.
+
+## 2026-11-22, [UX] The floating Compose button folds while the content scrolls
+
+- Decision: on phones and tablets, the floating "Compose" button folds to a square with its icon alone while the content scrolls, and unfolds with its label once the scrolling has stopped for 250 ms; the label slides away (no animation when the system asks for less motion) and stays the accessible name. Any content the user scrolls folds it (wheel, finger and its momentum, scroll keys), not the email list alone; a list that scrolls itself back to where it was (back from an email) does not.
+- Decided by: Swann Maillard (design), [#886](https://github.com/Crash--/twake-mail-frontend/issues/886), for the fold while scrolling; Crash-- (CTO), [#1124](https://github.com/Crash--/twake-mail-frontend/pull/1124), for the 250 ms delay and the fold on any scrolling content
+- Why: the unfolded button hides part of the list while the user scrolls through it.
+- Scope: mobile and tablet, email lists and the team mailbox facade.

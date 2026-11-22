@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { useScreenSize, WithoutTablets } from './useScreenSize'
+import { useIsHandheld, useScreenSize, WithoutTablets } from './useScreenSize'
 
 function ScreenSize(): ReactElement {
   return <p>{useScreenSize()}</p>
@@ -51,5 +51,29 @@ describe('useScreenSize', () => {
     )
 
     expect(screen.getByText(size)).toBeInTheDocument()
+  })
+})
+
+function Handheld(): ReactElement {
+  return <p>{useIsHandheld() ? 'handheld' : 'not handheld'}</p>
+}
+
+describe('useIsHandheld', () => {
+  afterEach(resetViewport)
+
+  it.each([
+    [390, false, 'handheld'],
+    [390, true, 'handheld'],
+    [820, true, 'handheld'],
+    [1024, true, 'handheld'],
+    [820, false, 'not handheld'],
+    [1024, false, 'not handheld'],
+    [1440, true, 'not handheld']
+  ])('calls a %i px wide screen, touch %s, %s', (width, touch, answer) => {
+    mockViewport({ width, touch })
+
+    renderDs(<Handheld />)
+
+    expect(screen.getByText(answer)).toBeInTheDocument()
   })
 })

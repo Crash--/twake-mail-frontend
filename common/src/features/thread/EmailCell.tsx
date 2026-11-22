@@ -47,7 +47,7 @@ import {
   SelectableAvatar
 } from '@/ds/SelectableAvatar/SelectableAvatar'
 import { StatusDot } from '@/ds/StatusDot/StatusDot'
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { useIsHandheld, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { hasCalendarEvent } from '@common/features/calendar/calendarHeader'
 import { useEmailViewReady } from '@common/features/email/useEmailViewReady'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
@@ -216,6 +216,7 @@ export function EmailCell({
   const ensureEmailViewReady = useEmailViewReady()
   const screenSize = useScreenSize()
   const isPhone = screenSize === 'mobile'
+  const isHandheld = useIsHandheld()
   const path = isEmailRow(row) ? getEmailPath(row.id) : ''
   const href = useHref(path)
 
@@ -435,7 +436,22 @@ export function EmailCell({
       data-testid="unread-status-icon"
     />
   )
+  // On a phone or a touch tablet a long press selects the row; while rows
+  // are selected a tap selects or unselects one instead of opening it
+  const isSelecting =
+    selection !== null &&
+    (selection.selected.length > 0 || selection.isAllInFolder)
+  const handleLongPress =
+    isHandheld && selection !== null
+      ? (): void => {
+          selection.toggle(email.id, false)
+        }
+      : undefined
   const handleNavigate = (): void => {
+    if (isHandheld && isSelecting) {
+      selection.toggle(email.id, false)
+      return
+    }
     if (onOpenTemplate) {
       onOpenTemplate(email)
       return
@@ -555,6 +571,7 @@ export function EmailCell({
           checked={isSelected}
           onClick={handleSelect}
           label={t('thread.selection.select', { subject: email.subject ?? '' })}
+          checkedLook={isHandheld ? 'round' : 'square'}
           data-testid="email-list-item-checkbox"
         />
       )
@@ -705,6 +722,7 @@ export function EmailCell({
           onNavigate={handleNavigate}
           current={email.id === openEmailId}
           multiline
+          onLongPress={handleLongPress}
         >
           {states.length > 0 ? (
             <span className="u-visuallyhidden">{`${states.join(', ')}, `}</span>

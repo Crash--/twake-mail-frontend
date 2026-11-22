@@ -1,20 +1,22 @@
 import {
   type IconProps,
   Cross,
-  Checkbox,
   CheckSquare,
   EmailNotification,
   Star,
   FolderMoveto
 } from '@linagora/twake-icons'
-import { Box, Button } from '@linagora/twake-mui'
+// Its `Checkbox` glyph, under another name than twake-mui's `Checkbox`
+import * as TwakeIcons from '@linagora/twake-icons'
+import { Box, Button, Checkbox, FormControlLabel } from '@linagora/twake-mui'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
+import { AppTopBarRow } from '@/ds/AppTopBar/AppTopBar'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { ListToolbar } from '@/ds/ListToolbar/ListToolbar'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { SelectionCount } from '@/ds/SelectionCount/SelectionCount'
-import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
+import { useIsHandheld, useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import {
   availableEmailActions,
   type EmailActionId
@@ -104,6 +106,7 @@ export function EmailListToolbar({
   const { t } = useI18n()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
+  const isHandheld = useIsHandheld()
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
@@ -249,7 +252,58 @@ export function EmailListToolbar({
     )
   }
 
-  // As tmail-flutter's app bar below the desktop size: the cross first,
+  const isAllSelected = isAllLoaded || selection.isAllInFolder
+  const moreButton = (
+    <IconAction
+      label={moreLabel}
+      icon={MoreVerticalIcon}
+      tone="icon"
+      size={36}
+      aria-haspopup="menu"
+      aria-expanded={moreAnchor !== null}
+      onClick={event => {
+        handleOpenMore(event.currentTarget)
+      }}
+      data-testid="selected-email-action-more"
+    />
+  )
+
+  // Teammail 1.1 on a phone or a touch tablet: the cross, how many and the
+  // actions in the place of the bar, then "Select all" in the place of the
+  // search
+  if (isHandheld) {
+    return (
+      <Box
+        ref={toolbarRef}
+        component="section"
+        aria-label={t('thread.selection.toolbar')}
+        className="u-flex u-flex-column u-w-100"
+        data-testid="selection-toolbar"
+      >
+        <AppTopBarRow>
+          {clearButton}
+          {selectionCount}
+          <Box className="u-flex-auto" />
+          {actionButtons}
+          {moreButton}
+        </AppTopBarRow>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isAllSelected}
+              onChange={handleToggleAll}
+              data-testid="selection-toolbar-select-all"
+            />
+          }
+          label={selectAllLabel}
+          className="u-m-0"
+        />
+        {actionsMenu}
+      </Box>
+    )
+  }
+
+  // As tmail-flutter's app bar on a tablet with a mouse: the cross first,
   // then how many
   return (
     <Box
@@ -264,26 +318,15 @@ export function EmailListToolbar({
       <Box className="u-flex-auto" />
       <IconAction
         label={selectAllLabel}
-        icon={isAllLoaded || selection.isAllInFolder ? CheckSquare : Checkbox}
+        icon={isAllSelected ? CheckSquare : TwakeIcons.Checkbox}
         tone="icon"
         size={36}
-        aria-pressed={isAllLoaded || selection.isAllInFolder}
+        aria-pressed={isAllSelected}
         onClick={handleToggleAll}
         data-testid="selection-toolbar-select-all"
       />
       {actionButtons}
-      <IconAction
-        label={moreLabel}
-        icon={MoreVerticalIcon}
-        tone="icon"
-        size={36}
-        aria-haspopup="menu"
-        aria-expanded={moreAnchor !== null}
-        onClick={event => {
-          handleOpenMore(event.currentTarget)
-        }}
-        data-testid="selected-email-action-more"
-      />
+      {moreButton}
       {actionsMenu}
     </Box>
   )

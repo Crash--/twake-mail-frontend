@@ -33,4 +33,26 @@ describe('SelectableAvatar', () => {
     expect(checkbox).toHaveAttribute('aria-checked', 'true')
     expect(screen.queryByText('A')).toBe(null)
   })
+
+  it('draws the checked box by default, a larger round check when asked', () => {
+    const { rerender } = renderDs(
+      <SelectableAvatar avatar="A" checked onClick={jest.fn()} label="Hi" />
+    )
+    const glyph = (): Element | null =>
+      screen.getByRole('checkbox').querySelector('svg')
+    const squarePath = glyph()?.innerHTML
+
+    rerender(
+      <SelectableAvatar
+        avatar="A"
+        checked
+        onClick={jest.fn()}
+        label="Hi"
+        checkedLook="round"
+      />
+    )
+
+    expect(glyph()?.innerHTML).not.toBe(squarePath)
+    expect(glyph()).toHaveAttribute('width', '20')
+  })
 })

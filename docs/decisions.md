@@ -127,3 +127,11 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-23; applied in [#1129](https://github.com/Crash--/twake-mail-frontend/pull/1129)
 - Why: read messages showed in Medium, heavier than the read rows of the list.
 - Scope: desktop and mobile, conversation view.
+
+## 2026-11-22, [UX] A phone or a touch tablet selects emails with a long press
+
+- Decision: on a phone, and at the tablet sizes with a touch screen (`(pointer: coarse)`), a long press on a row of the email list selects it; while emails are selected, a tap on a row selects or unselects it instead of opening it, a selected row shows a round check in place of its avatar and the selected background of the list, and the selection bar (the cross, how many, archive, delete, read or unread, then "More") takes the place of the bar, with "Select all" in the place of the search, hidden until the selection ends. The avatar still selects its row. A tablet size with a mouse keeps tmail-flutter's selection and its checked box, as do the forwarding addresses of the settings at every size.
+- Decided by: Swann Maillard (design), [#887](https://github.com/Crash--/twake-mail-frontend/issues/887), for the phone; Crash-- (CTO), 2026-11-23, [#1127](https://github.com/Crash--/twake-mail-frontend/pull/1127), for the touch tablet
+- Gaps to the mockup: the selected rows keep twake-mui's pale blue selected background where the mockup draws them grey, the count reads "N selected" where the mockup shows the number alone, and the selection bar and the "Select all" band are white where the mockup draws them grey-blue. Decided by: Pending, Crash-- (CTO), [#1127](https://github.com/Crash--/twake-mail-frontend/pull/1127).
+- Why: in the hand, acting on several emails at once comes first; a focused bar of three actions and an overflow keeps the toolbar clear.
+- Scope: mobile and touch tablet, email lists.

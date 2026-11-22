@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { renderDs } from '@/ds/testing/renderDs'
@@ -70,5 +70,79 @@ describe('RowLink', () => {
     const link = screen.getByRole('link', { name: 'Hello' })
     expect(link).not.toHaveClass('u-ellipsis')
     expect(link).not.toHaveAttribute('aria-current')
+  })
+
+  describe('with a long press', () => {
+    /** jsdom has no PointerEvent: a mouse event that says it is a finger */
+    function touchDown(element: HTMLElement): void {
+      const event = new MouseEvent('pointerdown', {
+        bubbles: true,
+        clientX: 5,
+        clientY: 5
+      })
+      Object.defineProperty(event, 'pointerType', { value: 'touch' })
+      fireEvent(element, event)
+    }
+
+    function renderPressable(): {
+      onNavigate: jest.Mock
+      onLongPress: jest.Mock
+      onRowMenu: jest.Mock
+    } {
+      const onNavigate = jest.fn()
+      const onLongPress = jest.fn()
+      const onRowMenu = jest.fn()
+      renderDs(
+        <div onContextMenu={onRowMenu}>
+          <RowLink
+            href="/mailbox/inbox/email/42"
+            onNavigate={onNavigate}
+            onLongPress={onLongPress}
+          >
+            Hello
+          </RowLink>
+        </div>
+      )
+      return { onNavigate, onLongPress, onRowMenu }
+    }
+
+    beforeEach(() => {
+      jest.useFakeTimers()
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+
+    it('calls it for a finger held on the row, whose release opens nothing', () => {
+      const { onNavigate, onLongPress, onRowMenu } = renderPressable()
+      const link = screen.getByRole('link')
+
+      touchDown(link)
+      act(() => {
+        jest.advanceTimersByTime(500)
+      })
+      // Android reports the same press as a context menu, finger down
+      fireEvent.contextMenu(link)
+      fireEvent.pointerUp(link)
+      fireEvent.click(link)
+
+      expect(onLongPress).toHaveBeenCalledTimes(1)
+      expect(onNavigate).not.toHaveBeenCalled()
+      expect(onRowMenu).not.toHaveBeenCalled()
+    })
+
+    it('leaves a context menu before the end of the press to the row', () => {
+      const { onLongPress, onRowMenu } = renderPressable()
+      const link = screen.getByRole('link')
+
+      touchDown(link)
+      fireEvent.contextMenu(link)
+      act(() => {
+        jest.advanceTimersByTime(1000)
+      })
+
+      expect(onRowMenu).toHaveBeenCalledTimes(1)
+      expect(onLongPress).not.toHaveBeenCalled()
+    })
   })
 })

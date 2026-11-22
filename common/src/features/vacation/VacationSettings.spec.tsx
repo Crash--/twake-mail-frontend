@@ -34,12 +34,11 @@ function setup(
   return fake
 }
 
-/** A button of the "Starts:" or "Ends:" choice */
+/** A segment of the "Starts:" or "Ends:" choice */
 function choice(group: string, name: string): HTMLElement {
-  return within(screen.getByRole('group', { name: group })).getByRole(
-    'button',
-    { name }
-  )
+  return within(screen.getByRole('tablist', { name: group })).getByRole('tab', {
+    name
+  })
 }
 
 function pickATime(group: string): HTMLElement {
@@ -111,7 +110,7 @@ describe('VacationSettings', () => {
       })
     )
     expect(choice('Starts:', 'Right away')).toHaveAttribute(
-      'aria-pressed',
+      'aria-selected',
       'true'
     )
     expect(screen.queryByLabelText(/^Start date/)).toBe(null)
@@ -132,6 +131,38 @@ describe('VacationSettings', () => {
     })
   })
 
+  it('picks a start time with the keyboard: arrow to the option, then Enter', async () => {
+    setup()
+
+    await userEvent.click(
+      await screen.findByRole('switch', {
+        name: 'Vacation responder'
+      })
+    )
+    choice('Starts:', 'Right away').focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(pickATime('Starts:')).toHaveFocus()
+    expect(screen.queryByLabelText(/^Start date/)).toBe(null)
+    await userEvent.keyboard('{Enter}')
+
+    expect(pickATime('Starts:')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByLabelText(/^Start date/)).toBeVisible()
+  })
+
+  it('disables the start and end choices while the responder is off', async () => {
+    setup()
+
+    await screen.findByTestId('vacation-form')
+    for (const tab of [
+      choice('Starts:', 'Right away'),
+      pickATime('Starts:'),
+      choice('Ends:', 'When I turn it off'),
+      pickATime('Ends:')
+    ]) {
+      expect(tab).toBeDisabled()
+    }
+  })
+
   it('reopens a saved start that has passed on "Right away"', async () => {
     setup({
       isEnabled: true,
@@ -141,7 +172,7 @@ describe('VacationSettings', () => {
 
     await screen.findByTestId('vacation-form')
     expect(choice('Starts:', 'Right away')).toHaveAttribute(
-      'aria-pressed',
+      'aria-selected',
       'true'
     )
     expect(screen.queryByLabelText(/^Start date/)).toBe(null)
@@ -200,7 +231,7 @@ describe('VacationSettings', () => {
     })
 
     await screen.findByTestId('vacation-form')
-    expect(pickATime('Starts:')).toHaveAttribute('aria-pressed', 'true')
+    expect(pickATime('Starts:')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByLabelText(/^Start date/)).toHaveValue('2999-01-01')
   })
 

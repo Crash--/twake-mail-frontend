@@ -85,3 +85,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Pending, Crash-- (CTO) to confirm the 100 px size; applied in [#1122](https://github.com/Crash--/twake-mail-frontend/pull/1122), from [#900](https://github.com/Crash--/twake-mail-frontend/issues/900)
 - Why: the empty list takes the look of the Space empty states; the tile becomes `iconLook="tile"` of `Empty` with [linagora/twake-ui#241](https://github.com/linagora/twake-ui/pull/241).
 - Scope: desktop and mobile, email lists.
+
+## 2026-11-22, [UI] Email rules are compact grey rows
+
+- Decision: the rules of Settings > Email rules are compact rows, 628 px at most as the other settings lists, their first condition in a small outlined `Chip` that never hides the name, and outlined 16 px icons for move up, move down, edit and delete. Each row keeps the grey background of the former cards (`background.default`), 8 px apart, without dividers. The condition lines of the rule dialog keep their grey background too.
+- Decided by: Swann Maillard (design), [#893](https://github.com/Crash--/twake-mail-frontend/issues/893), for the compact rows and the outlined icons; grey background kept, decided by Crash-- (CTO) on 2026-11-22: the issue only asked for compact rows and outlined icons.
+- Why: the full-width cards with large filled icons did not match the other settings sections.
+- Scope: desktop and mobile, Settings > Email rules. On a phone the row keeps its name and "More" only.

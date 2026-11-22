@@ -2,7 +2,8 @@
 // Profiles: 628 px wide, rows split by a divider 8 px away, each a 56 px
 // list item (the radio of the default one, the name in `body1` and the
 // details in `caption`, its icon buttons at the end), and under it what
-// the row holds, e.g. the signature as it is written, 16 px in.
+// the row holds, e.g. the signature as it is written, 16 px in. The rules
+// keep their rows on the grey of the page instead (`look="filled"`).
 import { Box, Typography } from '@linagora/twake-mui'
 import type { ReactElement, ReactNode } from 'react'
 
@@ -14,7 +15,15 @@ const LIST_SX = {
   m: 0,
   p: 0,
   maxWidth: 628,
-  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { maxWidth: 'none' }
+  [`@media ${SCREEN_QUERIES.belowDesktop}`]: { maxWidth: 'none' },
+  // Rows on the grey of the page instead of dividers, 8 px apart
+  '&[data-look="filled"] > li': {
+    p: 0,
+    border: 0,
+    borderRadius: '10px',
+    bgcolor: 'background.default'
+  },
+  '&[data-look="filled"] > li + li': { mt: 1 }
 } as const
 
 const ITEM_SX = {
@@ -71,6 +80,8 @@ const HTML_SX = {
 export interface SettingsListProps {
   label?: string
   children: ReactNode
+  /** `ruled`: rows split by a divider; `filled`: rows on a grey background */
+  look?: 'ruled' | 'filled'
   'data-testid'?: string
 }
 
@@ -78,10 +89,17 @@ export interface SettingsListProps {
 export function SettingsList({
   label,
   children,
+  look = 'ruled',
   'data-testid': testId
 }: SettingsListProps): ReactElement {
   return (
-    <Box component="ul" aria-label={label} sx={LIST_SX} data-testid={testId}>
+    <Box
+      component="ul"
+      aria-label={label}
+      sx={LIST_SX}
+      data-look={look}
+      data-testid={testId}
+    >
       {children}
     </Box>
   )
@@ -166,6 +184,56 @@ export function SettingsListText({
     >
       {children}
     </Typography>
+  )
+}
+
+const NAME_LINE_SX = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+  minWidth: 0
+} as const
+
+const ELLIPSIS_SX = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap'
+} as const
+
+// A long chip never hides the name: the name keeps up to half the line
+const LINE_NAME_SX = {
+  ...NAME_SX,
+  ...ELLIPSIS_SX,
+  flexShrink: 0,
+  maxWidth: '50%'
+} as const
+
+const LINE_CHIP_SX = { display: 'flex', minWidth: 0 } as const
+
+export interface SettingsListNameLineProps {
+  name: ReactNode
+  /** After the name, e.g. a `Chip` saying what the row does; null for none */
+  chip: ReactNode | null
+  'data-testid'?: string
+}
+
+/** The name of a settings row on one line, cut with an ellipsis, then a chip */
+export function SettingsListNameLine({
+  name,
+  chip,
+  'data-testid': testId
+}: SettingsListNameLineProps): ReactElement {
+  return (
+    <Box sx={NAME_LINE_SX}>
+      <Typography
+        component="p"
+        sx={chip === null ? { ...NAME_SX, ...ELLIPSIS_SX } : LINE_NAME_SX}
+        data-testid={testId}
+      >
+        {name}
+      </Typography>
+      {chip === null ? null : <Box sx={LINE_CHIP_SX}>{chip}</Box>}
+    </Box>
   )
 }
 

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
@@ -54,11 +54,14 @@ describe('RowHoverActions', () => {
           <li className="MuiListItem-root">
             <a href="/second">Second</a>
           </li>
+          <li className="MuiListItem-root">
+            <a href="/third">Third</a>
+          </li>
         </ul>
       )
     }
 
-    it('mounts the actions once the row is hovered, and keeps them', async () => {
+    it('mounts the actions while the row is hovered only', async () => {
       mockViewport({ width: 1440 })
       renderRows()
 
@@ -67,7 +70,40 @@ describe('RowHoverActions', () => {
       await userEvent.hover(screen.getByTestId('first-row'))
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
       await userEvent.unhover(screen.getByTestId('first-row'))
+      expect(screen.queryByRole('button', { name: 'Delete' })).toBe(null)
+    })
+
+    it('unmounts the actions once another row takes the focus', async () => {
+      mockViewport({ width: 1440 })
+      renderRows()
+      screen.getByRole('link', { name: 'First' }).focus()
+      await userEvent.tab()
+      expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus()
+
+      act(() => {
+        screen.getByRole('link', { name: 'Third' }).focus()
+      })
+
+      expect(screen.queryByRole('button', { name: 'Delete' })).toBe(null)
+    })
+
+    it('keeps the actions while the focus is out of the list, in a menu they opened', async () => {
+      mockViewport({ width: 1440 })
+      renderRows()
+      await userEvent.hover(screen.getByTestId('first-row'))
+      act(() => {
+        screen.getByRole('button', { name: 'Delete' }).focus()
+      })
+      const menuItem = document.createElement('button')
+      document.body.append(menuItem)
+
+      act(() => {
+        menuItem.focus()
+      })
+      await userEvent.unhover(screen.getByTestId('first-row'))
+
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+      menuItem.remove()
     })
 
     it('reaches the actions with Tab from the row', async () => {

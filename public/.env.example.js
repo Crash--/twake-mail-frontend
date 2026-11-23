@@ -121,6 +121,15 @@ var TDRIVE_ENABLED = false
 // build than the one running. Off when unset.
 var NEW_VERSION_CHECK_ENABLED = false
 
+// The Twake apps as a vertical rail at the left of the page, in place of the
+// platform menus of the top bar, on desktops. Off when unset. With the image
+// of this repository, the page is also served with
+// `Supports-Loading-Mode: credentialed-prerender`, read at startup.
+var TWAKE_RAIL = false
+// Registry slugs of the apps the rail prerenders, separated by commas
+// (space, drive, chat, mail, calendar, tasks). Empty when unset.
+var TWAKE_RAIL_PRERENDER = ''
+
 // Keys of tmail-flutter that this app ignores: APP_GRID_AVAILABLE (the apps
 // are those of the platform top bar), FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,

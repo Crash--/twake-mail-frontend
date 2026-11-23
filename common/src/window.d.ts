@@ -62,6 +62,10 @@ declare global {
     TDRIVE_ENABLED?: boolean | string
     /** Offers a reload when the server serves a newer build than the tab's */
     NEW_VERSION_CHECK_ENABLED?: boolean | string
+    /** `true`: the rail of the Twake apps on desktops, in place of the platform menus */
+    TWAKE_RAIL?: boolean | string
+    /** Slugs of the apps the rail prerenders, separated by commas */
+    TWAKE_RAIL_PRERENDER?: string
 
     APP_VERSION?: string
   }

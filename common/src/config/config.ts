@@ -97,6 +97,13 @@ export interface AppConfig {
    * than the bundle's (`NEW_VERSION_CHECK_ENABLED`)
    */
   newVersionCheckEnabled: boolean
+  /**
+   * Desktop: the vertical rail of the Twake apps replaces the platform menus
+   * of the top bar (`TWAKE_RAIL`). Off by default
+   */
+  twakeRail: boolean
+  /** Registry slugs of the apps the rail prerenders (`TWAKE_RAIL_PRERENDER`) */
+  twakeRailPrerender: readonly string[]
   appVersion: string
 }
 
@@ -137,6 +144,8 @@ export type RuntimeConfigKey =
   | 'SENTRY_FEEDBACK_ENABLED'
   | 'TDRIVE_ENABLED'
   | 'NEW_VERSION_CHECK_ENABLED'
+  | 'TWAKE_RAIL'
+  | 'TWAKE_RAIL_PRERENDER'
   | 'APP_VERSION'
 
 /**
@@ -190,6 +199,13 @@ function toAuthMode(value: unknown): AuthMode | null {
 
 function toBoolean(value: unknown): boolean {
   return value === true || value === 'true'
+}
+
+function parseSlugs(value: unknown): readonly string[] {
+  return (normalizeString(value) ?? '')
+    .split(',')
+    .map(slug => slug.trim())
+    .filter(slug => slug !== '')
 }
 
 function removeTrailingSlashes(value: string): string {
@@ -429,6 +445,8 @@ export function resolveConfig(
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
       appGridAvailable: source.APP_GRID_AVAILABLE === 'supported',
       newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
+      twakeRail: toBoolean(source.TWAKE_RAIL),
+      twakeRailPrerender: parseSlugs(source.TWAKE_RAIL_PRERENDER),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

@@ -67,8 +67,25 @@ describe('resolveConfig', () => {
         tdriveEnabled: false,
         appGridAvailable: false,
         newVersionCheckEnabled: false,
+        twakeRail: false,
+        twakeRailPrerender: [],
         appVersion: 'dev'
       })
+    })
+  })
+
+  it('turns the rail on with TWAKE_RAIL and lists the apps to prerender', () => {
+    expect(
+      resolveConfig(
+        {
+          ...OIDC_SOURCE,
+          TWAKE_RAIL: 'true',
+          TWAKE_RAIL_PRERENDER: ' drive, chat ,,'
+        },
+        ORIGIN
+      )
+    ).toMatchObject({
+      value: { twakeRail: true, twakeRailPrerender: ['drive', 'chat'] }
     })
   })
 

@@ -7,7 +7,6 @@ import { useMediaQuery } from '@linagora/twake-mui'
 import {
   createContext,
   useContext,
-  useSyncExternalStore,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -43,110 +42,6 @@ export const SCREEN_QUERIES = {
 } as const
 
 const MEDIA_OPTIONS = { noSsr: true } as const
-
-const SIZE_QUERIES = [
-  SCREEN_QUERIES.mobile,
-  SCREEN_QUERIES.belowTabletLarge,
-  SCREEN_QUERIES.belowDesktop
-] as const
-
-/** The size of the screen from the matches of `SIZE_QUERIES`, in order */
-function sizeOf(matches: readonly boolean[]): ScreenSize {
-  const [isMobile, isBelowTabletLarge, isBelowDesktop] = matches
-  if (isMobile === true) return 'mobile'
-  if (isBelowTabletLarge === true) return 'tablet'
-  if (isBelowDesktop === true) return 'tabletLarge'
-  return 'desktop'
-}
-
-function hasMatchMedia(): boolean {
-  return typeof window !== 'undefined' && 'matchMedia' in window
-}
-
-/** Which `matchMedia` the window has, to tell when it is replaced */
-function matchMediaIdentity(): unknown {
-  return hasMatchMedia() ? Reflect.get(window, 'matchMedia') : null
-}
-
-function openSizeLists(): MediaQueryList[] {
-  return hasMatchMedia()
-    ? SIZE_QUERIES.map(query => window.matchMedia(query))
-    : []
-}
-
-/**
- * Without `matchMedia` (jsdom, server rendering) every query is false: the
- * screen is a desktop
- */
-function readScreenSize(): ScreenSize {
-  return sizeOf(openSizeLists().map(list => list.matches))
-}
-
-/**
- * One set of `matchMedia` listeners for the whole app, shared by every
- * `useScreenSize()`: a list row reading the size no longer opens its own
- * three, and its readers hear of a change only when the size class changes
- * (issue #1091). The lists are opened with the first reader and closed with
- * the last one.
- */
-interface ScreenSizeStore {
-  listeners: Set<() => void>
-  /** The `matchMedia` the lists come from */
-  source: unknown
-  mediaLists: MediaQueryList[]
-  current: ScreenSize
-}
-
-const store: ScreenSizeStore = {
-  listeners: new Set(),
-  source: null,
-  mediaLists: [],
-  current: 'desktop'
-}
-
-function handleMediaChange(): void {
-  const next = sizeOf(store.mediaLists.map(list => list.matches))
-  if (next === store.current) return
-  store.current = next
-  store.listeners.forEach(listener => {
-    listener()
-  })
-}
-
-function openMediaLists(): void {
-  store.source = matchMediaIdentity()
-  store.mediaLists = openSizeLists()
-  store.mediaLists.forEach(list => {
-    list.addEventListener('change', handleMediaChange)
-  })
-  store.current = sizeOf(store.mediaLists.map(list => list.matches))
-}
-
-function closeMediaLists(): void {
-  store.mediaLists.forEach(list => {
-    list.removeEventListener('change', handleMediaChange)
-  })
-  store.mediaLists = []
-  store.source = null
-}
-
-function subscribe(listener: () => void): () => void {
-  if (store.listeners.size === 0) openMediaLists()
-  store.listeners.add(listener)
-  return (): void => {
-    store.listeners.delete(listener)
-    if (store.listeners.size === 0) closeMediaLists()
-  }
-}
-
-function getSnapshot(): ScreenSize {
-  // Read on the spot until a reader listens (the first render already has
-  // the right size, no desktop flash), or once `matchMedia` was replaced
-  // (a test giving jsdom another screen)
-  return store.listeners.size > 0 && matchMediaIdentity() === store.source
-    ? store.current
-    : readScreenSize()
-}
 
 const WithoutTabletsContext = createContext(false)
 
@@ -184,8 +79,22 @@ export function useSlideBreakpoint(): number {
  */
 export function useScreenSize(): ScreenSize {
   const isWithoutTablets = useContext(WithoutTabletsContext)
-  const screenSize = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-  return isWithoutTablets && screenSize !== 'mobile' ? 'desktop' : screenSize
+  // noSsr: the first render already has the right size, no desktop flash
+  const isMobile = useMediaQuery(SCREEN_QUERIES.mobile, MEDIA_OPTIONS)
+  const isBelowTabletLarge = useMediaQuery(
+    SCREEN_QUERIES.belowTabletLarge,
+    MEDIA_OPTIONS
+  )
+  const isBelowDesktop = useMediaQuery(
+    SCREEN_QUERIES.belowDesktop,
+    MEDIA_OPTIONS
+  )
+
+  if (isMobile) return 'mobile'
+  if (isWithoutTablets) return 'desktop'
+  if (isBelowTabletLarge) return 'tablet'
+  if (isBelowDesktop) return 'tabletLarge'
+  return 'desktop'
 }
 
 /**

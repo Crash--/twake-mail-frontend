@@ -14,6 +14,9 @@
 #   cache_env.conf          browser caching, disabled when .env.js has DEBUG = true
 #   server.d/env.conf       with an env.file of tmail-flutter mounted (see below):
 #                           serves /.env.js from the one generated in /tmp/nginx
+#   loading_mode.conf       Supports-Loading-Mode of the HTML pages, on when .env.js
+#                           sets TWAKE_RAIL = true (the rail prerenders the
+#                           other apps)
 #   security_headers.conf   the values of the security headers, from the
 #                           environment (see docs/deployment.md):
 #
@@ -42,7 +45,8 @@
 # when no .env.js is mounted, it is converted into a /.env.js served by nginx.
 # SENTRY_FEEDBACK_ENABLED (true or false) in the environment is added to it
 # when the env.file has no such key, as are TWAKE_SPACE_URL,
-# TDRIVE_ENABLED and NEW_VERSION_CHECK_ENABLED.
+# TDRIVE_ENABLED, NEW_VERSION_CHECK_ENABLED, TWAKE_RAIL and
+# TWAKE_RAIL_PRERENDER.
 set -eu
 
 ME=$(basename "$0")
@@ -152,7 +156,7 @@ if [ ! -f "$HTML_DIR/.env.js" ] && [ -f "$ENV_FILE" ]; then
   # Keys of this app that tmail-flutter's env.file, and so the chart that
   # writes it, does not know: taken from the environment (the chart's
   # extraEnv) when the env.file does not set them
-  for key in TWAKE_SPACE_URL TDRIVE_ENABLED NEW_VERSION_CHECK_ENABLED; do
+  for key in TWAKE_SPACE_URL TDRIVE_ENABLED NEW_VERSION_CHECK_ENABLED TWAKE_RAIL TWAKE_RAIL_PRERENDER; do
     value=$(printenv "$key" || true)
     [ -n "$value" ] || continue
     grep -qE "^var $key = " "$GENERATED_ENV_JS" && continue
@@ -414,3 +418,12 @@ map \$uri \$twake_mail_referrer_policy { default "$referrer_policy"; }
 map \$uri \$twake_mail_permissions_policy { default "$permissions_policy"; }
 EOF
 log "security headers written to $CONF_DIR/security_headers.conf"
+
+# --- Prerendering ----------------------------------------------------------
+# The rail (TWAKE_RAIL) prerenders the other apps: a page opts in with this
+# header, sent with the HTML only (nginx omits a header whose value is empty)
+loading_mode=''
+[ "$(env_js_value TWAKE_RAIL)" != true ] || loading_mode=credentialed-prerender
+cat >"$CONF_DIR/loading_mode.conf" <<EOF
+map \$uri \$twake_mail_loading_mode { default "$loading_mode"; }
+EOF

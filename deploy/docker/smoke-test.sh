@@ -84,6 +84,7 @@ expect '/ serves index.html' "$(body "$BASE/")" '*<div id="root"*'
 expect 'unknown routes fall back to index.html' "$(body "$BASE/mailbox/inbox")" '*<div id="root"*'
 expect 'index.html is revalidated, not kept out of the back-forward cache' \
   "$(header / Cache-Control)" 'no-cache'
+expect 'no prerender header without TWAKE_RAIL' "$(header / Supports-Loading-Mode)" ''
 expect '/.env.js is the mounted one' "$(body "$BASE/.env.js")" '*jmap.example.com*'
 expect '/.env.js is never cached' "$(header /.env.js Cache-Control)" 'no-store*'
 expect '/version.js is written by the build' "$(body "$BASE/version.js")" 'var APP_VERSION = *'
@@ -157,7 +158,7 @@ docker run -d --name "$ENV_FILE_NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
   -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false -e SENTRY_FEEDBACK_ENABLED=true \
   -e "TWAKE_SPACE_URL=https://space.example.com/it's" -e TDRIVE_ENABLED=true \
-  -e NEW_VERSION_CHECK_ENABLED=true \
+  -e NEW_VERSION_CHECK_ENABLED=true -e TWAKE_RAIL=true \
   -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
   -v "$CONFIG_DIR/logo.svg:/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg:ro" \
   "$IMAGE" >/dev/null
@@ -172,6 +173,11 @@ expect 'env.file: quotes removed' "$env_js" "*var WEB_OIDC_CLIENT_ID = 'teammail
 expect 'env.file: TWAKE_SPACE_URL from the environment' "$env_js" "*var TWAKE_SPACE_URL = 'https://space.example.com/it\\\\'s';*"
 expect 'env.file: TDRIVE_ENABLED from the environment' "$env_js" "*var TDRIVE_ENABLED = 'true';*"
 expect 'env.file: NEW_VERSION_CHECK_ENABLED from the environment' "$env_js" "*var NEW_VERSION_CHECK_ENABLED = 'true';*"
+expect 'env.file: TWAKE_RAIL from the environment' "$env_js" "*var TWAKE_RAIL = 'true';*"
+expect 'TWAKE_RAIL: the HTML opts in to prerendering' \
+  "$(header / Supports-Loading-Mode "$ENV_FILE_BASE")" 'credentialed-prerender'
+expect 'TWAKE_RAIL: the assets do not' \
+  "$(header /.env.js Supports-Loading-Mode "$ENV_FILE_BASE")" ''
 expect 'env.file: trailing comment removed' "$env_js" "*var OIDC_SCOPES = 'openid,profile,email,offline_access';*"
 forward_line="$(grep '^var FORWARD_WARNING_MESSAGE' <<<"$env_js" || true)"
 expected_line='var FORWARD_WARNING_MESSAGE = '"'It\\'s a \\\\ test';"

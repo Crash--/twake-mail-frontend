@@ -12,15 +12,21 @@ function makeTimeoutError(): DOMException {
   return new DOMException('The request timed out', 'TimeoutError')
 }
 
+export interface Deadline {
+  signal: AbortSignal
+  /** Drops the timer and the listener on the caller signal */
+  clear: () => void
+}
+
 /**
  * A signal aborted when `signal` is, or with a `TimeoutError` after
- * `timeoutMs`. `AbortSignal.any` would do it, but Safari only has it from
- * 17.4.
+ * `timeoutMs`, until `clear` is called. `AbortSignal.any` would do it, but
+ * Safari only has it from 17.4.
  */
 export function withDeadline(
   signal: AbortSignal | null | undefined,
   timeoutMs: number
-): AbortSignal {
+): Deadline {
   const controller = new AbortController()
   const timer = setTimeout(() => {
     controller.abort(makeTimeoutError())
@@ -31,7 +37,41 @@ export function withDeadline(
   }
   if (signal?.aborted) forward()
   else signal?.addEventListener('abort', forward, { once: true })
-  return controller.signal
+  return {
+    signal: controller.signal,
+    clear: () => {
+      clearTimeout(timer)
+      signal?.removeEventListener('abort', forward)
+    }
+  }
+}
+
+/** The response, its body read under the deadline */
+async function readUnderDeadline(response: Response): Promise<Response> {
+  const body = await response.text()
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers
+  })
+}
+
+async function fetchUnderDeadline(
+  fetchFunction: FetchFunction,
+  input: string,
+  init: RequestInit | undefined,
+  timeoutMs: number
+): Promise<Response> {
+  const deadline = withDeadline(init?.signal, timeoutMs)
+  try {
+    const response = await fetchFunction(input, {
+      ...init,
+      signal: deadline.signal
+    })
+    return await readUnderDeadline(response)
+  } finally {
+    deadline.clear()
+  }
 }
 
 /**
@@ -52,7 +92,8 @@ function isJsonExchange(init: RequestInit | undefined): boolean {
 /**
  * Wraps the `fetch` of the JMAP client so that its JSON exchanges fail with a
  * `TimeoutError` after `timeoutMs` instead of hanging forever: the query then
- * fails, is retried, and shows its error with Retry.
+ * fails, is retried, and shows its error with Retry. The deadline covers the
+ * body, and is cleared once it is read.
  */
 export function withRequestDeadline(
   fetchFunction: FetchFunction,
@@ -60,9 +101,6 @@ export function withRequestDeadline(
 ): FetchFunction {
   return (input, init) =>
     isJsonExchange(init)
-      ? fetchFunction(input, {
-          ...init,
-          signal: withDeadline(init?.signal, timeoutMs)
-        })
+      ? fetchUnderDeadline(fetchFunction, input, init, timeoutMs)
       : fetchFunction(input, init)
 }

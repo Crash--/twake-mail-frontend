@@ -8,7 +8,7 @@ import {
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 
-import { withBatchedCalls } from './batchCalls'
+import { isBatchedMethod, withBatchedCalls } from './batchCalls'
 
 function makeClient(server: FakeJmapServer, maxCalls = 16): JmapClient {
   return withBatchedCalls(
@@ -27,6 +27,27 @@ function methodsPerRequest(server: FakeJmapServer): string[][] {
     request.methodCalls.map(([name]) => name)
   )
 }
+
+describe('isBatchedMethod', () => {
+  it.each([
+    'Mailbox/get',
+    'Email/query',
+    'Email/changes',
+    'Email/queryChanges',
+    'TMailContact/autocomplete'
+  ])('batches the read %s', method => {
+    expect(isBatchedMethod(method)).toBe(true)
+  })
+
+  it.each([
+    'Email/set',
+    'Email/import',
+    'Mailbox/clear',
+    'EmailSubmission/set'
+  ])('sends the write %s alone', method => {
+    expect(isBatchedMethod(method)).toBe(false)
+  })
+})
 
 describe('withBatchedCalls', () => {
   it('sends the calls made together in one request, each caller getting its answer', async () => {
@@ -66,6 +87,44 @@ describe('withBatchedCalls', () => {
       identities.status === 'rejected' &&
         identities.reason instanceof JmapMethodError
     ).toBe(true)
+  })
+
+  it('rejects every caller of a shared request lost on the way', async () => {
+    const server = makeFakeJmapServer()
+    server.loseNextResponse('Identity/get')
+    const client = makeClient(server)
+    await client.getSession()
+
+    const [mailboxes, identities] = await Promise.allSettled([
+      client.call('Mailbox/get', { accountId: FAKE_ACCOUNT_ID, ids: null }),
+      client.call('Identity/get', { accountId: FAKE_ACCOUNT_ID, ids: null })
+    ])
+
+    expect(methodsPerRequest(server)).toEqual([['Mailbox/get', 'Identity/get']])
+    expect(mailboxes.status).toBe('rejected')
+    expect(identities.status).toBe('rejected')
+  })
+
+  it('sends a write alone, so a read lost on the way does not fail it', async () => {
+    const server = makeFakeJmapServer()
+    server.loseNextResponse('Mailbox/get')
+    const client = makeClient(server)
+    await client.getSession()
+
+    const [mailboxes, seen] = await Promise.allSettled([
+      client.call('Mailbox/get', { accountId: FAKE_ACCOUNT_ID, ids: null }),
+      client.call('Email/set', {
+        accountId: FAKE_ACCOUNT_ID,
+        update: { 'email-1': { 'keywords/$seen': true } }
+      })
+    ])
+
+    expect(methodsPerRequest(server).sort()).toEqual([
+      ['Email/set'],
+      ['Mailbox/get']
+    ])
+    expect(mailboxes.status).toBe('rejected')
+    expect(seen.status).toBe('fulfilled')
   })
 
   it('sends at most maxCalls calls per request', async () => {

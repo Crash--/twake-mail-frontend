@@ -13,8 +13,10 @@ name: E2E
 
 on:
   pull_request:
+    paths-ignore: [docs/decisions.md]
   push:
     branches: [main]
+    paths-ignore: [docs/decisions.md]
   workflow_dispatch:
 
 permissions:

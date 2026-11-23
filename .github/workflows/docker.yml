@@ -15,7 +15,9 @@ on:
   push:
     branches: [main]
     tags: ['v*.*.*']
+  # push stays unfiltered: every commit of main and every tag gets its image
   pull_request:
+    paths-ignore: [docs/decisions.md]
   workflow_dispatch:
 
 permissions:

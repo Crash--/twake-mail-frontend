@@ -92,3 +92,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Swann Maillard (design), [#893](https://github.com/Crash--/twake-mail-frontend/issues/893), for the compact rows and the outlined icons; grey background kept, decided by Crash-- (CTO) on 2026-11-22: the issue only asked for compact rows and outlined icons.
 - Why: the full-width cards with large filled icons did not match the other settings sections.
 - Scope: desktop and mobile, Settings > Email rules. On a phone the row keeps its name and "More" only.
+
+## 2026-11-23, [Infra] A change to the decisions log alone runs no CI
+
+- Decision: a pull request whose changes are only `docs/decisions.md` starts no lint, unit tests, E2E, image build or Helm chart check; neither does a push to main of that file alone, except the image, which every commit of main and every tag still gets. A code pull request rebased to resolve a conflict in the log runs everything, its diff holding its code.
+- Decided by: Crash-- (CTO), request of 2026-11-23 to the Mail team
+- Why: those runs test code that did not change.
+- Scope: GitHub Actions of the repository.

@@ -724,10 +724,14 @@ describe('ConversationView', () => {
       })
     })
 
-    // Read, its sender is Medium; unread, Bold
+    // Read, its sender and preview are Regular; unread, Semi Bold, as a row
+    // of the list
     const bob = (): HTMLElement =>
       within(toggle(/Bob Dupont/)).getByText('Bob Dupont')
-    expect(bob()).toHaveStyle({ fontWeight: 500 })
+    const bobPreview = (): HTMLElement =>
+      within(toggle(/Bob Dupont/)).getByTestId('conversation-message-preview')
+    expect(bob()).toHaveStyle({ fontWeight: 400 })
+    expect(bobPreview()).toHaveStyle({ fontWeight: 400 })
 
     await userEvent.click(
       within(await openConversationMenu()).getByRole('menuitem', {
@@ -736,7 +740,8 @@ describe('ConversationView', () => {
     )
 
     expect(toggle(/Dan/)).toHaveAttribute('aria-expanded', 'false')
-    expect(bob()).toHaveStyle({ fontWeight: 700 })
+    expect(bob()).toHaveStyle({ fontWeight: 600 })
+    expect(bobPreview()).toHaveStyle({ fontWeight: 600 })
     await waitFor(() => {
       expect(
         server.emails

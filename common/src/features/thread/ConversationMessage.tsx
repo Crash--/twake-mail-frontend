@@ -409,7 +409,7 @@ export interface ConversationMessageProps {
 
 /**
  * A message of a conversation. Collapsed: sender, date and one line of
- * preview, bold and marked when unread. Expanded: the message itself, with
+ * preview, Semi Bold and marked when unread. Expanded: the message itself, with
  * the actions of the single email view. Marked unread, it collapses and its
  * header keeps the focus.
  */
@@ -430,7 +430,6 @@ export function ConversationMessage({
   const sender = email.from?.[0] ?? null
   const isUnread = !hasKeyword(email, SEEN)
   const isDraft = hasKeyword(email, DRAFT)
-  const emphasis = isUnread ? 'u-fw-bold' : ''
   const showsImportant = useShowsSenderPriority() && isMarkedImportant(email)
   const headerDate = formatHeaderDate(email.receivedAt, lang)
 
@@ -491,7 +490,7 @@ export function ConversationMessage({
                     aria-label={t('email.attachment')}
                   />
                 ) : null}
-                <MessageText variant="compact">
+                <MessageText variant="meta">
                   <time
                     dateTime={email.receivedAt}
                     title={formatFullDate(email.receivedAt, lang)}
@@ -505,11 +504,12 @@ export function ConversationMessage({
           {isExpanded ? null : (
             <MessageText
               variant="compact"
+              isStrong={isUnread}
               noWrap
               className="u-db"
               data-testid="conversation-message-preview"
             >
-              <span className={emphasis}>{email.preview}</span>
+              {email.preview}
             </MessageText>
           )}
         </>

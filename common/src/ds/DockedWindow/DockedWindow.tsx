@@ -331,16 +331,14 @@ export function DockedWindow({
           aria-labelledby={titleId}
           aria-modal={isFullscreen ? true : undefined}
           tabIndex={-1}
-          elevation={0}
+          // As the search filters panel (docs/decisions.md, 2026-11-23)
+          elevation={8}
           onKeyDown={handleKeyDown}
           className="u-flex u-flex-column u-ov-hidden"
           sx={[
             {
               pointerEvents: 'auto',
               borderRadius: radius.md,
-              // The shadow of the color scheme shown: `theme.shadows` is the
-              // light one whatever the scheme
-              boxShadow: theme => theme.vars.shadows[4],
               ...(viewTransitionName === undefined
                 ? {}
                 : {

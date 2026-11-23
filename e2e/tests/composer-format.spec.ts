@@ -1,4 +1,4 @@
-import { LoginPage } from '../pages'
+import { LoginPage, SearchPage } from '../pages'
 import { expectNoA11yViolations } from '../support/a11y'
 import { expect, test } from '../support/fixtures'
 import type { JmapClient } from '../support/jmap'
@@ -212,7 +212,7 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
     }
   )
 
-  test('CMP-114 in dark mode, the composer casts the shadow of the dark scheme, edged with a light line (issue #1043)', async ({
+  test('CMP-114 in dark mode, the composer casts the shadow of the search filters panel, the one of the dark scheme (issue #1043)', async ({
     page,
     user,
     jmap
@@ -234,6 +234,15 @@ test.describe('CMP composer: formatting toolbar and emoji', () => {
       element => getComputedStyle(element).boxShadow
     )
     expect(shadow).toContain('rgba(255, 255, 255')
+
+    // The decision of 2026-11-23 (docs/decisions.md)
+    const search = new SearchPage(page)
+    await search.advancedButton.click()
+    await expect(search.advancedDialog).toBeVisible()
+    const filtersShadow = await search.advancedDialog
+      .getByRole('dialog')
+      .evaluate(element => getComputedStyle(element).boxShadow)
+    expect(shadow).toBe(filtersShadow)
   })
 
   test('CMP-110 in dark mode, the formatting toolbar and its menus are dark with readable text', async ({

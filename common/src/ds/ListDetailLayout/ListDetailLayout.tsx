@@ -4,12 +4,10 @@
 import { Box, GlobalStyles, useMediaQuery } from '@linagora/twake-mui'
 import type { CSSObject, Theme } from '@linagora/twake-mui'
 import {
-  Activity,
   createContext,
   useContext,
   useEffect,
   useRef,
-  useState,
   type FocusEvent,
   type ReactElement,
   type ReactNode
@@ -190,13 +188,7 @@ function isFocusLost(): boolean {
  * - Otherwise one at a time, the item replacing the list: phones, small
  *   tablets, and desktops, where the list has the whole width.
  *
- * On desktops, the list stays mounted while an item is open, hidden by
- * `<Activity>`: going back shows it again instead of building it anew,
- * during the view transition that freezes the frames. A hidden list is
- * `display: none` (nothing in it can take the focus nor reaches screen
- * readers) and its effects are cleaned up until it shows again: only a
- * list built while shown, never one first mounted hidden. Elsewhere, only
- * what is shown is rendered.
+ * Only what is shown is rendered: nothing hidden can take the focus.
  * Navigations run as view transitions (`prepareViewTransition`) slide
  * between the list and the item, see `transitionStyles`.
  */
@@ -208,24 +200,15 @@ export function ListDetailLayout({
   const screenSize = useScreenSize()
   const slideBreakpoint = useSlideBreakpoint()
   const isSplit = useIsSplitLayout()
-  const isDesktop = screenSize === 'desktop'
   // On desktops the pane is the scrolling area of the item: the view
   // transition snapshots a pane that does not move with the scroll, which it
   // would otherwise slide over the bars above it. Below, the page scrolls
   // (the sticky bars stick to it).
-  const singlePaneClassName = isDesktop
-    ? 'u-flex u-flex-column u-h-100 u-ov-auto'
-    : 'u-flex u-flex-column u-h-100'
+  const singlePaneClassName =
+    screenSize === 'desktop'
+      ? 'u-flex u-flex-column u-h-100 u-ov-auto'
+      : 'u-flex u-flex-column u-h-100'
   const hasDetail = detail !== null && detail !== undefined
-  // Only a list built while shown is kept: one mounted hidden (an item
-  // opened by its URL, or after a resize) would lay its rows out in a
-  // `display: none` scroller and show them misplaced
-  const [isListBuilt, setIsListBuilt] = useState(isDesktop && !hasDetail)
-  const isListBuiltNow = isDesktop && (isListBuilt || !hasDetail)
-  if (isListBuiltNow !== isListBuilt) {
-    setIsListBuilt(isListBuiltNow)
-  }
-  const keepsListMounted = isListBuiltNow
   const lastListFocusRef = useRef<HTMLElement | null>(null)
   const hadDetailRef = useRef(hasDetail)
 
@@ -272,16 +255,7 @@ export function ListDetailLayout({
     return (
       <Box className={singlePaneClassName} sx={SINGLE_PANE_SX}>
         {styles}
-        {keepsListMounted ? (
-          <>
-            <Activity mode={hasDetail ? 'hidden' : 'visible'}>{list}</Activity>
-            {hasDetail ? detail : null}
-          </>
-        ) : hasDetail ? (
-          detail
-        ) : (
-          list
-        )}
+        {hasDetail ? detail : list}
       </Box>
     )
   }

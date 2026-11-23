@@ -5,7 +5,7 @@ import {
 } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Activity, useState, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 
 import type { VirtualizedListTableProps } from './VirtualizedListTable'
 
@@ -76,50 +76,7 @@ function renderTable(
   )
 }
 
-function HideableTable(): ReactElement {
-  const [isHidden, setIsHidden] = useState(false)
-  const handleToggle = (): void => {
-    setIsHidden(value => !value)
-  }
-  return (
-    <VirtuosoMockContext.Provider
-      value={{ viewportHeight: 10_000, itemHeight: 40 }}
-    >
-      <button type="button" onClick={handleToggle}>
-        Toggle
-      </button>
-      <Activity mode={isHidden ? 'hidden' : 'visible'}>
-        <VirtualizedListTable
-          label="Files"
-          rows={ROWS}
-          columns={COLUMNS}
-          computeItemKey={(_index, row) => String(row.id)}
-          componentsProps={{ rowContent: { children: <NameCell /> } }}
-          data-testid="files"
-        />
-      </Activity>
-    </VirtuosoMockContext.Provider>
-  )
-}
-
 describe('VirtualizedListTable', () => {
-  it('gives its scroll back when it shows again after being hidden', async () => {
-    renderDs(<HideableTable />)
-    const scroller = screen.getByTestId('files')
-    scroller.scrollTop = 120
-    act(() => {
-      scroller.dispatchEvent(new Event('scroll'))
-    })
-
-    await userEvent.click(screen.getByRole('button', { name: 'Toggle' }))
-    // The browser drops the scroll of a `display: none` element
-    scroller.scrollTop = 0
-    await userEvent.click(screen.getByRole('button', { name: 'Toggle' }))
-
-    expect(screen.getByTestId('files')).toBe(scroller)
-    expect(scroller.scrollTop).toBe(120)
-  })
-
   it('is a named table whose column headers name the cells', () => {
     renderTable()
 

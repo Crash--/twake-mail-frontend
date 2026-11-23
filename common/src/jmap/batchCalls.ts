@@ -26,6 +26,25 @@ interface QueuedCall {
   sendAlone: () => void
 }
 
+/** The reads: only they go together */
+const BATCHED_METHOD_SUFFIXES = [
+  '/get',
+  '/query',
+  '/changes',
+  '/queryChanges',
+  '/autocomplete'
+] as const
+
+/**
+ * Whether `method` only reads: a transport failure (5xx, reset, deadline)
+ * of a shared request fails every call in it, and a read failing must not
+ * take a write (`Email/set`, `Mailbox/clear`…) down with it. Writes are sent
+ * alone, as before.
+ */
+export function isBatchedMethod(method: string): boolean {
+  return BATCHED_METHOD_SUFFIXES.some(suffix => method.endsWith(suffix))
+}
+
 function groupKey(call: QueuedCall): string {
   return JSON.stringify(call.extraCapabilities)
 }
@@ -94,8 +113,10 @@ function sendTogether(client: JmapClient, calls: readonly QueuedCall[]): void {
  * together, at start-up, cost one round trip. The request leaves at the end
  * of the task (a microtask), so that a call made alone is not delayed: the
  * queries mounted in one render all start in the same task. Each caller gets its own
- * answer or error (an error in one call does not fail the others). Calls
- * go together only with the same `extraCapabilities`, `maxCalls` at most.
+ * answer or error (an error in one call does not fail the others), but a
+ * transport failure of the shared request fails all of them: only reads go
+ * together, writes are sent alone. Calls go together only with the same
+ * `extraCapabilities`, `maxCalls` at most.
  * A caller aborting gets an `AbortError` at once; the request is cancelled
  * only when every caller in it aborted. The other methods are the client's.
  */
@@ -121,7 +142,7 @@ export function withBatchedCalls(
     queue.push(call)
   }
 
-  const call = <
+  const callInBatch = <
     M extends JmapMethodName,
     const Property extends MethodPropertyName<M> = never
   >(
@@ -161,6 +182,18 @@ export function withBatchedCalls(
         }
       })
     })
+
+  const call = <
+    M extends JmapMethodName,
+    const Property extends MethodPropertyName<M> = never
+  >(
+    method: M,
+    args: CallArgs<M, Property>,
+    options?: CallOptions
+  ): Promise<NarrowedMethodResponse<M, Property>> =>
+    isBatchedMethod(method)
+      ? callInBatch(method, args, options)
+      : client.call(method, args, options)
 
   return {
     getSession: () => client.getSession(),

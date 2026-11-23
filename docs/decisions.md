@@ -99,3 +99,4 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), request of 2026-11-23 to the Mail team
 - Why: those runs test code that did not change.
 - Scope: GitHub Actions of the repository.
+

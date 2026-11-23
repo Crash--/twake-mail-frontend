@@ -159,8 +159,9 @@ test.describe('CMP composer: templates and mailto links', () => {
       const [template] = await readTemplatesSettled(jmap, 1)
       expect(template?.subject).toBe(`${subject} edited again`)
       expect(template?.attachments.map(part => part.name)).toEqual([file.name])
-      // An inline image keeps its Content-ID, a file has none
-      expect(template?.attachments[0]?.cid !== undefined).toBe(
+      // An inline image keeps its Content-ID, a file has none: tmail-backend omits `cid`
+      // up to 1.0.22 and returns `cid: null` from 1.0.23 (RFC 8621)
+      expect(typeof template?.attachments[0]?.cid === 'string').toBe(
         kind === 'inline image'
       )
     })

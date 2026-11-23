@@ -48,7 +48,8 @@ scripts of `/docker-entrypoint.d/`. `40-twake-mail-runtime.sh`
 ([source](../deploy/docker/40-twake-mail-runtime.sh)) writes the runtime
 nginx configuration into `/tmp/nginx/conf.d/`:
 
-- browser caching: hashed assets cached for a year, `index.html` never;
+- browser caching: hashed assets cached for a year, `index.html` revalidated (`no-cache`, so that the
+  back-forward cache stays usable);
   everything `no-cache` when `.env.js` sets `DEBUG = true`;
 - the [security headers](#security-headers), from the environment.
 

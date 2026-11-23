@@ -82,7 +82,8 @@ expect 'nginx master runs as uid 101' \
   "$(docker exec "$NAME" sh -c 'stat -c %u /proc/1')" '101'
 expect '/ serves index.html' "$(body "$BASE/")" '*<div id="root"*'
 expect 'unknown routes fall back to index.html' "$(body "$BASE/mailbox/inbox")" '*<div id="root"*'
-expect 'index.html is never cached' "$(header / Cache-Control)" 'no-store*'
+expect 'index.html is revalidated, not kept out of the back-forward cache' \
+  "$(header / Cache-Control)" 'no-cache'
 expect '/.env.js is the mounted one' "$(body "$BASE/.env.js")" '*jmap.example.com*'
 expect '/.env.js is never cached' "$(header /.env.js Cache-Control)" 'no-store*'
 expect '/version.js is written by the build' "$(body "$BASE/version.js")" 'var APP_VERSION = *'

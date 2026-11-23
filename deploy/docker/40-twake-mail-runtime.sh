@@ -191,7 +191,7 @@ if [ -f "$env_js" ] &&
   log "DEBUG = true in .env.js: browser caching disabled"
 else
   static_cache='public, max-age=31536000, immutable'
-  html_cache='no-store, no-cache, must-revalidate, proxy-revalidate'
+  html_cache='no-cache'
   log "browser caching of the hashed assets enabled"
 fi
 cat >"$CONF_DIR/cache_env.conf" <<EOF

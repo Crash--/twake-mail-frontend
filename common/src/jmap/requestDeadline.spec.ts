@@ -40,7 +40,7 @@ describe('withDeadline', () => {
   })
 
   it('aborts with a TimeoutError once the deadline is reached', () => {
-    const signal = withDeadline(null, 1000)
+    const { signal } = withDeadline(null, 1000)
 
     jest.advanceTimersByTime(999)
     expect(signal.aborted).toBe(false)
@@ -53,7 +53,7 @@ describe('withDeadline', () => {
 
   it('aborts with the reason of the caller signal', () => {
     const caller = new AbortController()
-    const signal = withDeadline(caller.signal, 1000)
+    const { signal } = withDeadline(caller.signal, 1000)
 
     caller.abort('unmounted')
 
@@ -62,10 +62,22 @@ describe('withDeadline', () => {
   })
 
   it('is aborted at once when the caller signal already is', () => {
-    const signal = withDeadline(AbortSignal.abort('gone'), 1000)
+    const { signal } = withDeadline(AbortSignal.abort('gone'), 1000)
 
     expect(signal.aborted).toBe(true)
     expect(signal.reason).toBe('gone')
+  })
+
+  it('no longer aborts once cleared', () => {
+    const caller = new AbortController()
+    const { signal, clear } = withDeadline(caller.signal, 1000)
+
+    clear()
+    jest.advanceTimersByTime(1000)
+    caller.abort('unmounted')
+
+    expect(signal.aborted).toBe(false)
+    expect(jest.getTimerCount()).toBe(0)
   })
 })
 
@@ -108,6 +120,26 @@ describe('withRequestDeadline', () => {
     }).catch(() => undefined)
 
     expect(fetch.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('gives back the answer and drops its timer once the body is read', async () => {
+    const fetchWithDeadline = withRequestDeadline(
+      jest.fn(() =>
+        Promise.resolve(
+          new Response('{"ok":true}', {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          })
+        )
+      ),
+      1000
+    )
+
+    const response = await fetchWithDeadline(API_URL, JSON_POST)
+
+    await expect(response.json()).resolves.toEqual({ ok: true })
+    expect(response.status).toBe(200)
+    expect(jest.getTimerCount()).toBe(0)
   })
 
   it('leaves uploads and downloads without a deadline', () => {

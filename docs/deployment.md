@@ -143,7 +143,8 @@ looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
-`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`. tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`, `TWAKE_RAIL`,
+`TWAKE_RAIL_PRERENDER`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.
@@ -223,8 +224,9 @@ feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
 generated `/.env.js` when the `env.file` has no such key, as are
 `TWAKE_SPACE_URL`, `TDRIVE_ENABLED` (the
-[Twake Drive picker](#twake-drive-picker)) and `NEW_VERSION_CHECK_ENABLED`
-([New version available](#new-version-available)).
+[Twake Drive picker](#twake-drive-picker)), `NEW_VERSION_CHECK_ENABLED`
+([New version available](#new-version-available)), `TWAKE_RAIL` and
+`TWAKE_RAIL_PRERENDER` ([Navigation rail](#navigation-rail)).
 
 ### Custom logotype
 
@@ -668,6 +670,21 @@ uncached; with the setting off, nothing asks for it.
 
 With the `linagora/tmail-frontend` chart, set it in the environment of the
 container (`extraEnv`, see [Mounting an `env.file`](#mounting-an-envfile)).
+
+## Navigation rail
+
+Off unless `TWAKE_RAIL = true`. On a desktop, with the Workplace of the user,
+the apps of the platform are a vertical rail at the left of the page (its
+help, apps and account menus too), and the top bar keeps the logotype and
+leaves those menus out. Moving to another app is a page navigation. Smaller
+screens, and the apps off the platform, are unchanged.
+
+`TWAKE_RAIL_PRERENDER` lists the registry slugs of the apps the browser may
+prerender ahead (`space`, `drive`, `chat`, `mail`, `calendar`, `tasks`,
+separated by commas); empty prerenders none. An app is prerendered only if its
+HTML answers `Supports-Loading-Mode: credentialed-prerender`: the image sends
+it on its own HTML pages when `.env.js` sets `TWAKE_RAIL = true` (read at
+startup, like the other headers).
 
 ## Intents served by Twake Mail
 

@@ -17,6 +17,7 @@ import { HelpButton } from './HelpButton'
 import { LogoutButton } from './LogoutButton'
 import { PlatformBar } from './PlatformBar'
 import { TopBar } from './TopBar'
+import { useIsRailShown } from './useIsRailShown'
 
 export interface AppHeaderProps {
   /** Opens the folder drawer, below the desktop size */
@@ -46,6 +47,7 @@ export function AppHeader({
   const status = usePlatformStatus()
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
+  const withMenus = !useIsRailShown()
   const isPhone = screenSize === 'mobile'
   // Matches `/settings/` too, unlike a path comparison
   const isSettingsMenu = useMatch(SETTINGS_PATH) !== null
@@ -91,6 +93,7 @@ export function AppHeader({
     <AppBarFrame isPlain={!isFlutterBar}>
       <PlatformBar
         sdk={sdk}
+        withMenus={withMenus}
         left={
           isFlutterBar ? (
             <AppBarLeft width={SIDEBAR_WIDTH}>

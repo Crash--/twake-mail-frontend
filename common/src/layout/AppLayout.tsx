@@ -62,8 +62,10 @@ import { useI18n } from '@common/i18n/useI18n'
 import { AppHeader } from './AppHeader'
 import { MailSidebar } from './MailSidebar'
 import { MailSearchRow } from './MailSearchRow'
+import { PlatformRail } from './PlatformRail'
 import { SettingsButton } from './SettingsButton'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
+import { useIsRailShown } from './useIsRailShown'
 import { useLogout } from './useLogout'
 
 /** The target of the skip link and of the focus after a navigation */
@@ -82,7 +84,7 @@ export const MAIN_CONTENT_ID = 'main-content'
 export function AppLayout(): ReactElement {
   return (
     <MailProviders>
-      <AppFrame />
+      <RailFrame />
     </MailProviders>
   )
 }
@@ -119,6 +121,18 @@ export function MailProviders({
         </MailboxPickerProvider>
       </ShortcutsProvider>
     </PlatformProvider>
+  )
+}
+
+/** The rail of the Twake apps, when on, at the left of the whole layout */
+function RailFrame(): ReactElement {
+  const isRailShown = useIsRailShown()
+
+  return (
+    <Box className="u-flex u-h-100">
+      {isRailShown ? <PlatformRail /> : null}
+      <AppFrame />
+    </Box>
   )
 }
 
@@ -182,7 +196,7 @@ function AppFrame(): ReactElement {
   })
 
   return (
-    <Box className="u-flex u-flex-column u-h-100">
+    <Box className="u-flex u-flex-column u-flex-auto u-ov-hidden u-h-100">
       <SkipLink
         label={t('app.skipToContent')}
         targetId={MAIN_CONTENT_ID}

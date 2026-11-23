@@ -85,3 +85,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Pending, Crash-- (CTO) to confirm the 100 px size; applied in [#1122](https://github.com/Crash--/twake-mail-frontend/pull/1122), from [#900](https://github.com/Crash--/twake-mail-frontend/issues/900)
 - Why: the empty list takes the look of the Space empty states; the tile becomes `iconLook="tile"` of `Empty` with [linagora/twake-ui#241](https://github.com/linagora/twake-ui/pull/241).
 - Scope: desktop and mobile, email lists.
+
+## 2026-11-23, [UX] The navigation rail is behind TWAKE_RAIL, off by default
+
+- Decision: with `TWAKE_RAIL` on, the Twake apps are a vertical rail at the left of the page, in place of the platform menus of the top bar; moving between apps stays a real page navigation. Off by default, a deployment setting.
+- Decided by: Crash-- (CTO), go of 2026-11-23 for the test of the navigation rail across pages
+- Why: the rail of the Twake Workplace mockups, tested as real pages first.
+- Scope: desktop. Smaller screens keep the platform menus in the top bar.

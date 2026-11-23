@@ -27,6 +27,8 @@ export interface PlatformBarProps {
   search?: ReactNode
   /** The apps grid and the account menu off the platform */
   fallback?: TwakeBarFallback
+  /** Off: the rail of the Twake apps carries the platform menus */
+  withMenus?: boolean
 }
 
 /**
@@ -40,7 +42,8 @@ export function PlatformBar({
   actions,
   left,
   search,
-  fallback
+  fallback,
+  withMenus
 }: PlatformBarProps): ReactElement {
   const { t } = useI18n()
   const handleLogout = useLogout()
@@ -57,6 +60,7 @@ export function PlatformBar({
         onLogOut={handleLogout}
         slots={{ left, search, right: actions }}
         fallback={fallback}
+        withMenus={withMenus}
       />
     </SdkProvider>
   )

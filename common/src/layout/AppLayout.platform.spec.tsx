@@ -122,7 +122,7 @@ function platformRequests(fetchMock: FetchMock): string[] {
     .filter(url => url.startsWith(PLATFORM))
 }
 
-function withConfig(ui: ReactElement): ReactElement {
+function withConfig(ui: ReactElement, twakeRail = false): ReactElement {
   const result = resolveConfig(
     {
       SERVER_URL: 'https://jmap.example.com',
@@ -131,7 +131,8 @@ function withConfig(ui: ReactElement): ReactElement {
       WEB_OIDC_CLIENT_ID: 'twake-mail',
       TDRIVE_ENABLED: true,
       WORKPLACE_EMBEDDING: true,
-      APP_GRID_AVAILABLE: 'supported'
+      APP_GRID_AVAILABLE: 'supported',
+      TWAKE_RAIL: twakeRail
     },
     'https://mail.example.com'
   )
@@ -150,13 +151,15 @@ const oidcService = (
 function renderLayout({
   authService = oidcService(),
   route = '/',
-  jmapServer
+  jmapServer,
+  twakeRail = false
 }: {
   authService?: AuthService
   route?: string
   jmapServer?: FakeJmapServer
+  twakeRail?: boolean
 } = {}): void {
-  renderWithProviders(withConfig(<AppLayout />), {
+  renderWithProviders(withConfig(<AppLayout />, twakeRail), {
     route,
     path: '*',
     authService,
@@ -449,5 +452,59 @@ describe('AppLayout with the platform bar', () => {
         `${PLATFORM}/auth/token_exchange`
       ])
     })
+  })
+
+  it('has no rail unless TWAKE_RAIL is on', async () => {
+    mockPlatform()
+    renderLayout()
+
+    const bar = await screen.findByTestId('twake-bar')
+    expect(
+      await within(bar).findByRole('button', { name: 'Applications' })
+    ).toBeVisible()
+    expect(screen.queryByTestId('twake-rail')).toBe(null)
+  })
+
+  it('shows the rail on a desktop and leaves the platform menus to it', async () => {
+    mockPlatform()
+    renderLayout({ twakeRail: true })
+
+    const rail = await screen.findByTestId('twake-rail')
+    expect(
+      await within(rail).findByRole('link', { name: 'Drive' })
+    ).toBeVisible()
+    const bar = screen.getByTestId('twake-bar')
+    expect(within(bar).queryByRole('button', { name: 'Account' })).toBe(null)
+    expect(within(bar).queryByRole('button', { name: 'Applications' })).toBe(
+      null
+    )
+    expect(
+      within(screen.getByTestId('search-row')).getByRole('button', {
+        name: 'Settings'
+      })
+    ).toBeVisible()
+  })
+
+  it('keeps the platform menus in the bar below the desktop size', async () => {
+    mockViewport({ width: 700, touch: true })
+    mockPlatform()
+    renderLayout({ twakeRail: true })
+
+    const bar = await screen.findByTestId('twake-bar')
+    expect(
+      await within(bar).findByRole('button', { name: 'Applications' })
+    ).toBeVisible()
+    expect(screen.queryByTestId('twake-rail')).toBe(null)
+  })
+
+  it('shows no rail without the platform, whatever TWAKE_RAIL says', async () => {
+    mockPlatform()
+    renderLayout({ authService: oidcService(null), twakeRail: true })
+
+    expect(await screen.findByTestId('twake-bar')).toHaveAttribute(
+      'data-status',
+      'public'
+    )
+    expect(screen.queryByTestId('twake-rail')).toBe(null)
   })
 })

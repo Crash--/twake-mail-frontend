@@ -113,3 +113,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - To decide: Swann Maillard (design).
 - Why it matters: twake-mui's only grey tile (`Avatar` `disabled`) is a fixed `#d6d8da`, light in dark mode too, so the tile has to be built on palette tokens.
 - Scope: desktop, Settings > Preferences.
+
+## 2026-11-23, [UI] The composer casts the shadow of the search filters
+
+- Decision: the floating composer casts the shadow of the search filters panel and of the search results (elevation 8 of twake-mui, in the colour scheme shown); the dark shadows of twake-mui do not change.
+- Decided by: Swann Maillard (design) and Julien (twake-ui maintainer), [linagora/twake-ui#260](https://github.com/linagora/twake-ui/pull/260#issuecomment-7094972462), 2026-11-23, following [#1043](https://github.com/Crash--/twake-mail-frontend/issues/1043)
+- Why: in dark mode the composer blended into the list behind it, while the search filters panel stands out.
+- Scope: desktop, composer window.

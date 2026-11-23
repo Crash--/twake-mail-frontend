@@ -137,6 +137,27 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Why: in the hand, acting on several emails at once comes first; a focused bar of three actions and an overflow keeps the toolbar clear.
 - Scope: mobile and touch tablet, email lists.
 
+## 2026-11-23, [Tech] JMAP requests fail after 30 seconds
+
+- Decision: every JSON exchange with the JMAP server (API calls, session, push ticket) fails with a `TimeoutError` after 30 s, body included; uploads and downloads have no deadline.
+- Decided by: Benoit Tellier, [#1116](https://github.com/Crash--/twake-mail-frontend/pull/1116), reviewed by Crash-- (CTO)
+- Why: a request lost by a proxy or a stalled backend left its screen loading forever; 30 s is above the slowest legitimate call (large `Email/get` chunks, searches over big mailboxes), so the query fails, retries and shows its error with Retry.
+- Scope: every screen, `common/src/jmap/requestDeadline.ts`.
+
+## 2026-11-23, [Tech] Reads started together share one JMAP request, writes go alone
+
+- Decision: the `call`s that only read (`/get`, `/query`, `/changes`, `/queryChanges`, `/autocomplete`) started in the same task go in one request (RFC 8620 section 3.3), at most `maxCallsInRequest` and only with the same capabilities; every other method is sent alone.
+- Decided by: Benoit Tellier, [#1116](https://github.com/Crash--/twake-mail-frontend/pull/1116), reviewed by Crash-- (CTO)
+- Why: the queries a screen starts at once each cost a round trip; a transport failure (5xx, reset, deadline) of a shared request fails every call in it, so a read failing must not take a write down with it.
+- Scope: every screen, `common/src/jmap/batchCalls.ts`.
+
+## 2026-11-23, [Tech] The email list is not kept mounted while an email is open
+
+- Decision: on desktop the list unmounts when an email opens, as on phones and tablets; its position comes back from its saved scroll (#1026), one mechanism on every screen. Keeping it alive (`<Activity>`) waits for its own measured PR, once the list stops reading the router.
+- Decided by: Crash-- (CTO), review of [#1116](https://github.com/Crash--/twake-mail-frontend/pull/1116)
+- Why: `<Activity>` was not what kept the position, and the hidden list still rendered on every navigation (`useOutlet` in the pages, `useLocation` / `useMatch` in `EmailList`) and re-ran its effects on each show, the likely cause of the `email-open-close` regression.
+- Scope: desktop, email list.
+
 ## 2026-11-24, [UI] The vacation start and end are twake-mui's segmented control
 
 - Decision: "Starts:" and "Ends:" in Settings > Vacation use twake-mui's `Tabs` `segmented`: a grey track, the chosen option raised on a white pill with its label in `primary.main`, as the Figma.

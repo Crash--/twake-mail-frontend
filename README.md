@@ -245,3 +245,4 @@ token renewal on 401). The JMAP session is loaded before the mail screens
 ## License
 
 [AGPL-3.0](LICENSE), as tmail-flutter.
+

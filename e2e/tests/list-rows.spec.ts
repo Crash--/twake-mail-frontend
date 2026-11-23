@@ -72,6 +72,10 @@ test.describe('LST email list rows', () => {
 
     await page.mouse.move(0, 0)
     await expect(remove).toHaveCSS('opacity', '0')
+    // Lazy: the actions leave the DOM with the pointer, and come back as
+    // soon as the row takes the keyboard focus
+    await expect(row.getByTestId('email-list-item-toggle-seen')).toHaveCount(0)
+    await row.getByTestId('email-list-item-star').focus()
     await row.getByTestId('email-list-item-toggle-seen').focus()
     await expect(remove).toHaveCSS('opacity', '1')
   })

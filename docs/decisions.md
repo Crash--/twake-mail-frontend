@@ -120,3 +120,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Swann Maillard (design) and Julien (twake-ui maintainer), [linagora/twake-ui#260](https://github.com/linagora/twake-ui/pull/260#issuecomment-7094972462), 2026-11-23, following [#1043](https://github.com/Crash--/twake-mail-frontend/issues/1043)
 - Why: in dark mode the composer blended into the list behind it, while the search filters panel stands out.
 - Scope: desktop, composer window.
+
+## 2026-11-23, [UI] A read collapsed message of a conversation is Regular
+
+- Decision: in a conversation, the sender and the preview of a collapsed message are Regular (400) when it is read and Semi Bold (600) when it is unread, the rule of the email list rows. The sender keeps its 16 px `h5`, the preview its 14 px in the secondary text colour (`body3`, `subtitle2` when unread). The date and the headers of expanded messages keep their 500.
+- Decided by: Crash-- (CTO), 2026-11-23; applied in [#1129](https://github.com/Crash--/twake-mail-frontend/pull/1129)
+- Why: read messages showed in Medium, heavier than the read rows of the list.
+- Scope: desktop and mobile, conversation view.

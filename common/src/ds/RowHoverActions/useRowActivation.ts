@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 
+import { onFocusInside } from './focusInside'
+
 const HOVER_QUERY = '(hover: hover)'
 
 /** A screen with hover: elsewhere (touch), the actions are always shown */
@@ -19,66 +21,73 @@ function isHovered(element: Element): boolean {
   }
 }
 
-function holdsFocus(element: Element | null): boolean {
-  return element?.contains(document.activeElement) ?? false
+function contains(element: Element | null, target: Node | null): boolean {
+  return target !== null && (element?.contains(target) ?? false)
+}
+
+/** The row, or the row after it (Shift+Tab from there reaches its actions) */
+function ownsFocus(row: Element, target: Node | null): boolean {
+  return contains(row, target) || contains(row.nextElementSibling, target)
 }
 
 export interface RowActivation {
   /** On an element inside the row */
   ref: RefObject<HTMLElement | null>
-  /** Whether the row was hovered or focused since it mounted */
+  /** Whether the row is hovered or owns the focus */
   isActive: boolean
 }
 
 /**
- * Whether the row holding `ref` (the closest `rowSelector`) was hovered, or
- * held the focus, since it mounted; always on a screen without hover. Once
- * active, a row stays so. The row after it holding the focus activates it
- * too: Shift+Tab from there reaches its actions. Not `enabled`, the row
- * is active from the start.
+ * Whether the row holding `ref` (the closest `rowSelector`) is hovered or
+ * owns the focus; always on a screen without hover. The row owns the focus
+ * from the moment it, or the row after it (Shift+Tab from there reaches its
+ * actions), takes it, until another element of the table takes it: focus
+ * moving out of the table (a menu its actions opened) keeps the row active,
+ * so the anchor of that menu stays mounted. Not `enabled`, the row is
+ * always active.
  */
 export function useRowActivation(
   rowSelector: string,
   enabled: boolean
 ): RowActivation {
   const ref = useRef<HTMLElement | null>(null)
-  const [isActive, setIsActive] = useState(() => !enabled || !canHover())
+  const isLazy = enabled && canHover()
+  const [isActive, setIsActive] = useState(() => !isLazy)
 
   useEffect(() => {
-    if (isActive) return
+    if (!isLazy) return
     const row = ref.current?.closest(rowSelector) ?? null
     const parent = row?.parentElement ?? null
     if (row === null || parent === null) {
       setIsActive(true)
       return
     }
-    const activate = (): void => {
-      setIsActive(true)
+    let isHover = isHovered(row)
+    let hasFocus = ownsFocus(row, document.activeElement)
+    const update = (): void => {
+      setIsActive(isHover || hasFocus)
     }
-    const handleFocusIn = (event: FocusEvent): void => {
-      if (!(event.target instanceof Node)) return
-      if (
-        row.contains(event.target) ||
-        (row.nextElementSibling?.contains(event.target) ?? false)
-      ) {
-        activate()
-      }
+    const handlePointerEnter = (): void => {
+      isHover = true
+      update()
     }
-    if (
-      isHovered(row) ||
-      holdsFocus(row) ||
-      holdsFocus(row.nextElementSibling)
-    ) {
-      activate()
-      return
+    const handlePointerLeave = (): void => {
+      isHover = false
+      update()
     }
-    row.addEventListener('pointerenter', activate)
-    parent.addEventListener('focusin', handleFocusIn)
+    update()
+    row.addEventListener('pointerenter', handlePointerEnter)
+    row.addEventListener('pointerleave', handlePointerLeave)
+    const stopFocus = onFocusInside(parent, target => {
+      hasFocus = ownsFocus(row, target)
+      update()
+    })
     return () => {
-      row.removeEventListener('pointerenter', activate)
-      parent.removeEventListener('focusin', handleFocusIn)
+      row.removeEventListener('pointerenter', handlePointerEnter)
+      row.removeEventListener('pointerleave', handlePointerLeave)
+      stopFocus()
     }
-  }, [isActive, rowSelector])
+  }, [isLazy, rowSelector])
 
   return { ref, isActive }
 }

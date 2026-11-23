@@ -12,10 +12,11 @@ export interface RowHoverActionsProps {
   /** What holds the actions: a table row, or a list item (a folder) */
   in?: keyof typeof ROW_CONTAINERS
   /**
-   * Mounts the actions only once the row is hovered or holds the focus (or
+   * Mounts the actions only while the row is hovered or owns the focus (or
    * the row after it does, for Shift+Tab), on a screen with hover: a long
-   * list then mounts its rows without their buttons and tooltips. They stay
-   * mounted afterwards. Only with `replaces`, whose actions take no room
+   * list then mounts its rows without their buttons and tooltips, and only
+   * the rows in use carry them. Only with `replaces`, whose actions take no
+   * room
    */
   lazy?: boolean
   /**
@@ -31,8 +32,8 @@ export interface RowHoverActionsProps {
 /**
  * Actions of a table row (or a list item), shown when it is hovered or holds the focus:
  * keyboard users tab to them like to any control, touch screens (no hover)
- * always show them. `lazy` ones are mounted the first time the row is
- * hovered or focused.
+ * always show them. `lazy` ones are mounted only while the row is hovered
+ * or focused.
  */
 export function RowHoverActions({
   children,

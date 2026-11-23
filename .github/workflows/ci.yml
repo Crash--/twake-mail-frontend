@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: [docs/decisions.md]
   pull_request:
+    paths-ignore: [docs/decisions.md]
 
 permissions:
   contents: read

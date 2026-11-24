@@ -48,11 +48,11 @@ function TeamMailboxFrame(): ReactElement {
   const isEmailOpen = useMatch('/mailbox/:mailboxId/email/:emailId/*') !== null
   const canCompose = useTeamMailboxRoot() !== null
 
+  // The list scrolls in it: the floating button folds while the user scrolls it
+  const mainContentRef = useRef<HTMLDivElement>(null)
   const { openComposer } = useComposer()
   // The button and the `c` shortcut; the composer writes from the address
   // of the team mailbox, never from the personal one
-  // The list scrolls in it: the floating button folds while the user scrolls it
-  const mainContentRef = useRef<HTMLDivElement>(null)
   const handleCompose = (): void => {
     if (canCompose) openComposer()
   }

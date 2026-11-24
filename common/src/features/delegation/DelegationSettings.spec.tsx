@@ -1,6 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { QueryClient } from '@tanstack/react-query'
 
+import { identityKeys } from '@common/features/identities/queries'
 import {
   SETTINGS_SECTIONS,
   type SettingsSection
@@ -12,6 +14,7 @@ import {
   installFakeTeamMailboxRevoke
 } from '@common/testing/fakeDelegation'
 import {
+  FAKE_ACCOUNT_ID,
   makeDefaultMailboxes,
   makeFakeJmapServer,
   makeTeamMailboxes,
@@ -44,6 +47,7 @@ function setup({
   refusedTeams?: string[]
 } = {}): ReturnType<typeof installFakeDelegation> & {
   server: FakeJmapServer
+  queryClient: QueryClient
 } {
   const server = makeFakeJmapServer({
     capabilities: {
@@ -82,11 +86,11 @@ function setup({
   })
   const fake = installFakeDelegation(server, { delegates, refused })
   installFakeTeamMailboxRevoke(server, { refused: refusedTeams })
-  renderWithProviders(<DelegationSettings section={delegationSection()} />, {
-    jmapServer: server,
-    withJmapSession: true
-  })
-  return { ...fake, server }
+  const { queryClient } = renderWithProviders(
+    <DelegationSettings section={delegationSection()} />,
+    { jmapServer: server, withJmapSession: true }
+  )
+  return { ...fake, server, queryClient }
 }
 
 describe('DelegationSettings', () => {
@@ -387,6 +391,33 @@ describe('DelegationSettings', () => {
     expect(
       screen.getByRole('list', { name: 'Mailboxes delegated to me (1)' })
     ).toBeVisible()
+  })
+
+  it('forgets the identities once the user left a team mailbox, so its own leaves Profiles and From', async () => {
+    const { queryClient } = setup({ teams: ['sales@example.com'] })
+    queryClient.setQueryData(identityKeys.list(FAKE_ACCOUNT_ID), [])
+
+    await userEvent.click(
+      await screen.findByRole('tab', { name: 'Delegated to me' })
+    )
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'Leave the team mailbox sales'
+      })
+    )
+    await userEvent.click(
+      within(
+        screen.getByRole('dialog', { name: 'Leave this team mailbox?' })
+      ).getByRole('button', { name: 'Remove access' })
+    )
+
+    expect(await screen.findByTestId('toast')).toHaveTextContent(
+      'You left the team mailbox sales'
+    )
+    expect(
+      queryClient.getQueryState(identityKeys.list(FAKE_ACCOUNT_ID))
+        ?.isInvalidated
+    ).toBe(true)
   })
 
   it('lists the team mailboxes alone, without delegated mailboxes', async () => {

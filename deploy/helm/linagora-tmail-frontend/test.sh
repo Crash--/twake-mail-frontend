@@ -125,6 +125,20 @@ spec:
   ports: [{port: 8000}]
 STUB
   kubectl --namespace "$NAMESPACE" wait --for=condition=Ready pod/jmap-stub --timeout=180s
+  # The pod is Ready before its Service resolves and routes in a fresh cluster: the image
+  # asks WebFinger once at startup, so wait until a pod reaches the stub by its name
+  kubectl --namespace "$NAMESPACE" run webfinger-probe --image=python:3-alpine \
+    --image-pull-policy=IfNotPresent --restart=Never --rm --attach --quiet --command -- python -c '
+import time, urllib.request
+for _ in range(60):
+    try:
+        urllib.request.urlopen("http://jmap-stub:8000/.well-known/webfinger", timeout=2)
+        break
+    except Exception:
+        time.sleep(1)
+else:
+    raise SystemExit("jmap-stub unreachable through its Service")
+'
   VALUES=(-f "$DIR/workplace-values.yaml" --set config.serverUrl=http://jmap-stub:8000
     --set 'extraEnv[0].name=CSP_FRAME_ANCESTORS' --set "extraEnv[0].value='self' https://*.example.com")
   # extraEnv is a list of maps: --set cannot hold the quotes of the value, use a file

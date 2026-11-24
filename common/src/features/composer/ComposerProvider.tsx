@@ -10,7 +10,8 @@ import {
   useState,
   type ComponentProps,
   type ReactElement,
-  type ReactNode
+  type ReactNode,
+  type RefObject
 } from 'react'
 
 import {
@@ -91,27 +92,76 @@ const isFocusTarget = (
   element.isConnected
 
 /**
+ * The layers that close as their action runs: a menu (popover or bottom
+ * sheet) is gone once the composer it opened closes
+ */
+const TRANSIENT_LAYER_SELECTOR = '[role="menu"], .MuiModal-root'
+
+/** The main content of the layouts, a script focus target */
+const MAIN_CONTENT_SELECTOR = '#main-content'
+
+/**
+ * The element focused last outside a menu or a modal layer: what opened
+ * that menu (the "More" button of a message), when a composer opens from
+ * one of its items
+ */
+function useLastFocusOutsideLayers(): RefObject<HTMLElement | null> {
+  const last = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const handleFocusIn = (event: FocusEvent): void => {
+      const { target } = event
+      if (
+        target instanceof HTMLElement &&
+        target.closest(TRANSIENT_LAYER_SELECTOR) === null
+      ) {
+        last.current = target
+      }
+    }
+    document.addEventListener('focusin', handleFocusIn)
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn)
+    }
+  }, [])
+  return last
+}
+
+/** What had the focus when a composer opened */
+interface ComposerOpener {
+  element: Element | null
+  /** What opened the menu `element` is in, when it is in one */
+  outsideLayers: HTMLElement | null
+}
+
+/**
  * Gives the focus back once a composer is closed: to what opened it, or,
- * when nothing did (a composer restored after a reload, a /mailto link, a
- * shortcut pressed with nothing focused), it is gone, or it is about to go
- * (the row of a draft just sent, deleted, issue #1143, or saved again as a
- * new version, issue #1164), to the "New
- * message" button if the focus was left on the page body or on that opener.
+ * when it is gone, to what opened the menu it was in (issue #1141). When
+ * nothing did (a composer restored after a reload, a /mailto link, a
+ * shortcut pressed with nothing focused), when both are gone, or when they
+ * are about to go (the row of a draft just sent, deleted, issue #1143, or
+ * saved again as a new version, issue #1164), to the "New message" button,
+ * or the main content on screens without one, if the focus was left on the
+ * page body or on that opener.
  */
 const focusAfterClose = (
-  opener: Element | null | undefined,
+  opener: ComposerOpener | undefined,
   isOpenerLeaving: boolean
 ): void => {
-  if (!isOpenerLeaving && isFocusTarget(opener)) {
-    opener.focus()
+  const candidates = [opener?.element, opener?.outsideLayers]
+  const target = isOpenerLeaving ? undefined : candidates.find(isFocusTarget)
+  if (target !== undefined) {
+    target.focus()
     return
   }
   const focused = document.activeElement
   const isFocusLost =
     !isFocusTarget(focused) ||
-    (isOpenerLeaving && opener?.contains(focused) === true)
+    (isOpenerLeaving &&
+      candidates.some(candidate => candidate?.contains(focused) === true))
   if (!isFocusLost) return
-  document.querySelector<HTMLElement>(COMPOSE_BUTTON_SELECTOR)?.focus()
+  const fallback =
+    document.querySelector<HTMLElement>(COMPOSE_BUTTON_SELECTOR) ??
+    document.querySelector<HTMLElement>(MAIN_CONTENT_SELECTOR)
+  fallback?.focus()
 }
 
 function ComposerForm(
@@ -287,7 +337,8 @@ export function ComposerProvider({
     entriesRef.current = entries
   })
   /** What had the focus when each composer opened */
-  const openers = useRef(new Map<string, Element | null>())
+  const openers = useRef(new Map<string, ComposerOpener>())
+  const lastFocusOutsideLayers = useLastFocusOutsideLayers()
   const forms = useRef(new Map<string, ComposerFormHandle>())
   /**
    * The shortcuts are off while a composer opens: a key typed before its
@@ -531,7 +582,14 @@ export function ComposerProvider({
         notify({ message: t('composer.limit', { smart_count: MAX_COMPOSERS }) })
         return
       }
-      const opener = document.activeElement
+      const focused = document.activeElement
+      const opener: ComposerOpener = {
+        element: focused,
+        outsideLayers:
+          (focused?.closest(TRANSIENT_LAYER_SELECTOR) ?? null) === null
+            ? null
+            : lastFocusOutsideLayers.current
+      }
       const releaseShortcuts = suspendShortcuts()
       const add = (release: ReleaseLock | null): void => {
         const id = crypto.randomUUID()
@@ -565,7 +623,15 @@ export function ComposerProvider({
         add(release)
       })
     },
-    [accountId, notify, setMode, t, bringBack, suspendShortcuts]
+    [
+      accountId,
+      notify,
+      setMode,
+      t,
+      bringBack,
+      suspendShortcuts,
+      lastFocusOutsideLayers
+    ]
   )
 
   const close = useCallback(

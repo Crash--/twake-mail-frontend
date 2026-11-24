@@ -149,3 +149,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - To decide: Crash-- (CTO).
 - Why it matters: a screen reader announces tabs for what is a choice between two values.
 - Scope: desktop and mobile, Settings > Vacation.
+
+## 2026-11-24, [UX] Only the main content folds the floating Compose button
+
+- Decision: the floating "Compose" button folds only while the user scrolls the main content (the email list, or the team mailbox pane); a menu, a dialog or the drawer that scrolls leaves it unfolded. The rest of the 2026-11-22 entry ("The floating Compose button folds while the content scrolls") holds, which this one replaces for what folds the button.
+- Decided by: Crash-- (CTO), 2026-11-24, from the rule of JF-Cozy on [linagora/twake-ui#263](https://github.com/linagora/twake-ui/pull/263#discussion_r4663579965)
+- Why: a menu or a dialog scrolled over the list folded the button though the list did not move.
+- Scope: mobile and tablet, email lists and the team mailbox facade.

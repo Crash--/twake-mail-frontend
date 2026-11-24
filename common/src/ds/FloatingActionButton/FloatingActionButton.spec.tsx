@@ -1,11 +1,12 @@
 import { Pen } from '@linagora/twake-icons'
-import { act, fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useRef, type ReactElement } from 'react'
 
 import { injectedCss } from '@/ds/testing/injectedCss'
 import { renderDs } from '@/ds/testing/renderDs'
 
-import { FloatingActionButton, SCROLL_IDLE_DELAY } from './FloatingActionButton'
+import { FloatingActionButton } from './FloatingActionButton'
 
 describe('FloatingActionButton', () => {
   it('is a labelled button fixed at the bottom of the screen', async () => {
@@ -49,104 +50,27 @@ describe('FloatingActionButton', () => {
     )
   })
 
-  describe('while the page scrolls', () => {
-    beforeEach(() => {
-      jest.useFakeTimers()
-    })
-    afterEach(() => {
-      jest.useRealTimers()
-    })
-
-    function renderOverList(): HTMLElement {
-      renderDs(
+  it('folds while the user scrolls the box it follows, and only that box', () => {
+    function Followed(): ReactElement {
+      const listRef = useRef<HTMLDivElement>(null)
+      return (
         <>
-          <div data-testid="list" />
-          <FloatingActionButton label="Compose" icon={Pen} />
+          <div data-testid="sidebar" />
+          <div ref={listRef} data-testid="list" />
+          <FloatingActionButton label="Compose" icon={Pen} follow={listRef} />
         </>
       )
-      return screen.getByRole('button', { name: 'Compose' })
     }
+    renderDs(<Followed />)
+    const label = screen.getByText('Compose').parentElement
 
-    it('folds to its icon while the user scrolls, and unfolds once the scrolling stops', () => {
-      const button = renderOverList()
-      expect(button).toHaveAttribute('data-folded', 'false')
+    fireEvent.wheel(screen.getByTestId('sidebar'))
+    fireEvent.scroll(screen.getByTestId('sidebar'))
+    expect(label).toHaveStyle({ gridTemplateColumns: '1fr' })
 
-      fireEvent.wheel(screen.getByTestId('list'))
-      fireEvent.scroll(screen.getByTestId('list'))
-
-      expect(button).toHaveAttribute('data-folded', 'true')
-      expect(screen.getByRole('button', { name: 'Compose' })).toBe(button)
-      expect(screen.getByText('Compose').parentElement).toHaveStyle({
-        gridTemplateColumns: '0fr'
-      })
-
-      // A momentum goes on without a gesture: still the user's scrolling
-      act(() => {
-        jest.advanceTimersByTime(SCROLL_IDLE_DELAY - 1)
-      })
-      fireEvent.scroll(screen.getByTestId('list'))
-      act(() => {
-        jest.advanceTimersByTime(SCROLL_IDLE_DELAY - 1)
-      })
-      expect(button).toHaveAttribute('data-folded', 'true')
-
-      act(() => {
-        jest.advanceTimersByTime(1)
-      })
-      expect(button).toHaveAttribute('data-folded', 'false')
-    })
-
-    it('stays unfolded while a list scrolls itself back to where it was, whenever it does', () => {
-      const button = renderOverList()
-
-      fireEvent.scroll(screen.getByTestId('list'))
-      act(() => {
-        jest.advanceTimersByTime(2000)
-      })
-      fireEvent.scroll(screen.getByTestId('list'))
-
-      expect(button).toHaveAttribute('data-folded', 'false')
-    })
-
-    it('stays folded through a momentum that outlasts the gesture', () => {
-      const button = renderOverList()
-      const list = screen.getByTestId('list')
-
-      fireEvent.wheel(list)
-      fireEvent.scroll(list)
-      for (let step = 0; step < 2; step += 1) {
-        act(() => {
-          jest.advanceTimersByTime(200)
-        })
-        fireEvent.scroll(list)
-      }
-      act(() => {
-        jest.advanceTimersByTime(200)
-      })
-
-      // The last scroll came 400 ms after the wheel
-      expect(button).toHaveAttribute('data-folded', 'true')
-    })
-
-    it('folds for a finger that drags the content', () => {
-      const button = renderOverList()
-
-      fireEvent.touchMove(screen.getByTestId('list'))
-      fireEvent.scroll(screen.getByTestId('list'))
-
-      expect(button).toHaveAttribute('data-folded', 'true')
-    })
-
-    it('folds for the keys that scroll, not for the others', () => {
-      const button = renderOverList()
-
-      fireEvent.keyDown(screen.getByTestId('list'), { key: 'Escape' })
-      fireEvent.scroll(screen.getByTestId('list'))
-      expect(button).toHaveAttribute('data-folded', 'false')
-
-      fireEvent.keyDown(screen.getByTestId('list'), { key: 'PageDown' })
-      fireEvent.scroll(screen.getByTestId('list'))
-      expect(button).toHaveAttribute('data-folded', 'true')
-    })
+    fireEvent.wheel(screen.getByTestId('list'))
+    fireEvent.scroll(screen.getByTestId('list'))
+    expect(label).toHaveStyle({ gridTemplateColumns: '0fr' })
+    expect(screen.getByRole('button', { name: 'Compose' })).toBeInTheDocument()
   })
 })

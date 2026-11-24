@@ -3,7 +3,7 @@
 // white and flush against the sidebar; this needs a variant of `Layout`
 // (e.g. `Layout variant="flat"`) rather than an override.
 import { Content, Main, styled } from '@linagora/twake-mui'
-import type { ComponentProps, ReactElement } from 'react'
+import type { ComponentProps, ReactElement, Ref } from 'react'
 
 import { InsideMainLandmark } from '@/ds/MainLandmark/MainLandmark'
 
@@ -37,7 +37,8 @@ export function FlatMain({
  * (two nested `main` landmarks otherwise, docs/twake-mui-gaps.md)
  */
 export function FlatContent(
-  props: ComponentProps<typeof Content>
+  // twake-mui's `Content` hands the ref to its scrolling box, untyped
+  props: ComponentProps<typeof Content> & { ref?: Ref<HTMLDivElement> }
 ): ReactElement {
   return <SxContent sx={CONTENT_SX} role={undefined} {...props} />
 }

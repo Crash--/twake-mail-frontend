@@ -1,6 +1,6 @@
 import { Pen } from '@linagora/twake-icons'
 import { Box, Layout } from '@linagora/twake-mui'
-import { useState, type ReactElement, type ReactNode } from 'react'
+import { useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
@@ -157,6 +157,9 @@ function AppFrame(): ReactElement {
     !isSearchResults &&
     (!isEmailOpen || screenSize === 'tabletLarge')
 
+  // The list scrolls in it: the floating button folds while the user scrolls it
+  const mainContentRef = useRef<HTMLDivElement>(null)
+
   const handleOpenFolders = (): void => {
     setDrawerLocationKey(location.key)
   }
@@ -243,6 +246,7 @@ function AppFrame(): ReactElement {
           <FolderActionProgressBanner />
           <QuotaBanner />
           <FlatContent
+            ref={mainContentRef}
             id={MAIN_CONTENT_ID}
             tabIndex={-1}
             {...SCRIPT_FOCUS_TARGET}
@@ -256,6 +260,7 @@ function AppFrame(): ReactElement {
         <FloatingActionButton
           label={t('sidebar.newMessage')}
           icon={Pen}
+          follow={mainContentRef}
           onClick={handleCompose}
           data-testid="compose-email-button"
         />

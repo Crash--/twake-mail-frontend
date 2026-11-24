@@ -57,4 +57,20 @@ describe('locales', () => {
     expect(dictionary.email.starred).not.toBe(dictionary.email.important)
     expect(dictionary.mailbox.starred).not.toBe(dictionary.email.important)
   })
+
+  // The Preferences section is listed under, and titled after, the Settings page
+  it.each([
+    ['en', en],
+    ['fr', fr],
+    ['ru', ru],
+    ['vi', vi],
+    ['it', italian],
+    ['de', de],
+    ['mn', mn],
+    ['es', es]
+  ])('%s names Preferences apart from Settings', (_lang, dictionary) => {
+    expect(dictionary.settings.sections.preferences.title).not.toBe(
+      dictionary.settings.title
+    )
+  })
 })

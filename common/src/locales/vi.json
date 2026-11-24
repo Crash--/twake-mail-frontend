@@ -802,7 +802,7 @@
         "description": "Chọn danh tính hoặc địa chỉ email mà bạn muốn sử dụng để gửi email"
       },
       "preferences": {
-        "title": "Cài đặt",
+        "title": "Tùy chọn",
         "description": "Hội thoại và cách ứng dụng hoạt động"
       },
       "keyboardShortcuts": {

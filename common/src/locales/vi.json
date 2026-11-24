@@ -66,7 +66,7 @@
     "expand": "Mở rộng",
     "collapse": "Đóng",
     "emails": "Thư",
-    "starred": "Quan trọng",
+    "starred": "Đã gắn sao",
     "actionRequired": "Cần xử lý",
     "emptyActionRequired": "Bạn chưa có email nào cần xử lý.",
     "emptyStarred": "Bạn không có thư quan trọng.",
@@ -91,7 +91,7 @@
     "bodyTruncated": "Thư này quá dài để hiển thị đầy đủ.",
     "markAsRead": "Đánh dấu đã đọc",
     "markAsUnread": "Đánh dấu chưa đọc",
-    "starred": "Quan trọng",
+    "starred": "Đã gắn sao",
     "noneSelected": "Chưa có email được lựa chọn",
     "remoteContent": {
       "hidden": "Hình ảnh từ xa đã bị ẩn để bảo vệ quyền riêng tư của bạn",
@@ -242,7 +242,7 @@
       "filters": {
         "attachments": "Các tệp đính kèm",
         "unread": "Chưa đọc",
-        "starred": "Quan trọng"
+        "starred": "Đã gắn sao"
       }
     },
     "me": "Tôi",
@@ -615,7 +615,7 @@
     "filters": {
       "hasAttachment": "Đính kèm",
       "fromMe": "Từ tôi",
-      "starred": "Quan trọng",
+      "starred": "Đã gắn sao",
       "unread": "Chưa đọc",
       "notIncludeEvents": "Không bao gồm các sự kiện"
     },
@@ -733,8 +733,8 @@
       "markAsSpam": "Đánh dấu spam",
       "moveToTrash": "Di chuyển tới Thùng rác",
       "archive": "Lưu trữ tin nhắn",
-      "star": "Quan trọng",
-      "unstar": "Không quan trọng",
+      "star": "Gắn sao",
+      "unstar": "Gỡ sao",
       "label": "Thao tác với thư",
       "downloadAsEml": "Tải xuống email dưới dạng EML",
       "editAsNew": "Soạn lại dưới dạng email mới",

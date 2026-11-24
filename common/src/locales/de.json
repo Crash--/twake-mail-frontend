@@ -66,7 +66,7 @@
     "expand": "Aufklappen",
     "collapse": "Einklappen",
     "emails": "Nachrichten",
-    "starred": "Wichtig",
+    "starred": "Markiert",
     "actionRequired": "Aktion erforderlich",
     "emptyActionRequired": "Sie haben keine E-Mails, die eine Aktion erfordern.",
     "emptyStarred": "Sie haben keine markierten E-Mails.",
@@ -91,7 +91,7 @@
     "bodyTruncated": "Diese Nachricht ist zu lang, um vollständig angezeigt zu werden.",
     "markAsRead": "Als gelesen markieren",
     "markAsUnread": "Ungelesen markieren",
-    "starred": "Wichtig",
+    "starred": "Markiert",
     "noneSelected": "Keine E-Mail ausgewählt",
     "remoteContent": {
       "hidden": "Externe Bilder zum Schutz Ihrer Privatsphäre ausgeblendet",
@@ -242,7 +242,7 @@
       "filters": {
         "attachments": "Mit Anhängen",
         "unread": "Ungelesen",
-        "starred": "Wichtig"
+        "starred": "Markiert"
       }
     },
     "me": "Mich",
@@ -615,7 +615,7 @@
     "filters": {
       "hasAttachment": "Hat Anhang",
       "fromMe": "Von mir",
-      "starred": "Wichtig",
+      "starred": "Markiert",
       "unread": "Ungelesen",
       "notIncludeEvents": "Termine nicht einschließen"
     },

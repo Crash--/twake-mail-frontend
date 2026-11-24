@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
 
@@ -313,6 +313,22 @@ describe('AppLayout on a phone', () => {
     expect(screen.getByTestId('compose-email-button')).toHaveTextContent(
       'Compose'
     )
+  })
+
+  it('folds the floating button while the user scrolls the main content, not the page', async () => {
+    renderPhoneLayout()
+    const content = await screen.findByText('Folder content')
+    const label = within(screen.getByTestId('compose-email-button')).getByText(
+      'Compose'
+    ).parentElement
+
+    fireEvent.wheel(document)
+    fireEvent.scroll(document)
+    expect(label).toHaveStyle({ gridTemplateColumns: '1fr' })
+
+    fireEvent.wheel(content)
+    fireEvent.scroll(content)
+    expect(label).toHaveStyle({ gridTemplateColumns: '0fr' })
   })
 
   it('shows the search under the bar, as tmail-flutter, focused with the / key', async () => {

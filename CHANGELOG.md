@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-24
+
+No new setting since 0.16.0.
+
+### Added
+
+- "Show the list beside the open email" in Settings > Preferences, off by
+  default and kept in the browser, keeps the email list on the left of the
+  open email on a desktop from 1200 px wide.
+
+### Fixed
+
+- Sending or deleting a draft reopened from a list gives the focus to "New
+  message" instead of the page body.
+- In Mongolian and Vietnamese, Preferences has its own name, apart from
+  Settings.
+- A long sender address no longer pushes the recipients of an expanded
+  message over its date, and wraps inside the pane.
+
 ## [0.16.0] - 2026-11-24
 
 No new setting since 0.15.0.

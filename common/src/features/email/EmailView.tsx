@@ -242,7 +242,11 @@ function EmailContent({
             />
           }
         />
-        <TwpWarningBanners email={email} mailboxId={mailboxId} />
+        <TwpWarningBanners
+          email={email}
+          mailboxId={mailboxId}
+          focusTargetAfterLast={subjectRef}
+        />
         <EmailMessageBody
           email={email}
           onRemoteContentShown={handleRemoteContentShown}

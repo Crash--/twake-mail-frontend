@@ -211,6 +211,39 @@ describe('TwpWarningBanners', () => {
     expect(keywordsOf(server)).not.toHaveProperty('twp-warning-dismissed-0')
   })
 
+  it('moves the focus to the next banner, then to the subject after the last one (issue #1142)', async () => {
+    const user = userEvent.setup()
+    const server = makeServer(['level:warn A', 'level:error B'])
+    renderView(server)
+
+    const first = await screen.findByTestId('twp-warning-dismiss-0')
+    first.focus()
+    await user.keyboard('{Enter}')
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('twp-warning-0')).toBeNull()
+    })
+    expect(screen.getByTestId('twp-warning-dismiss-1')).toHaveFocus()
+
+    await user.keyboard('{Enter}')
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('twp-warnings')).toBeNull()
+    })
+    expect(screen.getByTestId('email-view-subject')).toHaveFocus()
+  })
+
+  it('moves the focus to the previous banner after dismissing the last one of several', async () => {
+    renderView(makeServer(['level:warn A', 'level:warn B']))
+
+    await userEvent.click(await screen.findByTestId('twp-warning-dismiss-1'))
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('twp-warning-1')).toBeNull()
+    })
+    expect(screen.getByTestId('twp-warning-dismiss-0')).toHaveFocus()
+  })
+
   it('does not show a warning whose keyword is set, the others keep their position', async () => {
     renderView(
       makeServer(['level:warn A', 'level:warn B'], {

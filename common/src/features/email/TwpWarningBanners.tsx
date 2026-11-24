@@ -1,5 +1,5 @@
 import { Box } from '@linagora/twake-mui'
-import { useMemo, type ReactElement } from 'react'
+import { useMemo, useRef, type ReactElement, type RefObject } from 'react'
 
 import { MessageAlert } from '@/ds/MessageAlert/MessageAlert'
 import { availableEmailActions } from '@common/features/emailActions/emailActionItems'
@@ -49,6 +49,25 @@ export interface TwpWarningBannersProps {
   mailboxId: string | null
   /** After "Not spam" moved the email */
   onAction?: (id: 'not-spam') => void
+  /**
+   * The message (its subject or header): takes the focus when the last
+   * banner is dismissed, the focused Dismiss button going with it
+   */
+  focusTargetAfterLast: RefObject<HTMLElement | null>
+}
+
+/**
+ * The warning whose Dismiss button takes the focus when `dismissed` goes:
+ * the next one, the previous one after the last, null when it was alone
+ */
+function neighbourOf(
+  warnings: TwpWarning[],
+  dismissed: TwpWarning
+): TwpWarning | null {
+  const position = warnings.findIndex(
+    warning => warning.index === dismissed.index
+  )
+  return warnings[position + 1] ?? warnings[position - 1] ?? null
 }
 
 /**
@@ -60,12 +79,15 @@ export interface TwpWarningBannersProps {
  * sets a keyword, shown at once and put back when the server refuses it;
  * it needs the right to set keywords in the folder and is disabled offline,
  * as in tmail-flutter. An error-level warning
- * on an email in Spam offers "Not spam".
+ * on an email in Spam offers "Not spam". The focus never falls on the
+ * page when a banner goes: it moves to the Dismiss button of a remaining
+ * banner, or to the message after the last one.
  */
 export function TwpWarningBanners({
   email,
   mailboxId,
-  onAction
+  onAction,
+  focusTargetAfterLast
 }: TwpWarningBannersProps): ReactElement | null {
   const { t } = useI18n()
   const warnings = useVisibleTwpWarnings(email)
@@ -79,6 +101,8 @@ export function TwpWarningBanners({
     () => parseCalendarSenderMismatch(mismatchValue),
     [mismatchValue]
   )
+  // The Dismiss buttons by warning index
+  const dismissButtons = useRef(new Map<number, HTMLButtonElement>())
   if (warnings.length === 0) return null
 
   const folderId = messageMailboxId(email, mailboxId, mailboxes)
@@ -90,7 +114,17 @@ export function TwpWarningBanners({
     item => item.id === 'not-spam'
   )
 
+  const moveFocusAway = (dismissed: TwpWarning): void => {
+    const neighbour = neighbourOf(warnings, dismissed)
+    const target =
+      neighbour === null
+        ? focusTargetAfterLast.current
+        : (dismissButtons.current.get(neighbour.index) ?? null)
+    target?.focus()
+  }
+
   const handleDismiss = (warning: TwpWarning): void => {
+    moveFocusAway(warning)
     void run({
       action: 'setKeyword',
       keyword: twpDismissKeyword(warning.index),
@@ -144,6 +178,10 @@ export function TwpWarningBanners({
                   }
                 : undefined
             }
+            dismissRef={(button: HTMLButtonElement | null) => {
+              if (button === null) dismissButtons.current.delete(warning.index)
+              else dismissButtons.current.set(warning.index, button)
+            }}
             data-testid={`twp-warning-${warning.index}`}
           />
         )

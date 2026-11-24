@@ -14,7 +14,7 @@ import {
   IconButton,
   Tooltip
 } from '@linagora/twake-mui'
-import { useId, type ReactElement } from 'react'
+import { useId, type ReactElement, type Ref } from 'react'
 
 import { VISUALLY_HIDDEN } from './visuallyHidden'
 
@@ -49,6 +49,8 @@ export interface MessageAlertProps {
   description: string
   action?: MessageAlertAction
   dismiss?: MessageAlertDismiss
+  /** The dismiss button, e.g. to give it the focus when another banner goes */
+  dismissRef?: Ref<HTMLButtonElement>
   className?: string
   'data-testid'?: string
 }
@@ -67,6 +69,7 @@ export function MessageAlert({
   description,
   action,
   dismiss,
+  dismissRef,
   className,
   'data-testid': testId
 }: MessageAlertProps): ReactElement {
@@ -99,6 +102,7 @@ export function MessageAlert({
                     listens on its wrapper */}
                 <span>
                   <IconButton
+                    ref={dismissRef}
                     size="small"
                     color="inherit"
                     aria-label={dismiss.label}

@@ -266,7 +266,11 @@ function ExpandedBody({
         mailboxId={mailboxId}
         className="u-mt-half"
       />
-      <TwpWarningBanners email={detail} mailboxId={mailboxId} />
+      <TwpWarningBanners
+        email={detail}
+        mailboxId={mailboxId}
+        focusTargetAfterLast={headerRef}
+      />
       <EmailMessageBody
         email={detail}
         onRemoteContentShown={onRemoteContentShown}

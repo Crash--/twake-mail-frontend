@@ -2,6 +2,7 @@ import {
   Ai,
   BugReport,
   CloudPlusOutlined,
+  DeviceLaptop,
   Discuss,
   Eye,
   FlagOutlined,
@@ -50,6 +51,7 @@ import {
 } from './serverSettings'
 import { useDriveAttachmentPreference } from './driveAttachmentPreference'
 import { useSpamReportPreference } from './spamReportPreference'
+import { useSplitViewPreference } from './splitViewPreference'
 import {
   THEME_PREFERENCES,
   THEME_SETTING_KEY,
@@ -74,6 +76,7 @@ export interface PreferencesSettingsProps {
  * shown without asking (not in tmail-flutter) and the error reports
  * (settings of the account on the server, when it keeps them; the reports
  * only when error reporting is configured), the conversation view, the
+ * list beside the open email on desktops (not in tmail-flutter), the
  * spam report, the AI assistant, the labels and the Drive button of the
  * composer (kept in this browser), and, with the AI capability, the label
  * categorisation (setting of the account). Then the accessibility mode
@@ -91,6 +94,7 @@ export function PreferencesSettings({
   const { accountId, session } = useJmapSession()
   const { notify } = useNotify()
   const threadPreference = useThreadPreference()
+  const splitView = useSplitViewPreference()
   const spamReport = useSpamReportPreference()
   const driveAttachment = useDriveAttachmentPreference()
   const accessibility = useAccessibilityPreference()
@@ -221,6 +225,14 @@ export function PreferencesSettings({
           onChange={threadPreference.setEnabled}
           icon={Discuss}
           data-testid="thread-setting-toggle"
+        />
+        <PreferenceOption
+          description={t('settings.preferences.splitViewDescription')}
+          toggleLabel={t('settings.preferences.splitViewToggle')}
+          isChecked={splitView.isEnabled}
+          onChange={splitView.setEnabled}
+          icon={DeviceLaptop}
+          data-testid="split-view-setting-toggle"
         />
         {hasLabels ? (
           <PreferenceOption

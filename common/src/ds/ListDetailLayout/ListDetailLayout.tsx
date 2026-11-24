@@ -1,9 +1,11 @@
 // Upstream to twake-ui: yes. A list and the item opened from it, one at a
 // time or side by side depending on the room, is the master-detail pattern
 // of every Twake app (mails, contacts, files); twake-mui has none.
-import { Box, GlobalStyles } from '@linagora/twake-mui'
+import { Box, GlobalStyles, useMediaQuery } from '@linagora/twake-mui'
 import type { CSSObject, Theme } from '@linagora/twake-mui'
 import {
+  createContext,
+  useContext,
   useEffect,
   useRef,
   type FocusEvent,
@@ -12,6 +14,7 @@ import {
 } from 'react'
 
 import {
+  SCREEN_QUERIES,
   useSlideBreakpoint,
   useScreenSize
 } from '@/ds/useScreenSize/useScreenSize'
@@ -127,6 +130,40 @@ function transitionStyles(theme: Theme, slideBreakpoint: number): CSSObject {
   }
 }
 
+const SplitOnDesktopContext = createContext(false)
+
+/**
+ * When `isEnabled`, the lists inside keep the open item beside them on
+ * desktops too (1200 px and more), as on a large tablet
+ */
+export function SplitOnDesktop({
+  isEnabled,
+  children
+}: {
+  isEnabled: boolean
+  children: ReactNode
+}): ReactElement {
+  return (
+    <SplitOnDesktopContext.Provider value={isEnabled}>
+      {children}
+    </SplitOnDesktopContext.Provider>
+  )
+}
+
+/** Whether a list and the item opened from it are shown side by side */
+export function useIsSplitLayout(): boolean {
+  const screenSize = useScreenSize()
+  const isSplitOnDesktop = useContext(SplitOnDesktopContext)
+  // A desktop under `WithoutTablets` starts at 600 px: too narrow for both
+  const isBelowDesktop = useMediaQuery(SCREEN_QUERIES.belowDesktop, {
+    noSsr: true
+  })
+  return (
+    screenSize === 'tabletLarge' ||
+    (isSplitOnDesktop && screenSize === 'desktop' && !isBelowDesktop)
+  )
+}
+
 export interface ListDetailLayoutProps {
   list: ReactNode
   /** The item opened from the list, null when none is */
@@ -147,6 +184,7 @@ function isFocusLost(): boolean {
  *   tablets: the list keeps its width, its scroll and its focus while items
  *   open beside it, and a placeholder fills the room when none is open.
  *   Closing the item gives the focus back to where it was in the list.
+ *   Desktops do the same under `SplitOnDesktop`.
  * - Otherwise one at a time, the item replacing the list: phones, small
  *   tablets, and desktops, where the list has the whole width.
  *
@@ -161,7 +199,7 @@ export function ListDetailLayout({
 }: ListDetailLayoutProps): ReactElement {
   const screenSize = useScreenSize()
   const slideBreakpoint = useSlideBreakpoint()
-  const isSplit = screenSize === 'tabletLarge'
+  const isSplit = useIsSplitLayout()
   // On desktops the pane is the scrolling area of the item: the view
   // transition snapshots a pane that does not move with the scroll, which it
   // would otherwise slide over the bars above it. Below, the page scrolls

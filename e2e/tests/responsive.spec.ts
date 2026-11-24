@@ -332,6 +332,54 @@ test.describe('RESP responsive layout', () => {
   test.describe('on a desktop', () => {
     test.use({ viewport: { width: 1440, height: 789 } })
 
+    test('RESP-10 with the split view preference, the list stays beside the email being read, and goes away again without a reload', { tag: '@desktop-only' }, async ({
+      page,
+      user,
+      jmap
+    }) => {
+      await jmap.sendEmail({ to: user.email, subject: 'first', text: 'one' })
+      await jmap.waitForEmail({ subject: 'first' })
+      await jmap.sendEmail({ to: user.email, subject: 'second', text: 'two' })
+      await jmap.waitForEmail({ subject: 'second' })
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const toggle = page
+        .getByTestId('split-view-setting-toggle')
+        .getByRole('switch')
+      const setSplitView = async (isEnabled: boolean): Promise<void> => {
+        const settings = await mailbox.openSettings()
+        await settings.open('preferences')
+        await toggle.setChecked(isEnabled)
+        await expect(toggle).toBeChecked({ checked: isEnabled })
+        await settings.backToMail()
+      }
+
+      // Off by default: the email takes the place of the list
+      let email = await mailbox.openEmail('first')
+      await expect(mailbox.emailRow('second')).toBeHidden()
+      await email.back()
+
+      await setSplitView(true)
+      await expect(page.getByTestId('email-view-empty')).toBeVisible()
+      email = await mailbox.openEmail('first')
+      await expect(mailbox.emailRow('second')).toBeVisible()
+      await expect(mailbox.emailRow('first').getByRole('link')).toHaveAttribute(
+        'aria-current',
+        'true'
+      )
+      const row = await mailbox.emailRow('second').boundingBox()
+      expect(row?.width).toBeLessThanOrEqual(375)
+      await expectNoA11yViolations(page)
+
+      await email.backButton.click()
+      await expect(email.root).toBeHidden()
+      await expect(page.getByTestId('email-view-empty')).toBeVisible()
+      await expect(mailbox.emailRow('first').getByRole('link')).toBeFocused()
+
+      await setSplitView(false)
+      await mailbox.openEmail('second')
+      await expect(mailbox.emailRow('first')).toBeHidden()
+    })
+
     test('RESP-06 without the platform, the bar of tmail-flutter holds the logotype and the account, the search starts the page under it', { tag: '@desktop-only' }, async ({
       page,
       user

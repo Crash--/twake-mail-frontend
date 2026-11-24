@@ -616,6 +616,11 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   and unfolds once the scrolling stops; back from an email, the list scrolls back to where it was
   and the button never folds. — `mobile` and `tablet` projects
   - Spec: `tests/responsive.spec.ts`.
+- [x] `RESP-10` At 1440 px, with "Show the list beside the open email" on in Settings > Preferences,
+  the list (375 px) stays beside the open email, its row marked `aria-current`; the back button
+  shows "No email selected" and gives the focus back to the row; turned off, the next email takes
+  the place of the list again, without a reload. — `chromium` project only
+  - Spec: `tests/responsive.spec.ts`.
 - [x] `LAYOUT-01` The document never scrolls (`scrollHeight <= clientHeight`) on the mailbox, the
   reading view and the settings, on a desktop and a tablet, standalone and framed as in Twake
   Workplace. — `chromium` project only

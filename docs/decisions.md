@@ -156,3 +156,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-24, from the rule of JF-Cozy on [linagora/twake-ui#263](https://github.com/linagora/twake-ui/pull/263#discussion_r4663579965)
 - Why: a menu or a dialog scrolled over the list folded the button though the list did not move.
 - Scope: mobile and tablet, email lists and the team mailbox facade.
+
+## 2026-11-24, [UX] Split view on desktops, a preference kept in the browser
+
+- Decision: "Show the list beside the open email" in Settings > Preferences (with the conversations), off by default, keeps the email list (375 px) beside the open email from 1200 px, as on a large tablet; off, the email takes the place of the list on desktops, as before. Kept in this browser (`twake-mail.preferences.splitView`), not on the server; it applies at once, in every tab.
+- Decided by: Crash-- (CTO), [#1155](https://github.com/Crash--/twake-mail-frontend/pull/1155)
+- Why: some users want to keep the list in sight while they read on a computer.
+- Scope: desktop, the email lists (folders, starred, action required, labels, search).

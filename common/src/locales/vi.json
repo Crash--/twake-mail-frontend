@@ -847,6 +847,8 @@
       "remoteImagesDescription": "Hỏi trước khi hiển thị hình ảnh và nội dung khác mà email tải từ Internet. Khi đã tải, chúng cho người gửi biết bạn đọc email khi nào và ở đâu.",
       "remoteImagesToggle": "Chặn hình ảnh từ xa và nội dung bên thứ ba",
       "threadToggle": "Kích hoạt tổng hợp thư của cuộc hội thoại",
+      "splitViewDescription": "Trên máy tính, danh sách thư vẫn nằm bên trái thư đang mở thay vì bị thay thế.",
+      "splitViewToggle": "Hiển thị danh sách bên cạnh thư đang mở",
       "spamReportsDescription": "Nhắc định kỳ kiểm tra thư rác",
       "spamReportsToggle": "Bật báo cáo thư rác",
       "labelsDescription": "Hiển thị các nhãn được gán cho email trực tiếp trong danh sách tin nhắn để phân loại dễ dàng hơn.",

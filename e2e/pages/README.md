@@ -167,7 +167,7 @@ Conventions:
 
 | `data-testid` | Element | Flutter key |
 |---|---|---|
-| `thread-setting-toggle` / `read-receipts-setting-toggle` / `sender-priority-setting-toggle` | switches of Settings > Preferences (each holds the `switch` input) | `ValueKey(AppLocalizations().thread)`, `setting_option_switch_on` |
+| `thread-setting-toggle` / `split-view-setting-toggle` / `read-receipts-setting-toggle` / `sender-priority-setting-toggle` | switches of Settings > Preferences (each holds the `switch` input) | `ValueKey(AppLocalizations().thread)`, `setting_option_switch_on` |
 | `language-select` | Settings > Language | `language_drop_down_button` |
 | `vacation-form` + `vacation-status`, `vacation-enable-toggle`, `vacation-start-choice` (`-now`, `-pick`), `vacation-start-date-input`, `vacation-start-time-input`, `vacation-end-choice` (`-off`, `-pick`), `vacation-end-date-input`, `vacation-end-time-input`, `vacation-subject-input`, `vacation-message-editor`, `vacation-error`, `vacation-cancel-button`, `vacation-save-button` | Settings > Vacation | `VacationView` |
 | `vacation-banner` + `vacation-end-now-button`, `vacation-settings-button` | the banner of an active vacation response, over every screen | `VacationNotificationMessageWidget` |

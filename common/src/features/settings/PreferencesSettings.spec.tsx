@@ -15,6 +15,7 @@ import { ACCESSIBILITY_PREFERENCE_STORAGE_KEY } from './accessibilityPreference'
 import { SPAM_REPORT_PREFERENCE_STORAGE_KEY } from './spamReportPreference'
 import { PreferencesSettings } from './PreferencesSettings'
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections'
+import { SPLIT_VIEW_PREFERENCE_STORAGE_KEY } from './splitViewPreference'
 import { THEME_PREFERENCE_STORAGE_KEY } from './themePreference'
 
 function preferencesSection(): SettingsSection {
@@ -216,9 +217,9 @@ describe('PreferencesSettings', () => {
     expect(
       await screen.findByRole('switch', { name: 'Enable thread' })
     ).toBeInTheDocument()
-    // Thread, spam report and accessibility: no labels, no Drive, no server
-    // settings
-    expect(screen.getAllByRole('switch')).toHaveLength(3)
+    // Thread, split view, spam report and accessibility: no labels, no
+    // Drive, no server settings
+    expect(screen.getAllByRole('switch')).toHaveLength(4)
     expect(screen.queryByRole('radiogroup', { name: 'Theme' })).toBe(null)
   })
 
@@ -260,6 +261,25 @@ describe('PreferencesSettings', () => {
       window.localStorage.getItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
     ).toBe('true')
     window.localStorage.removeItem(ACCESSIBILITY_PREFERENCE_STORAGE_KEY)
+  })
+
+  it('shows the list beside the open email on desktops, kept in this browser', async () => {
+    window.localStorage.removeItem(SPLIT_VIEW_PREFERENCE_STORAGE_KEY)
+    renderWithProviders(
+      <PreferencesSettings section={preferencesSection()} />,
+      { withJmapSession: true }
+    )
+
+    const toggle = await screen.findByRole('switch', {
+      name: 'Show the list beside the open email'
+    })
+    expect(toggle).not.toBeChecked()
+    await userEvent.click(toggle)
+    expect(toggle).toBeChecked()
+    expect(window.localStorage.getItem(SPLIT_VIEW_PREFERENCE_STORAGE_KEY)).toBe(
+      'true'
+    )
+    window.localStorage.removeItem(SPLIT_VIEW_PREFERENCE_STORAGE_KEY)
   })
 
   it('offers the label categorisation with the AI capability only', async () => {

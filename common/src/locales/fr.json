@@ -847,6 +847,8 @@
       "remoteImagesDescription": "Demande avant d'afficher les images et autres contenus que les e-mails chargent depuis Internet. Une fois chargés, ils indiquent à l'expéditeur quand et où vous lisez l'e-mail.",
       "remoteImagesToggle": "Bloquer les images distantes et les contenus tiers",
       "threadToggle": "Activer les fils de discussion",
+      "splitViewDescription": "Sur ordinateur, garder la liste des e-mails à gauche de l'e-mail ouvert au lieu de la remplacer.",
+      "splitViewToggle": "Afficher la liste à côté de l'e-mail ouvert",
       "spamReportsDescription": "Vous rappelle que vous devez modérer régulièrement vos courriers indésirables",
       "spamReportsToggle": "Activer le signalement des spams",
       "labelsDescription": "Afficher les libellés assignés aux e-mails directement dans votre liste de messages pour une catégorisation plus facile.",

@@ -847,6 +847,8 @@
       "remoteImagesDescription": "Ask before showing the images and other content that emails load from the Internet. Once loaded, they tell the sender when and where you read the email.",
       "remoteImagesToggle": "Block remote images and third-party content",
       "threadToggle": "Enable thread",
+      "splitViewDescription": "On a computer, keep the email list on the left of the email you open instead of replacing it.",
+      "splitViewToggle": "Show the list beside the open email",
       "spamReportsDescription": "Reminds you that you need to moderate your spam emails recurringly",
       "spamReportsToggle": "Enable spam report",
       "labelsDescription": "Show labels assigned to emails directly in your message list for easier categorization.",

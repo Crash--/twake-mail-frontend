@@ -5,6 +5,10 @@ import { Outlet, useLocation, useMatch } from 'react-router'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { FloatingActionButton } from '@/ds/FloatingActionButton/FloatingActionButton'
+import {
+  SplitOnDesktop,
+  useIsSplitLayout
+} from '@/ds/ListDetailLayout/ListDetailLayout'
 import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
 import { SearchRow } from '@/ds/SearchRow/SearchRow'
 import { SkipLink } from '@/ds/SkipLink/SkipLink'
@@ -41,6 +45,7 @@ import { SentryReportingSync } from '@common/features/sentry/SentryReportingSync
 import { ServerLanguageSync } from '@common/features/settings/ServerLanguageSync'
 import { ServerThemeSync } from '@common/features/settings/ServerThemeSync'
 import { SettingsSidebar } from '@common/features/settings/SettingsSidebar'
+import { splitViewPreference } from '@common/features/settings/splitViewPreference'
 import {
   ShortcutsProvider,
   useShortcuts
@@ -90,13 +95,15 @@ export function AppLayout(): ReactElement {
 /**
  * What the mail screens need around them: the Twake Workplace of the user
  * (its bar, the Drive picker of the composers), shortcuts, folder picker,
- * recovery, folder and label actions, composers, list filter
+ * recovery, folder and label actions, composers, list filter, and the
+ * list beside the open email on desktops when the user chose it
  */
 export function MailProviders({
   children
 }: {
   children: ReactNode
 }): ReactElement {
+  const isSplitOnDesktop = splitViewPreference.useValue()
   return (
     <PlatformProvider>
       <ShortcutsProvider>
@@ -108,7 +115,9 @@ export function MailProviders({
                   <ComposerProvider>
                     <SettingsExitProvider>
                       <ListFilterProvider>
-                        <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                        <SplitOnDesktop isEnabled={isSplitOnDesktop}>
+                          <LoadingAnnouncer>{children}</LoadingAnnouncer>
+                        </SplitOnDesktop>
                       </ListFilterProvider>
                     </SettingsExitProvider>
                   </ComposerProvider>
@@ -138,6 +147,7 @@ function AppFrame(): ReactElement {
   const isSearchEmailOpen = useMatch('/search/email/:emailId/*') !== null
   const isSearchResults = useMatch('/search') !== null
   const isEmailOpen = isMailboxEmailOpen || isSearchEmailOpen
+  const isSplit = useIsSplitLayout()
   const isSettings = isSettingsPath(location.pathname)
   // In basic mode, as tmail-flutter, the settings are behind the initial of
   // the user in the bar (`AccountMenu`) alone. After an SSO sign-in the gear
@@ -155,7 +165,7 @@ function AppFrame(): ReactElement {
     !isSelectingEmails &&
     // Nor on the search results, as tmail-flutter's search view
     !isSearchResults &&
-    (!isEmailOpen || screenSize === 'tabletLarge')
+    (!isEmailOpen || isSplit)
 
   // The list scrolls in it: the floating button folds while the user scrolls it
   const mainContentRef = useRef<HTMLDivElement>(null)
@@ -203,7 +213,7 @@ function AppFrame(): ReactElement {
       <FeedbackWidget hasBottomAction={showComposeFab || isEmailOpen} />
       <AppHeader
         onOpenFolders={handleOpenFolders}
-        isEmailFullScreen={isEmailOpen && screenSize !== 'tabletLarge'}
+        isEmailFullScreen={isEmailOpen && !isSplit}
       />
       {/* The top bar is in the flow, not fixed over the layout: no room to
           reserve for it (docs/twake-mui-gaps.md) */}

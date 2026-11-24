@@ -81,7 +81,8 @@ function neighbourOf(
  * as in tmail-flutter. An error-level warning
  * on an email in Spam offers "Not spam". The focus never falls on the
  * page when a banner goes: it moves to the Dismiss button of a remaining
- * banner, or to the message after the last one.
+ * banner, or to the message after the last one, and back to the banner
+ * when the server refuses the dismissal.
  */
 export function TwpWarningBanners({
   email,
@@ -103,6 +104,8 @@ export function TwpWarningBanners({
   )
   // The Dismiss buttons by warning index
   const dismissButtons = useRef(new Map<number, HTMLButtonElement>())
+  // A refused dismissal whose banner, once back, takes the focus back
+  const refocusOnReturn = useRef<number | null>(null)
   if (warnings.length === 0) return null
 
   const folderId = messageMailboxId(email, mailboxId, mailboxes)
@@ -114,17 +117,30 @@ export function TwpWarningBanners({
     item => item.id === 'not-spam'
   )
 
-  const moveFocusAway = (dismissed: TwpWarning): void => {
+  const moveFocusAway = (dismissed: TwpWarning): HTMLElement | null => {
     const neighbour = neighbourOf(warnings, dismissed)
     const target =
       neighbour === null
         ? focusTargetAfterLast.current
         : (dismissButtons.current.get(neighbour.index) ?? null)
     target?.focus()
+    return target
+  }
+
+  /** Back on the Dismiss button of a refused dismissal, unless the user moved on */
+  const refocusRefused = (
+    warning: TwpWarning,
+    movedTo: HTMLElement | null
+  ): void => {
+    const focused = document.activeElement
+    if (focused !== movedTo && focused !== document.body) return
+    const button = dismissButtons.current.get(warning.index)
+    if (button === undefined) refocusOnReturn.current = warning.index
+    else button.focus()
   }
 
   const handleDismiss = (warning: TwpWarning): void => {
-    moveFocusAway(warning)
+    const movedTo = moveFocusAway(warning)
     void run({
       action: 'setKeyword',
       keyword: twpDismissKeyword(warning.index),
@@ -132,8 +148,9 @@ export function TwpWarningBanners({
       mailboxId: folderId,
       silent: true
     }).then(done => {
-      if (!done)
-        notify({ message: t('common.unknownError'), severity: 'error' })
+      if (done) return
+      refocusRefused(warning, movedTo)
+      notify({ message: t('common.unknownError'), severity: 'error' })
     })
   }
 
@@ -180,7 +197,13 @@ export function TwpWarningBanners({
             }
             dismissRef={(button: HTMLButtonElement | null) => {
               if (button === null) dismissButtons.current.delete(warning.index)
-              else dismissButtons.current.set(warning.index, button)
+              else {
+                dismissButtons.current.set(warning.index, button)
+                if (refocusOnReturn.current === warning.index) {
+                  refocusOnReturn.current = null
+                  button.focus()
+                }
+              }
             }}
             data-testid={`twp-warning-${warning.index}`}
           />

@@ -212,6 +212,25 @@ describe('ConversationView', () => {
       expect(screen.queryByTestId('twp-warning-1')).toBeNull()
       expect(screen.getByTestId('twp-warning-0')).toBeInTheDocument()
     })
+
+    it('gives the focus to the header of the message when its last banner is dismissed (issue #1142)', async () => {
+      const user = userEvent.setup()
+      await renderConversation(makeWarnedServer())
+
+      ;(await screen.findByTestId('twp-warning-dismiss-1')).focus()
+      await user.keyboard('{Enter}')
+      await waitFor(() => {
+        expect(screen.queryByTestId('twp-warning-1')).toBeNull()
+      })
+      expect(screen.getByTestId('twp-warning-dismiss-0')).toHaveFocus()
+
+      await user.keyboard('{Enter}')
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('twp-warnings')).toBeNull()
+      })
+      expect(toggle(/Dan/)).toHaveFocus()
+    })
   })
 
   describe('the message it opens on', () => {

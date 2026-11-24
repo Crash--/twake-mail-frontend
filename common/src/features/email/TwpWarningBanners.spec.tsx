@@ -271,6 +271,19 @@ describe('TwpWarningBanners', () => {
     expect(screen.getByTestId('twp-warning-0')).toBeInTheDocument()
   })
 
+  it('gives the focus back to the Dismiss button of a refused dismissal', async () => {
+    const server = makeServer(['level:warn A'])
+    server.setErrors.set('e1', 'forbidden')
+    renderView(server)
+
+    await userEvent.click(await screen.findByTestId('twp-warning-dismiss-0'))
+
+    await screen.findAllByText('Unknown error occurred, please try again')
+    await waitFor(() => {
+      expect(screen.getByTestId('twp-warning-dismiss-0')).toHaveFocus()
+    })
+  })
+
   it('offers no dismissal in a mailbox where keywords cannot be set', async () => {
     renderView(
       makeServer(

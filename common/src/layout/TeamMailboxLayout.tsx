@@ -1,6 +1,6 @@
 import { Pen } from '@linagora/twake-icons'
 import { Box } from '@linagora/twake-mui'
-import type { ReactElement } from 'react'
+import { useRef, type ReactElement } from 'react'
 import { Outlet, useMatch } from 'react-router'
 
 import { ComposeButton } from '@/ds/ComposeButton/ComposeButton'
@@ -51,6 +51,8 @@ function TeamMailboxFrame(): ReactElement {
   const { openComposer } = useComposer()
   // The button and the `c` shortcut; the composer writes from the address
   // of the team mailbox, never from the personal one
+  // The list scrolls in it: the floating button folds while the user scrolls it
+  const mainContentRef = useRef<HTMLDivElement>(null)
   const handleCompose = (): void => {
     if (canCompose) openComposer()
   }
@@ -88,7 +90,11 @@ function TeamMailboxFrame(): ReactElement {
           ) : null
         }
       >
-        <TeamMailboxPane id={MAIN_CONTENT_ID} data-testid="main-content">
+        <TeamMailboxPane
+          ref={mainContentRef}
+          id={MAIN_CONTENT_ID}
+          data-testid="main-content"
+        >
           <Outlet />
         </TeamMailboxPane>
       </ListToolbarActionProvider>
@@ -96,6 +102,7 @@ function TeamMailboxFrame(): ReactElement {
         <FloatingActionButton
           label={label}
           icon={Pen}
+          follow={mainContentRef}
           onClick={handleCompose}
           data-testid="compose-email-button"
         />

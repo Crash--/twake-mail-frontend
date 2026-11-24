@@ -1,5 +1,5 @@
 import { Layout } from '@linagora/twake-mui'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement, ReactNode, Ref } from 'react'
 
 import { FlatContent, FlatMain } from '@/ds/FlatPanes/FlatPanes'
 import { SCRIPT_FOCUS_TARGET } from '@/ds/FocusIndicator/focusIndicator'
@@ -9,6 +9,8 @@ export interface TeamMailboxPaneProps {
   children: ReactNode
   /** Makes the pane the main content, focused after a navigation */
   id?: string
+  /** The box the content scrolls in */
+  ref?: Ref<HTMLDivElement>
   'data-testid'?: string
 }
 
@@ -21,6 +23,7 @@ export interface TeamMailboxPaneProps {
 export function TeamMailboxPane({
   children,
   id,
+  ref,
   'data-testid': testId
 }: TeamMailboxPaneProps): ReactElement {
   return (
@@ -33,6 +36,7 @@ export function TeamMailboxPane({
     >
       <FlatMain>
         <FlatContent
+          ref={ref}
           data-testid={testId}
           {...(id === undefined
             ? {}

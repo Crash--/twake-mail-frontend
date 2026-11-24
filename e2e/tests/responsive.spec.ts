@@ -189,28 +189,30 @@ test.describe('RESP responsive layout', () => {
     const mailbox = await new LoginPage(page).loginAs(user)
     await expect(mailbox.emailRow('Row 20')).toBeVisible()
     const button = mailbox.composeButton
-    await expect(button).toHaveAttribute('data-folded', 'false')
-    const unfolded = await button.boundingBox()
+    const widthOverHeight = async (): Promise<number> => {
+      const box = await button.boundingBox()
+      return Math.round((box?.width ?? 0) - (box?.height ?? 0))
+    }
+    // Extended: the label is beside the icon
+    await expect.poll(widthOverHeight).toBeGreaterThan(20)
 
     const row = await mailbox.emailRow('Row 18').boundingBox()
     await page.mouse.move(100, (row?.y ?? 300) + 10)
     // One step every 100 ms, under the idle delay: the button stays folded
     // while the steps go on, and is measured then, once the fold is drawn.
     // The wait is the cadence of the scrolling itself, not a wait for a state
-    let folded: { width: number; height: number } | null = null
+    let folded = Number.NaN
     for (let step = 0; step < 10; step += 1) {
       await page.mouse.wheel(0, 30)
       await page.waitForTimeout(100)
       if (step === 7) {
-        await expect(button).toHaveAttribute('data-folded', 'true')
         await expect(button).toHaveAccessibleName('Compose')
-        folded = await button.boundingBox()
+        folded = await widthOverHeight()
       }
     }
     // The label has slid away: the button is a square
-    expect(Math.round((folded?.width ?? 0) - (folded?.height ?? 1))).toBe(0)
-    expect(folded?.width ?? 0).toBeLessThan(unfolded?.width ?? 0)
-    await expect(button).toHaveAttribute('data-folded', 'false')
+    expect(folded).toBe(0)
+    await expect.poll(widthOverHeight).toBeGreaterThan(20)
 
     // Back from an email, the list scrolls back to where it was: that is
     // no scrolling by the user, the button never folds
@@ -218,22 +220,21 @@ test.describe('RESP responsive layout', () => {
     await page.evaluate(() => {
       const seen = { folded: false }
       Object.assign(window, { e2eFabFolds: seen })
-      new MutationObserver(() => {
-        if (document.querySelector('[data-folded="true"]') !== null) {
+      const watch = (): void => {
+        const box = document
+          .querySelector('[data-testid="compose-email-button"]')
+          ?.getBoundingClientRect()
+        if (box !== undefined && box.width - box.height < 20) {
           seen.folded = true
         }
-      }).observe(document.body, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-        attributeFilter: ['data-folded']
-      })
+        requestAnimationFrame(watch)
+      }
+      requestAnimationFrame(watch)
     })
     await email.back()
     await expect(mailbox.emailRow('Row 10')).toBeVisible()
-    await expect(button).toHaveAttribute('data-folded', 'false')
-    // An absence has no state to wait for: the observer watches long enough
-    // for a late restore of the scroll, twice the idle delay
+    // An absence has no state to wait for: the watch lasts long enough for a
+    // late restore of the scroll, twice the idle delay
     await page.waitForTimeout(600)
     expect(
       await page.evaluate(

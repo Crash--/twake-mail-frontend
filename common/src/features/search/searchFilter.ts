@@ -375,6 +375,20 @@ function anyOf(
 }
 
 /**
+ * The folders of a team mailbox by the id of its root, none for any other
+ * id: an own-property lookup, since the id comes from the URL and an
+ * `Object.prototype` key (`__proto__`, `constructor`) is no team root
+ */
+function foldersOfTeam(
+  teamFolderIds: SearchContext['teamFolderIds'],
+  rootId: string
+): readonly string[] {
+  return Object.hasOwn(teamFolderIds, rootId)
+    ? (teamFolderIds[rootId] ?? [])
+    : []
+}
+
+/**
  * The `Email/query` filter of a search, as tmail-flutter builds it: one
  * condition gathering the simple criteria, ANDed with an `OR` per sender
  * list and per recipient, and a `NOT` of the excluded words.
@@ -389,7 +403,9 @@ export function toJmapFilter(
     const isInTeam =
       filter.scope.kind === 'mailbox' &&
       (filter.scope.mailboxId === boundRootId ||
-        (teamFolderIds[boundRootId] ?? []).includes(filter.scope.mailboxId))
+        foldersOfTeam(teamFolderIds, boundRootId).includes(
+          filter.scope.mailboxId
+        ))
     if (!isInTeam) {
       return toJmapFilter(
         { ...filter, scope: { kind: 'mailbox', mailboxId: boundRootId } },
@@ -413,7 +429,7 @@ export function toJmapFilter(
   if (filter.unread) condition.notKeyword = SEEN
   const teamFolders =
     filter.scope.kind === 'mailbox'
-      ? (teamFolderIds[filter.scope.mailboxId] ?? [])
+      ? foldersOfTeam(teamFolderIds, filter.scope.mailboxId)
       : []
   if (filter.scope.kind === 'mailbox' && teamFolders.length === 0) {
     condition.inMailbox = filter.scope.mailboxId

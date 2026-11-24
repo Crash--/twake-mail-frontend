@@ -381,6 +381,40 @@ describe('withTypedText against ReDoS', () => {
   })
 })
 
+describe('toJmapFilter with an Object.prototype key as mailbox id', () => {
+  it.each(['__proto__', 'constructor', 'toString'])(
+    'restricts a search in the mailbox %s to that mailbox',
+    mailboxId => {
+      const parsed = parseSearchParams(new URLSearchParams({ in: mailboxId }))
+      expect(toSearchRequest(parsed, CONTEXT).filter).toEqual({
+        inMailbox: mailboxId
+      })
+    }
+  )
+
+  it('keeps the label next to the mailbox condition', () => {
+    const parsed = parseSearchParams(
+      new URLSearchParams({ in: 'constructor', label: 'r' })
+    )
+    expect(toSearchRequest(parsed, CONTEXT).filter).toEqual({
+      hasKeyword: 'r',
+      inMailbox: 'constructor'
+    })
+  })
+
+  it('reads a bound root named after an Object.prototype key as having no folder', () => {
+    expect(
+      toJmapFilter(
+        filter({
+          text: 'report',
+          scope: { kind: 'mailbox', mailboxId: 'team-sent' }
+        }),
+        { ...CONTEXT, boundTeamRootId: 'constructor' }
+      )
+    ).toEqual({ text: 'report', inMailbox: 'constructor' })
+  })
+})
+
 describe('toJmapFilter bound to a team mailbox', () => {
   const BOUND = { ...CONTEXT, boundTeamRootId: 'team' }
 

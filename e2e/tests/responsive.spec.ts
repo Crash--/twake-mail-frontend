@@ -202,16 +202,19 @@ test.describe('RESP responsive layout', () => {
     // while the steps go on, and is measured then, once the fold is drawn.
     // The wait is the cadence of the scrolling itself, not a wait for a state
     let folded = Number.NaN
+    let foldedHeight = Number.NaN
     for (let step = 0; step < 10; step += 1) {
       await page.mouse.wheel(0, 30)
       await page.waitForTimeout(100)
       if (step === 7) {
         await expect(button).toHaveAccessibleName('Compose')
         folded = await widthOverHeight()
+        foldedHeight = Math.round((await button.boundingBox())?.height ?? 0)
       }
     }
-    // The label has slid away: the button is a square
+    // The label has slid away: the button is a 48 px square
     expect(folded).toBe(0)
+    expect(foldedHeight).toBe(48)
     await expect.poll(widthOverHeight).toBeGreaterThan(20)
 
     // Back from an email, the list scrolls back to where it was: that is

@@ -41,4 +41,20 @@ describe('locales', () => {
       expect(dictionary.app.name).toBe('Twake Mail')
     }
   )
+
+  // A row name says whether the email is starred or marked important by its
+  // sender: the two states need two words
+  it.each([
+    ['en', en],
+    ['fr', fr],
+    ['ru', ru],
+    ['vi', vi],
+    ['it', italian],
+    ['de', de],
+    ['mn', mn],
+    ['es', es]
+  ])('%s tells starred from important', (_lang, dictionary) => {
+    expect(dictionary.email.starred).not.toBe(dictionary.email.important)
+    expect(dictionary.mailbox.starred).not.toBe(dictionary.email.important)
+  })
 })

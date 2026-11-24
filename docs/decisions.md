@@ -241,3 +241,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Quentin (maintainer), [linagora/jmap-client-ts#80](https://github.com/linagora/jmap-client-ts/pull/80)
 - Why: the git dependency needed a build at install time (an `allowScripts` approval per commit, git in the Docker image) and changed the lockfile on every push; the unscoped `jmap-client-ts` on npm belongs to a single user account, the `linagora` scope lets the organization publish it with trusted publishing.
 - Scope: dependencies, build.
+
+## 2026-11-24, [Tech] Rslint lints and rs fmt formats, from rstack.config.mjs
+
+- Decision: `npm run lint` runs `rs lint` and `npm run format` runs `rs fmt` (rstack), both from the root `rstack.config.mjs`, as twake-tasks and twake-space do; ESLint and Prettier are gone. The rules ESLint ran stay on, the React Compiler and TanStack Query ones through their ESLint plugins; the Jest rules are Rslint's own. `rs fmt` checks the same files Prettier did.
+- Decided by: Crash-- (CTO), 2026-11-24, on [#1152](https://github.com/Crash--/twake-mail-frontend/pull/1152#discussion_r4685292316), asked by Théo.
+- Why: the lint drops from 104 s and 3 GB of memory to 10 s and 1.5 GB, with the same rules.
+- Scope: `apps/private`, `common` and `scripts`; `e2e/` stays out of lint, as before.

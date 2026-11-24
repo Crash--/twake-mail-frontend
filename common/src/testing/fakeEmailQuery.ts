@@ -157,7 +157,9 @@ function compareBy(
     case 'subject':
       return (left.subject ?? '').localeCompare(right.subject ?? '')
     case 'from':
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
       return (left.from?.[0]?.email ?? '').localeCompare(
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
         right.from?.[0]?.email ?? ''
       )
     default:

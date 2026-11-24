@@ -231,6 +231,7 @@ export async function loadReplyContent(
   )
   const editorHtml = allowsRemoteContent({
     id: source.id,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     senderEmail: source.from?.[0]?.email ?? null
   })
     ? composed

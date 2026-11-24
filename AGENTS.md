@@ -28,7 +28,7 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
   top of the rules shared by every Twake app in the `twake-ux` skill.
 - **Never use cozy-ui.**
 - Import components from `@linagora/twake-mui` only. Never import
-  `@mui/material`, `@mui/lab` or `@mui/icons-material` directly (ESLint
+  `@mui/material`, `@mui/lab` or `@mui/icons-material` directly (Rslint
   enforces it): twake-mui re-exports MUI. Icons come from
   `@linagora/twake-icons`.
 - Outside `@/ds/`: no `sx`, no `style`, no `styled`, no local MUI override,

@@ -170,6 +170,7 @@ describe('patchEmailList', () => {
       ['a', 'b'],
       ['c', 'd']
     ])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(data.pages[1]?.emails[0]?.keywords).toEqual({ $seen: true })
     expect(nextPosition(data)).toBe(4)
   })

@@ -37,6 +37,7 @@ export function useRunViewedEmailAction(): (
       switch (id) {
         case 'create-rule': {
           // As tmail-flutter: the rule creator, filled with the sender
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
           const sender = email.from?.[0]?.email
           if (sender !== undefined) {
             await navigate(settingsSectionPath('email-rules'), {

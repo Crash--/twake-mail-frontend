@@ -111,6 +111,7 @@ describe('destroyMailboxEmails', () => {
     expect(count).toBe(5)
     expect(server.emails).toEqual([])
     const [first] = server.requests
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(first?.methodCalls[1]?.[1]).toEqual({
       accountId: FAKE_ACCOUNT_ID,
       '#destroy': expect.objectContaining({ name: 'Email/query', path: '/ids' })

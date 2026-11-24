@@ -164,10 +164,12 @@ describe('applyEmailChanges', () => {
 
     expect(ids(queryClient, INBOX)).toEqual(['b'])
     expect(ids(queryClient, ARCHIVE)).toEqual(['a', 'old'])
+    /* eslint-disable @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625) */
     expect(
       queryClient.getQueryData<EmailListData>(threadKeys.list(ACCOUNT, ARCHIVE))
         ?.pages[0]?.count
     ).toBe(2)
+    /* eslint-enable @typescript-eslint/no-unnecessary-condition */
     expect(counters(queryClient)).toEqual({ inbox: '1/0', archive: '2/1' })
   })
 
@@ -236,6 +238,7 @@ describe('applyEmailChanges', () => {
     archive(queryClient, 'a')
 
     const result = queryClient.getQueryData<EmailListData>(searchKey)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(result?.pages[0]?.emails.map(item => item.mailboxIds)).toEqual([
       { [ARCHIVE]: true }
     ])
@@ -279,6 +282,7 @@ describe('applyEmailChanges', () => {
       { $seen: true },
       { $seen: true }
     ])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(read?.emails[0]?.subject).toBe('Subject t2')
 
     // Archived: the conversation leaves the Inbox
@@ -295,6 +299,7 @@ describe('applyEmailChanges', () => {
     expect(
       queryClient
         .getQueryData<EmailListData>(key)
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
         ?.pages[0]?.emails.map(item => item.id)
     ).toEqual(['o1'])
   })

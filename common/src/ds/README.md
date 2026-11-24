@@ -14,7 +14,7 @@ one day, or to disappear when twake-mui catches up: keep it generic.
   routing (`react-router`), no translations (`twake-i18n`), no import from
   `features/`, `jmap/`, `app/`, `config/`, `i18n/` nor `@injected/`. Labels,
   values and links arrive as props; a link takes a `component` (e.g. the
-  router `Link`) the way MUI does. ESLint enforces it.
+  router `Link`) the way MUI does. Rslint enforces it.
 - **Raw MUI is allowed here, and only here**: `@mui/material`, `sx`,
   `styled`. Prefer what `@linagora/twake-mui` re-exports and the theme
   values (`theme.palette`, `theme.spacing`) over hard-coded values. Inline

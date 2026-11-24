@@ -127,6 +127,7 @@ describe('saveDraft', () => {
       'Email/set',
       'Email/get'
     ])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(save?.methodCalls[0]?.[1]).not.toHaveProperty('destroy')
     expect(destroy?.methodCalls).toEqual([
       [

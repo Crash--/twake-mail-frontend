@@ -403,13 +403,13 @@ export function RichTextEditor({
       }),
       // The extensions read the ref in event handlers only, never while
       // rendering: the compiler cannot see it through the TipTap options
-      // eslint-disable-next-line react-hooks/refs
+      // eslint-disable-next-line react-compiler/refs
       createKeyboardExtension(actionsRef),
       TabKey,
-      // eslint-disable-next-line react-hooks/refs
+      // eslint-disable-next-line react-compiler/refs
       ...(onImageFiles ? [createImageFileHandler(actionsRef, imageTypes)] : []),
       ...(onImageFiles && shouldStorePastedDataImages
-        ? // eslint-disable-next-line react-hooks/refs
+        ? // eslint-disable-next-line react-compiler/refs
           [createPastedDataImages(actionsRef, imageTypes)]
         : []),
       ...extensions

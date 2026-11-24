@@ -316,6 +316,7 @@ function draftIdentity(
   identities: readonly IdentitySummary[]
 ): string | null {
   const named = (email[IDENTITY_HEADER] ?? '').trim()
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
   const sender = email.from?.[0]?.email.toLowerCase()
   return (
     identities.find(identity => identity.id === named)?.id ??
@@ -420,6 +421,7 @@ export async function loadDraftContent(
       requestReadReceipt: (email[READ_RECEIPT_REQUEST_HEADER] ?? '') !== '',
       isImportant: isMarkedImportant(email)
     },
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     readReceiptAddress: isCopy ? null : (email.from?.[0]?.email ?? null),
     templateId: isTemplate ? draftId : null,
     opensOn: null

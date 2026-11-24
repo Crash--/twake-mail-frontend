@@ -931,6 +931,7 @@ describe('createPushSync', () => {
       expect(resultIds(setup)).toEqual(['r1', 'r2'])
       const r2 = setup.queryClient
         .getQueryData<EmailListData>(searchKey())
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
         ?.pages[0]?.emails.find(email => email.id === 'r2')
       expect(r2?.mailboxIds).toEqual({ [ARCHIVE]: true })
       expect(methodsSince(setup, before)).toEqual([
@@ -1120,6 +1121,7 @@ describe('createPushSync', () => {
           .getQueryData<EmailListData>(key)
           ?.pages.flatMap(page => page.emails.map(email => email.id)) ?? []
       await until(() => rows().length === 2)
+      /* eslint-disable @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625) */
       const sizes = (): Record<string, number> =>
         Object.fromEntries(
           Object.entries(
@@ -1127,6 +1129,7 @@ describe('createPushSync', () => {
               ?.threads ?? {}
           ).map(([threadId, members]) => [threadId, members.length])
         )
+      /* eslint-enable @typescript-eslint/no-unnecessary-condition */
       expect(sizes()).toEqual({ thread: 2, 'thread-alone': 1 })
 
       setup.server.addEmail(

@@ -253,6 +253,7 @@ describe('ComposerForm', () => {
         name: 'Uploading big.zip'
       })
       act(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
         uploads?.held[0]?.fail(500)
       })
       const item = await within(composer).findByTestId(
@@ -270,6 +271,7 @@ describe('ComposerForm', () => {
         name: 'Uploading big.zip'
       })
       act(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
         uploads?.held[1]?.finish()
       })
       await waitFor(() => {

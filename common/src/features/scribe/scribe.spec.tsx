@@ -76,6 +76,7 @@ describe('scribe', () => {
         'custom-prompt-mail',
         '',
         'Thank Bob'
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
       )?.[1]?.content
     ).toBe('INSTRUCTION:\nThank Bob\n\nTEXT:\n')
   })

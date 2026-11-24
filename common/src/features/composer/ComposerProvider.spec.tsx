@@ -751,6 +751,83 @@ describe('ComposerProvider', () => {
     })
   })
 
+  it('gives the focus to "New message" when the menu button the composer opened from is gone too', async () => {
+    // The fallback order: the menu item, then the button of its menu, then
+    // "New message", then the main content. Here the message, and so its
+    // "More actions" button, is deleted while the composer is open.
+    function DeletedMessageMenu(): ReactElement {
+      const { openComposer } = useComposer()
+      const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+      const [deleted, setDeleted] = useState(false)
+      return (
+        <>
+          <Button data-testid="compose-email-button">New message</Button>
+          {deleted ? null : (
+            <Button
+              onClick={event => {
+                setAnchor(event.currentTarget)
+              }}
+            >
+              More actions
+            </Button>
+          )}
+          <Menu
+            open={anchor !== null}
+            anchorEl={anchor}
+            onClose={() => {
+              setAnchor(null)
+            }}
+          >
+            <MenuItem
+              onClick={() => {
+                setAnchor(null)
+                openComposer()
+              }}
+            >
+              Edit as new email
+            </MenuItem>
+          </Menu>
+          <Button
+            onClick={() => {
+              setDeleted(true)
+            }}
+          >
+            Delete the message
+          </Button>
+        </>
+      )
+    }
+    renderWithProviders(
+      <ComposerProvider>
+        <DeletedMessageMenu />
+      </ComposerProvider>,
+      { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+    )
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'More actions' })
+    )
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Edit as new email' })
+    )
+    const composer = await screen.findByRole('dialog', { name: 'New message' })
+    await waitFor(() => {
+      expect(screen.queryByRole('menu')).toBe(null)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Delete the message' }))
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBe(null)
+
+    await userEvent.click(
+      await within(composer).findByRole('button', { name: 'Close' })
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    await waitFor(() => {
+      expect(screen.getByTestId('compose-email-button')).toHaveFocus()
+    })
+  })
+
   it('gives the focus to the main content when nothing opened the composer and there is no "New message" button', async () => {
     function OpenAtOnce(): ReactElement {
       const { openComposer } = useComposer()

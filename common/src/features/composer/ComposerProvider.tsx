@@ -31,6 +31,7 @@ import {
 } from '@/ds/DockedWindow/WindowOverflowMenu'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { failedChunk } from '@common/app/failedChunk'
+import { MAIN_CONTENT_ID } from '@common/app/mainContent'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import {
   useSuspendShortcuts,
@@ -92,13 +93,17 @@ const isFocusTarget = (
   element.isConnected
 
 /**
- * The layers that close as their action runs: a menu (popover or bottom
- * sheet) is gone once the composer it opened closes
+ * The layers that may be gone once the composer they opened closes: every
+ * menu and every MUI modal layer, not only menus (popovers, bottom sheets,
+ * dialogs, the temporary drawer of tablets and phones). A composer opened
+ * from a dialog that stays open keeps the dialog's control as its opener;
+ * the last focus outside these layers is only a fallback when that opener
+ * is gone.
  */
 const TRANSIENT_LAYER_SELECTOR = '[role="menu"], .MuiModal-root'
 
 /** The main content of the layouts, a script focus target */
-const MAIN_CONTENT_SELECTOR = '#main-content'
+const MAIN_CONTENT_SELECTOR = `#${MAIN_CONTENT_ID}`
 
 /**
  * The element focused last outside a menu or a modal layer: what opened

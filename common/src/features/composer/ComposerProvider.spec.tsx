@@ -7,6 +7,7 @@ import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
   FAKE_ACCOUNT_ID,
   FAKE_USERNAME,
+  makeEmailWithBody,
   makeFakeJmapServer,
   makeIdentity,
   type FakeJmapServer
@@ -177,6 +178,66 @@ describe('ComposerProvider', () => {
           screen.getByRole('button', { name: 'New message' })
         ).toHaveFocus()
       })
+    })
+
+    it('gives the focus to "New message", not to the row of the draft, when deleting a reopened draft (issue #1143)', async () => {
+      // The row of the Drafts list that opened it, which the list drops
+      // once the draft is destroyed
+      function DraftRow(): ReactElement {
+        const { openComposer } = useComposer()
+        return (
+          <>
+            <button type="button" data-testid="compose-email-button">
+              New message
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                openComposer({ draftId: 'draft-1' })
+              }}
+            >
+              Reopened draft
+            </button>
+          </>
+        )
+      }
+      const jmapServer = makeFakeJmapServer({
+        emails: [
+          makeEmailWithBody(
+            {
+              id: 'draft-1',
+              mailboxIds: { 'mailbox-drafts': true },
+              keywords: { $draft: true, $seen: true },
+              subject: 'Reopened'
+            },
+            { html: '<div>Draft body</div>' }
+          )
+        ]
+      })
+      renderWithProviders(
+        <ComposerProvider>
+          <DraftRow />
+        </ComposerProvider>,
+        { jmapServer, withJmapSession: true }
+      )
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Reopened draft' })
+      )
+      const composer = await screen.findByRole('dialog', { name: 'Reopened' })
+
+      await userEvent.click(
+        await within(composer).findByTestId('composer-delete-draft-button')
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBe(null)
+      })
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: 'New message' })
+        ).toHaveFocus()
+      })
+      expect(jmapServer.emails.map(email => email.id)).not.toContain('draft-1')
     })
 
     it('leaves the composers another tab holds to that tab', async () => {

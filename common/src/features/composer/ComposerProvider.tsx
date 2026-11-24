@@ -52,7 +52,8 @@ import { LOCAL_SAVE_DELAY_MS } from './draftPolicy'
 import type {
   ComposerForm as ComposerFormType,
   ComposerFormHandle,
-  ComposerInit
+  ComposerInit,
+  ComposerOutcome
 } from './ComposerForm'
 import {
   acquireComposerLock,
@@ -80,24 +81,35 @@ const LazyComposerForm = lazy(loadComposerForm)
 /** The "New message" buttons of the layouts (sidebar, floating button) */
 const COMPOSE_BUTTON_SELECTOR = '[data-testid="compose-email-button"]'
 
+/** An element the focus can go back to: in the page, not its body */
+const isFocusTarget = (
+  element: Element | null | undefined
+): element is HTMLElement =>
+  element instanceof HTMLElement &&
+  element !== document.body &&
+  element !== document.documentElement &&
+  element.isConnected
+
 /**
  * Gives the focus back once a composer is closed: to what opened it, or,
  * when nothing did (a composer restored after a reload, a /mailto link, a
- * shortcut pressed with nothing focused) or it is gone, to the "New
- * message" button if the focus was left on the page body.
+ * shortcut pressed with nothing focused), it is gone, or it is about to go
+ * (the row of a draft just sent or deleted, issue #1143), to the "New
+ * message" button if the focus was left on the page body or on that opener.
  */
-const focusAfterClose = (opener: Element | null | undefined): void => {
-  if (
-    opener instanceof HTMLElement &&
-    opener !== document.body &&
-    opener !== document.documentElement &&
-    opener.isConnected
-  ) {
+const focusAfterClose = (
+  opener: Element | null | undefined,
+  isOpenerLeaving: boolean
+): void => {
+  if (!isOpenerLeaving && isFocusTarget(opener)) {
     opener.focus()
     return
   }
   const focused = document.activeElement
-  if (focused !== null && focused !== document.body) return
+  const isFocusLost =
+    !isFocusTarget(focused) ||
+    (isOpenerLeaving && opener?.contains(focused) === true)
+  if (!isFocusLost) return
   document.querySelector<HTMLElement>(COMPOSE_BUTTON_SELECTOR)?.focus()
 }
 
@@ -556,9 +568,15 @@ export function ComposerProvider({
   )
 
   const close = useCallback(
-    (id: string): void => {
+    (id: string, outcome: ComposerOutcome | null = null): void => {
       settleOpening(id)
       const opener = openers.current.get(id)
+      // A draft of the server sent or deleted leaves its list, and the row
+      // that opened it goes with it
+      const isOpenerLeaving =
+        outcome !== null &&
+        entriesRef.current.find(entry => entry.id === id)?.init.draftId !==
+          undefined
       openers.current.delete(id)
       forms.current.delete(id)
       drafts.current.get(id)?.release()
@@ -576,7 +594,7 @@ export function ComposerProvider({
       setEntries(current => current.filter(entry => entry.id !== id))
       // Once the window is gone
       requestAnimationFrame(() => {
-        focusAfterClose(opener)
+        focusAfterClose(opener, isOpenerLeaving)
       })
     },
     [accountId, settleOpening]
@@ -727,7 +745,7 @@ interface ComposerSlotProps {
   onChange: (id: string) => void
   registerForm: (id: string, handle: ComposerFormHandle) => void
   setDraft: (id: string, draftId: string | null) => void
-  close: (id: string) => void
+  close: (id: string, outcome: ComposerOutcome) => void
   requestClose: (id: string) => Promise<void>
   /** The focus went in the composer */
   onFocusIn: (id: string) => void
@@ -784,9 +802,12 @@ function ComposerSlot({
   const handleRequestClose = useCallback((): void => {
     void requestClose(id)
   }, [id, requestClose])
-  const handleDone = useCallback((): void => {
-    close(id)
-  }, [id, close])
+  const handleDone = useCallback(
+    (outcome: ComposerOutcome): void => {
+      close(id, outcome)
+    },
+    [id, close]
+  )
 
   return (
     // Hidden (no room): kept mounted, nothing typed is lost

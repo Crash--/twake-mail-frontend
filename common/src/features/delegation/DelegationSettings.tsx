@@ -11,6 +11,7 @@ import {
   PeopleList,
   type Person
 } from '@/ds/PeopleList/PeopleList'
+import { identityKeys } from '@common/features/identities/queries'
 import { LoadingListSkeleton } from '@common/features/loading/LoadingListSkeleton'
 import {
   isTeamRoot,
@@ -230,10 +231,16 @@ export function DelegationSettings({
     try {
       const isRemoved = await remove(removing)
       await (removing.of === 'team'
-        ? // Its folders leave the tree, the switcher, and its view if shown
-          queryClient.invalidateQueries({
-            queryKey: mailboxKeys.all(ownAccountId)
-          })
+        ? // Its folders leave the tree, the switcher, and its view if shown;
+          // its identity leaves Profiles and the composer's From list
+          Promise.all([
+            queryClient.invalidateQueries({
+              queryKey: mailboxKeys.all(ownAccountId)
+            }),
+            queryClient.invalidateQueries({
+              queryKey: identityKeys.all(ownAccountId)
+            })
+          ])
         : refresh())
       if (!isRemoved) throw new Error('Access not removed')
       // A mailbox delegated to the user leaves the session, and the switcher

@@ -100,11 +100,17 @@ const HEADER_END_SX = {
   flex: 1,
   minWidth: 0,
   pt: '20px',
+  // No higher than the toggle beside it while it holds one line, with or
+  // without a button on it (the avatar hangs below the line): what is under
+  // the row moves down when the line wraps instead of covering it
+  pb: '9px',
   pl: 0,
   pr: '16px',
+  // A long name or address breaks rather than overflowing the pane
+  overflowWrap: 'anywhere',
   pointerEvents: 'none',
   '& button, & a': { pointerEvents: 'auto' },
-  [PHONE]: { pt: '16px', pr: '12px' }
+  [PHONE]: { pt: '16px', pb: 0, pr: '12px' }
 } as const
 
 /**

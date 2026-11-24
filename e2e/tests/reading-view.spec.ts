@@ -187,6 +187,88 @@ test.describe('EML the reading view of the new design', () => {
     )
   })
 
+  test('EML-47 a long sender address stays clear of the date and of "To:", at every width', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const address =
+      'notificationsnoreplytransactionalbillingdepartment@accountsverylongsubsidiaryname.example.com'
+    await jmap.importEmlContent(
+      Buffer.from(
+        [
+          `From: Alice Martin <${address}>`,
+          `To: ${user.email}`,
+          'List-Unsubscribe: <mailto:unsubscribe@example.com>',
+          'Subject: Long sender',
+          'Date: Mon, 23 Nov 2026 10:00:00 +0000',
+          'Message-ID: <long-sender@example.com>',
+          'Content-Type: text/plain; charset=utf-8',
+          '',
+          'Hello'
+        ].join('\r\n')
+      )
+    )
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.emailRow('Long sender').click()
+
+    const from = page.getByTestId('conversation-message-sender')
+    await expect(from.getByTestId('email-unsubscribe-link')).toBeVisible()
+    const texts = [
+      from.getByText('Alice Martin', { exact: true }),
+      from.getByText(`<${address}>`),
+      from.getByTestId('email-unsubscribe-link'),
+      page.getByTestId('conversation-message').locator('time').last(),
+      page.getByTestId('conversation-message-to')
+    ]
+    // Desktop, list and email side by side, a tablet, a phone (the name
+    // alone there, no Unsubscribe)
+    for (const width of [1440, 1000, 820, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      // Once the header has laid out again for the new width
+      await expect(async () => {
+        // The lines of each text: one that wraps has a box per line, its
+        // bounding box would cover the lines of the others
+        const lines: {
+          x: number
+          y: number
+          right: number
+          bottom: number
+        }[][] = []
+        for (const text of texts) {
+          if (!(await text.isVisible())) continue
+          lines.push(
+            await text.evaluate(element => {
+              // The text itself, not the padding of a button around it
+              const range = document.createRange()
+              range.selectNodeContents(element)
+              return Array.from(range.getClientRects()).map(rect => ({
+                x: rect.x,
+                y: rect.y,
+                right: rect.right,
+                bottom: rect.bottom
+              }))
+            })
+          )
+        }
+        expect(lines.length).toBeGreaterThanOrEqual(3)
+        for (const [index, own] of lines.entries()) {
+          for (const line of own) {
+            expect(line.right, `width ${width}`).toBeLessThanOrEqual(width)
+            for (const other of lines.slice(index + 1).flat()) {
+              const overlaps =
+                line.x < other.right - 1 &&
+                other.x < line.right - 1 &&
+                line.y < other.bottom - 1 &&
+                other.y < line.bottom - 1
+              expect(overlaps, `width ${width}`).toBe(false)
+            }
+          }
+        }
+      }).toPass()
+    }
+  })
+
   test('THR-21 a conversation has its answers in a bar at the bottom, and the actions of a collapsed message in its row', async ({
     page,
     user,

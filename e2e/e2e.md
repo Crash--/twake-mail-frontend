@@ -1087,5 +1087,7 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/attachments.spec.ts`.
 - [x] `EML-43` The body of an email is drawn with the Inter the app serves (`/fonts/InterVariable.ttf`), a web font and not a font of the system (`CSS.getPlatformFontsForNode`: `InterVariable`, `isCustomFont`), so it does not change on a machine without Inter. — web app only, no Patrol test
   - Spec: `tests/email.spec.ts`.
+- [x] `EML-47` In a conversation, a long sender address without a hyphen breaks inside the header and stays clear of "Unsubscribe", the date and "To:" (no two line boxes overlap) at 1440, 1000 (list beside the email), 820 and 390 px. — web app only, no Patrol test (issue #1153)
+  - Spec: `tests/reading-view.spec.ts`.
 - [ ] `SHM-01` A folder another user shares (`Mailbox/set` `sharedWith`, namespace `Delegated[<owner>]`) shows in an "Other users" category below the team mailboxes, with the address of its owner, shown although the user is not subscribed to it; it opens and lists its emails, which have neither Archive nor Spam, and its menu offers neither move, rename, hide, delete nor filter. axe. CI to confirm. — web app only (issue #714), no Patrol test
   - Spec: `tests/shared-mailboxes.spec.ts`.

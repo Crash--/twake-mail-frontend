@@ -99,6 +99,7 @@ describe('buildMailboxTree', () => {
 
     expect(names(tree)).toEqual(['Parent'])
     expect(names(tree[0]?.children ?? [])).toEqual(['Child'])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(names(tree[0]?.children[0]?.children ?? [])).toEqual(['Grandchild'])
   })
 

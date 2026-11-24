@@ -102,6 +102,7 @@ function Harness({
         onSelectSuggestion={id => {
           add([id])
         }}
+        // eslint-disable-next-line jest/no-disabled-tests, jest/expect-expect, jest/valid-title -- Rslint takes a regex's .test() for a test
         isList={text => /[,;\s]/.test(text.trim())}
         card={card}
         testIds={{ input: 'to-input', chip: 'chip' }}

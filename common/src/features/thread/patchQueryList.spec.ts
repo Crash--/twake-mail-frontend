@@ -60,6 +60,7 @@ describe('patchQueryList', () => {
     )
 
     expect(ids(data)).toEqual([['a', 'b'], ['c']])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(data.pages[0]?.emails[1]?.mailboxIds).toEqual({ [ARCHIVE]: true })
     expect(data.pages[0]?.state).toBe('s2')
     expect(data.pages[0]?.snippets).toEqual({

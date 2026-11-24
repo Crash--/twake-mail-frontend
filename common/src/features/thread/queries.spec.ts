@@ -128,6 +128,7 @@ describe('a thread longer than maxObjectsInGet', () => {
       pageParams: [0]
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(refreshed?.pages[0]?.threads?.long).toHaveLength(
       MAX_OBJECTS_IN_GET + 10
     )
@@ -169,10 +170,12 @@ describe('refreshQueryList', () => {
       pageParams: [0]
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(refreshed?.pages[0]?.emails.map(email => email.id)).toEqual([
       'reply'
     ])
     expect(
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
       refreshed?.pages[0]?.threads?.plan?.map(member => member.id)
     ).toEqual(['first', 'reply'])
   })
@@ -229,7 +232,9 @@ describe('more new emails than maxObjectsInGet in a list queried again', () => {
       pageParams: [0]
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(refreshed?.pages[0]?.emails).toHaveLength(20)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(Object.keys(refreshed?.pages[0]?.threads ?? {})).toHaveLength(20)
   })
 
@@ -260,6 +265,7 @@ describe('more new emails than maxObjectsInGet in a list queried again', () => {
       pageParams: [0]
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(Object.keys(refreshed?.pages[0]?.snippets ?? {})).toHaveLength(20)
   })
 })
@@ -407,10 +413,12 @@ describe('a search index behind the emails', () => {
       { pages: [page], pageParams: [0] }
     )
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(refreshed?.pages[0]?.emails.map(email => email.id)).toEqual([
       'e0',
       'e2'
     ])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(refreshed?.pages[0]?.count).toBe(3)
   })
 })

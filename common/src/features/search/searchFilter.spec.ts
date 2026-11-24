@@ -361,6 +361,7 @@ describe('toSearchRequest', () => {
     const bounds = JSON.stringify(jmapFilter).match(/"(after|before)":"[^"]*"/g)
 
     expect(bounds).toEqual(['"after":"0000-01-01T00:00:00Z"'])
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(bounds?.[0]?.split('":"')[1]?.slice(0, -1)).toMatch(UTC_DATE)
   })
 

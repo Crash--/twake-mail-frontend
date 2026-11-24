@@ -1,19 +1,11 @@
-import js from '@eslint/js'
-import { defineConfig } from 'eslint/config'
 import tanstackQuery from '@tanstack/eslint-plugin-query'
-import jest from 'eslint-plugin-jest'
-import prettierRecommended from 'eslint-plugin-prettier/recommended'
 import reactHooks from 'eslint-plugin-react-hooks'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
-
-// eslint-config-cozy-app is not used: it pins its own typescript-eslint and
-// prettier, requires TypeScript 5 and ships eslint-plugin-react, which does
-// not support ESLint 10 yet. Calendar and Contacts force them with npm
-// `overrides`; composing the plugins directly needs none.
+import { define } from 'rstack'
 
 /** The local design system (`@/ds/*`), the only place allowed raw MUI */
 const DS_FILES = ['common/src/ds/**/*.{ts,tsx}']
+
+const TS_FILES = ['**/*.{ts,tsx}']
 
 const COMMON_IMPORT_PATTERNS = [
   {
@@ -131,28 +123,105 @@ const FORBIDDEN_SYNTAX = [
   }
 ]
 
-export default defineConfig(
+// The React Compiler rules of eslint-plugin-react-hooks, which Rslint does not
+// port. Rslint reserves the react-hooks prefix for its own rules.
+const reactCompilerRules = Object.fromEntries(
+  Object.entries(reactHooks.configs['recommended-latest'].rules)
+    .filter(([rule]) => !/\/(rules-of-hooks|exhaustive-deps)$/.test(rule))
+    .map(([rule, level]) => [
+      rule.replace('react-hooks/', 'react-compiler/'),
+      level
+    ])
+)
+
+// Rslint's no-restricted-syntax does not match TypeScript nodes such as
+// TSAsExpression (web-infra-dev/rslint#2626), nor attributes read through
+// `parent`. ESLint's rule runs those selectors, through the JS plugins.
+const NEEDS_JS = /\bTS(?!EnumDeclaration)|\bparent\./
+
+const tsSyntax = {
+  rules: {
+    'no-restricted-syntax': {
+      meta: { schema: false },
+      create: context =>
+        Object.fromEntries(
+          context.options.map(({ selector, message }) => [
+            selector,
+            node => context.report({ node, message })
+          ])
+        )
+    }
+  }
+}
+
+// Splits "a, b" at the commas outside brackets, parentheses and quotes
+const splitSelector = selector => {
+  const parts = []
+  let depth = 0
+  let quote = null
+  let start = 0
+  for (let i = 0; i < selector.length; i++) {
+    const char = selector[i]
+    if (quote) {
+      if (char === quote) quote = null
+    } else if (char === '"' || char === "'") quote = char
+    else if (char === '(' || char === '[') depth++
+    else if (char === ')' || char === ']') depth--
+    else if (char === ',' && depth === 0) {
+      parts.push(selector.slice(start, i).trim())
+      start = i + 1
+    }
+  }
+  return [...parts, selector.slice(start).trim()]
+}
+
+/** no-restricted-syntax, with its TypeScript selectors in the JS rule */
+const restrictedSyntax = (level, ...restrictions) => {
+  const native = []
+  const ts = []
+  for (const { selector, message } of restrictions) {
+    const parts = splitSelector(selector)
+    const nativeParts = parts.filter(part => !NEEDS_JS.test(part))
+    const tsParts = parts.filter(part => NEEDS_JS.test(part))
+    if (nativeParts.length > 0) {
+      native.push({ selector: nativeParts.join(', '), message })
+    }
+    if (tsParts.length > 0) ts.push({ selector: tsParts.join(', '), message })
+  }
+  return {
+    'no-restricted-syntax': [level, ...native],
+    'ts-syntax/no-restricted-syntax': [level, ...ts]
+  }
+}
+
+// typescript-eslint's presets apply to TypeScript files only
+const onTs = entries =>
+  entries.map(entry =>
+    entry.rules && !entry.files ? { ...entry, files: TS_FILES } : entry
+  )
+
+const config = lint => [
   {
     ignores: [
-      '**/dist/',
-      '**/coverage/',
-      '**/node_modules/',
-      '.tsbuild/',
-      'e2e/',
-      'public/',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+      '.tsbuild/**',
+      'e2e/**',
+      'public/**',
       // Runtime configuration served as /.env.js to the browser, as public/.env.js
       'scripts/qa-environment/app-env.js'
     ]
   },
 
-  js.configs.recommended,
+  lint.js.configs.recommended,
+  // Turned off by eslint-config-prettier
+  { rules: { 'no-unexpected-multiline': 'off' } },
+  ...onTs(lint.ts.configs.strictTypeChecked),
+  { files: TS_FILES, rules: lint.ts.configs.stylisticTypeChecked.at(-1).rules },
 
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      ...tseslint.configs.strictTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked
-    ],
+    files: TS_FILES,
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -193,19 +262,21 @@ export default defineConfig(
 
   {
     files: ['apps/**/*.{ts,tsx}', 'common/**/*.{ts,tsx}'],
-    languageOptions: {
-      globals: globals.browser
-    },
-    plugins: {
-      'react-hooks': reactHooks
-    },
+    plugins: ['react-hooks'],
     rules: {
-      ...reactHooks.configs['recommended-latest'].rules,
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       eqeqeq: ['error', 'always'],
       'no-console': ['error', { allow: ['info', 'warn', 'error'] }],
       'no-restricted-imports': ['error', UI_IMPORT_RESTRICTIONS],
-      'no-restricted-syntax': ['error', ...FORBIDDEN_SYNTAX, SX_SYNTAX]
+      ...restrictedSyntax('error', ...FORBIDDEN_SYNTAX, SX_SYNTAX)
     }
+  },
+
+  {
+    files: ['apps/**/*.{ts,tsx}', 'common/**/*.{ts,tsx}'],
+    plugins: { 'react-compiler': reactHooks, 'ts-syntax': tsSyntax },
+    rules: reactCompilerRules
   },
 
   {
@@ -214,7 +285,7 @@ export default defineConfig(
     files: DS_FILES,
     rules: {
       'no-restricted-imports': ['error', DS_IMPORT_RESTRICTIONS],
-      'no-restricted-syntax': ['error', ...FORBIDDEN_SYNTAX]
+      ...restrictedSyntax('error', ...FORBIDDEN_SYNTAX)
     }
   },
 
@@ -224,10 +295,11 @@ export default defineConfig(
     rules: { 'no-restricted-imports': ['error', UI_IMPORT_RESTRICTIONS] }
   },
 
-  ...tanstackQuery.configs['flat/recommended'],
-
   {
+    files: ['**/*.{js,mjs,ts,tsx}'],
+    plugins: { '@tanstack/query': tanstackQuery },
     rules: {
+      ...tanstackQuery.configs['flat/recommended'][0].rules,
       // The JMAP client is not part of the query keys: there is one client
       // per sign-in and the cache is cleared when the session ends. Keys
       // start with the JMAP account id instead.
@@ -239,13 +311,10 @@ export default defineConfig(
   },
 
   {
+    ...lint.jestPlugin.configs.recommended,
     files: ['**/*.spec.{ts,tsx}', '**/testing/**/*.{ts,tsx}'],
-    ...jest.configs['flat/recommended'],
-    languageOptions: {
-      globals: { ...globals.browser, ...globals.jest }
-    },
     rules: {
-      ...jest.configs['flat/recommended'].rules,
+      ...lint.jestPlugin.configs.recommended.rules,
       'jest/no-restricted-matchers': [
         'error',
         {
@@ -267,18 +336,47 @@ export default defineConfig(
       'apps/*/rsbuild.config.ts',
       'common/src/testing/jsdomEnvironment.ts'
     ],
-    rules: { 'no-restricted-syntax': 'off' }
+    rules: {
+      'no-restricted-syntax': 'off',
+      'ts-syntax/no-restricted-syntax': 'off'
+    }
   },
 
   {
     files: ['**/*.{js,mjs}'],
-    languageOptions: {
-      globals: globals.node
-    },
+    languageOptions: { globals: lint.globals.node },
     rules: {
+      // ESLint's recommended preset has it, Rslint's does not
+      'no-undef': 'error',
       eqeqeq: ['error', 'always']
     }
-  },
+  }
+]
 
-  prettierRecommended
+define.lint(lint =>
+  config(lint).map(entry => ({ ...entry, basePath: import.meta.dirname }))
 )
+
+define.fmt({
+  semi: false,
+  singleQuote: true,
+  trailingComma: 'none',
+  printWidth: 80,
+  tabWidth: 2,
+  arrowParens: 'avoid',
+  endOfLine: 'auto',
+  ignorePatterns: [
+    'build/',
+    'dist/',
+    'coverage/',
+    '.tsbuild/',
+    'package-lock.json',
+    // Markdown docs (formatting handled manually)
+    '*.md',
+    '.env*',
+    // End-to-end tests live in their own package
+    'e2e/',
+    // Helm chart: Go templates, checked by helm lint
+    'deploy/helm/'
+  ]
+})

@@ -84,6 +84,7 @@ describe('promptMessages', () => {
   })
 
   it('takes the built-in prompt the server does not give, null for none', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(promptMessages(prompts, 'emojify', 'Hi')?.[1]?.content).toBe(
       'INSTRUCTION:\nAdd emojis to the important parts of the text. Do not try to rephrase or replace text.\n\nTEXT:\nHi\n'
     )

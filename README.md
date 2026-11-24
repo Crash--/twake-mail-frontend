@@ -106,8 +106,8 @@ None of them is cached by nginx.
 | `npm run serve` | Serve the production build on port 5000 |
 | `npm test` | Unit tests (Jest, `dom` and `node` projects) |
 | `npm run test:scripts` | Tests of the Node scripts (`node --test`) |
-| `npm run lint` / `lint:fix` | ESLint |
-| `npm run format` / `format:check` | Prettier |
+| `npm run lint` / `lint:fix` | Rslint |
+| `npm run format` / `format:check` | rs fmt |
 | `npm run typecheck` | `tsc -b` on every workspace |
 | `npm run import-flutter-arb` | Import translations from tmail-flutter, see [docs/i18n.md](docs/i18n.md) |
 | `npm run copy-from-common` | Copy a `common` module into the app to override it (`@injected`) |

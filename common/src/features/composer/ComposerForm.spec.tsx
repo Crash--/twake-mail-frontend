@@ -1961,6 +1961,7 @@ describe('ComposerForm', () => {
         email => email.id === jmapServer.submitted[0]
       )
       expect(sent?.bcc).toEqual([{ name: null, email: 'crm@example.com' }])
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
       expect(sent?.from?.[0]?.email).toBe('sales@example.com')
     })
 

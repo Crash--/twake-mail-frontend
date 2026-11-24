@@ -208,6 +208,7 @@ describe('EmailView', () => {
     const [request] = server.requests.filter(({ methodCalls }) =>
       methodCalls.some(([name]) => name === 'Email/get')
     )
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive of Rslint (web-infra-dev/rslint#2625)
     expect(request?.methodCalls[0]?.[1]).toEqual(
       expect.objectContaining({
         ids: ['e1'],

@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-24
+
+No new setting since 0.15.0.
+
+### Added
+
+- On a phone, and at tablet sizes with a touch screen, a long press on a row
+  of the email list selects it. While emails are selected, a tap selects or
+  unselects a row, a selected row shows a round check in place of its
+  avatar, and the selection bar takes the place of the top bar and the
+  search, with "Select all" where the search was.
+- On phones and tablets, the floating Compose button folds to its icon while
+  the email list scrolls and unfolds when it stops (twake-mui's
+  ExtendableFab).
+- An empty email list shows an open envelope in a tile above its title and
+  hint, centred at every width.
+- On desktop, each switch of Preferences starts with its icon.
+
+### Changed
+
+- Emails show their remote images and third-party content by default.
+  "Block remote images and third-party content" in Settings > Preferences
+  turns blocking on, with the banner to show them per email or per sender.
+  The setting keeps its key, so a choice made before stays.
+- The rules are compact grey rows, their first condition in a small chip and
+  their actions as outlined icons.
+- "Starts:" and "Ends:" of the vacation responder are picked in a pill
+  segmented control.
+- The update dialog draws "Not now" as a text button and centres its text
+  (twake-react-new-version 1.2.1), and the other twake libraries move to
+  their latest patch.
+
+### Fixed
+
+- In dark mode, the composer casts the shadow of the search filters panel.
+- The sender and preview of a read collapsed message are Regular.
+- A search scope read from the URL only matches the team folders' own keys,
+  so `in=__proto__` no longer searches every mailbox.
+- After leaving a team mailbox, its identity leaves Settings > Profiles and
+  the composer's From select at once.
+- German and Vietnamese no longer announce a starred email as important.
+
 ## [0.15.0] - 2026-11-19
 
 New setting since 0.14.0: `APP_GRID_AVAILABLE`. Set to `supported`, the image

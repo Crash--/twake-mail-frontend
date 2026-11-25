@@ -112,6 +112,11 @@ test.describe('TRE folder tree keyboard (WAI-ARIA tree view)', () => {
 
       // Enter opens the folder (the drawer closes on a small screen)
       await page.keyboard.press('Enter')
+      if (mailbox.hasFolderDrawer()) {
+        // Wait for the drawer to be gone: while it slides out it is still
+        // visible, and showFolders() would not open it again
+        await expect(mailbox.folderDrawer).toBeHidden()
+      }
       await expect(mailbox.root).toHaveAttribute('data-mailbox-id', work.id)
       await mailbox.expectFolderSelected({ name: 'Work' })
       await expectNoA11yViolations(page)

@@ -6,6 +6,9 @@ import { requestVersionCheck } from '@linagora/twake-react-new-version'
 import { AppProviders } from '@common/app/AppProviders'
 import { AppConfigProvider } from '@common/config/AppConfigProvider'
 import { resolveConfig, type AppConfig } from '@common/config/config'
+import { AuthProvider } from '@common/features/auth/AuthProvider'
+import { ANONYMOUS } from '@common/features/auth/types'
+import { makeFakeBasicAuthService } from '@common/testing/makeFakeAuthService'
 
 import { NewVersionCheck } from './NewVersionCheck'
 
@@ -30,11 +33,17 @@ beforeEach(() => {
   global.fetch = fetchMock
 })
 
-function renderCheck(config: AppConfig): void {
+function renderCheck(
+  config: AppConfig,
+  notesAtLoad = false,
+  authService = makeFakeBasicAuthService()
+): void {
   render(
     <AppProviders lang="en" queryClient={new QueryClient()}>
       <AppConfigProvider config={config}>
-        <NewVersionCheck />
+        <AuthProvider service={authService}>
+          <NewVersionCheck notesAtLoad={notesAtLoad} />
+        </AuthProvider>
       </AppConfigProvider>
     </AppProviders>
   )
@@ -79,5 +88,67 @@ describe('NewVersionCheck', () => {
     expect(dialog.querySelector('img')?.getAttribute('src')).toBe(
       '/release-notes/whats-new-light.png'
     )
+  })
+
+  describe('notes at load', () => {
+    beforeEach(() => {
+      window.localStorage.clear()
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            build: process.env.BUILD_VERSION ?? 'dev',
+            notes: { en: '- Dark mode' }
+          })
+      })
+    })
+
+    it('shows the release notes of the running build with notesAtLoad', async () => {
+      renderCheck(makeConfig({ NEW_VERSION_CHECK_ENABLED: 'true' }), true)
+
+      expect(
+        await screen.findByRole('dialog', { name: "What's new in Twake Mail" })
+      ).toHaveTextContent('Dark mode')
+      expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+    })
+
+    it('waits for the user to sign in, never over the login page', async () => {
+      const authService = makeFakeBasicAuthService(ANONYMOUS)
+      renderCheck(
+        makeConfig({ NEW_VERSION_CHECK_ENABLED: 'true' }),
+        true,
+        authService
+      )
+      await act(async () => {
+        await Promise.resolve()
+      })
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(screen.queryByRole('dialog')).toBeNull()
+
+      act(() =>
+        authService.store.setState({
+          status: 'authenticated',
+          user: {
+            email: 'alice@example.com',
+            name: 'Alice Martin',
+            workplaceFqdn: null
+          }
+        })
+      )
+
+      expect(
+        await screen.findByRole('dialog', { name: "What's new in Twake Mail" })
+      ).toHaveTextContent('Dark mode')
+    })
+
+    it('reads nothing at load without notesAtLoad', async () => {
+      renderCheck(makeConfig({ NEW_VERSION_CHECK_ENABLED: 'true' }))
+
+      await act(async () => {
+        await Promise.resolve()
+      })
+
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
   })
 })

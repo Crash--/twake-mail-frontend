@@ -667,6 +667,11 @@ carries in `/version.json` (in the user's language, else English). The image
 writes `/version.json` and serves it uncached; with the setting off, nothing
 asks for it.
 
+In the webmail, once the user is signed in, the same dialog also shows the
+release notes of the running build that this browser has not shown yet, with
+"Got it" alone (not in the composer other apps open, nor in Twake Space). The
+browser remembers the notes it has shown, so new notes show once per browser.
+
 With the `linagora/tmail-frontend` chart, set it in the environment of the
 container (`extraEnv`, see [Mounting an `env.file`](#mounting-an-envfile)).
 

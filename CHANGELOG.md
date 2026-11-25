@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   English or French, under a capture in the theme of the app, from
   `release-notes/` (the notes written into `/version.json` by the Docker
   build, the images served under `/release-notes/`, revalidated).
+- Once signed in, the webmail shows that dialog with the release notes this
+  browser has not shown yet, closed with "Got it" (twake-react-new-version
+  1.3.0).
 
 ## [0.17.0] - 2026-11-24
 

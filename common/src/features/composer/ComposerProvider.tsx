@@ -94,7 +94,8 @@ const isFocusTarget = (
  * Gives the focus back once a composer is closed: to what opened it, or,
  * when nothing did (a composer restored after a reload, a /mailto link, a
  * shortcut pressed with nothing focused), it is gone, or it is about to go
- * (the row of a draft just sent or deleted, issue #1143), to the "New
+ * (the row of a draft just sent, deleted, issue #1143, or saved again as a
+ * new version, issue #1164), to the "New
  * message" button if the focus was left on the page body or on that opener.
  */
 const focusAfterClose = (
@@ -571,12 +572,14 @@ export function ComposerProvider({
     (id: string, outcome: ComposerOutcome | null = null): void => {
       settleOpening(id)
       const opener = openers.current.get(id)
-      // A draft of the server sent or deleted leaves its list, and the row
-      // that opened it goes with it
+      // A draft of the server sent, deleted or saved again (a new version,
+      // under a new id, issue #1164) leaves its list, and the row that
+      // opened it goes with it
+      const openedDraftId = entriesRef.current.find(entry => entry.id === id)
+        ?.init.draftId
       const isOpenerLeaving =
-        outcome !== null &&
-        entriesRef.current.find(entry => entry.id === id)?.init.draftId !==
-          undefined
+        openedDraftId !== undefined &&
+        (outcome !== null || drafts.current.get(id)?.draftId !== openedDraftId)
       openers.current.delete(id)
       forms.current.delete(id)
       drafts.current.get(id)?.release()

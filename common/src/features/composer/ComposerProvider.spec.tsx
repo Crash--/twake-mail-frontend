@@ -240,6 +240,104 @@ describe('ComposerProvider', () => {
       expect(jmapServer.emails.map(email => email.id)).not.toContain('draft-1')
     })
 
+    describe('closing a reopened draft', () => {
+      function DraftRow(): ReactElement {
+        const { openComposer } = useComposer()
+        return (
+          <>
+            <button type="button" data-testid="compose-email-button">
+              New message
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                openComposer({ draftId: 'draft-1' })
+              }}
+            >
+              Reopened draft
+            </button>
+          </>
+        )
+      }
+
+      const openDraft = async (): Promise<{
+        jmapServer: FakeJmapServer
+        composer: HTMLElement
+      }> => {
+        const jmapServer = makeFakeJmapServer({
+          emails: [
+            makeEmailWithBody(
+              {
+                id: 'draft-1',
+                mailboxIds: { 'mailbox-drafts': true },
+                keywords: { $draft: true, $seen: true },
+                subject: 'Reopened'
+              },
+              { html: '<div>Draft body</div>' }
+            )
+          ]
+        })
+        renderWithProviders(
+          <ComposerProvider>
+            <DraftRow />
+          </ComposerProvider>,
+          { jmapServer, withJmapSession: true }
+        )
+        await userEvent.click(
+          await screen.findByRole('button', { name: 'Reopened draft' })
+        )
+        const composer = await screen.findByRole('dialog', {
+          name: 'Reopened'
+        })
+        await within(composer).findByRole('textbox', { name: 'Message body' })
+        return { jmapServer, composer }
+      }
+
+      it('gives the focus to "New message", not to the row of the draft, once saved as a new version (issue #1164)', async () => {
+        const { jmapServer, composer } = await openDraft()
+        await userEvent.type(
+          within(composer).getByRole('textbox', { name: 'Subject' }),
+          ' again'
+        )
+
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'Close' })
+        )
+        await userEvent.click(
+          await screen.findByTestId('confirm-dialog-confirm-button')
+        )
+
+        await waitFor(() => {
+          expect(screen.queryByRole('dialog')).toBe(null)
+        })
+        await waitFor(() => {
+          expect(
+            screen.getByRole('button', { name: 'New message' })
+          ).toHaveFocus()
+        })
+        expect(jmapServer.emails.map(email => email.id)).not.toContain(
+          'draft-1'
+        )
+      })
+
+      it('gives the focus back to the row of the draft when nothing changed', async () => {
+        const { composer } = await openDraft()
+
+        await userEvent.click(
+          within(composer).getByRole('button', { name: 'Close' })
+        )
+
+        await waitFor(() => {
+          expect(screen.queryByRole('dialog')).toBe(null)
+        })
+        await waitFor(() => {
+          expect(
+            screen.getByRole('button', { name: 'Reopened draft' })
+          ).toHaveFocus()
+        })
+      })
+    })
+
     it('leaves the composers another tab holds to that tab', async () => {
       resumeComposerStorage()
       for (const id of ['mine', 'theirs']) {

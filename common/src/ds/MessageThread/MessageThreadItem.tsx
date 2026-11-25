@@ -45,7 +45,8 @@ function sides(isInset: boolean): { side: string; phoneSide: string } {
 function toggleSx(
   isExpanded: boolean,
   hasHeaderEnd: boolean,
-  isInset: boolean
+  isInset: boolean,
+  isLocked: boolean
 ): SxProps<Theme> {
   const { side, phoneSide } = sides(isInset)
   return {
@@ -62,6 +63,7 @@ function toggleSx(
     pt: isExpanded ? '20px' : undefined,
     pb: isExpanded ? '4px' : undefined,
     borderRadius: 1,
+    ...(isLocked ? { cursor: 'default' } : {}),
     [PHONE]: {
       pl: phoneSide,
       pr: hasHeaderEnd ? 0 : phoneSide,
@@ -138,6 +140,11 @@ const INSET_HEADER_BELOW_SX = { px: '8px' } as const
 export interface MessageThreadItemProps {
   isExpanded: boolean
   onToggle: () => void
+  /**
+   * False: an expanded message stays so (the only one of its conversation),
+   * its header neither collapses it nor lights up on hover
+   */
+  isCollapsible?: boolean
   /** The header: sender, date, and the preview while collapsed */
   header: ReactNode
   /**
@@ -167,11 +174,14 @@ export interface MessageThreadItemProps {
 /**
  * A message of a conversation: its header is a button (`aria-expanded`,
  * `aria-controls`), in a level-2 heading, that expands or collapses the
- * message, shown below it in a region named by the header.
+ * message, shown below it in a region named by the header. A message that
+ * cannot collapse keeps the button, `aria-disabled` as the APG accordion
+ * says of a panel that stays open.
  */
 export function MessageThreadItem({
   isExpanded,
   onToggle,
+  isCollapsible = true,
   header,
   headerEnd,
   actions,
@@ -187,6 +197,7 @@ export function MessageThreadItem({
   const regionId = `${id}-region`
   const toggleProps = { [MESSAGE_TOGGLE_ATTRIBUTE]: '' }
   const hasHeaderEnd = headerEnd !== undefined && headerEnd !== null
+  const isLocked = isExpanded && !isCollapsible
 
   return (
     <Box
@@ -195,7 +206,7 @@ export function MessageThreadItem({
       data-testid={testId}
       data-expanded={isExpanded ? 'true' : 'false'}
     >
-      <Box sx={HEADER_SX}>
+      <Box sx={isLocked ? undefined : HEADER_SX}>
         <Box sx={ROW_SX}>
           <Box component="h2" sx={headingSx(hasHeaderEnd)}>
             <ButtonBase
@@ -203,8 +214,10 @@ export function MessageThreadItem({
               id={toggleId}
               aria-expanded={isExpanded}
               aria-controls={regionId}
-              onClick={onToggle}
-              sx={toggleSx(isExpanded, hasHeaderEnd, isInset)}
+              aria-disabled={isLocked ? true : undefined}
+              onClick={isLocked ? undefined : onToggle}
+              disableRipple={isLocked}
+              sx={toggleSx(isExpanded, hasHeaderEnd, isInset, isLocked)}
               {...toggleProps}
               data-testid={toggleTestId}
             >

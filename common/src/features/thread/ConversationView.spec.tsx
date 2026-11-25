@@ -1454,3 +1454,65 @@ describe('ConversationView, an expanded message', () => {
     })
   })
 })
+
+describe('ConversationView, a conversation of one message', () => {
+  async function renderSolo(): Promise<void> {
+    const server = makeFakeJmapServer({
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'solo',
+            threadId: THREAD,
+            subject: 'Lunch on Friday',
+            from: [{ name: 'Alice Martin', email: 'alice@example.com' }],
+            keywords: { $seen: true }
+          },
+          { text: 'Are you free on Friday?' }
+        )
+      ]
+    })
+    renderWithProviders(
+      <ConversationView threadId={THREAD} emailId="solo" onBack={jest.fn()} />,
+      { withJmapSession: true, jmapServer: server }
+    )
+    await screen.findByRole('list', { name: 'Messages of the conversation' })
+    // Loaded: its actions no longer change under the pointer
+    await screen.findByTestId('email-view-body')
+  }
+
+  it('keeps its message expanded when its header is clicked, the header saying it cannot collapse', async () => {
+    await renderSolo()
+
+    expect(toggle(/Alice Martin/)).toHaveAttribute('aria-expanded', 'true')
+    expect(toggle(/Alice Martin/)).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(toggle(/Alice Martin/))
+
+    expect(toggle(/Alice Martin/)).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('keeps its message expanded once marked unread, from the message or the conversation', async () => {
+    await renderSolo()
+
+    await userEvent.click(
+      within(messageActions(/Alice Martin/)).getByRole('button', {
+        name: 'More'
+      })
+    )
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Mark as unread' })
+    )
+    expect(toggle(/Alice Martin/)).toHaveAttribute('aria-expanded', 'true')
+
+    await userEvent.click(
+      within(await openConversationMenu()).getByRole('menuitem', {
+        name: 'Mark as read'
+      })
+    )
+    await userEvent.click(
+      within(await openConversationMenu()).getByRole('menuitem', {
+        name: 'Mark as unread'
+      })
+    )
+    expect(toggle(/Alice Martin/)).toHaveAttribute('aria-expanded', 'true')
+  })
+})

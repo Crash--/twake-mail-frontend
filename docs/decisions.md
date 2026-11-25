@@ -191,3 +191,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26, [#1182](https://github.com/Crash--/twake-mail-frontend/pull/1182)
 - Why: production sets `X-Suspicious-DisplayName`, not `X-TWP-Message`; users must see that the email may be a scam.
 - Scope: desktop and mobile, the reading view and the messages of a conversation.
+
+## 2026-11-25, [UX] The only message of a conversation does not collapse
+
+- Decision: when a conversation holds one message, that message stays expanded: its header does not collapse it on click and shows no hover, and it stays expanded once marked unread (from its menu or the conversation's). It can collapse again as soon as a second message joins the conversation.
+- Decided by: Crash-- (CTO), [#1173](https://github.com/Crash--/twake-mail-frontend/issues/1173)
+- Why: with one message there is nothing to skim; collapsed, the reading view showed a sender and a preview line only.
+- Scope: desktop and mobile, conversation view.

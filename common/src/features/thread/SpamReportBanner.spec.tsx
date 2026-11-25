@@ -13,6 +13,9 @@ import {
   makeDefaultMailboxes,
   makeEmail,
   makeFakeJmapServer,
+  makeMailbox,
+  makeTeamMailboxes,
+  teamNamespace,
   type FakeJmapServer
 } from '@common/testing/fakeJmapServer'
 import { renderWithProviders } from '@common/testing/renderWithProviders'
@@ -28,6 +31,42 @@ function makeServer(unreadSpam = 3): FakeJmapServer {
     ),
     emails: [
       makeEmail({ id: 'a', mailboxIds: { 'mailbox-inbox': true } }),
+      makeEmail({ id: 's', mailboxIds: { 'mailbox-spam': true } })
+    ]
+  })
+}
+
+function makeServerWithTeam({
+  teamSpamUnread
+}: {
+  /** Null: the team mailbox has no Spam, as James creates it */
+  teamSpamUnread: number | null
+}): FakeJmapServer {
+  const teamSpam =
+    teamSpamUnread === null
+      ? []
+      : [
+          makeMailbox({
+            id: 'team-spam',
+            name: 'Spam',
+            parentId: 'team',
+            namespace: teamNamespace('team@example.com'),
+            unreadEmails: teamSpamUnread,
+            totalEmails: teamSpamUnread
+          })
+        ]
+  return makeFakeJmapServer({
+    mailboxes: [
+      ...makeDefaultMailboxes().map(mailbox =>
+        mailbox.id === 'mailbox-spam'
+          ? { ...mailbox, unreadEmails: 3, totalEmails: 3 }
+          : mailbox
+      ),
+      ...makeTeamMailboxes(),
+      ...teamSpam
+    ],
+    emails: [
+      makeEmail({ id: 't', mailboxIds: { 'team-inbox': true } }),
       makeEmail({ id: 's', mailboxIds: { 'mailbox-spam': true } })
     ]
   })
@@ -192,5 +231,36 @@ describe('SpamReportBanner', () => {
     expect(
       window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
     ).toContain('lastDismissedAt')
+  })
+
+  it("is not shown in a team mailbox for the user's own Spam", async () => {
+    await renderFolder(
+      makeServerWithTeam({ teamSpamUnread: null }),
+      'team-inbox'
+    )
+    await waitFor(() => {
+      expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+    })
+    expect(
+      window.localStorage.getItem(SPAM_REPORT_PREFERENCE_STORAGE_KEY)
+    ).toBeNull()
+  })
+
+  it('reminds the unread emails of the Spam of the team mailbox shown, and opens it', async () => {
+    await renderFolder(makeServerWithTeam({ teamSpamUnread: 2 }), 'team-inbox')
+    expect(await screen.findByTestId('spam-report-banner')).toHaveTextContent(
+      '2 messages in spam'
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'View' }))
+    await waitFor(() => {
+      expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+    })
+  })
+
+  it('is not shown in a team mailbox whose Spam is read', async () => {
+    await renderFolder(makeServerWithTeam({ teamSpamUnread: 0 }), 'team-inbox')
+    await waitFor(() => {
+      expect(screen.queryByTestId('spam-report-banner')).toBeNull()
+    })
   })
 })

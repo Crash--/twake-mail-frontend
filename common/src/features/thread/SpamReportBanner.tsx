@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router'
 import { NoticeBanner } from '@/ds/NoticeBanner/NoticeBanner'
 import { useFocusFallback } from '@/ds/useFocusFallback/useFocusFallback'
 import { useFolderActions } from '@common/features/mailboxActions/FolderActionsProvider'
+import {
+  findTeamFolderId,
+  isPersonalMailbox,
+  isTeamMailbox
+} from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
 import {
@@ -12,13 +17,41 @@ import {
 } from '@common/features/settings/spamReportPreference'
 import { useI18n } from '@common/i18n/useI18n'
 
+/** The names a Spam folder of a team mailbox goes by: it has no role */
+const TEAM_SPAM_NAMES: readonly string[] = ['spam', 'junk']
+
+/**
+ * The Spam of the account the list shows: the user's own for a personal
+ * folder or a search, the one of the team mailbox for a team folder (none by
+ * default: James creates no Spam there), none for a folder shared by another
+ * user, whose Spam the user does not see
+ */
+function findSpamOfAccount(
+  mailboxes: readonly MailboxSummary[],
+  mailbox: MailboxSummary | null
+): MailboxSummary | null {
+  if (mailbox === null || isPersonalMailbox(mailbox)) {
+    return (
+      mailboxes.find(
+        candidate => isPersonalMailbox(candidate) && candidate.role === 'junk'
+      ) ?? null
+    )
+  }
+  if (!isTeamMailbox(mailbox)) return null
+  const spamId =
+    TEAM_SPAM_NAMES.map(name =>
+      findTeamFolderId(mailboxes, mailbox.id, name)
+    ).find(id => id !== null) ?? null
+  return mailboxes.find(candidate => candidate.id === spamId) ?? null
+}
+
 export interface SpamReportBannerProps {
   /** The folder the list shows, null from search results */
   mailbox: MailboxSummary | null
 }
 
 /**
- * Above the lists, the unread emails of Spam, as tmail-flutter's spam
+ * Above the lists, the unread emails of the Spam of the account they show, as tmail-flutter's spam
  * report: not in Spam itself, not within 24 hours of its dismissal, of
  * the view of Spam or of its last display (it stays until the list is
  * left), and unless turned off in Settings > Preferences.
@@ -40,7 +73,7 @@ export function SpamReportBanner({
   const [isDueSinceLastShown] = useState(() =>
     isSpamReportIntervalElapsed(lastShownAt, now)
   )
-  const spam = mailboxes.find(candidate => candidate.role === 'junk') ?? null
+  const spam = findSpamOfAccount(mailboxes, mailbox)
   const unread = spam?.unreadEmails ?? 0
   const isShown =
     isEnabled &&
@@ -59,14 +92,21 @@ export function SpamReportBanner({
   }, [isShown, markShown])
 
   // All read (in Spam, elsewhere) while the banner shows: nothing to remind
-  // for 24 hours, as tmail-flutter
-  const wasShownRef = useRef(false)
+  // for 24 hours, as tmail-flutter. The Spam of another account (the list
+  // moved to a team mailbox) read already is no such reading.
+  const spamId = spam?.id ?? null
+  const shownSpamIdRef = useRef<string | null>(null)
   useEffect(() => {
-    if (wasShownRef.current && isEnabled && spam !== null && unread === 0) {
+    if (
+      shownSpamIdRef.current !== null &&
+      shownSpamIdRef.current === spamId &&
+      isEnabled &&
+      unread === 0
+    ) {
       dismiss()
     }
-    wasShownRef.current = isShown
-  }, [isShown, isEnabled, spam, unread, dismiss])
+    shownSpamIdRef.current = isShown ? spamId : null
+  }, [isShown, isEnabled, spamId, unread, dismiss])
 
   if (!isShown) return null
 

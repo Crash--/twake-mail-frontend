@@ -170,3 +170,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), [#1167](https://github.com/Crash--/twake-mail-frontend/issues/1167)
 - Why: Mail and Calendar open the same picker and show the same skeleton while it loads.
 - Scope: desktop and mobile, "Attach from Drive" in the composer.
+
+## 2026-11-25, [UX] The spam report follows the account of the folder shown
+
+- Decision: the spam report banner counts the unread emails of the Spam of the account the list shows: the user's own Spam in a personal folder and in search results; in a team mailbox, its own Spam folder (found by name, "Spam" or "Junk", under its root), and no banner when it has none (James creates none); no banner in a folder another user shares. "View" and the close button act on that Spam.
+- Decided by: chibenwa, [#1178](https://github.com/Crash--/twake-mail-frontend/issues/1178)
+- Why: the user's own Spam has nothing to do with the team mailbox they are reading.
+- Scope: desktop and mobile, the email lists.

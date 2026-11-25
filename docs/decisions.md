@@ -205,3 +205,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: the dialog keeps two or three lines; the full list lives where the release is announced.
 - Scope: desktop and mobile, the new version dialog.
+
+## 2026-11-25, [UI] One "?" in the Workplace bar
+
+- Decision: on a desktop, under the bar of Twake Workplace, "Get help or report a bug" (the support of the server) goes behind the "?" of the bar with the help page of the Workplace: one "?", which opens the only entry at once, or a menu with "Help center" and "Get help or report a bug" when there are both. Mail shows no "?" of its own in that bar.
+- Decided by: Crash-- (CTO), [#1168](https://github.com/Crash--/twake-mail-frontend/issues/1168)
+- Why: two identical "?" side by side made no sense.
+- Scope: desktop, the Workplace bar (on the platform and off it).

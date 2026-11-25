@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Under the Workplace bar, one "?" holds the help of the Workplace and the
+  support of the server, in a menu when there are both (twake-bar 1.3.0).
+
 ## [0.18.0] - 2026-11-26
 
 New setting since 0.17.0: `RELEASE_NOTES_URL`

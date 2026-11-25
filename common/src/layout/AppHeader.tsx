@@ -13,7 +13,7 @@ import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { AppTitle } from '@injected/layout/AppTitle'
 
 import { AccountMenu } from './AccountMenu'
-import { HelpButton } from './HelpButton'
+import { useHelpAction } from './HelpButton'
 import { LogoutButton } from './LogoutButton'
 import { PlatformBar } from './PlatformBar'
 import { TopBar } from './TopBar'
@@ -47,6 +47,7 @@ export function AppHeader({
   const screenSize = useScreenSize()
   const isDesktop = screenSize === 'desktop'
   const isPhone = screenSize === 'mobile'
+  const help = useHelpAction()
   // Matches `/settings/` too, unlike a path comparison
   const isSettingsMenu = useMatch(SETTINGS_PATH) !== null
   // A phone gives an open email the whole screen under the platform bar
@@ -87,6 +88,9 @@ export function AppHeader({
   // of the user, after the apps of the deployment when it lists some
   const hasFallbackApps = isFlutterBar && fallbackApps.length > 0
   const accountMenu = isFlutterBar ? <AccountMenu /> : null
+  // One "?" with the help of the platform: a menu when it has both
+  const helpItems =
+    help === null ? undefined : [{ ...help, 'data-testid': 'help-button' }]
   return (
     <AppBarFrame isPlain={!isFlutterBar}>
       <PlatformBar
@@ -98,15 +102,13 @@ export function AppHeader({
             </AppBarLeft>
           ) : undefined
         }
-        actions={
-          <>
-            <HelpButton size="small" />
-            {hasFallbackApps ? null : accountMenu}
-          </>
-        }
+        helpItems={helpItems}
         fallback={
-          hasFallbackApps
-            ? { apps: fallbackApps, userMenu: accountMenu }
+          isFlutterBar
+            ? {
+                apps: hasFallbackApps ? fallbackApps : undefined,
+                userMenu: accountMenu
+              }
             : undefined
         }
       />

@@ -1,4 +1,5 @@
 import { Eye } from '@linagora/twake-icons'
+import { radius } from '@linagora/twake-mui'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ReactElement } from 'react'
@@ -40,6 +41,24 @@ describe('SettingsOption', () => {
     expect(
       screen.getByRole('switch', { name: 'Enable thread' })
     ).toHaveAccessibleDescription('View related emails together')
+  })
+
+  it('draws its icon white on a 12 px neutral tile, in every scheme', () => {
+    mockViewport({ width: 1280 })
+    renderDs(
+      <SettingsOption
+        description="View related emails together"
+        toggleLabel="Enable thread"
+        isChecked={false}
+        onChange={jest.fn()}
+        icon={Eye}
+      />
+    )
+
+    const tile = getComputedStyle(screen.getByTestId('settings-option-icon'))
+    // common.white, not primary.contrastText, which is dark in dark mode
+    expect(tile.color).toBe('var(--twake-palette-common-white)')
+    expect(tile.borderRadius).toBe(radius.lg)
   })
 
   it('names its switch by its label and describes it by its text', async () => {

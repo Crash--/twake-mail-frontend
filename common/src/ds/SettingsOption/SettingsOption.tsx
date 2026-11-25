@@ -2,8 +2,8 @@
 // Preferences: groups under a `body2` heading, one row per option (its label
 // in `body1`, what it does in `caption` `text.secondary`, twake-mui's
 // `Switch` at the end), 24 px between two groups. On a desktop the option
-// starts with its icon, in twake-mui's rounded `Avatar` on palette tokens:
-// twake-mui has no neutral tile with a dark value (docs/twake-mui-gaps.md).
+// starts with its icon, in twake-mui's rounded `Avatar` on palette tokens with
+// a 12 px corner: twake-mui has no such tile (docs/decisions.md, 2026-11-26).
 import { Icon, type IconProps } from '@linagora/twake-icons'
 import {
   Avatar,
@@ -12,7 +12,8 @@ import {
   Radio,
   RadioGroup,
   Switch,
-  Typography
+  Typography,
+  radius
 } from '@linagora/twake-mui'
 import {
   useId,
@@ -23,9 +24,11 @@ import {
 
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 
-// Pending in docs/decisions.md: the token of the tile, #D9D9D9 in the Figma
+// The tile of the Figma, as decided in docs/decisions.md (#1170). The glyph
+// is common.white: primary.contrastText turns dark in dark mode
 const ICON_TILE_COLOR = 'var(--twake-palette-border-main)'
-const ICON_TILE_TEXT_COLOR = 'var(--twake-palette-text-icon)'
+const ICON_TILE_TEXT_COLOR = 'var(--twake-palette-common-white)'
+const ICON_TILE_SX = { borderRadius: radius.lg } as const
 
 const SECTION_SX = { mb: 3, '&:last-child': { mb: 0 } } as const
 
@@ -222,6 +225,7 @@ export function SettingsOption({
           size="m"
           color={ICON_TILE_COLOR}
           textColor={ICON_TILE_TEXT_COLOR}
+          sx={ICON_TILE_SX}
           aria-hidden="true"
           data-testid="settings-option-icon"
         >

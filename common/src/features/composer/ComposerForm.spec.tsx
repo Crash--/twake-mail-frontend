@@ -2057,7 +2057,7 @@ describe('ComposerForm', () => {
               subject: 'Plans',
               from: [{ name: 'Emma', email: 'emma@example.com' }]
             },
-            { text: 'First line\nSecond line' }
+            { text: 'First line\n  Second  line' }
           )
         ]
       })
@@ -2078,8 +2078,10 @@ describe('ComposerForm', () => {
         .join('')
       // Not the reader's stylesheet: other mail clients never get it
       expect(html).toMatch(
-        /<blockquote[^>]*><div>First line<br>Second line<\/div>/
+        /<blockquote[^>]*><div>First line<br>&nbsp;&nbsp;Second &nbsp;line<\/div>/
       )
+      // The text/plain alternative keeps them too
+      expect(html).toContain('>   Second  line')
     })
 
     it('brings back the answer already open instead of a second one', async () => {

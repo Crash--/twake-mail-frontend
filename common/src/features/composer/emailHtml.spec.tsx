@@ -189,6 +189,15 @@ describe('htmlToText', () => {
     )
   })
 
+  it('keeps the non-breaking spaces of a quoted plain-text email, not the collapsible ones', () => {
+    const html =
+      '<blockquote><div>Line  one<br>&nbsp;&nbsp;Indented &nbsp;two<br>\n  Last</div></blockquote>'
+
+    expect(htmlToText(html)).toBe(
+      ['> Line one', '>   Indented  two', '> Last'].join('\n')
+    )
+  })
+
   it('keeps the "-- " signature delimiter, quoted or not, for the "---" of the HTML', () => {
     const html =
       '<div>Hi</div><div><span class="tmail_signature_prefix">---</span><br>Alice<br></div>' +

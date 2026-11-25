@@ -1,7 +1,15 @@
-import { Reply, Star, StarOutline, Trash, Moveto } from '@linagora/twake-icons'
+import {
+  Icon,
+  Moveto,
+  Reply,
+  Star,
+  StarOutline,
+  Trash
+} from '@linagora/twake-icons'
+import { IconButton, Tooltip } from '@linagora/twake-mui'
 import { useState, type ReactElement } from 'react'
 
-import { IconAction } from '@/ds/IconAction/IconAction'
+import { FAVORITE_COLOR } from '@/ds/IconAction/IconAction'
 import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
@@ -52,8 +60,10 @@ export function CollapsedMessageActions({
   const { t } = useI18n()
   // As tmail-flutter: move, star and delete on an expanded message of a
   // desktop, "More" on any expanded message
-  const isDesktop = useScreenSize() === 'desktop'
-  const showsShortcuts = isExpanded && isDesktop
+  const screenSize = useScreenSize()
+  const showsShortcuts = isExpanded && screenSize === 'desktop'
+  // The buttons of an expanded message: phones keep larger touch targets
+  const buttonSize = screenSize === 'mobile' ? 'medium' : 'small'
   const { data: mailboxes = [] } = useMailboxes()
   const canLabel = useLabelsAvailable()
   const runAction = useRunEmailAction()
@@ -74,6 +84,7 @@ export function CollapsedMessageActions({
   // A toggle keeps its name: aria-pressed carries the state
   const starLabel = t('email.starred')
   const moreLabel = t('emailActions.menu.more')
+  const replyLabel = t('emailActions.reply.reply')
 
   const handleRun = (id: EmailActionId): void => {
     void runAction(id, [email], mailboxId).then(done => {
@@ -88,68 +99,80 @@ export function CollapsedMessageActions({
       className="u-flex u-flex-items-center"
       data-testid="conversation-message-row-actions"
     >
-      {
-        <IconAction
-          size={36}
-          tone="icon"
-          label={t('emailActions.reply.reply')}
-          icon={Reply}
+      <Tooltip title={replyLabel} disableInteractive>
+        <IconButton
+          size={buttonSize}
+          aria-label={replyLabel}
           onClick={() => {
             openComposer({ reply: { emailId: email.id, action: 'reply' } })
           }}
           data-testid="email-view-action-reply"
-        />
-      }
+        >
+          <Icon icon={Reply} />
+        </IconButton>
+      </Tooltip>
       {!showsShortcuts || move === undefined ? null : (
-        <IconAction
-          size={36}
-          tone="icon"
-          label={t(move.label)}
-          icon={Moveto}
-          onClick={() => {
-            handleRun(move.id)
-          }}
-          data-testid="email-view-action-move"
-        />
+        <Tooltip title={t(move.label)} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={t(move.label)}
+            onClick={() => {
+              handleRun(move.id)
+            }}
+            data-testid="email-view-action-move"
+          >
+            <Icon icon={Moveto} />
+          </IconButton>
+        </Tooltip>
       )}
       {showsShortcuts ? (
-        <IconAction
-          size={36}
-          label={starLabel}
-          icon={isStarred ? Star : StarOutline}
-          tone={isStarred ? 'starred' : 'icon'}
-          aria-pressed={isStarred}
-          onClick={() => {
-            handleRun(isStarred ? 'unstar' : 'star')
-          }}
-          data-testid="email-view-star-button"
-        />
+        <Tooltip title={starLabel} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={starLabel}
+            aria-pressed={isStarred}
+            onClick={() => {
+              handleRun(isStarred ? 'unstar' : 'star')
+            }}
+            data-testid="email-view-star-button"
+          >
+            {isStarred ? (
+              <Icon icon={Star} color={FAVORITE_COLOR} />
+            ) : (
+              <Icon icon={StarOutline} />
+            )}
+          </IconButton>
+        </Tooltip>
       ) : null}
       {!showsShortcuts || deletion === undefined ? null : (
-        <IconAction
-          size={36}
-          tone="icon"
-          label={t(deletion.label)}
-          icon={Trash}
-          onClick={() => {
-            handleRun(deletion.id)
-          }}
-          data-testid={`email-view-action-${deletion.id}`}
-        />
+        <Tooltip title={t(deletion.label)} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={t(deletion.label)}
+            onClick={() => {
+              handleRun(deletion.id)
+            }}
+            data-testid={`email-view-action-${deletion.id}`}
+          >
+            <Icon icon={Trash} />
+          </IconButton>
+        </Tooltip>
       )}
       {isExpanded ? (
-        <IconAction
-          size={36}
-          tone="icon"
-          label={moreLabel}
-          icon={MoreVerticalIcon}
-          aria-haspopup="menu"
-          aria-expanded={menuAnchor !== null}
-          onClick={event => {
-            setMenuAnchor(event.currentTarget)
-          }}
-          data-testid="email-view-more-button"
-        />
+        <Tooltip title={moreLabel} disableInteractive>
+          <IconButton
+            size={buttonSize}
+            aria-label={moreLabel}
+            aria-haspopup="menu"
+            aria-expanded={menuAnchor !== null}
+            onClick={event => {
+              setMenuAnchor(event.currentTarget)
+            }}
+            data-testid="email-view-more-button"
+          >
+            <Icon icon={MoreVerticalIcon} />
+          </IconButton>
+        </Tooltip>
       ) : null}
       <EmailActionsMenu
         anchor={menuAnchor === null ? null : { element: menuAnchor }}

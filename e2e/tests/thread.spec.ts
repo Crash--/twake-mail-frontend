@@ -694,4 +694,48 @@ test.describe('THR thread detail', () => {
         .toBe(2)
     }
   )
+
+  test('THR-22 the reply button of a collapsed message is the size of the one of an expanded message (issue #1171)', async ({
+    page,
+    user,
+    jmap
+  }) => {
+    const original = await importOriginal(jmap)
+    await addReply(jmap, original, {
+      from: 'emma@example.com',
+      to: user.email,
+      text: 'second message, unread',
+      mailbox: 'inbox',
+      seen: false,
+      receivedAt: '2024-12-18T10:00:00Z'
+    })
+
+    const mailbox = await new LoginPage(page).loginAs(user)
+    await mailbox.emailRow(`Re: ${SUBJECT}`).click()
+    const conversation = await new ConversationPage(page).expectLoaded(
+      `Re: ${SUBJECT}`
+    )
+    const [collapsed, expanded] = [
+      conversation.messages.nth(0),
+      conversation.messages.nth(1)
+    ]
+    await expect(conversation.toggle(collapsed)).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+    await expect(expanded.getByTestId('email-view-actions')).toBeVisible()
+
+    const sizeOf = async (
+      message: typeof collapsed
+    ): Promise<{ button: string; icon: string }> => {
+      const button = message.getByTestId('email-view-action-reply')
+      const box = await button.boundingBox()
+      const icon = await button.locator('svg').boundingBox()
+      return {
+        button: `${box?.width} x ${box?.height}`,
+        icon: `${icon?.width} x ${icon?.height}`
+      }
+    }
+    expect(await sizeOf(collapsed)).toEqual(await sizeOf(expanded))
+  })
 })

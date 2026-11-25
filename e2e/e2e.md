@@ -858,6 +858,8 @@ Spec: `tests/email-actions.spec.ts`. The reading view is the single email one (`
   - Spec: `tests/reading-view.spec.ts`.
 - [x] `THR-21` A conversation has its answers in a bar at the bottom (Reply and Forward go to the latest message), the actions of every message (reply, archive, star, delete, "More") in its row, and the actions on all of its messages in the "More" menu of its toolbar. axe. — web app, batch D1
   - Spec: `tests/reading-view.spec.ts`.
+- [x] `THR-22` The Reply button of a collapsed message of a conversation, and its icon, have the size of the ones of an expanded message (issue #1171). — web app only, no Patrol test
+  - Spec: `tests/thread.spec.ts`.
 - [x] `SBR-04` The system folders (Inbox to Archive) come first in the sidebar, in their own tree named "Mailboxes"; the "Folders" title comes after them, then the folders of the user, then "Labels". — web app (sidebar D4; tmail-flutter's `exchange` and `personalFolders` categories)
   - Spec: `tests/sidebar.spec.ts`.
 - [x] `SBR-05` A hidden folder found by the folder search keeps its whole name: the icon of hidden folders replaces its folder icon and the word "hidden" is said by the link (visually hidden), not shown as a badge. — web app (tmail-flutter `icHideFolder`)

@@ -1,5 +1,5 @@
 import {
-  Ai,
+  Assistant,
   BugReport,
   CloudPlusOutlined,
   DeviceLaptop,
@@ -8,7 +8,6 @@ import {
   FlagOutlined,
   Hand,
   Image,
-  Label,
   LabelOutlined,
   WarningCircle
 } from '@linagora/twake-icons'
@@ -16,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
+import { LabelImportantOutlineIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import {
   SettingsChoiceOption,
   SettingsOptionGroup
@@ -276,7 +276,7 @@ export function PreferencesSettings({
               toggleLabel={t('settings.preferences.aiScribeToggle')}
               isChecked={isScribeOn}
               onChange={setScribeOn}
-              icon={Ai}
+              icon={Assistant}
               data-testid="ai-scribe-setting-toggle"
             />
           ) : null}
@@ -293,7 +293,7 @@ export function PreferencesSettings({
               onChange={isOn => {
                 changeServerSetting(AI_LABEL_CATEGORIZATION_KEY, String(isOn))
               }}
-              icon={Label}
+              icon={LabelImportantOutlineIcon}
               data-testid="ai-label-categorization-setting-toggle"
             />
           ) : null}

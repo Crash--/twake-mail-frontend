@@ -113,6 +113,7 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - To decide: Swann Maillard (design).
 - Why it matters: twake-mui's only grey tile (`Avatar` `disabled`) is a fixed `#d6d8da`, light in dark mode too, so the tile has to be built on palette tokens.
 - Scope: desktop, Settings > Preferences.
+- Closed: decided on 2026-11-25, see "The preference icons are white on a neutral tile".
 
 ## 2026-11-23, [UI] The composer casts the shadow of the search filters
 
@@ -219,3 +220,17 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), request of 2026-11-26 to the Mail team; forks excluded at the review of [#1185](https://github.com/Crash--/twake-mail-frontend/pull/1185)
 - Why: a pull request rebased only to resolve a conflict in the decisions log has nothing new to test.
 - Scope: GitHub Actions of the repository. Accepted risk: after such a rebase, the code is not tested against the new main before the merge, only on main after it.
+
+## 2026-11-25, [UI] The preference icons are white on a neutral tile
+
+- Decision: replaces the entry of 2026-11-22, "Pending: colours of the preference icon tile". The icon before each option of Settings > Preferences is a white glyph (`common.white`, in both modes) on a filled neutral tile (`border.main`) with a 12 px corner, while the icons of the settings menu stay grey. AI Scribe takes twake-icons' `Assistant` sparkle and the automatic labelling the outlined label_important glyph of the Figma.
+- Decided by: Swann Maillard (design), 2026-11-25, [#1170](https://github.com/Crash--/twake-mail-frontend/issues/1170)
+- Why: the two levels of icons read apart, and the settings are easier to scan.
+- Scope: desktop, Settings > Preferences.
+
+## 2026-11-26, [Tech] The preference tile and the label glyph stay in Mail
+
+- Decision: two exceptions to "the fix goes in twake-mui". The 12 px corner of the preference tile is a local `sx` on twake-mui's rounded `Avatar` (`radius.lg` of twake-mui), which keeps its 6 px for every other app; the label glyph is a local SVG of `ds/SettingsIcons`, Julien's 16 px small version of the Figma glyph, not a twake-icons icon.
+- Decided by: Crash-- (CTO), 2026-11-26, [#1170](https://github.com/Crash--/twake-mail-frontend/issues/1170)
+- Why: no other app needs either, and changing the `Avatar` of twake-mui would reach every rounded avatar of the other apps.
+- Scope: desktop, Settings > Preferences.

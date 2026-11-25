@@ -112,12 +112,20 @@ function escapeHtml(text: string): string {
 const PLAIN_TEXT_STYLE = 'white-space:pre-wrap;'
 
 /**
+ * The spaces HTML would collapse (at the start of a line, or after another
+ * space) as `&nbsp;`: the editor drops the inline style of a quote, not them
+ */
+function keepSpaces(line: string): string {
+  return line.replace(/(?<=^| ) /g, '&nbsp;')
+}
+
+/**
  * Plain text as HTML for an email the app sends (a quote, a draft): line
- * breaks become `<br>` and spaces are kept by an inline style, as other mail
- * clients ignore the reader's stylesheet
+ * breaks become `<br>` and spaces are kept by an inline style and `&nbsp;`,
+ * as other mail clients ignore the reader's stylesheet
  */
 export function plainTextToHtml(text: string): string {
-  const lines = escapeHtml(text).split(/\r?\n/).join('<br>')
+  const lines = escapeHtml(text).split(/\r?\n/).map(keepSpaces).join('<br>')
   return `<div class="tmail-plain-text" style="${PLAIN_TEXT_STYLE}">${lines}</div>`
 }
 

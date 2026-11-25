@@ -161,7 +161,13 @@ describe('plainTextToLinkedHtml', () => {
 describe('plainTextToHtml', () => {
   it('keeps the lines without the app stylesheet, for other mail clients', () => {
     expect(plainTextToHtml('a < b\r\nsecond  line\n\nlast')).toBe(
-      '<div class="tmail-plain-text" style="white-space:pre-wrap;">a &lt; b<br>second  line<br><br>last</div>'
+      '<div class="tmail-plain-text" style="white-space:pre-wrap;">a &lt; b<br>second &nbsp;line<br><br>last</div>'
+    )
+  })
+
+  it('keeps leading and repeated spaces as non-breaking ones, which the editor keeps', () => {
+    expect(plainTextToHtml('  Indented\na   b ')).toBe(
+      '<div class="tmail-plain-text" style="white-space:pre-wrap;">&nbsp;&nbsp;Indented<br>a &nbsp;&nbsp;b </div>'
     )
   })
 })

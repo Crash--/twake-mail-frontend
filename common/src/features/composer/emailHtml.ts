@@ -358,6 +358,11 @@ const BLOCK_TAGS = new Set([
 
 const SKIPPED_TAGS = new Set(['STYLE', 'SCRIPT', 'HEAD', 'TITLE', 'META'])
 
+/** HTML white space, which `&nbsp;` is not */
+const COLLAPSIBLE_SPACES = /[ \t\n\r\f]+/g
+const LEADING_COLLAPSIBLE_SPACE = /^[ \t\n\r\f]+/
+const NO_BREAK_SPACE = ' '
+
 interface TextContext {
   listCounters: (number | null)[]
 }
@@ -367,17 +372,17 @@ function collectLines(node: Node, context: TextContext, out: string[]): void {
   const pushText = (text: string): void => {
     const last = out.length - 1
     const current = out[last] ?? ''
-    out[last] =
-      current.trim() === ''
-        ? `${current}${text.trimStart()}`
-        : `${current}${text}`
+    const kept =
+      current.trim() === '' ? text.replace(LEADING_COLLAPSIBLE_SPACE, '') : text
+    out[last] = `${current}${kept.replaceAll(NO_BREAK_SPACE, ' ')}`
   }
   const newLine = (): void => {
     if ((out[out.length - 1] ?? '') !== '') out.push('')
   }
 
   if (node.nodeType === Node.TEXT_NODE) {
-    pushText((node.textContent ?? '').replace(/\s+/g, ' '))
+    // HTML collapses these, not `&nbsp;` (a quoted plain-text email's spaces)
+    pushText((node.textContent ?? '').replace(COLLAPSIBLE_SPACES, ' '))
     return
   }
   if (!(node instanceof Element) || SKIPPED_TAGS.has(node.tagName)) return

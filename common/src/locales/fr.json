@@ -112,7 +112,10 @@
       "codes": {
         "suspiciousSender": "Cet e-mail provient d'un expéditeur externe qui imite des utilisateurs connus, vérifiez bien l'adresse e-mail.",
         "virus": "Les pièces jointes de cet e-mail contiennent un virus !",
-        "virusRemoved": "Cet e-mail contenait un virus dans une pièce jointe, que nous avons supprimée pour votre sécurité."
+        "virusRemoved": "Cet e-mail contenait un virus dans une pièce jointe, que nous avons supprimée pour votre sécurité.",
+        "calendarSenderMismatch": "Cette invitation prétend être organisée par %{organizer} mais a été envoyée par %{sender}. Acceptez-la seulement si vous faites confiance à l'expéditeur.",
+        "calendarSenderMismatchNoOrganizer": "Cette invitation a été envoyée par %{sender}, qui n'en est pas l'organisateur. Acceptez-la seulement si vous faites confiance à l'expéditeur.",
+        "calendarSenderMismatchUnknown": "Cette invitation n'a pas été envoyée par son organisateur. Acceptez-la seulement si vous faites confiance à l'expéditeur."
       },
       "notSpam": "Pas un indésirable",
       "dangerousMessage": "Message dangereux"

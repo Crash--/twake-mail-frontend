@@ -112,7 +112,10 @@
       "codes": {
         "suspiciousSender": "Questa email proviene da un mittente esterno che imita utenti noti: verifica attentamente l'indirizzo.",
         "virus": "Questa email contiene un virus negli allegati!",
-        "virusRemoved": "Questa email conteneva un virus in un allegato, che abbiamo rimosso per la tua sicurezza."
+        "virusRemoved": "Questa email conteneva un virus in un allegato, che abbiamo rimosso per la tua sicurezza.",
+        "calendarSenderMismatch": "Questo invito afferma di essere organizzato da %{organizer} ma è stato inviato da %{sender}. Accettalo solo se ti fidi del mittente.",
+        "calendarSenderMismatchNoOrganizer": "Questo invito è stato inviato da %{sender}, che non ne è l'organizzatore. Accettalo solo se ti fidi del mittente.",
+        "calendarSenderMismatchUnknown": "Questo invito non è stato inviato dal suo organizzatore. Accettalo solo se ti fidi del mittente."
       },
       "notSpam": "Non è spam",
       "dangerousMessage": "Messaggio pericoloso"

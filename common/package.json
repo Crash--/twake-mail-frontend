@@ -9,6 +9,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@formatjs/intl-datetimeformat": "^8.0.3",
+    "@linagora/twake-app-skeleton": "^1.0.0",
     "@linagora/twake-bar": "^1.2.0",
     "@linagora/twake-css": "^1.2.2",
     "@linagora/twake-embed": "^3.7.1",

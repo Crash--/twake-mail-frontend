@@ -163,3 +163,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), [#1155](https://github.com/Crash--/twake-mail-frontend/pull/1155)
 - Why: some users want to keep the list in sight while they read on a computer.
 - Scope: desktop, the email lists (folders, starred, action required, labels, search).
+
+## 2026-11-25, [UI] The Drive picker loads behind the skeleton of Twake Calendar
+
+- Decision: until the Twake Drive picker is ready to use, its dialog shows `DrivePickerSkeleton` of `@linagora/twake-app-skeleton/drive` (the Twake Drive logotype, the toolbar, rows of files), the skeleton Twake Calendar shows, instead of the Drive logo and wordmark; the picker then takes the same box, without a jump.
+- Decided by: Crash-- (CTO), [#1167](https://github.com/Crash--/twake-mail-frontend/issues/1167)
+- Why: Mail and Calendar open the same picker and show the same skeleton while it loads.
+- Scope: desktop and mobile, "Attach from Drive" in the composer.

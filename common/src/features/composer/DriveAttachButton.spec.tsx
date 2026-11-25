@@ -294,6 +294,17 @@ describe('DriveAttachButton', () => {
     })
   })
 
+  it('shows the skeleton of the picker until Drive is ready to use', async () => {
+    renderButton()
+    const frame = await openPicker()
+
+    expect(screen.getByTestId('drive-picker-skeleton')).toBeVisible()
+    send(frame, { type: 'intent-i1:ready' })
+    expect(screen.getByTestId('drive-picker-skeleton')).toBeVisible()
+    send(frame, { type: 'intent-i1:readyToUse' })
+    expect(screen.queryByTestId('drive-picker-skeleton')).toBe(null)
+  })
+
   it('leaves the close button to Drive once it is ready, unless it asks for it', async () => {
     renderButton()
     const frame = await openPicker()

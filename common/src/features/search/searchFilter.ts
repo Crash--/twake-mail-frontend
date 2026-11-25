@@ -183,8 +183,21 @@ const EVERYWHERE = 'all'
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/
 
+/** Whether a `YYYY-MM-DD` day exists (not 2026-13-45 nor 2026-02-30) */
+function isRealDay(day: string): boolean {
+  const [year, month, date] = day.split('-').map(Number)
+  const midnight = startOfDay(day)
+  return (
+    midnight.getFullYear() === year &&
+    midnight.getMonth() + 1 === month &&
+    midnight.getDate() === date
+  )
+}
+
 function readDay(value: string | null): string | null {
-  return value !== null && ISO_DAY.test(value) ? value : null
+  return value !== null && ISO_DAY.test(value) && isRealDay(value)
+    ? value
+    : null
 }
 
 function isOneOf<T extends string>(

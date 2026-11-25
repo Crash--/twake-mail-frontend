@@ -94,6 +94,26 @@ describe('search filter URL', () => {
     expect(parseSearchParams(params)).toEqual(EMPTY_SEARCH_FILTER)
   })
 
+  it.each(['2026-13-45', '2026-02-30', '2026-00-10', '2026-04-31'])(
+    'ignores the impossible day %s instead of rolling it over',
+    day => {
+      const params = new URLSearchParams(`date=custom&start=${day}&end=${day}`)
+
+      expect(parseSearchParams(params)).toEqual(filter({ dateRange: 'custom' }))
+    }
+  )
+
+  it('keeps real days, a leap day and year 0000 included', () => {
+    const params = new URLSearchParams(
+      'date=custom&start=0000-01-01&end=2028-02-29'
+    )
+
+    expect(parseSearchParams(params)).toMatchObject({
+      startDate: '0000-01-01',
+      endDate: '2028-02-29'
+    })
+  })
+
   it('takes the order the user last picked when the URL has none', () => {
     expect(parseSearchParams(new URLSearchParams(), 'oldest').sort).toBe(
       'oldest'

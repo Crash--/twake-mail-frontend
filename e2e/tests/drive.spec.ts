@@ -153,7 +153,9 @@ test.describe('DRIVE Twake Drive picker', () => {
     // With the keyboard: Drive does not handle Escape, but one Shift+Tab out
     // of its first control lands on the dialog, where Escape closes it
     await composer.root.getByTestId('composer-drive-button').click()
-    const picker = page.frameLocator('[data-testid="drive-picker-frame"] iframe')
+    const picker = page.frameLocator(
+      '[data-testid="drive-picker-frame"] iframe'
+    )
     await expect(
       picker.getByRole('button', { name: 'Add as link' })
     ).toBeEnabled()
@@ -183,7 +185,9 @@ test.describe('DRIVE Twake Drive picker', () => {
       await openDrivePicker(page, mailbox)
       const dialog = page.getByRole('dialog', { name: 'Twake Drive' })
       const frame = page.getByTestId('drive-picker-frame').locator('iframe')
-      const picker = page.frameLocator('[data-testid="drive-picker-frame"] iframe')
+      const picker = page.frameLocator(
+        '[data-testid="drive-picker-frame"] iframe'
+      )
       const viewport = page.viewportSize()
       if (viewport === null) throw new Error('No viewport')
       const isPhone = viewport.width < 600
@@ -246,4 +250,47 @@ test.describe('DRIVE Twake Drive picker', () => {
       await expect(page.getByTestId('composer-drive-button')).toBeFocused()
     }
   )
+
+  test('DRIVE-05 Until the picker is ready, the dialog shows its skeleton, which the picker then replaces in the same box', async ({
+    page
+  }) => {
+    // The picker page waits until the test lets it through
+    let release: () => void = () => undefined
+    const released = new Promise<void>(resolve => {
+      release = resolve
+    })
+    await page.route('**/e2e/drive/picker.html', async route => {
+      await released
+      await route.continue()
+    })
+    const mailbox = await new LoginPage(page).loginWithDex()
+    const composer = await mailbox.compose()
+    await composer.root.getByTestId('composer-drive-button').click()
+
+    const dialog = page.getByRole('dialog', { name: 'Twake Drive' })
+    const box = page.getByTestId('drive-picker-frame')
+    const skeleton = page.getByTestId('drive-picker-skeleton')
+    await expect(skeleton).toBeVisible()
+    await expect(box).toHaveAttribute('aria-busy', 'true')
+    await expect(
+      dialog.getByRole('status').filter({ hasText: 'Opening Twake Drive' })
+    ).toBeAttached()
+    const loadingBox = await box.boundingBox()
+    await expectNoA11yViolations(page)
+
+    release()
+    const picker = page.frameLocator(
+      '[data-testid="drive-picker-frame"] iframe'
+    )
+    await expect(
+      picker.getByRole('button', { name: 'Add as link' })
+    ).toBeEnabled()
+    await expect(skeleton).toHaveCount(0)
+    await expect(box).toHaveAttribute('aria-busy', 'false')
+    // No jump: the picker takes the box of the skeleton
+    expect(await box.boundingBox()).toEqual(loadingBox)
+    await picker.getByRole('button', { name: 'Close Drive' }).click()
+    await expect(dialog).toBeHidden()
+    await deleteDraft(composer)
+  })
 })

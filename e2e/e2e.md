@@ -507,6 +507,7 @@ E2E_APP_ENV=docker/app-env-oidc.js ./scripts/start.sh`, and run in the `oidc` su
 - [ ] `DRIVE-02` "Add as attachment" downloads the file and attaches it (`report.txt`, uploaded). — web app only
 - [ ] `DRIVE-03` The close button of the picker (in its header, as Drive's) closes it, the message unchanged; with the keyboard, Shift+Tab out of the picker then Escape closes it, the focus back on the button. — web app only
 - [ ] `DRIVE-04` The picker fills a centred dialog, 900 × 800 by default, at the size it asks for (`resize`), always within the screen (full screen on phones); one close button (the picker's once it is ready), the dialog's when the picker asks for it (`showCross` / `hideCross`), the focus back on the button. — web app only
+- [x] `DRIVE-05` Until the picker says it is ready to use, its dialog shows the skeleton of the Drive picker (`@linagora/twake-app-skeleton/drive`: logotype, toolbar, rows of files) under "Opening Twake Drive…" for screen readers, `aria-busy` on the box; the picker then takes the same box, without a jump. — web app only, no Patrol test (issue #1167)
 
 ## AI — AI assistant of the composer (2)
 

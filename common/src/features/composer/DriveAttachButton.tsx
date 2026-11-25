@@ -1,4 +1,5 @@
-import { Drive, DriveText, Icon, ToTheCloud } from '@linagora/twake-icons'
+import { DrivePickerSkeleton } from '@linagora/twake-app-skeleton/drive'
+import { ToTheCloud } from '@linagora/twake-icons'
 import { Button, Typography, useColorScheme } from '@linagora/twake-mui'
 import { useEffect, useRef, type ReactElement } from 'react'
 
@@ -149,10 +150,9 @@ export function DriveAttachButton({
         frameContainerRef={picker.frameContainerRef}
         isReady={state.status === 'open' && state.isReady}
         loadingLabel={t('composer.drive.loading')}
-        loadingBrand={{
-          logo: <Icon icon={Drive} size={80} />,
-          name: <Icon icon={DriveText} size={120} />
-        }}
+        loadingView={
+          <DrivePickerSkeleton data-testid="drive-picker-skeleton" />
+        }
         closeLabel={t('common.close')}
         onClose={picker.close}
         showCloseButton={state.status === 'open' && state.showCloseButton}

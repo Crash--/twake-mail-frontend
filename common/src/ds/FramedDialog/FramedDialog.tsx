@@ -1,8 +1,9 @@
 // Upstream to twake-ui: yes. A modal dialog holding another application in
 // an iframe (the Twake Drive picker; Calendar and Chat embed it too): a
-// named dialog, a loading state until the framed page says it is ready, the
-// focus moved into the frame then, the size the framed page asks for, a
-// close button the framed page can take over, full screen on phones.
+// named dialog, a loading state until the framed page says it is ready (a
+// progress indicator, or the skeleton of the page), the focus moved into the
+// frame then, the size the framed page asks for, a close button the framed
+// page can take over, full screen on phones.
 // The frame is cozy-interapp's: it appends it to the frame box and styles
 // that box as the framed page asks (`resize`). twake-mui's Dialog has no
 // such variant.
@@ -102,6 +103,12 @@ const OVERLAY_SX = {
   textAlign: 'center'
 } as const
 
+const VIEW_OVERLAY_SX = {
+  position: 'absolute',
+  inset: 0,
+  bgcolor: 'background.paper'
+} as const
+
 const CLOSE_SX = { position: 'absolute', top: 8, right: 8, zIndex: 1 } as const
 
 export interface FramedDialogProps {
@@ -127,10 +134,10 @@ export interface FramedDialogProps {
   showCloseButton?: boolean
   /**
    * What the loading state shows instead of the progress indicator and its
-   * text (Figma "Drive loading": the logo of the framed application in the
-   * middle, its name at the bottom); the text stays for screen readers
+   * text, filling the box: e.g. the skeleton of the framed page, which then
+   * takes its place without a jump. The text stays for screen readers
    */
-  loadingBrand?: { logo: ReactNode; name: ReactNode }
+  loadingView?: ReactNode
   /** Shown instead of the frame (an error and its actions) */
   message?: ReactNode
   /**
@@ -162,7 +169,7 @@ export function FramedDialog({
   onClose,
   showCloseButton = true,
   message,
-  loadingBrand,
+  loadingView,
   disableRestoreFocus = false,
   'data-testid': testId,
   frameTestId
@@ -214,25 +221,19 @@ export function FramedDialog({
             {message}
           </Box>
         ) : isLoading ? (
-          <Box sx={OVERLAY_SX} role="status">
-            {loadingBrand === undefined ? (
-              <>
-                <CircularProgress aria-hidden="true" />
-                <Typography>{loadingLabel}</Typography>
-              </>
-            ) : (
-              <>
-                <span className="u-visuallyhidden">{loadingLabel}</span>
-                <Box aria-hidden="true">{loadingBrand.logo}</Box>
-                <Box
-                  aria-hidden="true"
-                  sx={{ position: 'absolute', bottom: 24, left: 0, right: 0 }}
-                >
-                  {loadingBrand.name}
-                </Box>
-              </>
-            )}
-          </Box>
+          loadingView === undefined ? (
+            <Box sx={OVERLAY_SX} role="status">
+              <CircularProgress aria-hidden="true" />
+              <Typography>{loadingLabel}</Typography>
+            </Box>
+          ) : (
+            <Box sx={VIEW_OVERLAY_SX} role="status">
+              <span className="u-visuallyhidden">{loadingLabel}</span>
+              <Box aria-hidden="true" className="u-h-100">
+                {loadingView}
+              </Box>
+            </Box>
+          )
         ) : null}
         {showCloseButton || !isReady || hasMessage ? (
           <Tooltip title={closeLabel}>

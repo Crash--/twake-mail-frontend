@@ -1,4 +1,6 @@
-import type { TranslationKey } from '@common/i18n/useI18n'
+import type { TranslationKey, TranslationOptions } from '@common/i18n/useI18n'
+
+import type { CalendarSenderMismatch } from './calendarSenderMismatch'
 
 /**
  * The warnings the backend puts on an email with `X-TWP-Message` headers
@@ -108,6 +110,45 @@ export function twpWarningCodeText(code: string | null): TranslationKey | null {
   return Object.hasOwn(CODE_TEXTS, key)
     ? CODE_TEXTS[key as keyof typeof CODE_TEXTS]
     : null
+}
+
+/** A localized text and its interpolation values */
+export interface TwpWarningMessage {
+  key: TranslationKey
+  options?: TranslationOptions
+}
+
+const CALENDAR_SENDER_MISMATCH = 'calendar-sender-mismatch'
+
+function calendarSenderMismatchMessage({
+  organizer,
+  sender
+}: CalendarSenderMismatch): TwpWarningMessage {
+  if (sender === null)
+    return { key: 'email.twpWarning.codes.calendarSenderMismatchUnknown' }
+  return organizer === null
+    ? {
+        key: 'email.twpWarning.codes.calendarSenderMismatchNoOrganizer',
+        options: { sender }
+      }
+    : {
+        key: 'email.twpWarning.codes.calendarSenderMismatch',
+        options: { organizer, sender }
+      }
+}
+
+/**
+ * The localized text of a known code, null for any other. The addresses of
+ * `calendar-sender-mismatch` come from `X-Twake-Calendar-Sender-Mismatch`.
+ */
+export function twpWarningMessage(
+  code: string | null,
+  mismatch: CalendarSenderMismatch
+): TwpWarningMessage | null {
+  if (code?.toLowerCase() === CALENDAR_SENDER_MISMATCH)
+    return calendarSenderMismatchMessage(mismatch)
+  const key = twpWarningCodeText(code)
+  return key === null ? null : { key }
 }
 
 /** The keyword that keeps the warning at `index` dismissed */

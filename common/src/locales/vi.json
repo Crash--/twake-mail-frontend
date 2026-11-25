@@ -112,7 +112,10 @@
       "codes": {
         "suspiciousSender": "Thư này đến từ người gửi bên ngoài giả mạo những người dùng quen thuộc, hãy kiểm tra kỹ địa chỉ email.",
         "virus": "Tệp đính kèm của thư này có chứa vi-rút!",
-        "virusRemoved": "Tệp đính kèm của thư này từng chứa vi-rút và đã được chúng tôi gỡ bỏ để đảm bảo an toàn cho bạn."
+        "virusRemoved": "Tệp đính kèm của thư này từng chứa vi-rút và đã được chúng tôi gỡ bỏ để đảm bảo an toàn cho bạn.",
+        "calendarSenderMismatch": "Lời mời này tự nhận được tổ chức bởi %{organizer} nhưng lại được gửi bởi %{sender}. Chỉ chấp nhận nếu bạn tin tưởng người gửi.",
+        "calendarSenderMismatchNoOrganizer": "Lời mời này được gửi bởi %{sender}, không phải người tổ chức. Chỉ chấp nhận nếu bạn tin tưởng người gửi.",
+        "calendarSenderMismatchUnknown": "Lời mời này không được gửi bởi người tổ chức. Chỉ chấp nhận nếu bạn tin tưởng người gửi."
       },
       "notSpam": "Không phải thư rác",
       "dangerousMessage": "Thư nguy hiểm"

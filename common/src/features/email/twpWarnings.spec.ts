@@ -6,6 +6,7 @@ import {
   parseTwpWarnings,
   twpDismissKeyword,
   twpWarningCodeText,
+  twpWarningMessage,
   TWP_TEXT_MAX_LENGTH
 } from './twpWarnings'
 
@@ -168,6 +169,49 @@ describe('twpWarningCodeText', () => {
     expect(twpWarningCodeText('phishing')).toBeNull()
     expect(twpWarningCodeText('constructor')).toBeNull()
     expect(twpWarningCodeText(null)).toBeNull()
+  })
+})
+
+describe('twpWarningMessage', () => {
+  const mismatch = {
+    organizer: 'boss@example.com',
+    sender: 'intruder@example.org'
+  }
+
+  it('names the organizer and the sender of calendar-sender-mismatch', () => {
+    expect(twpWarningMessage('Calendar-Sender-Mismatch', mismatch)).toEqual({
+      key: 'email.twpWarning.codes.calendarSenderMismatch',
+      options: mismatch
+    })
+  })
+
+  it('names the sender alone when the organizer is missing', () => {
+    expect(
+      twpWarningMessage('calendar-sender-mismatch', {
+        organizer: null,
+        sender: 'intruder@example.org'
+      })
+    ).toEqual({
+      key: 'email.twpWarning.codes.calendarSenderMismatchNoOrganizer',
+      options: { sender: 'intruder@example.org' }
+    })
+  })
+
+  it('names no address when the sender is unknown', () => {
+    expect(
+      twpWarningMessage('calendar-sender-mismatch', {
+        organizer: 'boss@example.com',
+        sender: null
+      })
+    ).toEqual({ key: 'email.twpWarning.codes.calendarSenderMismatchUnknown' })
+  })
+
+  it('keeps the other codes, and null for an unknown one', () => {
+    expect(twpWarningMessage('virus', mismatch)).toEqual({
+      key: 'email.twpWarning.codes.virus'
+    })
+    expect(twpWarningMessage('phishing', mismatch)).toBeNull()
+    expect(twpWarningMessage(null, mismatch)).toBeNull()
   })
 })
 

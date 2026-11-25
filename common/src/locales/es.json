@@ -112,7 +112,10 @@
       "codes": {
         "suspiciousSender": "Este correo procede de un remitente externo que imita a usuarios conocidos: compruebe bien la dirección.",
         "virus": "¡Este correo contiene un virus en sus archivos adjuntos!",
-        "virusRemoved": "Este correo contenía un virus en un archivo adjunto, que hemos eliminado por su seguridad."
+        "virusRemoved": "Este correo contenía un virus en un archivo adjunto, que hemos eliminado por su seguridad.",
+        "calendarSenderMismatch": "Esta invitación afirma estar organizada por %{organizer}, pero la envió %{sender}. Acéptela solo si confía en el remitente.",
+        "calendarSenderMismatchNoOrganizer": "Esta invitación la envió %{sender}, que no es su organizador. Acéptela solo si confía en el remitente.",
+        "calendarSenderMismatchUnknown": "Esta invitación no la envió su organizador. Acéptela solo si confía en el remitente."
       },
       "notSpam": "No es spam",
       "dangerousMessage": "Mensaje peligroso"

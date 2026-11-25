@@ -112,7 +112,10 @@
       "codes": {
         "suspiciousSender": "Diese E-Mail stammt von einem externen Absender, der bekannte Benutzer nachahmt. Prüfen Sie die Adresse genau.",
         "virus": "Diese E-Mail enthält einen Virus in ihren Anhängen!",
-        "virusRemoved": "Diese E-Mail enthielt einen Virus in einem Anhang, den wir zu Ihrer Sicherheit entfernt haben."
+        "virusRemoved": "Diese E-Mail enthielt einen Virus in einem Anhang, den wir zu Ihrer Sicherheit entfernt haben.",
+        "calendarSenderMismatch": "Diese Einladung gibt vor, von %{organizer} organisiert zu sein, wurde aber von %{sender} gesendet. Nehmen Sie sie nur an, wenn Sie dem Absender vertrauen.",
+        "calendarSenderMismatchNoOrganizer": "Diese Einladung wurde von %{sender} gesendet, der nicht ihr Organisator ist. Nehmen Sie sie nur an, wenn Sie dem Absender vertrauen.",
+        "calendarSenderMismatchUnknown": "Diese Einladung wurde nicht von ihrem Organisator gesendet. Nehmen Sie sie nur an, wenn Sie dem Absender vertrauen."
       },
       "notSpam": "Kein Spam",
       "dangerousMessage": "Gefährliche Nachricht"

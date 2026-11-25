@@ -112,7 +112,10 @@
       "codes": {
         "suspiciousSender": "This email is from an external sender immitating known users, double check the mail address.",
         "virus": "This email is having virus in its attachments!",
-        "virusRemoved": "This email was having virus in its attachment, that we removed for your security."
+        "virusRemoved": "This email was having virus in its attachment, that we removed for your security.",
+        "calendarSenderMismatch": "This invitation claims to be organized by %{organizer} but was sent by %{sender}. Accept it only if you trust the sender.",
+        "calendarSenderMismatchNoOrganizer": "This invitation was sent by %{sender}, who is not its organizer. Accept it only if you trust the sender.",
+        "calendarSenderMismatchUnknown": "This invitation was not sent by its organizer. Accept it only if you trust the sender."
       },
       "notSpam": "Not spam",
       "dangerousMessage": "Dangerous message"

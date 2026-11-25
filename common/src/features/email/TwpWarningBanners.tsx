@@ -11,6 +11,10 @@ import { useOnlineStatus } from '@common/features/network/useOnlineStatus'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
 import { useI18n } from '@common/i18n/useI18n'
 
+import {
+  CALENDAR_SENDER_MISMATCH_HEADER,
+  parseCalendarSenderMismatch
+} from './calendarSenderMismatch'
 import { messageMailboxId } from './messageMailbox'
 import { TWP_MESSAGE_HEADER } from './twpWarnings'
 import {
@@ -18,7 +22,7 @@ import {
   offersNotSpam,
   parseTwpWarnings,
   twpDismissKeyword,
-  twpWarningCodeText,
+  twpWarningMessage,
   type TwpWarning
 } from './twpWarnings'
 import type { EmailDetail } from './queries'
@@ -50,7 +54,9 @@ export interface TwpWarningBannersProps {
 /**
  * One banner per warning the backend put on the email (`X-TWP-Message`),
  * between its header and its body. Known codes have a localized text, any
- * other warning shows the text of the server as plain text. Dismissing
+ * other warning shows the text of the server as plain text
+ * (`calendar-sender-mismatch` names the addresses of
+ * `X-Twake-Calendar-Sender-Mismatch`). Dismissing
  * sets a keyword, shown at once and put back when the server refuses it;
  * it needs the right to set keywords in the folder and is disabled offline,
  * as in tmail-flutter. An error-level warning
@@ -68,6 +74,11 @@ export function TwpWarningBanners({
   const runAction = useRunEmailAction()
   const { notify } = useNotify()
   const isOnline = useOnlineStatus()
+  const mismatchValue = email[CALENDAR_SENDER_MISMATCH_HEADER]
+  const mismatch = useMemo(
+    () => parseCalendarSenderMismatch(mismatchValue),
+    [mismatchValue]
+  )
   if (warnings.length === 0) return null
 
   const folderId = messageMailboxId(email, mailboxId, mailboxes)
@@ -101,7 +112,7 @@ export function TwpWarningBanners({
   return (
     <Box className="u-mv-1" data-testid="twp-warnings">
       {warnings.map(warning => {
-        const codeText = twpWarningCodeText(warning.code)
+        const message = twpWarningMessage(warning.code, mismatch)
         return (
           <MessageAlert
             key={warning.index}
@@ -109,7 +120,9 @@ export function TwpWarningBanners({
             level={warning.level}
             levelLabel={t(`email.twpWarning.levels.${warning.level}`)}
             title={t(`email.twpWarning.titles.${warning.level}`)}
-            description={codeText === null ? warning.text : t(codeText)}
+            description={
+              message === null ? warning.text : t(message.key, message.options)
+            }
             action={
               offersNotSpam(warning, isInSpam)
                 ? {

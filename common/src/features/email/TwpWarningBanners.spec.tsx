@@ -121,6 +121,45 @@ describe('TwpWarningBanners', () => {
     ).toBeTruthy()
   })
 
+  it('asks the addresses of an invitation not sent by its organizer', async () => {
+    const server = makeServer(undefined)
+    renderView(server)
+    await screen.findByTestId('email-view-subject')
+
+    const get = server.callsOf('Email/get')[0]
+    expect(get?.properties).toContain(
+      'header:X-Twake-Calendar-Sender-Mismatch:asText'
+    )
+  })
+
+  it('names the organizer and the sender of an invitation not sent by its organizer', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: makeDefaultMailboxes(),
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'e1',
+            subject: 'Meeting',
+            headers: {
+              'X-TWP-Message':
+                'level:warn code:calendar-sender-mismatch Server text, ignored',
+              'X-Twake-Calendar-Sender-Mismatch':
+                'organizer=<boss@example.com>; sender=<intruder@example.org>'
+            }
+          },
+          { text: 'Hello' }
+        )
+      ]
+    })
+    renderView(server)
+
+    const banner = await screen.findByTestId('twp-warning-0')
+    expect(banner).toHaveTextContent(
+      'This invitation claims to be organized by boss@example.com but was sent by intruder@example.org. Accept it only if you trust the sender.'
+    )
+    expect(banner).not.toHaveTextContent('ignored')
+  })
+
   it('shows the text of the server of an unknown code as plain text', async () => {
     renderView(
       makeServer(['level:warn code:new-code <img src=x onerror=alert(1)> hi'])

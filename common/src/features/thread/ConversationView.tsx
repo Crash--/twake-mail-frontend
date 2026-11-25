@@ -142,6 +142,7 @@ function ConversationContent({
   const { run } = useEmailActions()
   const removeEmails = useRemoveEmails()
   const subject = emails[emails.length - 1]?.subject ?? ''
+  const isSingle = emails.length === 1
   useDocumentTitle(subject)
   // Announced: the messages received since, not the replies the user sent
   const arrived = emails.filter(
@@ -389,8 +390,10 @@ function ConversationContent({
           <ConversationMessage
             key={email.id}
             email={email}
-            isExpanded={expanded.has(email.id)}
+            // Alone, a message stays expanded, even marked unread
+            isExpanded={isSingle || expanded.has(email.id)}
             onToggle={handleToggle}
+            isCollapsible={!isSingle}
             openedMailboxId={mailboxId}
             onAction={handleMessageAction}
             onRemoteContentShown={handleFocusSubject}

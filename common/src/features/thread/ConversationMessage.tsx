@@ -393,6 +393,8 @@ export interface ConversationMessageProps {
   email: EmailListItemData
   isExpanded: boolean
   onToggle: (emailId: string) => void
+  /** False: the only message of its conversation, which stays expanded */
+  isCollapsible?: boolean
   /** The folder the conversation is open from, null from search results */
   openedMailboxId: string | null
   /** After an action of the message changed it */
@@ -417,6 +419,7 @@ export function ConversationMessage({
   email,
   isExpanded,
   onToggle,
+  isCollapsible = true,
   openedMailboxId,
   onAction,
   onRemoteContentShown,
@@ -546,6 +549,7 @@ export function ConversationMessage({
       onToggle={() => {
         onToggle(email.id)
       }}
+      isCollapsible={isCollapsible}
       header={header}
       headerEnd={headerEnd}
       headerBelow={

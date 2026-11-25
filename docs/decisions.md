@@ -83,7 +83,7 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 
 - Decision: every empty email list (a folder, a filter, Starred, Action required, a label, a search, offline) shows the white `EmailOpen` glyph of twake-icons in a 100 px tile in `action.selected`, the size the Twake Space empty states use today, where the TwakeSpace mockup draws a 200 px tile; then the title and the hint of the view, centred on desktop and on a phone alike, where the phone showed them at the top before.
 - Decided by: Pending, Crash-- (CTO) to confirm the 100 px size; applied in [#1122](https://github.com/Crash--/twake-mail-frontend/pull/1122), from [#900](https://github.com/Crash--/twake-mail-frontend/issues/900)
-- Why: the empty list takes the look of the Space empty states; the tile becomes `iconLook="tile"` of `Empty` with [linagora/twake-ui#241](https://github.com/linagora/twake-ui/pull/241).
+- Why: the empty list takes the look of the Space empty states; the tile is `iconLook="tile"` of twake-mui's `Empty` ([linagora/twake-ui#241](https://github.com/linagora/twake-ui/pull/241), twake-mui 21.1.0) since [#1176](https://github.com/Crash--/twake-mail-frontend/pull/1176).
 - Scope: desktop and mobile, email lists.
 
 ## 2026-11-22, [UI] Email rules are compact grey rows

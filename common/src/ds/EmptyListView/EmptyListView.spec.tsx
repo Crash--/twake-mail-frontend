@@ -23,6 +23,17 @@ describe('EmptyListView', () => {
     expect(screen.queryByRole('heading')).toBe(null)
   })
 
+  it('draws the envelope white on the tile of twake-mui, in every scheme', () => {
+    renderDs(<EmptyListView title="Nothing here" data-testid="empty" />)
+
+    const tile = screen.getByTestId('empty').querySelector('.Empty-iconTile')
+    if (tile === null) throw new Error('No tile')
+    // common.white, not background.paper, which is dark in dark mode
+    expect(getComputedStyle(tile).color).toBe(
+      'var(--twake-palette-common-white)'
+    )
+  })
+
   it('has no hint without a text', () => {
     renderDs(<EmptyListView title="Nothing here" data-testid="empty" />)
 

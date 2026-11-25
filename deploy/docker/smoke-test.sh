@@ -86,8 +86,23 @@ expect 'index.html is never cached' "$(header / Cache-Control)" 'no-store*'
 expect '/.env.js is the mounted one' "$(body "$BASE/.env.js")" '*jmap.example.com*'
 expect '/.env.js is never cached' "$(header /.env.js Cache-Control)" 'no-store*'
 expect '/version.js is written by the build' "$(body "$BASE/version.js")" 'var APP_VERSION = *'
-expect '/version.json names the build' "$(body "$BASE/version.json")" '{"build":"*"}'
+version_json="$(body "$BASE/version.json")"
+expect '/version.json names the build' "$version_json" '{"build":"*",*'
+expect '/version.json is valid JSON' \
+  "$(printf '%s' "$version_json" | python3 -m json.tool >/dev/null 2>&1 && echo valid || echo invalid)" 'valid'
+expect '/version.json carries the English and French notes of release-notes/' \
+  "$(printf '%s' "$version_json" | python3 -c '
+import json, sys
+notes = json.load(sys.stdin).get("notes") or {}
+print("ok" if all(str(notes.get(lang, "")).startswith("- ") for lang in ("en", "fr")) else "missing")
+' 2>/dev/null || echo invalid)" 'ok'
 expect '/version.json is never cached' "$(header /version.json Cache-Control)" 'no-store*'
+for scheme in light dark; do
+  expect "the $scheme image of release-notes/ is served" \
+    "$(header "/release-notes/whats-new-$scheme.png" Content-Type)" 'image/png'
+  expect "the $scheme image of release-notes/ is revalidated" \
+    "$(header "/release-notes/whats-new-$scheme.png" Cache-Control)" 'no-cache'
+done
 script="$(body "$BASE/" | grep -o 'src="/static/js/index[^"]*"' | head -1 | cut -d'"' -f2)"
 expect 'hashed assets are cached for a year' "$(header "$script" Cache-Control)" '*immutable*'
 worker="$(docker exec "$NAME" sh -c 'cd /usr/share/nginx/html && ls static/assets/pdf.worker*.mjs | head -1')"

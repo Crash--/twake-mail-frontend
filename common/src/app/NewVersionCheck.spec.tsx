@@ -69,4 +69,15 @@ describe('NewVersionCheck', () => {
       await screen.findByRole('dialog', { name: "What's new in Twake Mail" })
     ).toBeInTheDocument()
   })
+
+  it('draws the image of release-notes/ in the theme of the app', async () => {
+    renderCheck(makeConfig({ NEW_VERSION_CHECK_ENABLED: 'true' }))
+
+    await askForCheck()
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog.querySelector('img')?.getAttribute('src')).toBe(
+      '/release-notes/whats-new-light.png'
+    )
+  })
 })

@@ -177,3 +177,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: chibenwa, [#1178](https://github.com/Crash--/twake-mail-frontend/issues/1178)
 - Why: the user's own Spam has nothing to do with the team mailbox they are reading.
 - Scope: desktop and mobile, the email lists.
+
+## 2026-11-25, [Product] The release notes users see live in release-notes/
+
+- Decision: the "What's new in Twake Mail" dialog shows the notes of `release-notes/<language>.md` (English and French), which the Docker build writes into `/version.json`. They list what users see, one line each, with no issue or PR number, and only the main changes (two for the next release: the list beside the open email and big files sent through Twake Drive); whoever releases rewrites them before the tag. Above them, a capture of the main change from `release-notes/whats-new-light.png` or `whats-new-dark.png`, as the theme of the app, with fictional data only; whoever releases replaces it too.
+- Decided by: Crash-- (CTO), 2026-11-25
+- Why: users learn what changed from the app itself; the CHANGELOG is written for those who deploy it.
+- Scope: desktop and mobile, the new version dialog.

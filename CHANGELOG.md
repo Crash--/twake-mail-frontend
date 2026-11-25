@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The "What's new in Twake Mail" dialog lists the changes users see, in
+  English or French, under a capture in the theme of the app, from
+  `release-notes/` (the notes written into `/version.json` by the Docker
+  build, the images served under `/release-notes/`, revalidated).
+
 ## [0.17.0] - 2026-11-24
 
 No new setting since 0.16.0.

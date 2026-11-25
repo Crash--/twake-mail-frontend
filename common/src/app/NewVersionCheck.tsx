@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 
+import { useColorScheme } from '@linagora/twake-mui'
 import { NewVersionDialog } from '@linagora/twake-react-new-version'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'
@@ -10,11 +11,13 @@ import { useAppConfig } from '@common/config/AppConfigProvider'
  */
 export function NewVersionCheck(): ReactElement | null {
   const config = useAppConfig()
+  const { colorScheme = 'light' } = useColorScheme()
   if (config?.newVersionCheckEnabled !== true) return null
   return (
     <NewVersionDialog
       running={process.env.BUILD_VERSION ?? 'dev'}
       appName="Twake Mail"
+      image={`/release-notes/whats-new-${colorScheme}.png`}
     />
   )
 }

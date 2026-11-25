@@ -45,12 +45,14 @@ WORKDIR /src/apps/private/dist
 # replaces by a mount (nginx.conf).
 # Source maps are never shipped: those of a build that uploads them to Sentry
 # are deleted by the plugin already, this removes any other.
-# version.json names the build served: a tab whose bundle has another one
-# offers a reload.
+# version.json names the build served, with the notes of release-notes/: a tab
+# whose bundle has another build offers a reload and shows them, under the
+# images of release-notes/.
 RUN rm -f .env.js \
  && find . -type f -name '*.map' -delete \
  && echo "var APP_VERSION = \"${BUILD_VERSION}\";" > version.js \
- && echo "{\"build\":\"${BUILD_VERSION}\"}" > version.json \
+ && node /src/scripts/version-json.mjs "$BUILD_VERSION" /src/release-notes > version.json \
+ && mkdir release-notes && cp /src/release-notes/whats-new-*.png release-notes/ \
  && node /src/scripts/csp-script-hashes.mjs index.html > /src/csp-script-hashes \
  && find . -type f ! -name '.env.js' ! -name 'version.js' ! -name 'version.json' \
       ! -name '.env.example.js' ! -name 'ic_logo_with_text*.svg' \

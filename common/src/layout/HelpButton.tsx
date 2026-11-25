@@ -8,75 +8,66 @@ import { SETTINGS_PATH } from '@common/features/settings/sections'
 import { useContactSupport } from '@common/features/support/useContactSupport'
 import { useI18n } from '@common/i18n/useI18n'
 
-/**
- * "Get help or report a bug" of the top bar, as tmail-flutter: only when the
- * server tells where to ask (`com:linagora:params:jmap:contact:support`). A
- * support address opens a message to it (a `mailto:` link in the settings,
- * which have no composer), a web address opens in a new tab.
- */
-export interface HelpButtonProps {
-  /** `small`: in twake-bar, as its buttons (an 18 px icon, 8 px around) */
-  size?: 'small' | 'large'
-}
+/** A page, opened in a new tab, or a `mailto:` link in the settings, or an action */
+export type HelpAction = { label: string } & (
+  { href: string; onClick?: never } | { onClick: () => void; href?: never }
+)
 
-export function HelpButton({
-  size = 'large'
-}: HelpButtonProps): ReactElement | null {
+/**
+ * What "Get help or report a bug" does, null without a support: a support
+ * address opens a message to it (a `mailto:` link in the settings, which
+ * have no composer), a web address opens in a new tab
+ */
+export function useHelpAction(): HelpAction | null {
   const { t } = useI18n()
   const { openComposer } = useComposer()
   const isSettings = useMatch(`${SETTINGS_PATH}/*`) !== null
   const support = useContactSupport()
   if (support === null) return null
-  const address = support.kind === 'address' ? support.address : null
-  const link = support.kind === 'link' ? support.href : null
   const label = t('topbar.help')
+  if (support.kind === 'link') return { label, href: support.href }
+  const { address } = support
+  if (isSettings) return { label, href: `mailto:${address}` }
+  return {
+    label,
+    onClick: () => {
+      openComposer({
+        mailto: { to: [address], cc: [], bcc: [], subject: null, body: null }
+      })
+    }
+  }
+}
 
+/**
+ * "Get help or report a bug" of the bar of the mail, as tmail-flutter: only
+ * when the server tells where to ask
+ * (`com:linagora:params:jmap:contact:support`)
+ */
+export function HelpButton(): ReactElement | null {
+  const action = useHelpAction()
+  if (action === null) return null
   const common = {
-    'aria-label': label,
-    size,
+    'aria-label': action.label,
+    size: 'large',
     'data-testid': 'help-button'
   } as const
-  const icon = (
-    <Icon icon={HelpOutlined} size={size === 'small' ? 18 : undefined} />
-  )
-  let button: ReactElement
-  if (address === null) {
-    button = (
+  const icon = <Icon icon={HelpOutlined} />
+  const button =
+    action.href === undefined ? (
+      <IconButton {...common} onClick={action.onClick}>
+        {icon}
+      </IconButton>
+    ) : (
       <IconButton
         {...common}
         component="a"
-        href={link ?? undefined}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={action.href}
+        {...(action.href.startsWith('mailto:')
+          ? {}
+          : { target: '_blank', rel: 'noopener noreferrer' })}
       >
         {icon}
       </IconButton>
     )
-  } else if (isSettings) {
-    button = (
-      <IconButton {...common} component="a" href={`mailto:${address}`}>
-        {icon}
-      </IconButton>
-    )
-  } else {
-    button = (
-      <IconButton
-        {...common}
-        onClick={() => {
-          openComposer({
-            mailto: {
-              to: [address],
-              cc: [],
-              bcc: [],
-              subject: null,
-              body: null
-            }
-          })
-        }}
-      >
-        {icon}
-      </IconButton>
-    )
-  }
-  return <Tooltip title={label}>{button}</Tooltip>
+  return <Tooltip title={action.label}>{button}</Tooltip>
 }

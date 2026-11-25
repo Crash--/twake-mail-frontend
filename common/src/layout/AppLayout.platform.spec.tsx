@@ -59,6 +59,7 @@ function platformResponse(
         public_name: 'Alice Martin'
       })
     case '/settings/context':
+      return attributes(platformContext)
     case '/settings/flags':
       return attributes({})
     case '/apps/':
@@ -82,6 +83,9 @@ function platformResponse(
       return jsonResponse({ errors: [] }, init?.method === 'POST' ? 403 : 404)
   }
 }
+
+/** The context of the Workplace, its `help_link` */
+let platformContext: Record<string, unknown> = {}
 
 type FetchMock = jest.Mock<
   Promise<Response>,
@@ -184,6 +188,7 @@ describe('AppLayout with the platform bar', () => {
   })
   afterEach(() => {
     globalThis.fetch = originalFetch
+    platformContext = {}
     resetViewport()
   })
 
@@ -219,6 +224,33 @@ describe('AppLayout with the platform bar', () => {
     expect(exchange?.[1]?.body).toBe(
       JSON.stringify({ id_token: 'id-token-alice', exchange_type: 'app' })
     )
+  })
+
+  it('puts the help of the Workplace and the support of the mail behind one "?"', async () => {
+    platformContext = { help_link: 'https://help.example.com/' }
+    mockPlatform()
+    renderLayout({
+      jmapServer: makeFakeJmapServer({
+        capabilities: {
+          'com:linagora:params:jmap:contact:support': {
+            httpLink: 'https://support.example.com/help'
+          }
+        }
+      })
+    })
+
+    const bar = await screen.findByTestId('twake-bar')
+    const help = await within(bar).findByRole('button', { name: 'Help' })
+    expect(within(bar).queryAllByRole('link', { name: /help/i })).toHaveLength(
+      0
+    )
+    await userEvent.click(help)
+    expect(
+      await screen.findByRole('menuitem', { name: 'Help center' })
+    ).toHaveAttribute('href', 'https://help.example.com/')
+    expect(
+      screen.getByRole('menuitem', { name: 'Get help or report a bug' })
+    ).toHaveAttribute('href', 'https://support.example.com/help')
   })
 
   it('offers Drive in a composer opened from the layout', async () => {

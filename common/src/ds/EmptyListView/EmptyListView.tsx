@@ -38,7 +38,9 @@ export function EmptyListView({
   return (
     <Empty
       icon={
-        <Box aria-hidden>
+        // Empty makes its icon the 100 px tile: the box is the tile, so the
+        // glyph keeps its 62 px
+        <Box>
           <Icon icon={EmailOpen} size={62} />
         </Box>
       }

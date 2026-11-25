@@ -16,9 +16,9 @@ describe('EmptyListView', () => {
 
     const view = screen.getByTestId('empty')
     expect(view).toHaveTextContent('Nothing hereStart to compose emails.')
-    expect(view.querySelector('svg')?.closest('[aria-hidden="true"]')).not.toBe(
-      null
-    )
+    const drawing = view.querySelector('svg')
+    expect(drawing).toHaveAttribute('aria-hidden', 'true')
+    expect(drawing).toHaveAttribute('focusable', 'false')
     expect(screen.queryByRole('img')).toBe(null)
     expect(screen.queryByRole('heading')).toBe(null)
   })

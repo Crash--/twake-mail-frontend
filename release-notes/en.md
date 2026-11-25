@@ -1,0 +1,2 @@
+- On a computer, you can keep your email list beside the email you read: turn on "Show the list beside the open email" in Settings > Preferences.
+- Files too big for an email go to your Twake Drive, and the email carries a link to each one.

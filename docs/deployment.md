@@ -662,8 +662,10 @@ Off unless `NEW_VERSION_CHECK_ENABLED = true`. An open tab then reads
 `/version.json` every 10 minutes, when it gets the focus or comes back online,
 and when a part of the app fails to load. Once the file names another build
 than the one running, a dialog offers to reload; "Not now" declines that
-build until the next one. The image writes `/version.json` and serves it
-uncached; with the setting off, nothing asks for it.
+build until the next one. The dialog shows the release notes the image
+carries in `/version.json` (in the user's language, else English). The image
+writes `/version.json` and serves it uncached; with the setting off, nothing
+asks for it.
 
 With the `linagora/tmail-frontend` chart, set it in the environment of the
 container (`extraEnv`, see [Mounting an `env.file`](#mounting-an-envfile)).

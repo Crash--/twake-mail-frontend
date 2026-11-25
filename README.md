@@ -74,8 +74,9 @@ The configuration is read at runtime, so one image serves every deployment:
   `common/src/config/config.ts`. An invalid configuration shows an explicit
   screen listing the problems.
 - `version.js`: the released version, written by the Docker build.
-- `version.json`: the build served, written by the Docker build too. A tab
-  whose bundle names another build offers a reload.
+- `version.json`: the build served and the release notes, written by the
+  Docker build too. A tab whose bundle names another build offers a reload
+  and shows the notes, see [Release notes](#release-notes).
 
 None of them is cached by nginx.
 
@@ -134,6 +135,7 @@ deploy/docker/       nginx configuration and entrypoint script of the image
 deploy/docker-compose/ Docker Compose examples: the app alone, a demo with tmail-backend
 deploy/helm/         Helm chart
 docs/                deployment, twake-mui gaps, translations
+release-notes/       what users see in the "What's new" dialog: notes and images, see Release notes
 scripts/             project scripts
 upgrade-instructions/ configuration changes per release
 e2e/                 end-to-end tests, separate npm package (not a workspace)
@@ -161,6 +163,23 @@ embedding in Twake Workplace, Docker Compose, Helm) is in
 [`docs/deployment.md`](docs/deployment.md). To try it out with a demo
 backend: `cd deploy/docker-compose/demo && docker compose up -d --build`, then
 <http://localhost:8080> as `alice@example.com` / `alice`.
+
+## Release notes
+
+[`release-notes/en.md`](release-notes/en.md) and
+[`release-notes/fr.md`](release-notes/fr.md) are what users read in the
+"What's new in Twake Mail" dialog. The Docker build writes them into
+`/version.json`; another language is one more `<code>.md`, and a language
+without its file falls back to English. Above them, the dialog shows
+`release-notes/whats-new-light.png` or `whats-new-dark.png`, as the app's
+theme: the image build serves them under `/release-notes/`.
+
+Before tagging a release, rewrite both files with what the users will see
+since the release they run: one line per change, starting with `- `, plain
+text (no Markdown), no issue or PR number. The CHANGELOG stays the
+technical record. Replace both images with a capture of the main change, in
+the light and dark themes, with fictional data only, cropped to 960 × 312 px
+(the bottom sixth is hidden).
 
 ## Registry
 

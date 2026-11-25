@@ -71,7 +71,8 @@ export function App({ config, embed, intents = null }: AppProps): ReactElement {
             createClient={createClient}
             sessionUrl={config.jmapSessionUrl}
           >
-            <NewVersionCheck />
+            {/* Not over the composer another app opens, nor in Twake Space */}
+            <NewVersionCheck notesAtLoad={intents === null && embed === null} />
             {intents !== null ? (
               <Suspense fallback={<FullPageLoader />}>
                 <IntentsApp page={intents} />

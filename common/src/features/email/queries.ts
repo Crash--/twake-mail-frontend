@@ -6,7 +6,11 @@ import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { PRIORITY_HEADERS, type PriorityHeaders } from './importance'
 import { SMIME_STATUS_HEADER } from './smimeStatus'
 import { CALENDAR_SENDER_MISMATCH_HEADER } from './calendarSenderMismatch'
-import { TWP_MESSAGE_HEADER } from './twpWarnings'
+import {
+  SUSPICIOUS_DISPLAY_NAME_HEADER,
+  SUSPICIOUS_DOMAIN_HEADER,
+  TWP_MESSAGE_HEADER
+} from './twpWarnings'
 
 /** The email properties the reading view shows */
 export const EMAIL_VIEW_PROPERTIES = [
@@ -47,6 +51,8 @@ export type EmailDetail = Pick<
     [LIST_UNSUBSCRIBE_HEADER]?: string[] | null
     [READ_RECEIPT_HEADER]?: string | null
     [TWP_MESSAGE_HEADER]?: string[] | null
+    [SUSPICIOUS_DISPLAY_NAME_HEADER]?: string | null
+    [SUSPICIOUS_DOMAIN_HEADER]?: string | null
     [CALENDAR_SENDER_MISMATCH_HEADER]?: string | null
     [SMIME_STATUS_HEADER]?: string | null
   }
@@ -85,6 +91,8 @@ export function emailQueryOptions(
             LIST_UNSUBSCRIBE_HEADER,
             READ_RECEIPT_HEADER,
             TWP_MESSAGE_HEADER,
+            SUSPICIOUS_DISPLAY_NAME_HEADER,
+            SUSPICIOUS_DOMAIN_HEADER,
             CALENDAR_SENDER_MISMATCH_HEADER,
             SMIME_STATUS_HEADER,
             ...PRIORITY_HEADERS

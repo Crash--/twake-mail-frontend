@@ -7,7 +7,8 @@ import {
   twpDismissKeyword,
   twpWarningCodeText,
   twpWarningMessage,
-  TWP_TEXT_MAX_LENGTH
+  TWP_TEXT_MAX_LENGTH,
+  withSuspiciousSender
 } from './twpWarnings'
 
 describe('parseTwpWarning', () => {
@@ -138,6 +139,57 @@ describe('parseTwpWarnings', () => {
     const warnings = parseTwpWarnings(['level:warn Same', 'level:warn Same'])
 
     expect(warnings.map(warning => warning.index)).toEqual([0, 1])
+  })
+})
+
+describe('withSuspiciousSender', () => {
+  const suspiciousSender = {
+    level: 'warn',
+    code: 'suspicious-sender',
+    text: '',
+    index: 0
+  }
+
+  it('adds nothing without flag, or with a flag that is not true', () => {
+    expect(withSuspiciousSender([], [null, undefined])).toEqual([])
+    expect(withSuspiciousSender([], ['false', ''])).toEqual([])
+  })
+
+  it('adds a suspicious-sender warning for X-Suspicious-DisplayName', () => {
+    expect(withSuspiciousSender([], ['true', null])).toEqual([suspiciousSender])
+  })
+
+  it('adds a suspicious-sender warning for X-Suspicious-Domain', () => {
+    expect(withSuspiciousSender([], [null, ' TRUE '])).toEqual([
+      suspiciousSender
+    ])
+  })
+
+  it('adds a single warning when both flags are set', () => {
+    expect(withSuspiciousSender([], ['true', 'true'])).toEqual([
+      suspiciousSender
+    ])
+  })
+
+  it('puts it after the X-TWP-Message headers, at their count', () => {
+    const warnings = withSuspiciousSender(
+      parseTwpWarnings(['level:warn code:virus', 'level:info Other']),
+      ['true', null]
+    )
+
+    expect(warnings.map(({ index, code }) => [index, code])).toEqual([
+      [0, 'virus'],
+      [1, null],
+      [2, 'suspicious-sender']
+    ])
+  })
+
+  it('adds nothing when an X-TWP-Message already says suspicious-sender', () => {
+    const headers = parseTwpWarnings([
+      'level:info code:Suspicious-Sender Text of the server'
+    ])
+
+    expect(withSuspiciousSender(headers, ['true', 'true'])).toEqual(headers)
   })
 })
 

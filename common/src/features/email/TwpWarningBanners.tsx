@@ -16,13 +16,18 @@ import {
   parseCalendarSenderMismatch
 } from './calendarSenderMismatch'
 import { messageMailboxId } from './messageMailbox'
-import { TWP_MESSAGE_HEADER } from './twpWarnings'
+import {
+  SUSPICIOUS_DISPLAY_NAME_HEADER,
+  SUSPICIOUS_DOMAIN_HEADER,
+  TWP_MESSAGE_HEADER
+} from './twpWarnings'
 import {
   isTwpWarningDismissed,
   offersNotSpam,
   parseTwpWarnings,
   twpDismissKeyword,
   twpWarningMessage,
+  withSuspiciousSender,
   type TwpWarning
 } from './twpWarnings'
 import type { EmailDetail } from './queries'
@@ -33,13 +38,16 @@ import type { EmailDetail } from './queries'
  */
 export function useVisibleTwpWarnings(email: EmailDetail): TwpWarning[] {
   const values = email[TWP_MESSAGE_HEADER]
+  const displayNameFlag = email[SUSPICIOUS_DISPLAY_NAME_HEADER]
+  const domainFlag = email[SUSPICIOUS_DOMAIN_HEADER]
   const keywords = email.keywords
   return useMemo(
     () =>
-      parseTwpWarnings(values).filter(
-        warning => !isTwpWarningDismissed({ keywords }, warning)
-      ),
-    [values, keywords]
+      withSuspiciousSender(parseTwpWarnings(values), [
+        displayNameFlag,
+        domainFlag
+      ]).filter(warning => !isTwpWarningDismissed({ keywords }, warning)),
+    [values, displayNameFlag, domainFlag, keywords]
   )
 }
 

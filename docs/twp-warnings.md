@@ -1,6 +1,7 @@
-# Backend warnings (`X-TWP-Message`)
+# Backend warnings (`X-TWP-Message`, `X-Suspicious-*`)
 
-Issue #142. Contract taken from tmail-flutter#4639 (open).
+Issue #142. Contract taken from tmail-flutter#4484 and its pull request
+tmail-flutter#4639 (closed without merge).
 
 ## Header
 
@@ -15,6 +16,23 @@ One header per warning, several per email:
   email only (`features/email/queries.ts`), never in list queries.
 - Parser and rules: `features/email/twpWarnings.ts` (tests ported from
   tmail-flutter, plus a cap of 500 characters and control characters dropped).
+
+## Suspicious sender headers
+
+The tmail-backend matchers `SuspiciousDisplayName` (the From display name is
+the name of a user of the directory, the address is not theirs) and
+`SuspiciousDomainInDisplayName` (the display name names a local domain) set no
+header themselves: the mailet container does, with `SetMimeHeader`. The
+backend docs set `X-Suspicious-DisplayName: true` and `X-Suspicious-Domain:
+true`; a deployment may set `X-Suspicious-DisplayName: true` for both.
+
+- Both are asked with `asText` next to `X-TWP-Message`.
+- Either one set to `true` (any case) adds one `suspicious-sender` warning at
+  the `warn` level (the contract example uses `info`; a likely scam calls
+  for more), after the `X-TWP-Message` warnings: its index, and so its
+  dismissal keyword, is the number of `X-TWP-Message` headers.
+- Nothing is added when an `X-TWP-Message` header already has the code
+  `suspicious-sender`, so one email never shows the same warning twice.
 
 ## Display
 
@@ -36,12 +54,12 @@ the single email view and in each expanded message of a conversation.
 ## Dismissal
 
 Dismissing sets the keyword `twp-warning-dismissed-<index>` (index = position
-among the `X-TWP-Message` headers, from 0) with the usual email action path
-(`setKeyword` of `useEmailActions`): shown at once, rolled back with an error
-toast if the server refuses. The button is absent when the folder has no
-`maySetKeywords` right (team mailboxes, `docs/team-mailboxes.md`) or while the
-folders are loading. The app has no offline detection yet (`OfflineBanner` is
-not mounted), so nothing is disabled offline: the rollback covers it.
+among the `X-TWP-Message` headers, from 0, then the suspicious sender warning
+above) with the usual email action path (`setKeyword` of `useEmailActions`):
+shown at once, rolled back with an error toast if the server refuses. The
+button is absent when the folder has no `maySetKeywords` right (team
+mailboxes, `docs/team-mailboxes.md`) or while the folders are loading, and
+disabled offline.
 
 ## Decisions where the contract is silent
 

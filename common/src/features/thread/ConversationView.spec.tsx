@@ -189,6 +189,20 @@ describe('ConversationView', () => {
       ).toHaveLength(1)
     })
 
+    it('warns of a suspicious sender in the expanded message with X-Suspicious-DisplayName', async () => {
+      const server = makeServer()
+      const message = server.emails.find(email => email.id === 'c')
+      if (message === undefined) throw new Error('no message c')
+      message.headers = { 'X-Suspicious-DisplayName': 'true' }
+      await renderConversation(server)
+
+      const banner = await screen.findByTestId('twp-warning-0')
+      expect(banner).toHaveTextContent(
+        'This email is from an external sender immitating known users'
+      )
+      expect(screen.getAllByTestId(/^twp-warning-\d$/)).toHaveLength(1)
+    })
+
     it('keeps a collapsed message plain, without banner nor badge', async () => {
       await renderConversation(makeServer())
 

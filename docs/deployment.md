@@ -142,7 +142,7 @@ looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
-`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`. tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`, `RELEASE_NOTES_URL`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.
@@ -222,8 +222,8 @@ feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
 generated `/.env.js` when the `env.file` has no such key, as are
 `TWAKE_SPACE_URL`, `TDRIVE_ENABLED` (the
-[Twake Drive picker](#twake-drive-picker)) and `NEW_VERSION_CHECK_ENABLED`
-([New version available](#new-version-available)).
+[Twake Drive picker](#twake-drive-picker)), `NEW_VERSION_CHECK_ENABLED` and
+`RELEASE_NOTES_URL` ([New version available](#new-version-available)).
 
 ### Custom logotype
 
@@ -672,7 +672,11 @@ release notes of the running build that this browser has not shown yet, with
 "Got it" alone (not in the composer other apps open, nor in Twake Space). The
 browser remembers the notes it has shown, so new notes show once per browser.
 
-With the `linagora/tmail-frontend` chart, set it in the environment of the
+`RELEASE_NOTES_URL` adds a "See everything that's new" link under the notes,
+opened in a new tab: an http(s) page that lists every change, such as the room
+where the release is announced. Unset, or not an http(s) URL, no link shows.
+
+With the `linagora/tmail-frontend` chart, set both in the environment of the
 container (`extraEnv`, see [Mounting an `env.file`](#mounting-an-envfile)).
 
 ## Intents served by Twake Mail

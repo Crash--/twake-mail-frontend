@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+New setting: `RELEASE_NOTES_URL` (`config.newVersionCheck.releaseNotesUrl`
+in the chart). Unset, nothing changes.
+
 ### Added
 
 - The "What's new in Twake Mail" dialog lists the changes users see, in
@@ -15,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Once signed in, the webmail shows that dialog with the release notes this
   browser has not shown yet, closed with "Got it" (twake-react-new-version
   1.3.0).
+- `RELEASE_NOTES_URL` links the release notes of the dialog to a page that
+  lists every change ("See everything that's new").
 
 ## [0.17.0] - 2026-11-24
 

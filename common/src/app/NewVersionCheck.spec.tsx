@@ -109,7 +109,22 @@ describe('NewVersionCheck', () => {
       expect(
         await screen.findByRole('dialog', { name: "What's new in Twake Mail" })
       ).toHaveTextContent('Dark mode')
-      expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Got it' })).toBeInTheDocument()
+      expect(screen.queryByRole('link')).toBeNull()
+    })
+
+    it('links to every change under the notes with RELEASE_NOTES_URL', async () => {
+      renderCheck(
+        makeConfig({
+          NEW_VERSION_CHECK_ENABLED: 'true',
+          RELEASE_NOTES_URL: 'https://chat.example.com/rooms/release'
+        }),
+        true
+      )
+
+      expect(
+        await screen.findByRole('link', { name: "See everything that's new" })
+      ).toHaveAttribute('href', 'https://chat.example.com/rooms/release')
     })
 
     it('waits for the user to sign in, never over the login page', async () => {

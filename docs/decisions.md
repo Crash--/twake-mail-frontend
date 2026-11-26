@@ -198,3 +198,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), [#1173](https://github.com/Crash--/twake-mail-frontend/issues/1173)
 - Why: with one message there is nothing to skim; collapsed, the reading view showed a sender and a preview line only.
 - Scope: desktop and mobile, conversation view.
+
+## 2026-11-26, [Product] The release notes link to every change, set per deployment
+
+- Decision: under the release notes, a "See everything that's new" link opens the page set in `RELEASE_NOTES_URL` (http or https only), in a new tab; unset, no link. A setting of the deployment, not of the image: the room where a deployment announces its releases differs from one deployment to the next. Linagora's own deployment links to the room where its releases are announced; the other deployments are tracked in [#1181](https://github.com/Crash--/twake-mail-frontend/issues/1181).
+- Decided by: Crash-- (CTO), 2026-11-26
+- Why: the dialog keeps two or three lines; the full list lives where the release is announced.
+- Scope: desktop and mobile, the new version dialog.

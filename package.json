@@ -40,6 +40,8 @@
     "node": "24.x"
   },
   "devDependencies": {
+    "@swc/core": "^1.16.22",
+    "@swc/jest": "^0.2.39",
     "@tanstack/eslint-plugin-query": "^5.107.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
@@ -55,12 +57,12 @@
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "rstack": "0.9.3",
-    "ts-jest": "^29.4.15",
     "typescript": "~6.0.3"
   },
   "allowScripts": {
     "@parcel/watcher": false,
     "@sentry/cli": false,
+    "@swc/core": false,
     "unrs-resolver": false
   }
 }

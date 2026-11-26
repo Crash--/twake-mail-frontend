@@ -23,8 +23,21 @@ const ESM_PACKAGES = [
   '@formatjs'
 ]
 
+const swc = (parser: object): [string, object] => [
+  '@swc/jest',
+  {
+    jsc: {
+      parser,
+      target: 'es2022',
+      transform: { react: { runtime: 'automatic' } }
+    }
+  }
+]
+
 const transform: Config['transform'] = {
-  '^.+\\.[cm]?[jt]sx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }]
+  '^.+\\.[cm]?ts$': swc({ syntax: 'typescript' }),
+  '^.+\\.tsx$': swc({ syntax: 'typescript', tsx: true }),
+  '^.+\\.[cm]?jsx?$': swc({ syntax: 'ecmascript', jsx: true })
 }
 
 const transformIgnorePatterns = [

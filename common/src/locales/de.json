@@ -169,6 +169,7 @@
       "savedOne": "„%{name}“ in Ihrem Drive gespeichert",
       "saved": "%{smart_count} Datei in Ihrem Drive gespeichert |||| %{smart_count} Dateien in Ihrem Drive gespeichert",
       "organize": "Organisieren",
+      "saveTo": "Speichern in",
       "movedTo": "Verschoben nach %{path}",
       "saveFailed": "Das Speichern konnte nicht bestätigt werden. Prüfen Sie Ihr Drive, bevor Sie es erneut versuchen. |||| Das Speichern von %{smart_count} Dateien konnte nicht bestätigt werden. Prüfen Sie Ihr Drive, bevor Sie es erneut versuchen.",
       "frameTitle": "Speichern in Twake Drive",

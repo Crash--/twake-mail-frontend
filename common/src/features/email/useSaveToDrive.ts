@@ -1,11 +1,18 @@
 import { useColorScheme } from '@linagora/twake-mui'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'
 import {
   fetchBlobDownloadUrl,
   getBlobAccessEndpoint
 } from '@common/features/drive/blobDownloadUrl'
+import {
+  driveKeys,
+  makeAttachmentReference,
+  savedAttachmentsQueryOptions,
+  type SavedAttachments
+} from '@common/features/drive/queries'
 import {
   readMovedFiles,
   saveUrlToDrive,
@@ -58,9 +65,16 @@ export interface SaveToDrive {
  * download token from the mail server, then the UPLOAD intent of Drive
  * from that URL into the Mail folder, so the bytes go from server to
  * server. A toast tells it, with "Organize" opening the MOVE intent.
- * A saved file is not sent again. The statuses last as long as the view.
+ * Drive references the file from the attachment and tells, through its
+ * LOOKUP intent, which attachments are saved: in every client, until the
+ * file is gone or in the trash. A saved file is not sent again.
  */
-export function useSaveToDrive(): SaveToDrive {
+export function useSaveToDrive(
+  /** The email of the attachments, null when they belong to none */
+  emailId: string | null,
+  /** The blobs of the attachments that can be saved */
+  blobIds: readonly string[]
+): SaveToDrive {
   const { t } = useI18n()
   const { notify } = useNotify()
   const client = useJmapClient()
@@ -72,10 +86,30 @@ export function useSaveToDrive(): SaveToDrive {
   const endpoint = getBlobAccessEndpoint(session, accountId)
   const move = useDriveIntentDialog(sdk, t('email.drive.moveFrameTitle'))
   const [saving, setSaving] = useState<ReadonlySet<string>>(new Set())
-  const [saved, setSaved] = useState<ReadonlyMap<string, SavedDriveFile>>(
-    new Map()
-  )
+  const queryClient = useQueryClient()
   const [container, setContainer] = useState<HTMLElement | null>(null)
+  // Without an email the attachment has no reference: saved files stay known for the view only
+  const emailKey = emailId ?? ''
+  const savedQuery = useQuery({
+    ...savedAttachmentsQueryOptions(
+      sdk,
+      container,
+      t('composer.drive.title'),
+      accountId,
+      emailKey,
+      blobIds
+    ),
+    enabled:
+      sdk !== null &&
+      endpoint !== null &&
+      container !== null &&
+      emailId !== null &&
+      blobIds.length > 0
+  })
+  const saved = useMemo(
+    () => new Map(Object.entries(savedQuery.data ?? {})),
+    [savedQuery.data]
+  )
   const queueRef = useRef<DriveSaveRequest[]>([])
   const isRunningRef = useRef(false)
   const abortRef = useRef(new AbortController())
@@ -106,7 +140,8 @@ export function useSaveToDrive(): SaveToDrive {
           defaultDirId: first.dirId,
           // A move to a shared drive may give the file a new id
           tabs: ['drive'],
-          theme: { type: colorScheme }
+          theme: { type: colorScheme },
+          confirmLabel: t('email.drive.saveTo')
         },
         onDocument: document => {
           const [moved] = readMovedFiles(document)
@@ -129,6 +164,8 @@ export function useSaveToDrive(): SaveToDrive {
     const isAborted = (): boolean => signal.aborted
     const stored: SavedDriveFile[] = []
     let failedCount = 0
+    const savedKey = driveKeys.savedAttachments(accountId, emailKey)
+    let hasCutLookup = false
     for (
       let file = queueRef.current.shift();
       file !== undefined;
@@ -150,7 +187,15 @@ export function useSaveToDrive(): SaveToDrive {
           ? null
           : await saveUrlToDrive(
               sdk,
-              { url, name: file.name, size: file.size },
+              {
+                url,
+                name: file.name,
+                size: file.size,
+                reference:
+                  emailId === null
+                    ? null
+                    : makeAttachmentReference(accountId, emailId, blobId)
+              },
               container,
               t('email.drive.frameTitle'),
               signal
@@ -168,8 +213,26 @@ export function useSaveToDrive(): SaveToDrive {
         failedCount += 1
       } else {
         stored.push(document)
-        setSaved(current => new Map(current).set(blobId, document))
+        // A lookup under way may have missed this file: it must not undo it
+        if (queryClient.isFetching({ queryKey: savedKey }) > 0) {
+          await queryClient.cancelQueries({ queryKey: savedKey })
+          hasCutLookup = true
+        }
+        queryClient.setQueryData(
+          savedKey,
+          (current: SavedAttachments | undefined): SavedAttachments => ({
+            ...current,
+            [blobId]: document.id
+          })
+        )
       }
+    }
+    // The other attachments of the cut lookup: Drive references a file
+    // before it tells it is stored, so the new one is in the answer too
+    if (hasCutLookup) {
+      queryClient
+        .invalidateQueries({ queryKey: savedKey })
+        .catch(() => undefined)
     }
     if (stored.length > 0) {
       notify({
@@ -193,7 +256,19 @@ export function useSaveToDrive(): SaveToDrive {
         severity: 'error'
       })
     }
-  }, [sdk, endpoint, container, client, accountId, notify, organize, t])
+  }, [
+    sdk,
+    endpoint,
+    container,
+    client,
+    accountId,
+    emailId,
+    emailKey,
+    queryClient,
+    notify,
+    organize,
+    t
+  ])
 
   const save = useCallback(
     (files: readonly DriveSaveRequest[]): void => {
@@ -231,10 +306,10 @@ export function useSaveToDrive(): SaveToDrive {
 
   const openSaved = useCallback(
     (blobId: string): void => {
-      const file = saved.get(blobId)
-      if (sdk === null || file === undefined) return
+      const fileId = saved.get(blobId)
+      if (sdk === null || fileId === undefined) return
       sdk
-        .getAppURL('drive', `#/file/${encodeURIComponent(file.id)}`)
+        .getAppURL('drive', `#/file/${encodeURIComponent(fileId)}`)
         .then(url => {
           if (url !== null) window.open(url, '_blank', 'noopener,noreferrer')
         })

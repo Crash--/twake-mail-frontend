@@ -169,6 +169,7 @@
       "savedOne": "« %{name} » enregistré dans votre Drive",
       "saved": "%{smart_count} fichier enregistré dans votre Drive |||| %{smart_count} fichiers enregistrés dans votre Drive",
       "organize": "Organiser",
+      "saveTo": "Enregistrer dans",
       "movedTo": "Déplacé vers %{path}",
       "saveFailed": "Impossible de confirmer l’enregistrement du fichier. Vérifiez votre Drive avant de réessayer. |||| Impossible de confirmer l’enregistrement de %{smart_count} fichiers. Vérifiez votre Drive avant de réessayer.",
       "frameTitle": "Enregistrement dans Twake Drive",

@@ -169,6 +169,7 @@
       "savedOne": "“%{name}” saved to your Drive",
       "saved": "%{smart_count} file saved to your Drive |||| %{smart_count} files saved to your Drive",
       "organize": "Organize",
+      "saveTo": "Save to",
       "movedTo": "Moved to %{path}",
       "saveFailed": "Could not confirm that the file was saved. Check your Drive before trying again. |||| Could not confirm that %{smart_count} files were saved. Check your Drive before trying again.",
       "frameTitle": "Saving to Twake Drive",

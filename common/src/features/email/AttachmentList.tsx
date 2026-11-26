@@ -84,7 +84,10 @@ export function AttachmentList({
     move,
     retryOrganize,
     restoreFocus
-  } = useSaveToDrive()
+  } = useSaveToDrive(
+    emailId ?? null,
+    attachments.flatMap(part => (part.blobId ? [part.blobId] : []))
+  )
   // The toast that opened "Organize" is gone once it closes: the focus goes
   // back to the save button
   const isMoveOpen = move.state.status !== 'closed'

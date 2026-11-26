@@ -169,6 +169,7 @@
       "savedOne": "Đã lưu “%{name}” vào Drive của bạn",
       "saved": "Đã lưu %{smart_count} tệp vào Drive của bạn",
       "organize": "Sắp xếp",
+      "saveTo": "Lưu vào",
       "movedTo": "Đã chuyển đến %{path}",
       "saveFailed": "Không thể xác nhận %{smart_count} tệp đã được lưu. Hãy kiểm tra Drive trước khi thử lại.",
       "frameTitle": "Đang lưu vào Twake Drive",

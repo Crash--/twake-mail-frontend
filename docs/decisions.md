@@ -212,3 +212,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), [#1168](https://github.com/Crash--/twake-mail-frontend/issues/1168)
 - Why: two identical "?" side by side made no sense.
 - Scope: desktop, the Workplace bar (on the platform and off it).
+
+## 2026-11-26, [Infra] A pull request rebased without changing its own diff runs no CI again
+
+- Decision: Replaces the decision of 2026-11-23, "A change to the decisions log alone runs no CI", for its last sentence. When the diff of a pull request against its merge base, without `docs/decisions.md`, is the one a workflow already passed on, that workflow skips its jobs and ends green. Only pull requests from a branch of the repository skip: a pull request from a fork, a re-run of the workflow, a push to main and a tag always run everything.
+- Decided by: Crash-- (CTO), request of 2026-11-26 to the Mail team; forks excluded at the review of [#1185](https://github.com/Crash--/twake-mail-frontend/pull/1185)
+- Why: a pull request rebased only to resolve a conflict in the decisions log has nothing new to test.
+- Scope: GitHub Actions of the repository. Accepted risk: after such a rebase, the code is not tested against the new main before the merge, only on main after it.

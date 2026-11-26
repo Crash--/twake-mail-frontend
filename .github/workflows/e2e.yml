@@ -28,7 +28,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Skips the jobs when this change of the pull request already passed (.github/actions/passed-patch)
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      key: ${{ steps.passed.outputs.key }}
+      skip: ${{ steps.passed.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - id: passed
+        uses: ./.github/actions/passed-patch
+        with:
+          workflow: e2e
+
   image:
+    needs: gate
+    if: needs.gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -184,3 +202,15 @@ jobs:
       - name: Stop the e2e stack
         if: always()
         run: ./e2e/scripts/stop.sh
+
+  remember:
+    needs: [gate, e2e]
+    if: needs.gate.outputs.key != '' && needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: touch .passed-patch
+
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .passed-patch
+          key: ${{ needs.gate.outputs.key }}

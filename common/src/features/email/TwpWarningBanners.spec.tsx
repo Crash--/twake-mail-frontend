@@ -132,6 +132,119 @@ describe('TwpWarningBanners', () => {
     )
   })
 
+  it('asks the X-Suspicious-DisplayName and X-Suspicious-Domain headers', async () => {
+    const server = makeServer(undefined)
+    renderView(server)
+    await screen.findByTestId('email-view-subject')
+
+    const get = server.callsOf('Email/get')[0]
+    expect(get?.properties).toEqual(
+      expect.arrayContaining([
+        'header:X-Suspicious-DisplayName:asText',
+        'header:X-Suspicious-Domain:asText'
+      ])
+    )
+  })
+
+  it.each(['X-Suspicious-DisplayName', 'X-Suspicious-Domain'])(
+    'warns of a suspicious sender for %s: true',
+    async header => {
+      const server = makeFakeJmapServer({
+        mailboxes: makeDefaultMailboxes(),
+        emails: [
+          makeEmailWithBody(
+            { id: 'e1', subject: 'Invoice', headers: { [header]: 'true' } },
+            { text: 'Hello' }
+          )
+        ]
+      })
+      renderView(server)
+
+      const banner = await screen.findByTestId('twp-warning-0')
+      expect(banner).toHaveAccessibleName(
+        'Warning: Be careful with this message'
+      )
+      expect(banner).toHaveTextContent(
+        'This email is from an external sender immitating known users, double check the mail address.'
+      )
+    }
+  )
+
+  it('shows one suspicious sender banner when both flags are set', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: makeDefaultMailboxes(),
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'e1',
+            subject: 'Invoice',
+            headers: {
+              'X-Suspicious-DisplayName': 'true',
+              'X-Suspicious-Domain': 'true'
+            }
+          },
+          { text: 'Hello' }
+        )
+      ]
+    })
+    renderView(server)
+
+    await screen.findByTestId('twp-warning-0')
+    expect(screen.getAllByTestId(/^twp-warning-\d$/)).toHaveLength(1)
+  })
+
+  it('shows one suspicious sender banner when X-TWP-Message and both flags say it', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: makeDefaultMailboxes(),
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'e1',
+            subject: 'Invoice',
+            headers: {
+              'X-TWP-Message': ['level:info code:suspicious-sender Text'],
+              'X-Suspicious-DisplayName': 'true',
+              'X-Suspicious-Domain': 'true'
+            }
+          },
+          { text: 'Hello' }
+        )
+      ]
+    })
+    renderView(server)
+
+    await screen.findByTestId('twp-warning-0')
+    expect(screen.getAllByTestId(/^twp-warning-\d$/)).toHaveLength(1)
+  })
+
+  it('keeps a suspicious sender banner dismissed with the keyword after the headers', async () => {
+    const server = makeFakeJmapServer({
+      mailboxes: makeDefaultMailboxes(),
+      emails: [
+        makeEmailWithBody(
+          {
+            id: 'e1',
+            subject: 'Invoice',
+            headers: {
+              'X-TWP-Message': ['level:warn code:virus'],
+              'X-Suspicious-DisplayName': 'true'
+            }
+          },
+          { text: 'Hello' }
+        )
+      ]
+    })
+    renderView(server)
+
+    await userEvent.click(await screen.findByTestId('twp-warning-dismiss-1'))
+
+    await waitFor(() => {
+      expect(keywordsOf(server)).toHaveProperty('twp-warning-dismissed-1', true)
+    })
+    expect(screen.queryByTestId('twp-warning-1')).toBeNull()
+    expect(screen.getByTestId('twp-warning-0')).toBeInTheDocument()
+  })
+
   it('names the organizer and the sender of an invitation not sent by its organizer', async () => {
     const server = makeFakeJmapServer({
       mailboxes: makeDefaultMailboxes(),

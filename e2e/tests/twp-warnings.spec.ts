@@ -171,6 +171,58 @@ test.describe('TWP warnings of the backend', () => {
       0
     )
   })
+
+  for (const [id, fixture, subject] of [
+    ['TWP-08', 'suspicious-display-name', 'Suspicious display name'],
+    ['TWP-09', 'suspicious-domain', 'Suspicious domain']
+  ] as const) {
+    test(`${id} ${fixture}: true warns of a suspicious sender`, async ({
+      page,
+      user,
+      users,
+      jmap
+    }) => {
+      const bob = await users.create({ prefix: 'bob' })
+      await jmap.importEml(`twp_warnings/${fixture}.eml`, 'inbox', {
+        replace: { BOB_ADDRESS: bob.email, USER_ADDRESS: user.email }
+      })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail(subject)
+
+      const banner = email.root.getByTestId('twp-warning-0')
+      await expect(banner).toContainText(SUSPICIOUS_SENDER)
+      await expect(banner).toHaveAccessibleName(
+        'Warning: Be careful with this message'
+      )
+      await expectNoA11yViolations(page)
+    })
+  }
+
+  for (const [id, fixture, subject, headers] of [
+    ['TWP-10', 'suspicious-twice', 'Said twice', 'X-TWP-Message and both flags'],
+    ['TWP-11', 'suspicious-both', 'Both flags', 'both flags']
+  ] as const) {
+    test(`${id} a suspicious sender said by ${headers} shows one banner`, async ({
+      page,
+      user,
+      users,
+      jmap
+    }) => {
+      const bob = await users.create({ prefix: 'bob' })
+      await jmap.importEml(`twp_warnings/${fixture}.eml`, 'inbox', {
+        replace: { BOB_ADDRESS: bob.email, USER_ADDRESS: user.email }
+      })
+
+      const mailbox = await new LoginPage(page).loginAs(user)
+      const email = await mailbox.openEmail(subject)
+
+      await expect(email.root.getByTestId('twp-warning-0')).toContainText(
+        SUSPICIOUS_SENDER
+      )
+      await expect(email.root.getByTestId(/^twp-warning-\d$/)).toHaveCount(1)
+    })
+  }
 })
 
 test.describe('TWP warnings in a conversation', () => {

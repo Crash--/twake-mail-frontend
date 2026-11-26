@@ -103,6 +103,40 @@ export function parseTwpWarnings(
   return (values ?? []).map((value, index) => parseTwpWarning(value, index))
 }
 
+/**
+ * Set to `true` by the mailet container (`SetMimeHeader`) when the tmail-backend
+ * matchers `SuspiciousDisplayName` or `SuspiciousDomainInDisplayName` match:
+ * the From display name looks like a local user or names a local domain.
+ */
+export const SUSPICIOUS_DISPLAY_NAME_HEADER =
+  'header:X-Suspicious-DisplayName:asText'
+export const SUSPICIOUS_DOMAIN_HEADER = 'header:X-Suspicious-Domain:asText'
+
+const SUSPICIOUS_SENDER = 'suspicious-sender'
+
+function isFlagSet(value: string | null | undefined): boolean {
+  return value?.trim().toLowerCase() === 'true'
+}
+
+/**
+ * The warnings of `parseTwpWarnings` plus one `suspicious-sender` warning when
+ * an `X-Suspicious-*` header is `true` and no `X-TWP-Message` already says it.
+ * It comes after the headers, so its index (and keyword) is their count.
+ */
+export function withSuspiciousSender(
+  warnings: readonly TwpWarning[],
+  flags: readonly (string | null | undefined)[]
+): TwpWarning[] {
+  const isSaid = warnings.some(
+    warning => warning.code?.toLowerCase() === SUSPICIOUS_SENDER
+  )
+  if (isSaid || !flags.some(isFlagSet)) return [...warnings]
+  return [
+    ...warnings,
+    { level: 'warn', code: SUSPICIOUS_SENDER, text: '', index: warnings.length }
+  ]
+}
+
 /** The localized text of a known code, null for any other */
 export function twpWarningCodeText(code: string | null): TranslationKey | null {
   if (code === null) return null

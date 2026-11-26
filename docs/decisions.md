@@ -184,3 +184,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-25
 - Why: users learn what changed from the app itself; the CHANGELOG is written for those who deploy it.
 - Scope: desktop and mobile, the new version dialog.
+
+## 2026-11-26, [Product] The suspicious sender headers of the backend show the suspicious sender warning
+
+- Decision: an email with `X-Suspicious-DisplayName: true` or `X-Suspicious-Domain: true` (what the mailet container sets when the From display name looks like a user of the directory or names a local domain) shows the `suspicious-sender` warning of `X-TWP-Message`, once even when several headers say it. Its level, warn, is a choice of [#1182](https://github.com/Crash--/twake-mail-frontend/pull/1182) to confirm. Rules in [`docs/twp-warnings.md`](twp-warnings.md).
+- Decided by: Crash-- (CTO), 2026-11-26, [#1182](https://github.com/Crash--/twake-mail-frontend/pull/1182)
+- Why: production sets `X-Suspicious-DisplayName`, not `X-TWP-Message`; users must see that the email may be a scam.
+- Scope: desktop and mobile, the reading view and the messages of a conversation.

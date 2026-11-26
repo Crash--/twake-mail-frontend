@@ -200,5 +200,6 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Scope: GitHub Actions of the repository. Accepted risk: after such a rebase, the code is not tested against the new main before the merge, only on main after it.
 
 ## 2026-11-26, [Infra] Throwaway test entry from the base
+## 2026-11-26, [Infra] Throwaway test entry from the head
 
 - Decision: test.

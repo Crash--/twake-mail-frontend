@@ -97,3 +97,4 @@ function WebmailRouter(): ReactElement {
 
   return <RouterProvider router={router} />
 }
+// Throwaway CI test, never merged

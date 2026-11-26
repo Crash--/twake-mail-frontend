@@ -1,5 +1,13 @@
 import type { EmailBodyPart } from '@linagora/jmap-client-ts'
-import { useRef, useState, type DragEvent, type ReactElement } from 'react'
+import { DrivePickerSkeleton } from '@linagora/twake-app-skeleton/drive'
+import { Box, Button, Typography } from '@linagora/twake-mui'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type ReactElement
+} from 'react'
 
 import {
   AttachmentCard,
@@ -11,6 +19,7 @@ import {
   useElementWidth,
   visibleAttachmentCount
 } from '@/ds/AttachmentCard/AttachmentCard'
+import { FramedDialog } from '@/ds/FramedDialog/FramedDialog'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { useAuthService } from '@common/features/auth/AuthProvider'
 import { useNotify } from '@common/features/notifications/NotificationsProvider'
@@ -32,6 +41,7 @@ import {
   isZipArchive
 } from './downloadAll'
 import { formatSize } from './formatSize'
+import { useSaveToDrive, type DriveSaveRequest } from './useSaveToDrive'
 
 const JMAP_ACCEPT = 'application/json; jmapVersion=rfc-8621'
 
@@ -65,6 +75,24 @@ export function AttachmentList({
     kind: NonNullable<ReturnType<typeof previewKind>>
   } | null>(null)
   const opener = useRef<HTMLElement | null>(null)
+  const {
+    isAvailable: isDriveAvailable,
+    statusOf,
+    save: saveToDrive,
+    openSaved,
+    frameContainerRef: setDriveFrameContainer,
+    move,
+    retryOrganize,
+    restoreFocus
+  } = useSaveToDrive()
+  // The toast that opened "Organize" is gone once it closes: the focus goes
+  // back to the save button
+  const isMoveOpen = move.state.status !== 'closed'
+  const wasMoveOpenRef = useRef(false)
+  useEffect(() => {
+    if (wasMoveOpenRef.current && !isMoveOpen) restoreFocus()
+    wasMoveOpenRef.current = isMoveOpen
+  }, [isMoveOpen, restoreFocus])
 
   if (attachments.length === 0) return null
 
@@ -134,6 +162,20 @@ export function AttachmentList({
   // Hidden while collapsed: what "Hide N" brings back
   const collapsedHidden = attachments.length - collapsedCount
   const shown = isExpanded ? attachments : attachments.slice(0, collapsedCount)
+  const savable = isDriveAvailable
+    ? attachments.flatMap((part): DriveSaveRequest[] =>
+        part.blobId
+          ? [
+              {
+                blobId: part.blobId,
+                name: cleanFileName(part.name) ?? t('email.attachment'),
+                size: part.size
+              }
+            ]
+          : []
+      )
+    : []
+  const isSavingAll = savable.some(file => statusOf(file.blobId) === 'saving')
 
   const handleDownloadAll = (): void => {
     downloadAll().catch(reportDownloadFailure)
@@ -177,13 +219,26 @@ export function AttachmentList({
             size: formatSize(totalSize, lang)
           })}
           action={
-            canDownloadAll ? (
-              <AttachmentDownloadAll
-                label={t('email.downloadAll')}
-                onClick={handleDownloadAll}
-                data-testid="download-all-attachments-button"
-              />
-            ) : null
+            <>
+              {savable.length > 1 ? (
+                <AttachmentDownloadAll
+                  label={t('email.drive.saveAll')}
+                  icon="save"
+                  isBusy={isSavingAll}
+                  onClick={() => {
+                    saveToDrive(savable)
+                  }}
+                  data-testid="save-all-attachments-to-drive-button"
+                />
+              ) : null}
+              {canDownloadAll ? (
+                <AttachmentDownloadAll
+                  label={t('email.downloadAll')}
+                  onClick={handleDownloadAll}
+                  data-testid="download-all-attachments-button"
+                />
+              ) : null}
+            </>
           }
         />
       }
@@ -226,6 +281,7 @@ export function AttachmentList({
                 })
               }
             : undefined
+          const toSave = savable.find(file => file.blobId === blobId)
           return (
             <AttachmentCard
               key={part.partId ?? part.blobId ?? index}
@@ -239,6 +295,25 @@ export function AttachmentList({
               onOpen={handleOpen}
               onDownload={handleDownload}
               onDragStart={handleDragStart}
+              save={
+                toSave === undefined
+                  ? null
+                  : {
+                      status: statusOf(toSave.blobId),
+                      labels: {
+                        idle: t('email.drive.saveToDrive'),
+                        saving: t('email.drive.saving'),
+                        saved: t('email.drive.fileSaved'),
+                        open: t('email.drive.seeInDrive')
+                      },
+                      onSave: () => {
+                        saveToDrive([toSave])
+                      },
+                      onOpen: () => {
+                        openSaved(toSave.blobId)
+                      }
+                    }
+              }
               data-testid="attachment-item"
             />
           )
@@ -252,6 +327,44 @@ export function AttachmentList({
           kind={previewed.kind}
           onClose={handleClose}
         />
+      ) : null}
+      {isDriveAvailable ? (
+        <>
+          <Box ref={setDriveFrameContainer} hidden />
+          <FramedDialog
+            open={isMoveOpen}
+            title={t('composer.drive.title')}
+            frameContainerRef={move.frameContainerRef}
+            isReady={move.state.status === 'open' && move.state.isReady}
+            loadingLabel={t('composer.drive.loading')}
+            loadingView={
+              <DrivePickerSkeleton data-testid="drive-move-skeleton" />
+            }
+            closeLabel={t('common.close')}
+            onClose={move.close}
+            showCloseButton={
+              move.state.status === 'open' && move.state.showCloseButton
+            }
+            disableRestoreFocus
+            message={
+              move.state.status === 'failed' ? (
+                <>
+                  <Typography>{t('composer.drive.error')}</Typography>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={retryOrganize}
+                    data-testid="drive-move-retry-button"
+                  >
+                    {t('composer.drive.retry')}
+                  </Button>
+                </>
+              ) : undefined
+            }
+            data-testid="drive-move-dialog"
+            frameTestId="drive-move-frame"
+          />
+        </>
       ) : null}
     </AttachmentListFrame>
   )

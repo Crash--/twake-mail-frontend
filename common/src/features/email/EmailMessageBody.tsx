@@ -36,7 +36,7 @@ import { useTrustedSender } from './trustedSenders'
 import { TruncatedBodyBanner } from './TruncatedBodyBanner'
 import { useDownloadEml } from './useDownloadEml'
 import { useEmail } from './useEmail'
-import { useEmailTextColor } from './useEmailTextColor'
+import { useEmailDocumentColors } from './useEmailDocumentColors'
 import { useInlineImageUrls } from './useInlineImageUrls'
 
 export interface EmailMessageBodyProps {
@@ -101,7 +101,7 @@ export function EmailMessageBody({
     userEmail: mailAddress
   })
   const focusIndicator = useFocusIndicator()
-  const textColor = useEmailTextColor()
+  const documentColors = useEmailDocumentColors()
   const trimmedContentLabel = t('email.showTrimmedContent')
   const body = useMemo(() => {
     if (inlineImages.isLoading) return null
@@ -114,7 +114,12 @@ export function EmailMessageBody({
     const content = foldQuotedHistory(rendered.html, trimmedContentLabel)
     return {
       document: buildEmailDocument(content, {
-        textColor,
+        // Dark only for an email that sets no colour: the ones it sets were
+        // chosen for a white page
+        colors:
+          rendered.declaresColors || documentColors.dark === null
+            ? documentColors.light
+            : documentColors.dark,
         allowRemoteContent,
         focusIndicator
       }),
@@ -127,7 +132,7 @@ export function EmailMessageBody({
     inlineImages.urls,
     allowRemoteContent,
     focusIndicator,
-    textColor,
+    documentColors,
     trimmedContentLabel
   ])
   // Inline images are shown in the body, not listed as attachments; nor

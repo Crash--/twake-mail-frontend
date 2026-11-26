@@ -12,7 +12,7 @@ import { AttachmentList } from './AttachmentList'
 import { formatAddress } from './addresses'
 import { buildEmailDocument, renderBodyParts } from './emailBody'
 import { EmailBodyFrame } from './EmailBodyFrame'
-import { useEmailTextColor } from './useEmailTextColor'
+import { useEmailDocumentColors } from './useEmailDocumentColors'
 
 export interface EmlPreviewProps {
   /** The blob of the .eml attachment */
@@ -74,15 +74,15 @@ export function EmlPreview({
     if (isError) onError()
   }, [isError, onError])
 
-  const textColor = useEmailTextColor()
+  const documentColors = useEmailDocumentColors()
   const email = query.data
   const document = useMemo(() => {
     if (!email) return null
     const bodyParts =
       email.htmlBody.length > 0 ? email.htmlBody : email.textBody
     const { html } = renderBodyParts(bodyParts, email.bodyValues)
-    return buildEmailDocument(html, { textColor })
-  }, [email, textColor])
+    return buildEmailDocument(html, { colors: documentColors.light })
+  }, [email, documentColors])
 
   if (!email || !document) {
     return <CircularProgress aria-label={t('email.preview.loading')} />

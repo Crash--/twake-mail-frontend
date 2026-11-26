@@ -756,6 +756,7 @@ export function RichTextEditor({
         onApply={applyLink}
         onRemove={removeLink}
         onClose={closeLinkDialog}
+        anchorEl={container}
         textInputTestId={testIds.linkTextInput}
         urlInputTestId={testIds.linkUrlInput}
         applyButtonTestId={testIds.linkApplyButton}

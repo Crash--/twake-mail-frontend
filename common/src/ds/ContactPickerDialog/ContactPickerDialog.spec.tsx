@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { renderDs } from '@/ds/testing/renderDs'
@@ -59,6 +59,16 @@ describe('ContactPickerDialog', () => {
       address: 'bob@example.com',
       name: null
     })
+  })
+
+  it('rules a line between the contacts, none under the last one', () => {
+    renderDialog()
+
+    const [first, last] = within(
+      screen.getByRole('list', { name: 'Contacts' })
+    ).getAllByRole('listitem')
+    expect(first).toHaveClass('MuiListItem-divider')
+    expect(last).not.toHaveClass('MuiListItem-divider')
   })
 
   it('reports the typed text and clears it', async () => {

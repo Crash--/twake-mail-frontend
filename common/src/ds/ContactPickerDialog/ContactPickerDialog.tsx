@@ -122,10 +122,14 @@ export function ContactPickerDialog({
             }}
           />
           <List id={listId} aria-label={labels.list}>
-            {items.map(item => {
+            {items.map((item, index) => {
               const label = item.name ?? item.address
               return (
-                <ListItem key={item.address} divider disableGutters>
+                <ListItem
+                  key={item.address}
+                  divider={index < items.length - 1}
+                  disableGutters
+                >
                   <label
                     className="u-flex u-flex-items-center u-w-100 u-c-pointer"
                     data-testid={testIds.item}

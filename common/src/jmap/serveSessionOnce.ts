@@ -1,4 +1,4 @@
-import type { FetchFunction } from 'jmap-client-ts'
+import type { FetchFunction } from '@linagora/jmap-client-ts'
 
 function isGet(init: RequestInit | undefined): boolean {
   return (init?.method ?? 'GET').toUpperCase() === 'GET'

@@ -1,7 +1,7 @@
 import type {
   createClient,
   FetchFunction,
-  JmapClient,
+  JmapClient
 } from '@linagora/jmap-client-ts'
 import {
   createContext,

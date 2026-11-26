@@ -110,7 +110,7 @@
         "error": "This message may be dangerous"
       },
       "codes": {
-        "suspiciousSender": "This email is from an external sender immitating known users, double check the mail address.",
+        "suspiciousSender": "This email is from an external sender imitating known users, double check the mail address.",
         "virus": "This email is having virus in its attachments!",
         "virusRemoved": "This email was having virus in its attachment, that we removed for your security.",
         "calendarSenderMismatch": "This invitation claims to be organized by %{organizer} but was sent by %{sender}. Accept it only if you trust the sender.",

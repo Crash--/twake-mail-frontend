@@ -198,7 +198,7 @@ describe('ConversationView', () => {
 
       const banner = await screen.findByTestId('twp-warning-0')
       expect(banner).toHaveTextContent(
-        'This email is from an external sender immitating known users'
+        'This email is from an external sender imitating known users'
       )
       expect(screen.getAllByTestId(/^twp-warning-\d$/)).toHaveLength(1)
     })

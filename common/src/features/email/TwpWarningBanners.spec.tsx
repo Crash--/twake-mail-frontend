@@ -84,7 +84,7 @@ describe('TwpWarningBanners', () => {
     const banner = await screen.findByTestId('twp-warning-0')
     expect(banner).toHaveAccessibleName('Information: About this message')
     expect(banner).toHaveTextContent(
-      'This email is from an external sender immitating known users, double check the mail address.'
+      'This email is from an external sender imitating known users, double check the mail address.'
     )
     expect(banner).not.toHaveTextContent('ignored')
   })
@@ -165,7 +165,7 @@ describe('TwpWarningBanners', () => {
         'Warning: Be careful with this message'
       )
       expect(banner).toHaveTextContent(
-        'This email is from an external sender immitating known users, double check the mail address.'
+        'This email is from an external sender imitating known users, double check the mail address.'
       )
     }
   )

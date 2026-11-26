@@ -51,7 +51,16 @@ const CHIP_SX = {
   border: 1,
   borderColor: 'divider',
   borderRadius: radius.md,
-  '&:hover': { bgcolor: 'action.hover' }
+  '&:hover': { bgcolor: 'action.hover' },
+  // The idle save action shows on hover or focus only, so that the name
+  // keeps its width at rest; always on screens without hover
+  '& .AttachmentCard-saveIdle': { display: 'none' },
+  '&:hover .AttachmentCard-saveIdle, &:focus-within .AttachmentCard-saveIdle': {
+    display: 'inline-flex'
+  },
+  '@media (hover: none)': {
+    '& .AttachmentCard-saveIdle': { display: 'inline-flex' }
+  }
 } as const
 
 const MAIN_SX = {
@@ -290,7 +299,13 @@ function AttachmentSaveButton({
         aria-disabled={status === 'saving' ? true : undefined}
         onClick={handleClick}
         sx={SAVE_SX}
-        className={status === 'saved' ? 'AttachmentCard-saved' : undefined}
+        className={
+          status === 'saved'
+            ? 'AttachmentCard-saved'
+            : status === 'idle'
+              ? 'AttachmentCard-saveIdle'
+              : undefined
+        }
         data-status={status}
         data-testid={testId}
       >

@@ -283,3 +283,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: "a saved file is saved"; a second copy would only confuse.
 - Scope: desktop and mobile, the attachments of an email.
+
+## 2026-11-26, [UX] The save action of a chip shows on hover or focus
+
+- Decision: on a computer, the "Save to my Drive" cloud of an attachment chip shows only while the chip is hovered or holds the focus (`:focus-within`, for the keyboard), so that the name keeps its whole width at rest; it stays shown while it saves and once saved. On phones and on any pointer without hover (`@media (hover: none)`), it always shows.
+- Decided by: Crash-- (CTO), 2026-11-26, [#1203](https://github.com/Crash--/twake-mail-frontend/pull/1203)
+- Why: with the cloud always there, the 260 px chips cut the names of the files further.
+- Scope: desktop and mobile, the attachments of an email.

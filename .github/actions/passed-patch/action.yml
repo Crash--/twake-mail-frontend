@@ -1,0 +1,54 @@
+# Has this workflow already passed on the same change of this pull request?
+#
+# The change is the diff of the pull request against its merge base, without
+# docs/decisions.md. A pull request rebased only to resolve a conflict in the decisions log keeps
+# the same change, so a workflow that passed before the rebase skips its jobs (`skip` is true).
+# The workflow records a passed change by saving the cache `key` at the end of its run.
+#
+# Never skips outside pull requests, on a pull request from a fork (its author, who can edit
+# the workflows, is not trusted to write the keys), on a re-run (the way to test again against the new base), or when the
+# fingerprint cannot be computed. The checkout needs the full history.
+name: Passed patch
+description: Tells whether the workflow already passed on the same change of the pull request
+inputs:
+  workflow:
+    description: Name of the workflow in the cache key
+    required: true
+outputs:
+  key:
+    description: Cache key to save once the workflow has passed, empty when nothing is recorded
+    value: ${{ steps.fingerprint.outputs.key }}
+  skip:
+    description: true when the workflow already passed on this change
+    value: ${{ steps.lookup.outputs.cache-hit == 'true' }}
+runs:
+  using: composite
+  steps:
+    - name: Fingerprint the change
+      id: fingerprint
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      shell: bash
+      env:
+        BASE: ${{ github.event.pull_request.base.sha }}
+        HEAD: ${{ github.event.pull_request.head.sha }}
+        PR: ${{ github.event.pull_request.number }}
+        WORKFLOW: ${{ inputs.workflow }}
+      run: |
+        # --verbatim: unlike --stable, a whitespace-only change gives another id
+        if base=$(git merge-base "$BASE" "$HEAD") \
+          && id=$(git diff --binary "$base" "$HEAD" -- . ':!docs/decisions.md' | git patch-id --verbatim | cut -d' ' -f1) \
+          && [[ -n "$id" ]]; then
+          echo "key=passed-$WORKFLOW-pr$PR-$id" >> "$GITHUB_OUTPUT"
+          echo "Change of the pull request: $id"
+        else
+          echo "::warning::No fingerprint of the change: the workflow runs in full"
+        fi
+
+    - name: Look for a passed run of this change
+      id: lookup
+      if: steps.fingerprint.outputs.key != '' && github.run_attempt == '1'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: .passed-patch
+        key: ${{ steps.fingerprint.outputs.key }}
+        lookup-only: true

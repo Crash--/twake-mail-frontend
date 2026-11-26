@@ -198,3 +198,7 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), request of 2026-11-26 to the Mail team
 - Why: a pull request rebased only to resolve a conflict in the decisions log has nothing new to test.
 - Scope: GitHub Actions of the repository. Accepted risk: after such a rebase, the code is not tested against the new main before the merge, only on main after it.
+
+## 2026-11-26, [Infra] Throwaway test entry from the base
+
+- Decision: test.

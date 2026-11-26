@@ -18,7 +18,7 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
   of linagora/jmap-client-ts).
 - Auth: OIDC (`@linagora/twake-oidc`, `openid-client` v6) by default, HTTP
   Basic as an option.
-- Tests: Jest 30 + ts-jest + Testing Library. End-to-end tests (Playwright)
+- Tests: Jest 30 + @swc/jest + Testing Library. End-to-end tests (Playwright)
   live in `e2e/`, a separate npm package outside the workspaces: never add
   anything there from this package, and keep it out of lint and Jest.
 

@@ -248,3 +248,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-24, on [#1152](https://github.com/Crash--/twake-mail-frontend/pull/1152#discussion_r4685292316), asked by Théo.
 - Why: the lint drops from 104 s and 3 GB of memory to 10 s and 1.5 GB, with the same rules.
 - Scope: `apps/private`, `common` and `scripts`; `e2e/` stays out of lint, as before.
+
+## 2026-11-26, [Tech] Jest transforms with @swc/jest
+
+- Decision: Jest transforms the TypeScript, JSX and ES module files with `@swc/jest` instead of ts-jest; the types stay checked by `tsc -b` alone.
+- Decided by: Crash-- (CTO), 2026-11-26
+- Why: ts-jest needs the JavaScript API of the `typescript` package, which TypeScript 7 no longer ships, and caps its peer at `<7`; swc transpiles without it.
+- Scope: unit tests.

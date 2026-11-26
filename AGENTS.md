@@ -13,8 +13,9 @@ a standalone webmail (not a Cozy app) talking JMAP to tmail-backend / James.
 - UI: `@linagora/twake-mui` 19.x, `@linagora/twake-icons`,
   `@linagora/twake-css` 1.2+ utility classes, `twake-i18n`, `@linagora/twake-utils`.
 - Data: TanStack Query v5. No Redux.
-- JMAP: `jmap-client-ts` v2 (contract: `jmap-client-ts/docs/v2-api.md`),
-  installed from `github:Crash--/jmap-client-ts#v2` until it is published.
+- JMAP: `@linagora/jmap-client-ts` v2 from npm (contract:
+  [`docs/v2-api.md`](https://github.com/linagora/jmap-client-ts/blob/v2/docs/v2-api.md)
+  of linagora/jmap-client-ts).
 - Auth: OIDC (`@linagora/twake-oidc`, `openid-client` v6) by default, HTTP
   Basic as an option.
 - Tests: Jest 30 + ts-jest + Testing Library. End-to-end tests (Playwright)

@@ -1,4 +1,4 @@
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 
 import { formatAddressName } from '@common/features/email/addresses'
 import {

@@ -1,4 +1,4 @@
-import type { Email } from 'jmap-client-ts'
+import type { Email } from '@linagora/jmap-client-ts'
 
 import { SEEN, type EmailKeyword } from '@common/features/email/keywords'
 

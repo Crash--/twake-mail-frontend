@@ -7,7 +7,7 @@ import {
   type Identity,
   type JmapClient,
   type SetError
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 import { findReferencedCids } from '@common/features/email/emailBody'
 import {

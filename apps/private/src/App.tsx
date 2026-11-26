@@ -1,4 +1,4 @@
-import { createClient } from 'jmap-client-ts'
+import { createClient } from '@linagora/jmap-client-ts'
 import { lazy, Suspense, useState, type ReactElement } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { createBrowserRouter, createRoutesFromElements } from 'react-router'

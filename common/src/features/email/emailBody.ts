@@ -1,4 +1,4 @@
-import type { EmailBodyPart, EmailBodyValue } from 'jmap-client-ts'
+import type { EmailBodyPart, EmailBodyValue } from '@linagora/jmap-client-ts'
 
 import {
   FOCUS_RING_WIDTH,

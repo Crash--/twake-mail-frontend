@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { createClient } from 'jmap-client-ts'
+import { createClient } from '@linagora/jmap-client-ts'
 
 import { AppProviders } from '@common/app/AppProviders'
 import { makeQueryClient } from '@common/app/queryClient'

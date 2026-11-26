@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import type { Rule } from 'jmap-client-ts/linagora'
+import type { Rule } from '@linagora/jmap-client-ts/linagora'
 import { useCallback } from 'react'
 
 import { useNotify } from '@common/features/notifications/NotificationsProvider'

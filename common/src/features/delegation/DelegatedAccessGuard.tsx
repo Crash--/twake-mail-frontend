@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { JmapMethodError } from 'jmap-client-ts'
+import { JmapMethodError } from '@linagora/jmap-client-ts'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 

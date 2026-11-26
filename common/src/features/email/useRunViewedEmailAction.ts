@@ -1,4 +1,4 @@
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router'
 

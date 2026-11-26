@@ -1,5 +1,5 @@
 import { Dropdown, Dropup } from '@linagora/twake-icons'
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 import type { ReactElement } from 'react'
 
 import { IconAction } from '@/ds/IconAction/IconAction'

@@ -1,4 +1,4 @@
-import type { EmailBodyPartCreate, JmapClient } from 'jmap-client-ts'
+import type { EmailBodyPartCreate, JmapClient } from '@linagora/jmap-client-ts'
 
 /** An image of the message, stored as a JMAP blob */
 export interface StoredImage {

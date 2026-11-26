@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import type { SentrySetup } from '@common/app/sentry'
 import { useAppConfig } from '@common/config/AppConfigProvider'

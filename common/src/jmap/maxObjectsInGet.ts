@@ -5,7 +5,7 @@ import {
   type RequestBuilder,
   type RequestOptions,
   type Session
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 /**
  * Ids per `/get` when the session does not tell, as tmail-flutter

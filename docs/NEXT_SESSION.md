@@ -17,7 +17,7 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 | Quoi | Où |
 |---|---|
 | App (public) | `github.com/Crash--/twake-mail-frontend`, clone `~/Sites/Linagora/twake-mail-frontend` |
-| Client JMAP (public) | `github.com/Crash--/jmap-client-ts`, branche **`v2`**, clone `~/Sites/Linagora/jmap-client-ts` ; entrée `jmap-client-ts/linagora` pour les extensions |
+| Client JMAP (public) | `github.com/linagora/jmap-client-ts`, branche **`v2`**, clone `~/Sites/Linagora/jmap-client-ts`, publié sur npm sous `@linagora/jmap-client-ts` ; entrée `@linagora/jmap-client-ts/linagora` pour les extensions |
 | Référence Flutter | `~/.paseo/worktrees/1d578va0/spiffy-pony` (worktree de tmail-flutter à jour de `master` ; `sharp-mouse` n'existe plus) |
 | Design (hors dépôt) | `~/Sites/Linagora/twake-mail-design-cache/` (git local, jamais poussé) : `design-reference.md` (point d'entrée), specs `sidebar-spec.md`, `list-spec.md`, `reading-spec.md`, `composer-spec.md`, `editor-spec.md`, `e4-audit.md`, `component-check.md`, **`questions-quentin.md`** (décisions en attente), captures Figma (`twake-mui-page/`, `other-pages/`, `editor/`), captures avant/après par lot, scripts `tools/` (dont `automerge.sh`). **Ne rien en copier dans le dépôt public.** |
 | Démo (Tailscale seulement) | **https://mail-react.twake.valmoriq.fr**, branchée sur le Workplace `twake.valmoriq.fr` (tmail-backend 1.0.19.1, SSO LemonLDAP), compte `user1` (≈ 3 400 mails de démo) |
@@ -123,7 +123,7 @@ il reste des finitions et les **décisions en attente de Quentin** (§5).
 
 ## 7. Pièges connus
 
-- Après chaque push sur `jmap-client-ts` v2 : mettre à jour le lockfile de l'app puis `npm approve-scripts jmap-client-ts`.
+- `jmap-client-ts` v2 est publié sur npm sous `@linagora/jmap-client-ts` (étiquette `next`, depuis linagora/jmap-client-ts, branche `v2`, release GitHub en prerelease) : pour une nouvelle version, publier une prerelease puis monter la version exacte dans `common/package.json`.
 - E2E sur l'image **memory** : bugs #2684 (Email/set bloqué/corrompu au-delà de ~256 messages), Lucene (recherche, expunge) →
   **redémarrer la stack** (`e2e/scripts/stop.sh` puis `start.sh`) entre les campagnes ; un projet compose et des ports par agent.
   Ports déjà utilisés par d'autres environnements : 80, 8080, 8090, 5984, 6060 ; publier seulement sur 127.0.0.1.

@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
-import type { Identity } from 'jmap-client-ts'
+import type { Identity } from '@linagora/jmap-client-ts'
 
 import { sanitizeEmailHtml } from '@common/features/email/sanitizeEmailHtml'
 

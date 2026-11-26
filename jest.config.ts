@@ -19,7 +19,7 @@ const ESM_PACKAGES = [
   'openid-client',
   'oauth4webapi',
   'jose',
-  'jmap-client-ts',
+  '@linagora/jmap-client-ts',
   '@formatjs'
 ]
 

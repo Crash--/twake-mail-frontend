@@ -1,4 +1,4 @@
-import type { Email } from 'jmap-client-ts'
+import type { Email } from '@linagora/jmap-client-ts'
 import { useEffect, useRef } from 'react'
 
 import { useEmailActions } from '@common/features/emailActions/useEmailActions'

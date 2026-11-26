@@ -1,5 +1,5 @@
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient } from '@linagora/jmap-client-ts'
 
 import { patchEmailDetail } from '@common/features/email/patchEmailDetail'
 import { emailKeys, type EmailDetail } from '@common/features/email/queries'

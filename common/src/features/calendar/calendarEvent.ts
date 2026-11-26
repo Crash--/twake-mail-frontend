@@ -2,7 +2,7 @@ import type {
   CalendarEvent,
   CalendarEventAttendanceStatus,
   CalendarEventParticipant
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import type { IsSelf } from '@common/features/composer/replyRecipients'
 

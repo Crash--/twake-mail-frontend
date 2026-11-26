@@ -14,7 +14,7 @@ import {
   Typography,
   type Theme
 } from '@linagora/twake-mui'
-import type { Rule } from 'jmap-client-ts/linagora'
+import type { Rule } from '@linagora/jmap-client-ts/linagora'
 import {
   useId,
   useRef,

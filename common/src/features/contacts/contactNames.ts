@@ -1,4 +1,4 @@
-import type { TMailContact } from 'jmap-client-ts/linagora'
+import type { TMailContact } from '@linagora/jmap-client-ts/linagora'
 
 type NamedContact = Pick<TMailContact, 'emailAddress' | 'firstname' | 'surname'>
 

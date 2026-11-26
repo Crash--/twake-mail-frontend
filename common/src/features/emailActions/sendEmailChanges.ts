@@ -1,4 +1,4 @@
-import type { JmapClient, Session } from 'jmap-client-ts'
+import type { JmapClient, Session } from '@linagora/jmap-client-ts'
 
 import {
   toEmailPatch,

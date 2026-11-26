@@ -1,4 +1,4 @@
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 import type { ReactElement, ReactNode, Ref } from 'react'
 
 import { InlineGroup } from '@/ds/InlineGroup/InlineGroup'

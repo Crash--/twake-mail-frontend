@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient } from '@linagora/jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { maxObjectsInGet } from '@common/jmap/maxObjectsInGet'

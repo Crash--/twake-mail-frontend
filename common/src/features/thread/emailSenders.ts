@@ -1,4 +1,4 @@
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient } from '@linagora/jmap-client-ts'
 
 import { getInChunks } from '@common/jmap/maxObjectsInGet'
 

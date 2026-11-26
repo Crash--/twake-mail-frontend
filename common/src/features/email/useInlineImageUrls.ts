@@ -1,4 +1,4 @@
-import type { EmailBodyPart, JmapClient } from 'jmap-client-ts'
+import type { EmailBodyPart, JmapClient } from '@linagora/jmap-client-ts'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useJmapClient } from '@common/jmap/JmapClientProvider'

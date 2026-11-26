@@ -4,8 +4,11 @@ import {
   type QueryClient,
   type UseQueryResult
 } from '@tanstack/react-query'
-import type { ChangesResponse, JmapClient } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES, type Label } from 'jmap-client-ts/linagora'
+import type { ChangesResponse, JmapClient } from '@linagora/jmap-client-ts'
+import {
+  LINAGORA_CAPABILITIES,
+  type Label
+} from '@linagora/jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'

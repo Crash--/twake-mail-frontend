@@ -1,7 +1,7 @@
 import {
   LINAGORA_CAPABILITIES,
   type ContactSupportCapability
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 

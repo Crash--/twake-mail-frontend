@@ -12,7 +12,7 @@ import type {
   QueryResponse,
   SearchSnippet,
   Thread
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 import {
   CALENDAR_EVENT_HEADER,

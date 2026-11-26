@@ -1,7 +1,7 @@
 import { Filter, Icon, Plus } from '@linagora/twake-icons'
 import { Alert, Button } from '@linagora/twake-mui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { Rule } from 'jmap-client-ts/linagora'
+import type { Rule } from '@linagora/jmap-client-ts/linagora'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 

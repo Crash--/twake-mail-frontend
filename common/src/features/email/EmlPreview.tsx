@@ -1,6 +1,6 @@
 import { CircularProgress, Typography } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
-import type { Email, EmailAddress } from 'jmap-client-ts'
+import type { Email, EmailAddress } from '@linagora/jmap-client-ts'
 import { useEffect, useMemo, type ReactElement } from 'react'
 
 import { FilePreviewSurface } from '@/ds/FilePreviewDialog/FilePreviewDialog'

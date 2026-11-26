@@ -1,4 +1,8 @@
-import type { AnyCallHandle, ChangesResponse, JmapClient } from 'jmap-client-ts'
+import type {
+  AnyCallHandle,
+  ChangesResponse,
+  JmapClient
+} from '@linagora/jmap-client-ts'
 
 import {
   MAILBOX_PROPERTIES,

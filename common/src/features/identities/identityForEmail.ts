@@ -1,4 +1,4 @@
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 
 import { teamMailboxAddress } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'

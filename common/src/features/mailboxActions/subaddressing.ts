@@ -1,10 +1,10 @@
-import type { Session } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import type { Session } from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import { findAncestorIds } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 
-declare module 'jmap-client-ts' {
+declare module '@linagora/jmap-client-ts' {
   interface Mailbox {
     /**
      * James shares extension: who may do what in the mailbox, as IMAP ACL

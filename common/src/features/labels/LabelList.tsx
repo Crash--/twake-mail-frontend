@@ -1,4 +1,4 @@
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 import { useMemo, type ReactElement } from 'react'
 import { useMatch } from 'react-router'
 

@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route } from 'react-router'
-import type { EmailBodyPart, EmailBodyValue } from 'jmap-client-ts'
+import type { EmailBodyPart, EmailBodyValue } from '@linagora/jmap-client-ts'
 
 import {
   makeBodyPart,

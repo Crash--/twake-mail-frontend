@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { JmapHttpError } from 'jmap-client-ts'
+import { JmapHttpError } from '@linagora/jmap-client-ts'
 import { useMemo } from 'react'
 
 import { emailKeys } from '@common/features/email/queries'

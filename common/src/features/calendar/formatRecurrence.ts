@@ -1,4 +1,4 @@
-import type { CalendarEventRecurrenceRule } from 'jmap-client-ts/linagora'
+import type { CalendarEventRecurrenceRule } from '@linagora/jmap-client-ts/linagora'
 
 import type { I18nApi, TranslationKey } from '@common/i18n/useI18n'
 

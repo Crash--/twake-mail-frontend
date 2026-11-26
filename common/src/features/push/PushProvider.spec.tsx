@@ -1,7 +1,7 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { WebSocketLike } from 'jmap-client-ts'
+import type { WebSocketLike } from '@linagora/jmap-client-ts'
 import { useState, type ReactElement } from 'react'
 
 import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'

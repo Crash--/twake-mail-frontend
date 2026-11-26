@@ -7,7 +7,7 @@ import {
   MenuItem,
   Tooltip
 } from '@linagora/twake-mui'
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 import { Link, useMatch } from 'react-router'
 

@@ -1,9 +1,9 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient } from '@linagora/jmap-client-ts'
 import type {
   CalendarEvent,
   CalendarEventAttendanceStatus
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 

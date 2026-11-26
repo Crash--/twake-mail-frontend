@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
-import type { SetError } from 'jmap-client-ts'
+import type { SetError } from '@linagora/jmap-client-ts'
 import {
   LINAGORA_CAPABILITIES,
   type CalendarEventAttendanceStatus,
   type CalendarEventCapability
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 import { useCallback, useState } from 'react'
 
 import { useNotify } from '@common/features/notifications/NotificationsProvider'

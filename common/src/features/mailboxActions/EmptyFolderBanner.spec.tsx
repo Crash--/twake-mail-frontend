@@ -1,7 +1,7 @@
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import { EmailList } from '@common/features/thread/EmailList'
 import {

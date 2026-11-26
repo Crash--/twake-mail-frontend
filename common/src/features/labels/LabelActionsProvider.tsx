@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 import {
   createContext,
   useCallback,

@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createClient } from 'jmap-client-ts'
+import { createClient } from '@linagora/jmap-client-ts'
 
 import { sentryLifecycle } from '@common/app/sentry'
 import { AppProviders } from '@common/app/AppProviders'

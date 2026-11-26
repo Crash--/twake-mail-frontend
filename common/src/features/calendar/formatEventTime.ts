@@ -1,4 +1,4 @@
-import type { CalendarEvent } from 'jmap-client-ts/linagora'
+import type { CalendarEvent } from '@linagora/jmap-client-ts/linagora'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 

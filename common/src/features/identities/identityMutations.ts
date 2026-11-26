@@ -1,4 +1,8 @@
-import type { EmailAddress, JmapClient, SetError } from 'jmap-client-ts'
+import type {
+  EmailAddress,
+  JmapClient,
+  SetError
+} from '@linagora/jmap-client-ts'
 
 import { IDENTITY_SORT_ORDER_CAPABILITY, type IdentitySummary } from './queries'
 import {

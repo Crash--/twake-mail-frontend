@@ -1,4 +1,4 @@
-import type { Session } from 'jmap-client-ts'
+import type { Session } from '@linagora/jmap-client-ts'
 
 /**
  * The mailbox the mail screens show (tmail-flutter#4977): the user's own,

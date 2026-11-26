@@ -1,4 +1,4 @@
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 
 import type { I18nApi } from '@common/i18n/useI18n'
 

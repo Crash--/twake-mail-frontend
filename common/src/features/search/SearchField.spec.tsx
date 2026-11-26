@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { useLocation } from 'react-router'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'

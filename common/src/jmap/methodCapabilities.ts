@@ -5,11 +5,11 @@ import {
   type SetArgs,
   type SetError,
   type SetResponse
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 import {
   LINAGORA_CAPABILITIES,
   LINAGORA_METHOD_CAPABILITIES
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 /** James delegation extension: `Delegate/*` and `DelegatedAccount/*` */
 export const DELEGATION_CAPABILITY = LINAGORA_CAPABILITIES.jamesDelegation
@@ -32,7 +32,7 @@ export interface Delegation {
 }
 
 // Not in jmap-client-ts yet
-declare module 'jmap-client-ts' {
+declare module '@linagora/jmap-client-ts' {
   interface JmapMethods {
     'Delegate/get': {
       capability: DelegationCapability

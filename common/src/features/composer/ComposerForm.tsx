@@ -28,7 +28,7 @@ import {
 } from '@linagora/twake-mui'
 import { useQuery } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
-import { JmapSetError } from 'jmap-client-ts'
+import { JmapSetError } from '@linagora/jmap-client-ts'
 import {
   useEffect,
   useId,

@@ -1,6 +1,10 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query'
-import { CAPABILITIES, type JmapClient, type Session } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import {
+  CAPABILITIES,
+  type JmapClient,
+  type Session
+} from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 

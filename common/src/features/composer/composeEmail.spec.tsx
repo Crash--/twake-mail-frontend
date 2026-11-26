@@ -6,7 +6,7 @@ import {
   type EmailCreate,
   type FetchFunction,
   type JmapClient
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {

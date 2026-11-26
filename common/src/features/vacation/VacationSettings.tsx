@@ -2,7 +2,7 @@ import { CircleFilled, Icon } from '@linagora/twake-icons'
 import { Alert, Box, Button, Chip, Tab, Tabs } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
-import type { VacationResponse } from 'jmap-client-ts'
+import type { VacationResponse } from '@linagora/jmap-client-ts'
 import {
   useEffect,
   useId,

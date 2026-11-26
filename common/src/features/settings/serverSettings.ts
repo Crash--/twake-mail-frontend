@@ -1,10 +1,10 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
-import type { JmapClient, Session } from 'jmap-client-ts'
+import type { JmapClient, Session } from '@linagora/jmap-client-ts'
 import {
   LINAGORA_CAPABILITIES,
   type KnownSettingKey,
   type SettingsCapability
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'

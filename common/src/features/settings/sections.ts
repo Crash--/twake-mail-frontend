@@ -10,8 +10,8 @@ import {
   Plane,
   Team
 } from '@linagora/twake-icons'
-import { CAPABILITIES, type Session } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { CAPABILITIES, type Session } from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import { KeyboardSettingsIcon } from '@/ds/SettingsIcons/SettingsIcons'
 import type { TranslationKey } from '@common/i18n/useI18n'

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import type { Session } from 'jmap-client-ts'
+import type { Session } from '@linagora/jmap-client-ts'
 
 import {
   clearMailboxViews,

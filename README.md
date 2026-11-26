@@ -209,11 +209,8 @@ the build output.
 
 The app talks JMAP through
 [jmap-client-ts](https://github.com/linagora/jmap-client-ts) v2, installed
-from `github:Crash--/jmap-client-ts#v2` until it is published: npm builds it
-with its `prepare` script, approved for the locked commit in the
-`allowScripts` field of `package.json`. After moving the dependency to a new
-commit (`npm install jmap-client-ts@github:Crash--/jmap-client-ts#v2 -w
-@mail/common`), approve it again with `npm approve-scripts jmap-client-ts`.
+from npm as `@linagora/jmap-client-ts` (prereleases under the `next` tag,
+pinned to an exact version in `common/package.json`).
 
 One client is created per sign-in (`common/src/jmap/JmapClientProvider.tsx`),
 authenticated by the auth service (`makeJmapAuth.ts`: Bearer or Basic header,

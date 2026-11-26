@@ -1,4 +1,4 @@
-import type { EmailBodyPart } from 'jmap-client-ts'
+import type { EmailBodyPart } from '@linagora/jmap-client-ts'
 import { useRef, useState, type DragEvent, type ReactElement } from 'react'
 
 import {

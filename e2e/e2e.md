@@ -658,6 +658,8 @@ the page objects open the folder drawer when the screen has one. Breakpoints: tm
   - Spec: `tests/team-mailbox-overlay.spec.ts`.
 - [ ] `TMB-15` Framed at 1 000 px (a large tablet in the webmail), the facade has the desktop layout: no reading placeholder beside the list, an opened email replaces the list. axe. CI to confirm. — web app only (TwakeSpace), no Patrol test
   - Spec: `tests/team-mailbox-embed.spec.ts`.
+- [x] `TMB-17` On the overlay of TwakeSpace, the link popup of the composer (Ctrl+K) opens on the overlay, not in the frame of the facade: it paints above the composer, under the caret (issue #1194). — web app only (TwakeSpace), no Patrol test
+  - Spec: `tests/team-mailbox-overlay.spec.ts`.
 - [x] `MBX-31` A subfolder found by the folder search shows its path under its name, a team mailbox its address, whatever the case or the accents; no match says "No folder matches your search". axe on the results. — web app only, no Patrol test
   - Spec: `tests/folder-search.spec.ts`.
 - [x] `MBX-32` A hidden folder is found by the folder search, marked hidden; with the keyboard (ArrowDown, Shift+F10) "Show folder" shows it again; Escape folds the search only (also in the drawer) and focuses the magnifier. axe. — web app only, no Patrol test

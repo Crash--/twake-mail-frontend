@@ -33,6 +33,11 @@ export interface LinkDialogProps {
   onApply: (value: LinkDialogValue) => void
   onRemove: () => void
   onClose: () => void
+  /**
+   * The editor: the card shows in its document, at the caret of its window
+   * (in TwakeSpace, the overlay the composer is on, not the frame of Mail)
+   */
+  anchorEl: HTMLElement | null
   textInputTestId?: string
   urlInputTestId?: string
   applyButtonTestId?: string
@@ -130,8 +135,8 @@ const TEXT_BUTTON_SX = {
 } as const
 
 /** Where the caret is: the card opens under it, as tmail-flutter's */
-function caretPosition(): PopoverPosition | null {
-  const selection = window.getSelection()
+function caretPosition(view: Window): PopoverPosition | null {
+  const selection = view.getSelection()
   if (selection === null || selection.rangeCount === 0) return null
   const rect = selection.getRangeAt(0).getBoundingClientRect()
   if (rect.width === 0 && rect.height === 0 && rect.top === 0) return null
@@ -156,6 +161,7 @@ export function LinkDialog({
   onApply,
   onRemove,
   onClose,
+  anchorEl,
   textInputTestId,
   urlInputTestId,
   applyButtonTestId
@@ -168,13 +174,14 @@ export function LinkDialog({
   const [opened, setOpened] = useState(open)
   const [position, setPosition] = useState<PopoverPosition | null>(null)
   const [invalid, setInvalid] = useState(false)
+  const view = anchorEl?.ownerDocument.defaultView ?? window
   // Reset the fields at each opening (state derived from props)
   if (open !== opened) {
     setOpened(open)
     if (open) {
       setText(initialValue.text)
       setUrl(initialValue.url)
-      setPosition(caretPosition())
+      setPosition(caretPosition(view))
       setInvalid(false)
     }
   }
@@ -198,11 +205,13 @@ export function LinkDialog({
     <Popover
       open={open}
       onClose={onClose}
+      // Placed at the caret; the anchor gives its document and window
+      anchorEl={anchorEl}
       anchorReference="anchorPosition"
       anchorPosition={
         position ?? {
-          top: window.innerHeight / 3,
-          left: Math.max(16, window.innerWidth / 2 - 180)
+          top: view.innerHeight / 3,
+          left: Math.max(16, view.innerWidth / 2 - 180)
         }
       }
       // The editor gets the focus back itself once the link is applied

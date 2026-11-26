@@ -166,4 +166,63 @@ test.describe('TMB team mailbox facade on the overlay of TwakeSpace', () => {
     await expect.poll(() => clipPath(page)).toMatch(/^inset/)
     await expect(more).toBeFocused()
   })
+
+  test('TMB-17 the link popup of the composer opens on the overlay, above the composer, under the caret (issue #1194)', async ({
+    page,
+    user,
+    users,
+    webadmin
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const { facade, overlay } = await openHost(
+      page,
+      user,
+      await facadePath(webadmin, team)
+    )
+    await facade.getByTestId('compose-email-button').first().click()
+    const composer = new ComposerPage(page, overlay.getByTestId('composer'))
+    await composer.editor.click()
+    await page.keyboard.type('Lunch on Friday')
+
+    // Where the caret is, at the end of the text
+    const caret = await composer.editor.evaluate(element => {
+      const rect = element.ownerDocument
+        .getSelection()!
+        .getRangeAt(0)
+        .getBoundingClientRect()
+      return { left: rect.left, bottom: rect.bottom }
+    })
+
+    await page.keyboard.press('Control+K')
+
+    const dialog = overlay.getByRole('dialog', { name: 'Insert link' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByTestId('link-dialog-url-input')).toBeFocused()
+    await expect(
+      facade.getByRole('dialog', { name: 'Insert link' })
+    ).toHaveCount(0)
+    // It paints on top at its centre: the overlay on the host page, then
+    // itself on the overlay
+    const box = await dialog.boundingBox()
+    const centre = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 }
+    expect(
+      await page.evaluate(
+        ({ x, y }) => document.elementFromPoint(x, y)?.id ?? null,
+        centre
+      )
+    ).toBe('overlay')
+    expect(
+      await dialog.evaluate((element, { x, y }) => {
+        const hit = element.ownerDocument.elementFromPoint(x, y)
+        return hit !== null && element.contains(hit)
+      }, centre)
+    ).toBe(true)
+    // Under the caret
+    expect(Math.abs(box!.x - caret.left)).toBeLessThan(2)
+    expect(box!.y).toBeGreaterThanOrEqual(caret.bottom)
+
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await expect(composer.editor).toBeFocused()
+  })
 })

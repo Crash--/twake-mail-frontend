@@ -12,7 +12,7 @@ import {
   ToastRegion,
   type ToastItem
 } from './ToastRegion'
-import { TOAST_AVOID } from './toastPlacement'
+import { TOAST_AVOID, TOAST_AVOID_BAR } from './toastPlacement'
 
 function Harness({
   initial,
@@ -80,7 +80,12 @@ function DialogHarness({
           </button>
         </DialogContent>
       </Dialog>
-      <ToastRegion toast={toast} onClose={jest.fn()} closeLabel="Close" />
+      <ToastRegion
+        toast={toast}
+        onClose={jest.fn()}
+        closeLabel="Close"
+        data-testid="toast"
+      />
     </>
   )
 }
@@ -366,6 +371,69 @@ describe('ToastRegion', () => {
       screen.getByTestId('toast').parentElement?.parentElement
     ).toHaveStyle({ right: `${window.innerWidth - 630 + 16}px` })
     docked.remove()
+  })
+
+  it('goes 16 px above the bar of answers under it', () => {
+    const bar = document.createElement('div')
+    bar.setAttribute(TOAST_AVOID, TOAST_AVOID_BAR)
+    bar.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: window.innerHeight - 57,
+        right: window.innerWidth
+      }) as DOMRect
+    document.body.append(bar)
+
+    renderToast(MOVED)
+
+    expect(
+      screen.getByTestId('toast').parentElement?.parentElement
+    ).toHaveStyle({ bottom: `${57 + 16}px` })
+    bar.remove()
+  })
+
+  it('stays centred above a bar, not beside it as beside a docked window', () => {
+    const bar = document.createElement('div')
+    bar.setAttribute(TOAST_AVOID, TOAST_AVOID_BAR)
+    bar.getBoundingClientRect = () =>
+      ({
+        left: 500,
+        top: window.innerHeight - 57,
+        right: window.innerWidth
+      }) as DOMRect
+    document.body.append(bar)
+
+    renderToast(MOVED)
+
+    const box = screen.getByTestId('toast').parentElement?.parentElement
+    expect(box).toHaveStyle({
+      left: `${window.innerWidth / 2}px`,
+      bottom: `${57 + 16}px`
+    })
+    expect(box?.style.right).toBe('')
+    bar.remove()
+  })
+
+  it('goes back to the bottom centre in a dialog, whatever its place in the page', async () => {
+    const bar = document.createElement('div')
+    bar.setAttribute(TOAST_AVOID, TOAST_AVOID_BAR)
+    bar.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: window.innerHeight - 57,
+        right: window.innerWidth
+      }) as DOMRect
+    document.body.append(bar)
+    renderDs(<DialogHarness initial={MOVED} />)
+    const placed = (): HTMLElement | null | undefined =>
+      screen.getByTestId('toast').parentElement?.parentElement
+    expect(placed()).toHaveStyle({ bottom: `${57 + 16}px` })
+
+    await openDialog()
+
+    expect(placed()).toHaveStyle({ left: '50%' })
+    expect(placed()).not.toHaveStyle({ bottom: `${57 + 16}px` })
+    bar.remove()
   })
 
   describe('while a popover is open', () => {

@@ -4,6 +4,7 @@
 import { Box, Button, Divider } from '@linagora/twake-mui'
 import type { MouseEventHandler, ReactElement, ReactNode } from 'react'
 
+import { TOAST_AVOID, TOAST_AVOID_BAR } from '@/ds/ToastRegion/toastPlacement'
 import { SCREEN_QUERIES } from '@/ds/useScreenSize/useScreenSize'
 
 const BAR_SX = {
@@ -45,14 +46,23 @@ export interface ActionBarProps {
   'data-testid'?: string
 }
 
-/** The row of answers at the bottom of an email or a conversation */
+/**
+ * The row of answers at the bottom of an email or a conversation; toasts go
+ * above it
+ */
 export function ActionBar({
   label,
   children,
   'data-testid': testId
 }: ActionBarProps): ReactElement {
   return (
-    <Box role="group" aria-label={label} sx={BAR_SX} data-testid={testId}>
+    <Box
+      role="group"
+      aria-label={label}
+      sx={BAR_SX}
+      data-testid={testId}
+      {...{ [TOAST_AVOID]: TOAST_AVOID_BAR }}
+    >
       <Divider />
       <Box sx={ROW_SX}>{children}</Box>
     </Box>

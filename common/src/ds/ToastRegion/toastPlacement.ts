@@ -1,5 +1,10 @@
 /** The attribute of what a toast must not cover (a docked window) */
 export const TOAST_AVOID = 'data-toast-avoid'
+/**
+ * The value of `TOAST_AVOID` on a bar (the answers of the reader): the toast
+ * keeps its place beside the windows and goes above the bar under it
+ */
+export const TOAST_AVOID_BAR = 'bar'
 
 /** Between a toast and what it avoids, and from the edge of the screen */
 const GAP = 16
@@ -29,9 +34,61 @@ export type ToastPlacement =
  * windows, open or minimized): at the bottom centre without any; else
  * `GAP` before one of them, or right above one, aligned on it, raised
  * above the ones it would cover there, as low as can be; else above them
- * all
+ * all. Then `GAP` above the bars under it there.
  */
 export function placeToast(
+  avoided: readonly AvoidedBox[],
+  viewport: { width: number; height: number },
+  bars: readonly AvoidedBox[] = []
+): ToastPlacement {
+  return liftAboveBars(placeBesideWindows(avoided, viewport), bars, viewport)
+}
+
+/** Left and right of the widest toast at a placement */
+function toastSpan(
+  placement: ToastPlacement,
+  viewportWidth: number
+): { left: number; right: number } {
+  switch (placement.kind) {
+    case 'beside': {
+      const right = viewportWidth - placement.right
+      return { left: right - placement.maxWidth, right }
+    }
+    case 'above':
+      return {
+        left: placement.centerX - TOAST_MAX_WIDTH / 2,
+        right: placement.centerX + TOAST_MAX_WIDTH / 2
+      }
+    default:
+      return {
+        left: (viewportWidth - TOAST_MAX_WIDTH) / 2,
+        right: (viewportWidth + TOAST_MAX_WIDTH) / 2
+      }
+  }
+}
+
+function liftAboveBars(
+  placement: ToastPlacement,
+  bars: readonly AvoidedBox[],
+  viewport: { width: number; height: number }
+): ToastPlacement {
+  const span = toastSpan(placement, viewport.width)
+  const under = bars.filter(
+    bar => bar.left < span.right && bar.right > span.left
+  )
+  if (under.length === 0) return placement
+  const bottom = viewport.height - Math.min(...under.map(bar => bar.top)) + GAP
+  switch (placement.kind) {
+    case 'beside':
+      return { ...placement, bottom: Math.max(placement.bottom ?? 0, bottom) }
+    case 'above':
+      return { ...placement, bottom: Math.max(placement.bottom, bottom) }
+    default:
+      return { kind: 'above', bottom, centerX: viewport.width / 2 }
+  }
+}
+
+function placeBesideWindows(
   avoided: readonly AvoidedBox[],
   viewport: { width: number; height: number }
 ): ToastPlacement {

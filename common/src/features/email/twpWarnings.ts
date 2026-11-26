@@ -1,3 +1,4 @@
+import { graphemes } from '@/ds/graphemes/graphemes'
 import type { TranslationKey, TranslationOptions } from '@common/i18n/useI18n'
 
 import type { CalendarSenderMismatch } from './calendarSenderMismatch'
@@ -56,7 +57,7 @@ const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f-\u009f]/g
 
 function capText(text: string): string {
   const clean = text.replace(CONTROL_CHARACTERS, ' ').replace(/\s+/g, ' ')
-  const characters = Array.from(clean.trim())
+  const characters = graphemes(clean.trim())
   return characters.length > TWP_TEXT_MAX_LENGTH
     ? `${characters.slice(0, TWP_TEXT_MAX_LENGTH).join('')}…`
     : characters.join('')

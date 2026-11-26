@@ -24,6 +24,7 @@ import {
 } from 'react'
 
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { initialsOf } from '@/ds/RecipientField/initials'
 import { IconAction } from '@/ds/IconAction/IconAction'
 import { LiveRegion } from '@/ds/LiveRegion/LiveRegion'
 import { NarrowColumn } from '@/ds/NarrowColumn/NarrowColumn'
@@ -495,7 +496,7 @@ export function ForwardSettings({
                         }}
                         avatar={
                           <GradientAvatar
-                            text={email.slice(0, 2).toUpperCase()}
+                            text={initialsOf(email)}
                             colorKey={email}
                             size={32}
                           />

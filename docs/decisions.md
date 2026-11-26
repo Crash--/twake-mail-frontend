@@ -255,3 +255,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: ts-jest needs the JavaScript API of the `typescript` package, which TypeScript 7 no longer ships, and caps its peer at `<7`; swc transpiles without it.
 - Scope: unit tests.
+
+## 2026-11-26, [Tech] TypeScript 7 everywhere
+
+- Decision: the `typescript` dependency is TypeScript 7; `npm run typecheck` stays `tsc -b`.
+- Decided by: Crash-- (CTO), 2026-11-26
+- Why: nothing loads the JavaScript API of `typescript` any more (Jest transforms with swc, Rslint is built on TypeScript 7), and `tsc -b` of TypeScript 7 checks the repository about three times faster.
+- Scope: type checking.

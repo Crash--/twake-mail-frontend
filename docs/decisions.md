@@ -262,3 +262,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: nothing loads the JavaScript API of `typescript` any more (Jest transforms with swc, Rslint is built on TypeScript 7), and `tsc -b` of TypeScript 7 checks the repository about three times faster.
 - Scope: type checking.
+
+## 2026-11-26, [Tech] Three strictTypeChecked rules stay out of the lint
+
+- Decision: the lint runs without `@typescript-eslint/no-generated-empty-object-type`, `@typescript-eslint/no-unsafe-class-instance-assignment` and `@typescript-eslint/no-unsafe-enum-assignment`, which Rslint 0.10.1 does not port; Rslint skips them without a message.
+- Decided by: Crash-- (CTO), 2026-11-26
+- Why: the rest of strictTypeChecked runs; `no-unsafe-enum-assignment` has nothing to check, enums are banned.
+- Scope: lint.

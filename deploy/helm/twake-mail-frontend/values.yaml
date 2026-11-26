@@ -157,6 +157,9 @@ config:
   # reload once the image serves another build
   newVersionCheck:
     enabled: false
+    # -- http(s) page where users read every change, linked under the
+    # release notes of the dialog; no link when empty
+    releaseNotesUrl: ""
   # -- JavaScript appended to .env.js as is, for a variable this chart does not
   # know yet
   extraEnvJs: ""

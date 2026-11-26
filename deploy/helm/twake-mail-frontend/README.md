@@ -149,6 +149,7 @@ scheme (give the same file twice to keep one logotype). They are mounted with
 | `config.allowedLanguages` | `""` | `ALLOWED_LANGUAGES`: the languages offered, comma-separated in the order of the picker (`mn,en`); empty offers every language |
 | `config.tdrive.enabled` | `false` | Twake Drive picker of the composer, on the Workplace of the user when Drive is installed there |
 | `config.newVersionCheck.enabled` | `false` | `NEW_VERSION_CHECK_ENABLED`: an open tab offers a reload once the image serves another build (`/version.json`) |
+| `config.newVersionCheck.releaseNotesUrl` | `""` | `RELEASE_NOTES_URL`: http(s) page where users read every change, linked under the release notes of the dialog; no link when empty |
 | `config.extraEnvJs` | `""` | JavaScript appended to `.env.js` as is |
 | `logotype.configMap` | `""` | See [Logotype](#logotype) |
 | `csp.autoConnectSrc` | `true` | See above |

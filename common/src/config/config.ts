@@ -97,6 +97,11 @@ export interface AppConfig {
    * than the bundle's (`NEW_VERSION_CHECK_ENABLED`)
    */
   newVersionCheckEnabled: boolean
+  /**
+   * Where users read every change, linked under the release notes of the
+   * new version dialog (`RELEASE_NOTES_URL`); no link when null
+   */
+  releaseNotesUrl: string | null
   appVersion: string
 }
 
@@ -137,6 +142,7 @@ export type RuntimeConfigKey =
   | 'SENTRY_FEEDBACK_ENABLED'
   | 'TDRIVE_ENABLED'
   | 'NEW_VERSION_CHECK_ENABLED'
+  | 'RELEASE_NOTES_URL'
   | 'APP_VERSION'
 
 /**
@@ -179,6 +185,17 @@ function isAbsoluteHttpUrl(value: string): boolean {
   } catch {
     return false
   }
+}
+
+/** An http(s) URL only: it ends up in the href of a link */
+function resolveReleaseNotesUrl(
+  source: RuntimeConfigSource,
+  warn: DeprecationWarner
+): string | null {
+  const url = normalizeString(source.RELEASE_NOTES_URL)
+  if (url === null || isAbsoluteHttpUrl(url)) return url
+  warn('RELEASE_NOTES_URL must be an absolute http(s) URL, no link is shown')
+  return null
 }
 
 function toAuthMode(value: unknown): AuthMode | null {
@@ -429,6 +446,7 @@ export function resolveConfig(
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
       appGridAvailable: source.APP_GRID_AVAILABLE === 'supported',
       newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
+      releaseNotesUrl: resolveReleaseNotesUrl(source, warn),
       appVersion: normalizeString(source.APP_VERSION) ?? 'dev'
     }
   }

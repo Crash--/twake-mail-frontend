@@ -42,7 +42,7 @@
 # when no .env.js is mounted, it is converted into a /.env.js served by nginx.
 # SENTRY_FEEDBACK_ENABLED (true or false) in the environment is added to it
 # when the env.file has no such key, as are TWAKE_SPACE_URL,
-# TDRIVE_ENABLED and NEW_VERSION_CHECK_ENABLED.
+# TDRIVE_ENABLED, NEW_VERSION_CHECK_ENABLED and RELEASE_NOTES_URL.
 set -eu
 
 ME=$(basename "$0")
@@ -152,7 +152,7 @@ if [ ! -f "$HTML_DIR/.env.js" ] && [ -f "$ENV_FILE" ]; then
   # Keys of this app that tmail-flutter's env.file, and so the chart that
   # writes it, does not know: taken from the environment (the chart's
   # extraEnv) when the env.file does not set them
-  for key in TWAKE_SPACE_URL TDRIVE_ENABLED NEW_VERSION_CHECK_ENABLED; do
+  for key in TWAKE_SPACE_URL TDRIVE_ENABLED NEW_VERSION_CHECK_ENABLED RELEASE_NOTES_URL; do
     value=$(printenv "$key" || true)
     [ -n "$value" ] || continue
     grep -qE "^var $key = " "$GENERATED_ENV_JS" && continue

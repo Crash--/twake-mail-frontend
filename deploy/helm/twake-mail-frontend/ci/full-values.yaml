@@ -39,6 +39,7 @@ config:
     enabled: true
   newVersionCheck:
     enabled: true
+    releaseNotesUrl: https://chat.example.com/rooms/release
   extraEnvJs: |
     var SOME_FUTURE_SETTING = 'value'
 csp:

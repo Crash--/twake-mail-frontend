@@ -27,6 +27,7 @@ export function NewVersionCheck({
       appName="Twake Mail"
       image={`/release-notes/whats-new-${colorScheme}.png`}
       seenNotesKey={notesAtLoad && isSignedIn ? 'twake-mail' : undefined}
+      notesUrl={config.releaseNotesUrl ?? undefined}
     />
   )
 }

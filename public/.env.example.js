@@ -121,6 +121,10 @@ var TDRIVE_ENABLED = false
 // build than the one running. Off when unset.
 var NEW_VERSION_CHECK_ENABLED = false
 
+// The page where users read every change (http or https), linked under the
+// release notes of that dialog. No link when unset.
+// var RELEASE_NOTES_URL = 'https://chat.example.com/rooms/release-notes'
+
 // Keys of tmail-flutter that this app ignores: APP_GRID_AVAILABLE (the apps
 // are those of the platform top bar), FCM_AVAILABLE, IOS_FCM,
 // FIREBASE_* (push notifications of the mobile apps), PLATFORM, WS_ECHO_PING,

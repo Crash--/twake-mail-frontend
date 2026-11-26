@@ -81,6 +81,38 @@ describe('resolveConfig', () => {
     ).toMatchObject({ value: { newVersionCheckEnabled: true } })
   })
 
+  it('reads RELEASE_NOTES_URL, none by default', () => {
+    expect(resolveConfig(OIDC_SOURCE, ORIGIN)).toMatchObject({
+      value: { releaseNotesUrl: null }
+    })
+    expect(
+      resolveConfig(
+        {
+          ...OIDC_SOURCE,
+          RELEASE_NOTES_URL: ' https://chat.example.com/rooms/r '
+        },
+        ORIGIN
+      )
+    ).toMatchObject({
+      value: { releaseNotesUrl: 'https://chat.example.com/rooms/r' }
+    })
+  })
+
+  it('drops a RELEASE_NOTES_URL that is not http(s), with a warning', () => {
+    const warn = jest.fn()
+
+    const result = resolveConfig(
+      { ...OIDC_SOURCE, RELEASE_NOTES_URL: 'javascript:alert(1)' },
+      ORIGIN,
+      warn
+    )
+
+    expect(result).toMatchObject({ ok: true, value: { releaseNotesUrl: null } })
+    expect(warn).toHaveBeenCalledWith(
+      'RELEASE_NOTES_URL must be an absolute http(s) URL, no link is shown'
+    )
+  })
+
   it('reads the forwarding warning, without its surrounding spaces', () => {
     const result = resolveConfig(
       { ...OIDC_SOURCE, FORWARD_WARNING_MESSAGE: '  No external forward.  ' },

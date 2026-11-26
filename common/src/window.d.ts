@@ -62,6 +62,8 @@ declare global {
     TDRIVE_ENABLED?: boolean | string
     /** Offers a reload when the server serves a newer build than the tab's */
     NEW_VERSION_CHECK_ENABLED?: boolean | string
+    /** Where users read every change, linked under the release notes */
+    RELEASE_NOTES_URL?: string
 
     APP_VERSION?: string
   }

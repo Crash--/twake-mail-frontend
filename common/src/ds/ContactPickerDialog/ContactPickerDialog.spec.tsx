@@ -10,11 +10,9 @@ import {
 
 const LABELS = {
   title: 'Find emails from',
-  close: 'Close',
   search: 'Enter name or email',
-  clearSearch: 'Clear',
   list: 'Contacts',
-  clearFilter: 'Clear Filter',
+  clearFilter: 'Clear filter',
   done: 'Done'
 }
 
@@ -67,19 +65,30 @@ describe('ContactPickerDialog', () => {
     const props = renderDialog({ query: 'ali' })
 
     await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Enter name or email' }),
+      screen.getByRole('textbox', { name: 'Enter name or email' }),
       'c'
     )
     expect(props.onQueryChange).toHaveBeenLastCalledWith('alic')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
     expect(props.onQueryChange).toHaveBeenLastCalledWith('')
   })
 
-  it('ends with "Clear Filter" and "Done", and closes on Escape', async () => {
+  it('is twake-mui’s dialog, with its own close button', async () => {
     const props = renderDialog()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Clear Filter' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(props.onClose).toHaveBeenCalledTimes(1)
+    expect(
+      screen.getByRole('dialog').querySelector('.MuiDialogActions-root')
+    ).toContainElement(screen.getByRole('button', { name: 'Done' }))
+  })
+
+  it('ends with "Clear filter" and "Done", and closes on Escape', async () => {
+    const props = renderDialog()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
     await userEvent.click(screen.getByRole('button', { name: 'Done' }))
     await userEvent.keyboard('{Escape}')
 

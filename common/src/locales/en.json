@@ -698,7 +698,7 @@
       "from": "Find emails from",
       "to": "Find emails to",
       "hint": "Enter name or email",
-      "clearFilter": "Clear Filter",
+      "clearFilter": "Clear filter",
       "done": "Done"
     }
   },

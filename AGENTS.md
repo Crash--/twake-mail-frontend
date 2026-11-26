@@ -93,8 +93,8 @@ step: a feature is not done until it is accessible.
   `aria-live="polite"`; `role="alert"` for errors).
 - **Motion**: respect `prefers-reduced-motion` (no smooth scrolling or
   animation when it is set).
-- **Tooling**: ESLint runs the jsx-a11y rules (`eslint-plugin-jsx-a11y-x`)
-  as errors; the end-to-end specs check each screen with axe
+- **Tooling**: no lint rule checks accessibility; the end-to-end specs
+  check each screen with axe
   (`expectNoA11yViolations(page)`, WCAG 2.0/2.1 A and AA) and a spec drives
   the main path with the keyboard only. A violation coming from twake-mui is
   recorded in `docs/twake-mui-gaps.md`, never hidden.

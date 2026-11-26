@@ -6,7 +6,6 @@ import {
   StarOutline,
   Filter
 } from '@linagora/twake-icons'
-import { getInitials } from '@linagora/twake-mui'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -17,6 +16,7 @@ import {
   type SearchComboboxOption
 } from '@/ds/SearchCombobox/SearchCombobox'
 import { GradientAvatar } from '@/ds/GradientAvatar/GradientAvatar'
+import { initialsOf } from '@/ds/RecipientField/initials'
 import { FAVORITE_COLOR } from '@/ds/IconAction/IconAction'
 import { SearchBarAction } from '@/ds/SearchBarAction/SearchBarAction'
 import { prepareViewTransition } from '@/ds/ViewTransition/viewTransition'
@@ -160,7 +160,7 @@ export function SearchField({
             // As tmail-flutter: a light grey disc, black initials
             icon: (
               <GradientAvatar
-                text={getInitials(name, contact.emailAddress)}
+                text={initialsOf(name === '' ? contact.emailAddress : name)}
                 colorKey={contact.emailAddress}
                 size={40}
               />

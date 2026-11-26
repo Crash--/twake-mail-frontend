@@ -94,6 +94,13 @@ describe('parseTwpWarning', () => {
     expect(text.endsWith('…')).toBe(true)
   })
 
+  it('never cuts an emoji or an accent at the end of a capped text', () => {
+    const before = 'x'.repeat(TWP_TEXT_MAX_LENGTH - 2)
+    expect(parseTwpWarning(`level:warn ${before}é👍🏽 and more`, 0).text).toBe(
+      `${before}é👍🏽…`
+    )
+  })
+
   it('keeps markup as characters', () => {
     expect(parseTwpWarning('<a href="https://x.test">go</a>', 0).text).toBe(
       '<a href="https://x.test">go</a>'

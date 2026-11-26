@@ -2,16 +2,22 @@ import { foldText as fold, graphemes } from '@/ds/graphemes/graphemes'
 
 const LETTER = /\p{L}/u
 
+/** The first letter of a word, with its accents */
 function firstLetter(word: string): string | null {
-  return LETTER.exec(word.trim())?.[0] ?? null
+  return graphemes(word.trim()).find(char => LETTER.test(char)) ?? null
 }
 
 /**
  * Two letters standing for a name or an address, as tmail-flutter writes
  * them (`firstLetterToUpperCase`): the first letters of the first two words,
- * else the first two letters of a single word, else its first character
+ * else the first two letters of a single word, else its first characters.
+ * A character is never cut (an accent, an emoji), composed or not.
  */
 export function initialsOf(text: string): string {
+  return rawInitialsOf(text).normalize('NFC')
+}
+
+function rawInitialsOf(text: string): string {
   // Any run of white space (doubled spaces, a no-break space) between words
   const words = text.trim().split(/\s+/u)
   if (words.length > 1) {
@@ -23,9 +29,10 @@ export function initialsOf(text: string): string {
     const only = first ?? second
     return only === null ? '' : `${only}${only}`.toUpperCase()
   }
-  const letters = text.trim().match(/\p{L}/gu) ?? []
+  const chars = graphemes(text.trim())
+  const letters = chars.filter(char => LETTER.test(char))
   if (letters.length > 1) return `${letters[0]}${letters[1]}`.toUpperCase()
-  return text.slice(0, text.length > 1 ? 2 : 1).toUpperCase()
+  return chars.slice(0, 2).join('').toUpperCase()
 }
 
 /**

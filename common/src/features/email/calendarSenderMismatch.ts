@@ -1,3 +1,5 @@
+import { graphemes } from '@/ds/graphemes/graphemes'
+
 /**
  * The addresses behind the `calendar-sender-mismatch` warning: the backend
  * (tmail-backend#3162) puts them in a header of their own,
@@ -32,7 +34,7 @@ function cleanAddress(value: string): string | null {
     .replace(/\s*>$/, '')
     .trim()
   if (address === '') return null
-  const characters = Array.from(address)
+  const characters = graphemes(address)
   return characters.length > ADDRESS_MAX_LENGTH
     ? `${characters.slice(0, ADDRESS_MAX_LENGTH).join('')}…`
     : address

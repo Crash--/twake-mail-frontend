@@ -13,6 +13,13 @@ describe('initialsOf', () => {
     expect(initialsOf('Élise Dupont')).toBe('ÉD')
   })
 
+  it('keeps an accent and an emoji whole, composed or decomposed', () => {
+    expect(initialsOf('Élise Dupont')).toBe('ÉD')
+    expect(initialsOf('Élise Dupont')).toBe('ÉD')
+    expect(initialsOf('🇫🇷')).toBe('🇫🇷')
+    expect(initialsOf('1👍🏽')).toBe('1👍🏽')
+  })
+
   it('splits the words on any white space', () => {
     expect(initialsOf('Alice  Martin')).toBe('AM')
     expect(initialsOf('Alice Martin')).toBe('AM')

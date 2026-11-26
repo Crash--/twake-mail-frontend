@@ -30,4 +30,43 @@ describe('splitMatches', () => {
     ])
     expect(splitMatches('Bob', '')).toEqual([{ text: 'Bob', isMatch: false }])
   })
+
+  // "Zoé" written as "e" and a combining acute accent (NFD), as some
+  // directories store it
+  const DECOMPOSED = 'Zoé Martin'
+  const COMPOSED = 'Zoé Martin'
+
+  it('keeps an accent with its letter in a decomposed name', () => {
+    expect(splitMatches(DECOMPOSED, 'zoe')).toEqual([
+      { text: 'Zoé', isMatch: true },
+      { text: ' Martin', isMatch: false }
+    ])
+    expect(splitMatches(DECOMPOSED, 'zo')).toEqual([
+      { text: 'Zo', isMatch: true },
+      { text: 'é Martin', isMatch: false }
+    ])
+  })
+
+  it('matches whatever the accents and their encoding', () => {
+    expect(splitMatches(COMPOSED, 'zoe')).toEqual([
+      { text: 'Zoé', isMatch: true },
+      { text: ' Martin', isMatch: false }
+    ])
+    expect(splitMatches(DECOMPOSED, 'Zoé m')).toEqual([
+      { text: 'Zoé M', isMatch: true },
+      { text: 'artin', isMatch: false }
+    ])
+    expect(splitMatches(COMPOSED, 'zoé')).toEqual([
+      { text: 'Zoé', isMatch: true },
+      { text: ' Martin', isMatch: false }
+    ])
+  })
+
+  it('never starts a part with a lone accent', () => {
+    for (const query of ['z', 'zo', 'zoe', 'e', 'mar', 'n']) {
+      for (const part of splitMatches(DECOMPOSED, query)) {
+        expect(part.text).not.toMatch(/^\p{M}/u)
+      }
+    }
+  })
 })

@@ -57,7 +57,7 @@
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "rstack": "0.9.3",
-    "typescript": "~6.0.3"
+    "typescript": "~7.0.2"
   },
   "allowScripts": {
     "@parcel/watcher": false,

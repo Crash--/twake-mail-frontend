@@ -9,6 +9,7 @@ import type {
   EmailListItemData,
   EmailSnippet
 } from '@common/features/thread/queries'
+import { foldText } from '@/ds/graphemes/graphemes'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
@@ -103,10 +104,11 @@ export function useSearchSuggestions(
       isOpen && minContactLength !== null && text.length >= minContactLength
   })
   const recent = useMemo(() => {
-    const needle = typed.trim().toLowerCase()
+    // Whatever the case and the accents, however they are encoded
+    const needle = foldText(typed.trim())
     return isOpen
       ? readRecentSearchEntries(accountId).filter(item =>
-          item.text.toLowerCase().includes(needle)
+          foldText(item.text).includes(needle)
         )
       : []
   }, [isOpen, typed, accountId])

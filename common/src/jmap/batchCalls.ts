@@ -9,7 +9,7 @@ import type {
   NarrowedMethodResponse,
   RequestBuilder,
   RequiredArgs
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 export interface BatchOptions {
   /** Most method calls in one request (`maxCallsInRequest`) */

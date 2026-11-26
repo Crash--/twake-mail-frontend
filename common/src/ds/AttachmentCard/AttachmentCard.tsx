@@ -5,10 +5,17 @@
 // fit on one row, then "Show +N more"; on a phone three of them, one under
 // the other. Meanwhile local, on twake-mui `ButtonBase`, `IconButton` and
 // `Tooltip`.
-import { Icon, Attachment, Download } from '@linagora/twake-icons'
+import {
+  Icon,
+  AddToCloud,
+  Attachment,
+  CheckCircle,
+  Download
+} from '@linagora/twake-icons'
 import {
   Box,
   ButtonBase,
+  CircularProgress,
   IconButton,
   radius,
   Tooltip
@@ -17,6 +24,7 @@ import {
   useEffect,
   useState,
   type DragEvent,
+  type MouseEvent,
   type ReactElement,
   type ReactNode
 } from 'react'
@@ -86,6 +94,30 @@ const DOWNLOAD_SX = {
   '& svg': { width: 16, height: 16 }
 } as const
 
+/** A saved file: the chip turns green, as in Twake Calendar */
+const SAVED_CHIP_SX = {
+  ...CHIP_SX,
+  bgcolor: 'rgb(var(--twake-palette-success-mainChannel) / 0.08)',
+  '&:hover': {
+    bgcolor: 'rgb(var(--twake-palette-success-mainChannel) / 0.12)'
+  }
+} as const
+
+/** As Twake Calendar: a grey cloud, a green check of 18 px */
+const SAVE_SX = {
+  ...DOWNLOAD_SX,
+  color: 'text.secondary',
+  '&.AttachmentCard-saved': { color: 'success.main' },
+  '&.AttachmentCard-saved svg': { width: 18, height: 18 }
+} as const
+
+const SAVED_STATUS_SX = {
+  display: 'inline-flex',
+  flexShrink: 0,
+  p: '6px',
+  color: 'success.main'
+} as const
+
 const TEXT_BUTTON_SX = {
   height: CHIP_HEIGHT,
   px: '10px',
@@ -122,13 +154,32 @@ export interface AttachmentCardProps {
    * the drag carries
    */
   onDragStart?: (event: DragEvent<HTMLElement>) => void
+  /** Saving the file elsewhere (to a Drive), before the download action */
+  save?: AttachmentSave | null
   'data-testid'?: string
 }
 
 /**
+ * The save action of a chip, with the API of twake-mui's
+ * `SaveToDriveButton`: a cloud with a plus, a spinner while it saves, then
+ * a green check, a button when the saved file can be opened
+ */
+export interface AttachmentSave {
+  status: 'idle' | 'saving' | 'saved'
+  /**
+   * Accessible name and tooltip: "Save to my Drive", "Saving to Drive…",
+   * "File saved to your Drive" (`saved`), "See in Drive" (`open`)
+   */
+  labels: { idle: string; saving: string; saved: string; open: string }
+  onSave: (event: MouseEvent<HTMLButtonElement>) => void
+  /** Without it, `saved` is a status, not a button */
+  onOpen?: (event: MouseEvent<HTMLButtonElement>) => void
+}
+
+/**
  * A file attached to a message. The chip opens the file (its accessible
- * name says what the click does: "Preview report.pdf (12 KB)"); the
- * download action is a second button at its end.
+ * name says what the click does: "Preview report.pdf (12 KB)"); the save
+ * and download actions are buttons at its end.
  */
 export function AttachmentCard({
   name,
@@ -139,12 +190,13 @@ export function AttachmentCard({
   onOpen,
   onDownload,
   onDragStart,
+  save = null,
   'data-testid': testId
 }: AttachmentCardProps): ReactElement {
   const [stem, extension] = splitName(name)
   return (
     <Box
-      sx={CHIP_SX}
+      sx={save?.status === 'saved' ? SAVED_CHIP_SX : CHIP_SX}
       draggable={onDragStart !== undefined}
       onDragStart={onDragStart}
       data-testid={testId}
@@ -175,6 +227,13 @@ export function AttachmentCard({
           {size}
         </Box>
       </ButtonBase>
+      {save === null ? null : (
+        <AttachmentSaveButton
+          save={save}
+          name={name}
+          testId={testId ? `${testId}-save` : undefined}
+        />
+      )}
       <Tooltip title={downloadLabel}>
         <IconButton
           aria-label={`${downloadLabel} ${name}`}
@@ -186,6 +245,65 @@ export function AttachmentCard({
         </IconButton>
       </Tooltip>
     </Box>
+  )
+}
+
+/**
+ * The button keeps the focus while it saves (`aria-disabled`, not
+ * `disabled`, which would drop it), and its name says the status
+ */
+function AttachmentSaveButton({
+  save,
+  name,
+  testId
+}: {
+  save: AttachmentSave
+  name: string
+  testId: string | undefined
+}): ReactElement {
+  const { status, labels, onSave, onOpen } = save
+  if (status === 'saved' && onOpen === undefined) {
+    return (
+      <Tooltip title={labels.saved}>
+        <Box
+          component="span"
+          role="status"
+          aria-label={`${labels.saved} ${name}`}
+          sx={SAVED_STATUS_SX}
+          data-status={status}
+          data-testid={testId}
+        >
+          <Icon icon={CheckCircle} size={18} aria-hidden="true" />
+        </Box>
+      </Tooltip>
+    )
+  }
+  const label = status === 'saved' ? labels.open : labels[status]
+  const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    if (status === 'idle') onSave(event)
+    else if (status === 'saved') onOpen?.(event)
+  }
+  return (
+    <Tooltip title={label}>
+      <IconButton
+        aria-label={`${label} ${name}`}
+        aria-disabled={status === 'saving' ? true : undefined}
+        onClick={handleClick}
+        sx={SAVE_SX}
+        className={status === 'saved' ? 'AttachmentCard-saved' : undefined}
+        data-status={status}
+        data-testid={testId}
+      >
+        {status === 'saving' ? (
+          <CircularProgress size={18} aria-hidden="true" />
+        ) : (
+          <Icon
+            icon={status === 'saved' ? CheckCircle : AddToCloud}
+            aria-hidden="true"
+          />
+        )}
+      </IconButton>
+    </Tooltip>
   )
 }
 
@@ -373,13 +491,19 @@ export function AttachmentListFrame({
 export interface AttachmentDownloadAllProps {
   label: string
   onClick: () => void
+  /** The cloud for "Save all to Drive"; the download arrow by default */
+  icon?: 'download' | 'save'
+  /** While it runs: the button is announced busy and does nothing */
+  isBusy?: boolean
   'data-testid'?: string
 }
 
-/** "Download all": grey text, the download icon after it */
+/** "Download all", "Save all to Drive": grey text, the icon after it */
 export function AttachmentDownloadAll({
   label,
   onClick,
+  icon = 'download',
+  isBusy = false,
   'data-testid': testId
 }: AttachmentDownloadAllProps): ReactElement {
   return (
@@ -391,12 +515,18 @@ export function AttachmentDownloadAll({
         px: '5px',
         flexShrink: 0
       }}
-      onClick={onClick}
+      onClick={isBusy ? undefined : onClick}
+      aria-disabled={isBusy ? true : undefined}
+      aria-busy={isBusy ? true : undefined}
       data-testid={testId}
     >
       {label}
       <span className="AttachmentCard-icon" aria-hidden="true">
-        <Icon icon={Download} size={16} />
+        {isBusy ? (
+          <CircularProgress size={16} />
+        ) : (
+          <Icon icon={icon === 'save' ? AddToCloud : Download} size={16} />
+        )}
       </span>
     </ButtonBase>
   )

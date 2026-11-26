@@ -182,6 +182,25 @@ describe('SearchField', () => {
     ).toBeVisible()
   })
 
+  it('suggests a recent search whatever its case and accents', async () => {
+    await renderField(makeServer())
+    // "é" stored as one character, typed then as "e"
+    await userEvent.type(combobox(), 'Zoé Martin{Enter}')
+    await userEvent.clear(combobox())
+    await userEvent.type(combobox(), 'Budget{Enter}')
+
+    await userEvent.clear(combobox())
+    await userEvent.type(combobox(), 'zoe')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('option', { name: 'Budget' })).toBe(null)
+    })
+    const recent = screen.getByRole('group', { name: 'Recent' })
+    expect(
+      within(recent).getByRole('option', { name: 'Zoé Martin' })
+    ).toBeVisible()
+  })
+
   it('opens the advanced search on the search being typed', async () => {
     await renderField(makeServer())
     await userEvent.type(combobox(), 'report')

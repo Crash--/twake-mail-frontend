@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-New setting: `RELEASE_NOTES_URL` (`config.newVersionCheck.releaseNotesUrl`
-in the chart). Unset, nothing changes.
+## [0.18.0] - 2026-11-26
+
+New setting since 0.17.0: `RELEASE_NOTES_URL`
+(`config.newVersionCheck.releaseNotesUrl` in the chart). Unset, nothing
+changes.
 
 ### Added
 
@@ -20,6 +23,31 @@ in the chart). Unset, nothing changes.
   1.3.0).
 - `RELEASE_NOTES_URL` links the release notes of the dialog to a page that
   lists every change ("See everything that's new").
+- An email whose `X-Suspicious-DisplayName` or `X-Suspicious-Domain` header
+  is `true` shows the suspicious sender warning.
+- The warning of an invitation whose sender is not its organizer is
+  translated and names both addresses (`X-Twake-Calendar-Sender-Mismatch`).
+
+### Changed
+
+- While the Drive picker loads, its dialog shows the skeleton Twake Calendar
+  shows.
+- The empty email lists and the empty settings lists draw their icon with
+  twake-mui's `Empty` tile, white with its shadow in dark mode too.
+- The actions of a collapsed message use the small icon buttons of an
+  expanded one.
+- Decorative icons are hidden from screen readers (twake-icons 3.2.3), and
+  twake-mui moves to 21.1.0 and twake-icons to 3.3.0.
+
+### Fixed
+
+- The only message of a conversation stays expanded.
+- In a team mailbox, the spam report counts the Spam of that mailbox, and
+  none in a folder another user shares.
+- A quoted plain-text email keeps its leading and repeated spaces.
+- Saving again a draft reopened from a list gives the focus to "New message".
+- An impossible day in a search URL is ignored instead of rolled over.
+- "Imitating" is spelled right in the suspicious sender warning.
 
 ## [0.17.0] - 2026-11-24
 

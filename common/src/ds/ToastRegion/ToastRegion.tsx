@@ -36,6 +36,7 @@ import {
   isSamePlacement,
   placeToast,
   TOAST_AVOID,
+  TOAST_AVOID_BAR,
   TOAST_MAX_WIDTH,
   type AvoidedBox,
   type ToastPlacement
@@ -164,27 +165,32 @@ function regionStyle(
   }
 }
 
-function findAvoidedBoxes(): AvoidedBox[] {
-  return Array.from(document.querySelectorAll(`[${TOAST_AVOID}]`)).map(
-    element => element.getBoundingClientRect()
-  )
+const CENTER: ToastPlacement = { kind: 'center' }
+
+function findAvoidedBoxes(isBar: boolean): AvoidedBox[] {
+  return Array.from(document.querySelectorAll(`[${TOAST_AVOID}]`))
+    .filter(
+      element =>
+        (element.getAttribute(TOAST_AVOID) === TOAST_AVOID_BAR) === isBar
+    )
+    .map(element => element.getBoundingClientRect())
 }
 
 /**
  * Where the toast goes while it is shown, kept up to date as docked
- * windows open, close, change mode, or the screen is resized
+ * windows open, close, change mode, a reader shows its answers, or the
+ * screen is resized
  */
 function useToastPlacement(isShown: boolean): ToastPlacement {
-  const [placement, setPlacement] = useState<ToastPlacement>({
-    kind: 'center'
-  })
+  const [placement, setPlacement] = useState<ToastPlacement>(CENTER)
   useEffect(() => {
     if (!isShown) return
     const update = (): void => {
-      const next = placeToast(findAvoidedBoxes(), {
-        width: window.innerWidth,
-        height: window.innerHeight
-      })
+      const next = placeToast(
+        findAvoidedBoxes(false),
+        { width: window.innerWidth, height: window.innerHeight },
+        findAvoidedBoxes(true)
+      )
       // The page changes a lot meanwhile: render again on a move only
       setPlacement(current => (isSamePlacement(current, next) ? current : next))
     }
@@ -201,7 +207,8 @@ function useToastPlacement(isShown: boolean): ToastPlacement {
       window.removeEventListener('resize', update)
     }
   }, [isShown])
-  return placement
+  // Not kept up to date meanwhile (in a dialog): never the place of before
+  return isShown ? placement : CENTER
 }
 
 /**

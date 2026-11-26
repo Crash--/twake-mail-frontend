@@ -85,6 +85,65 @@ describe('placeToast', () => {
   })
 })
 
+describe('placeToast, with bars (the answers of the reader)', () => {
+  it('goes 16 px above a bar under its usual place, still centred', () => {
+    expect(
+      placeToast([], SCREEN, [{ left: 0, top: 664, right: 1280 }])
+    ).toEqual({ kind: 'above', bottom: 720 - 664 + 16, centerX: 640 })
+  })
+
+  it('goes above a bar under part of its usual place', () => {
+    expect(
+      placeToast([], SCREEN, [{ left: 700, top: 664, right: 1280 }])
+    ).toEqual({ kind: 'above', bottom: 720 - 664 + 16, centerX: 640 })
+  })
+
+  it('stays at its usual place over no bar', () => {
+    expect(
+      placeToast([], SCREEN, [{ left: 900, top: 664, right: 1280 }])
+    ).toEqual({ kind: 'center' })
+  })
+
+  it('goes left of a docked window, above the bar under it there', () => {
+    expect(
+      placeToast([{ left: 630, top: 118, right: 1260 }], SCREEN, [
+        { left: 236, top: 664, right: 1280 }
+      ])
+    ).toEqual({
+      kind: 'beside',
+      right: 1280 - 630 + 16,
+      maxWidth: 424,
+      bottom: 720 - 664 + 16
+    })
+  })
+
+  it('stays left of a docked window at its usual height over no bar', () => {
+    expect(
+      placeToast([{ left: 630, top: 118, right: 1260 }], SCREEN, [
+        { left: 700, top: 664, right: 1280 }
+      ])
+    ).toEqual({
+      kind: 'beside',
+      right: 1280 - 630 + 16,
+      maxWidth: 424,
+      bottom: null
+    })
+  })
+
+  it('goes left of a minimized window, above the bar under it there', () => {
+    expect(
+      placeToast([{ left: 860, top: 600, right: 1260 }], SCREEN, [
+        { left: 236, top: 664, right: 1280 }
+      ])
+    ).toEqual({
+      kind: 'beside',
+      right: 1280 - 860 + 16,
+      maxWidth: 424,
+      bottom: 720 - 664 + 16
+    })
+  })
+})
+
 describe('isSamePlacement', () => {
   it('tells equal placements from different ones', () => {
     expect(isSamePlacement({ kind: 'center' }, { kind: 'center' })).toBe(true)

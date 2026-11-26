@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { renderDs } from '@/ds/testing/renderDs'
+import { TOAST_AVOID, TOAST_AVOID_BAR } from '@/ds/ToastRegion/toastPlacement'
 
 import { ActionBar, ActionBarButton } from './ActionBar'
 
@@ -26,5 +27,13 @@ describe('ActionBar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reply' }))
 
     expect(onReply).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks the toasts to go above it', () => {
+    renderDs(<ActionBar label="Reply actions">{null}</ActionBar>)
+
+    expect(
+      screen.getByRole('group', { name: 'Reply actions' })
+    ).toHaveAttribute(TOAST_AVOID, TOAST_AVOID_BAR)
   })
 })

@@ -128,8 +128,12 @@ export const COMPACT_BELOW = 600
 export const ROW_FOCUS_ATTRIBUTE = 'data-row-focus'
 
 const ROW_SX = {
-  // Containing block of the `RowLink` overlay, under the row controls
-  position: 'relative',
+  // Containing block of the `RowLink` overlay, under the row controls.
+  // Safari 18 ignores `position: relative` on a `tr`: a transform makes the
+  // row the containing block there, and the clip keeps the overlay, which
+  // it lets run to the bottom of the list, inside the row
+  transform: 'translate(0)',
+  clipPath: 'inset(0)',
   '& .MuiButtonBase-root': { position: 'relative', zIndex: 1 },
   // The theme greys body cells with text.secondary, 3.6:1 on white: below
   // the 4.5:1 of RGAA 3.2 (docs/twake-mui-gaps.md)

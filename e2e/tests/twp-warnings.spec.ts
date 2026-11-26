@@ -8,7 +8,7 @@ import { expect, test } from '../support/fixtures'
  */
 
 const SUSPICIOUS_SENDER =
-  'This email is from an external sender immitating known users, double check the mail address.'
+  'This email is from an external sender imitating known users, double check the mail address.'
 
 test.describe('TWP warnings of the backend', () => {
   test.use({ emailsOneByOne: true })

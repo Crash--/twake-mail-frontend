@@ -165,7 +165,7 @@ describe('SearchFiltersBar', () => {
     ).toBeChecked()
 
     await userEvent.type(
-      within(picker).getByRole('searchbox', { name: 'Enter name or email' }),
+      within(picker).getByRole('textbox', { name: 'Enter name or email' }),
       'zel'
     )
     await userEvent.click(
@@ -188,7 +188,7 @@ describe('SearchFiltersBar', () => {
     )
     const picker = await screen.findByRole('dialog', { name: 'Find emails to' })
     await userEvent.type(
-      within(picker).getByRole('searchbox', { name: 'Enter name or email' }),
+      within(picker).getByRole('textbox', { name: 'Enter name or email' }),
       'nobody@x.org'
     )
 
@@ -197,7 +197,7 @@ describe('SearchFiltersBar', () => {
     ).not.toBeChecked()
 
     await userEvent.click(
-      within(picker).getByRole('button', { name: 'Clear Filter' })
+      within(picker).getByRole('button', { name: 'Clear filter' })
     )
 
     expect(onChange).toHaveBeenCalledWith({ ...EMPTY_SEARCH_FILTER, to: [] })

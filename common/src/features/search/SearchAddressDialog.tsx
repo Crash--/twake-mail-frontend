@@ -78,9 +78,7 @@ export function SearchAddressDialog({
       open
       labels={{
         title: t(`search.contactPicker.${field}`),
-        close: t('common.close'),
         search: t('search.contactPicker.hint'),
-        clearSearch: t('search.clear'),
         list: t('search.contacts'),
         clearFilter: t('search.contactPicker.clearFilter'),
         done: t('search.contactPicker.done')
@@ -101,7 +99,6 @@ export function SearchAddressDialog({
       onClose={onClose}
       testIds={{
         dialog: 'search-contact-picker',
-        close: 'search-contact-picker-close-button',
         input: 'search-contact-picker-input',
         item: 'search-contact-picker-item',
         clearFilter: 'search-contact-picker-clear-filter-button',

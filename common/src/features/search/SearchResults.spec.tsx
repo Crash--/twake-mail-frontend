@@ -245,7 +245,7 @@ describe('SearchResults', () => {
       name: 'Find emails from'
     })
     await userEvent.type(
-      within(picker).getByRole('searchbox', { name: 'Enter name or email' }),
+      within(picker).getByRole('textbox', { name: 'Enter name or email' }),
       'alice@example.com'
     )
     await userEvent.click(

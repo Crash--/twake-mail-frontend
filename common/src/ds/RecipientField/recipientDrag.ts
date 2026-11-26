@@ -25,15 +25,21 @@ export function currentRecipientDrag(): RecipientDrag | null {
  * the chip as tmail-flutter draws a dragged tag (blue, white text)
  */
 export function startRecipientDrag(
-  event: DragEvent<HTMLElement>,
+  event: Pick<DragEvent<HTMLElement>, 'currentTarget'> & {
+    dataTransfer: Pick<
+      DataTransfer,
+      'effectAllowed' | 'setData' | 'setDragImage'
+    >
+  },
   drag: RecipientDrag
 ): void {
   current = drag
   event.dataTransfer.effectAllowed = 'move'
   event.dataTransfer.setData(RECIPIENT_DRAG_TYPE, JSON.stringify(drag))
   const chip = event.currentTarget
-  const ghost = chip.cloneNode(true)
-  if (!(ghost instanceof HTMLElement)) return
+  // Not `instanceof`: in TwakeSpace the chip is in the document of the
+  // overlay, whose elements are not this window's HTMLElement
+  const ghost = chip.cloneNode(true) as HTMLElement
   // A picture only: not a second tag for tests or assistive technologies
   ghost.removeAttribute('data-testid')
   ghost.setAttribute('aria-hidden', 'true')

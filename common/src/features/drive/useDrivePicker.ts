@@ -89,17 +89,25 @@ export interface DrivePicker {
   close: () => void
 }
 
+/** A Drive intent shown in a dialog: PICK files, MOVE files */
+export interface DriveIntentRequest {
+  action: 'PICK' | 'MOVE'
+  data: Record<string, unknown>
+  /** What the service ends with; not called when it is cancelled */
+  onDocument: (document: unknown) => void
+}
+
+export interface DriveIntentDialog {
+  state: DrivePickerState
+  /** Gets the box the frame of the intent goes in */
+  frameContainerRef: (element: HTMLElement | null) => void
+  open: (request: DriveIntentRequest) => void
+  close: () => void
+}
+
 /**
- * The Twake Drive picker, a cozy-interapp intent created with the client
- * of the Workplace (its token, renewed by the client) and shown in the box
- * of `frameContainerRef` once the dialog has it. The picked files go to
- * `onFiles`; Cancel closes it. The picker may ask for a size (`resize`,
- * set by cozy-interapp on the box) and for the close button of the dialog
- * (`showCross`, `hideCross`).
- *
- * Closing or unmounting stops the intent (its frame and its listener go),
- * and a late answer of the stack is ignored (Twake Calendar misses it,
- * linagora/twake-calendar-frontend#1498).
+ * The Twake Drive picker: picked files go to `onFiles`, Cancel closes it.
+ * See `useDriveIntentDialog`.
  */
 export function useDrivePicker(
   sdk: Sdk | null,
@@ -108,19 +116,54 @@ export function useDrivePicker(
   /** Title of the frame, for screen readers */
   frameTitle: string
 ): DrivePicker {
+  const dialog = useDriveIntentDialog(sdk, frameTitle)
+  const { open: openDialog } = dialog
+  // The latest labels and callback, read when the picker opens and answers
+  const optionsRef = useRef(options)
+  const onFilesRef = useRef(onFiles)
+  useEffect(() => {
+    optionsRef.current = options
+    onFilesRef.current = onFiles
+  })
+  const open = useCallback((): void => {
+    openDialog({
+      action: 'PICK',
+      data: pickerData(optionsRef.current),
+      onDocument: document => {
+        onFilesRef.current(readPickedFiles(document))
+      }
+    })
+  }, [openDialog])
+  return { ...dialog, open }
+}
+
+/**
+ * A Twake Drive intent with a UI (the picker, the move), a cozy-interapp
+ * intent created with the client of the Workplace (its token, renewed by
+ * the client) and shown in the box of `frameContainerRef` once the dialog
+ * has it. The service may ask for a size (`resize`, set by cozy-interapp on
+ * the box) and for the close button of the dialog (`showCross`,
+ * `hideCross`).
+ *
+ * Closing or unmounting stops the intent (its frame and its listener go),
+ * and a late answer of the stack is ignored (Twake Calendar misses it,
+ * linagora/twake-calendar-frontend#1498).
+ */
+export function useDriveIntentDialog(
+  sdk: Sdk | null,
+  /** Title of the frame, for screen readers */
+  frameTitle: string
+): DriveIntentDialog {
   const [state, setState] = useState<DrivePickerState>({ status: 'closed' })
   const [container, setContainer] = useState<HTMLElement | null>(null)
   const runRef = useRef(0)
   // The run whose intent is being created or shown: started once
   const startedRunRef = useRef<number | null>(null)
   const stopRef = useRef<(() => void) | null>(null)
-  // The latest labels and callback, read when the picker answers
-  const optionsRef = useRef(options)
-  const onFilesRef = useRef(onFiles)
+  // The intent of the run, set by `open`
+  const requestRef = useRef<DriveIntentRequest | null>(null)
   const frameTitleRef = useRef(frameTitle)
   useEffect(() => {
-    optionsRef.current = options
-    onFilesRef.current = onFiles
     frameTitleRef.current = frameTitle
   })
 
@@ -140,11 +183,15 @@ export function useDrivePicker(
     setState({ status: 'failed' })
   }, [stop])
 
-  const open = useCallback((): void => {
-    if (sdk === null) return
-    stop()
-    setState({ status: 'opening' })
-  }, [sdk, stop])
+  const open = useCallback(
+    (request: DriveIntentRequest): void => {
+      if (sdk === null) return
+      stop()
+      requestRef.current = request
+      setState({ status: 'opening' })
+    },
+    [sdk, stop]
+  )
 
   const isOpening = state.status === 'opening'
 
@@ -161,16 +208,18 @@ export function useDrivePicker(
           current.status === 'open' ? { ...current, ...patch } : current
         )
       }
+    const request = requestRef.current
+    if (request === null) return
     const start = async (): Promise<void> => {
       const intent = new Intents({ client: sdk }).create(
-        'PICK',
+        request.action,
         'io.cozy.files',
-        pickerData(optionsRef.current),
+        request.data,
         ['GET']
       )
-      // Framed only when the picker is an https page
+      // Framed only when the service is an https page
       if (readPickerHref(await intent) === null) {
-        throw new Error('No picker in the intent')
+        throw new Error('No service page in the intent')
       }
       if (!isCurrent()) return
       const started = intent.start(container, {
@@ -188,10 +237,10 @@ export function useDrivePicker(
       const document = await started
       if (!isCurrent()) return
       close()
-      if (document !== null) onFilesRef.current(readPickedFiles(document))
+      if (document !== null) request.onDocument(document)
     }
     start().catch((error: unknown) => {
-      console.warn('[drive] The picker could not open', error)
+      console.warn(`[drive] The ${request.action} intent could not open`, error)
       if (isCurrent()) fail()
     })
   }, [isOpening, sdk, container, close, fail])

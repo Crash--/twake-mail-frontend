@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   LINAGORA_CAPABILITIES,
   type TMailContact
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import {
   CONTACT_SUGGESTION_LIMIT,

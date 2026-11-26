@@ -7,7 +7,7 @@ import {
   CAPABILITIES,
   type JmapClient,
   type VacationResponse
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'

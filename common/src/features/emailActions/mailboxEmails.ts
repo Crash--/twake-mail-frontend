@@ -1,4 +1,4 @@
-import type { EmailFilterCondition, JmapClient } from 'jmap-client-ts'
+import type { EmailFilterCondition, JmapClient } from '@linagora/jmap-client-ts'
 
 import { maxObjectsInGet } from '@common/jmap/maxObjectsInGet'
 

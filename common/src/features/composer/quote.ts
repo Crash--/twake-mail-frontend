@@ -1,4 +1,4 @@
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 
 import { findReferencedCids } from '@common/features/email/emailBody'
 import { sanitizeEmailHtml } from '@common/features/email/sanitizeEmailHtml'

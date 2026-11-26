@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { assertSetSucceeded } from 'jmap-client-ts'
+import { assertSetSucceeded } from '@linagora/jmap-client-ts'
 import { useCallback } from 'react'
 
 import {

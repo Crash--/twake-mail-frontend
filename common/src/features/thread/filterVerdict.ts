@@ -1,4 +1,4 @@
-import type { EmailFilterCondition, Filter } from 'jmap-client-ts'
+import type { EmailFilterCondition, Filter } from '@linagora/jmap-client-ts'
 
 /**
  * Whether an email matches an `Email/query` filter, as far as the client can

@@ -1,4 +1,4 @@
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient } from '@linagora/jmap-client-ts'
 
 /**
  * PublicAssets of signature images (`com:linagora:params:jmap:public:assets`),

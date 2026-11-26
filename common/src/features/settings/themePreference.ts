@@ -1,4 +1,4 @@
-import type { KnownSettingKey } from 'jmap-client-ts/linagora'
+import type { KnownSettingKey } from '@linagora/jmap-client-ts/linagora'
 import { useCallback } from 'react'
 
 import { createLocalPreference } from './localPreference'

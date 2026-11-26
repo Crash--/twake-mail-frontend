@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { JmapClient } from 'jmap-client-ts'
-import type { Forward } from 'jmap-client-ts/linagora'
+import type { JmapClient } from '@linagora/jmap-client-ts'
+import type { Forward } from '@linagora/jmap-client-ts/linagora'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { isSingletonUpdated } from '@common/jmap/isSingletonUpdated'

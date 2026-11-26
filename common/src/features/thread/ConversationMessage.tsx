@@ -1,6 +1,6 @@
 import { Icon, Attachment } from '@linagora/twake-icons'
 import { Skeleton, Typography } from '@linagora/twake-mui'
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 import {
   useRef,
   useState,

@@ -1,6 +1,6 @@
 import { Icon, Bottom, Top, Trash, PenOutlined } from '@linagora/twake-icons'
 import { Chip, ListItemIcon, ListItemText, MenuItem } from '@linagora/twake-mui'
-import type { Rule } from 'jmap-client-ts/linagora'
+import type { Rule } from '@linagora/jmap-client-ts/linagora'
 import { useRef, useState, type ReactElement } from 'react'
 
 import { ActionSheet } from '@/ds/ActionSheet/ActionSheet'

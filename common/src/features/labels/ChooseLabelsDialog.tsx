@@ -13,7 +13,7 @@ import {
   ListItem,
   Typography
 } from '@linagora/twake-mui'
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 import { useId, useState, type ReactElement } from 'react'
 
 import { SecondaryText } from '@/ds/SecondaryText/SecondaryText'

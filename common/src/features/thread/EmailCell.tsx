@@ -69,7 +69,7 @@ import { useI18n } from '@common/i18n/useI18n'
 
 import { ActionRequiredTag } from '@common/features/ai/ActionRequiredTag'
 import { LabelChips, labelsOfEmail } from '@common/features/labels/LabelChips'
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 import { HighlightedText } from '@common/features/search/HighlightedText'
 
 import type { ConversationOpenState } from './conversationTarget'

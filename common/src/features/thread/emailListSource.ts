@@ -1,5 +1,5 @@
 import { infiniteQueryOptions } from '@tanstack/react-query'
-import type { JmapClient } from 'jmap-client-ts'
+import type { JmapClient } from '@linagora/jmap-client-ts'
 
 import type { InfiniteQueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { fetchSearchPage } from '@common/features/search/queries'

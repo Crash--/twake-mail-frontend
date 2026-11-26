@@ -12,7 +12,7 @@ import {
   WarningCircle
 } from '@linagora/twake-icons'
 import { useQueryClient } from '@tanstack/react-query'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import { useState, type ReactElement } from 'react'
 
 import { LabelImportantOutlineIcon } from '@/ds/SettingsIcons/SettingsIcons'

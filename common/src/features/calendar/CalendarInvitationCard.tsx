@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import type { EmailBodyPart } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import type { EmailBodyPart } from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import { useMemo, type ReactElement } from 'react'
 
 import { useAppConfig } from '@common/config/AppConfigProvider'

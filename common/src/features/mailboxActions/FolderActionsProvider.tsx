@@ -3,7 +3,7 @@ import {
   assertSetSucceeded,
   type Mailbox,
   type PatchObject
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 import {
   createContext,
   useCallback,

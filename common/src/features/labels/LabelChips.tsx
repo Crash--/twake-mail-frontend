@@ -1,5 +1,5 @@
 import { Box, Tooltip } from '@linagora/twake-mui'
-import type { Label } from 'jmap-client-ts/linagora'
+import type { Label } from '@linagora/jmap-client-ts/linagora'
 import type { ReactElement } from 'react'
 
 import { ColorTag } from '@/ds/ColorTag/ColorTag'

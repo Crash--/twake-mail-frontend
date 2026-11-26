@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   LINAGORA_CAPABILITIES,
   type MessagesVaultCapability
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 import {
   createContext,
   useCallback,

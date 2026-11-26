@@ -2,7 +2,7 @@ import type {
   EmailComparator,
   EmailFilterCondition,
   Filter
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 import { EVENT, FLAGGED, SEEN } from '@common/features/email/keywords'
 import type { SearchRequest } from '@common/features/thread/queries'

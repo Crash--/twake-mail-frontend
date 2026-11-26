@@ -1,5 +1,9 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { JmapClient, Mailbox, PickProperties } from 'jmap-client-ts'
+import type {
+  JmapClient,
+  Mailbox,
+  PickProperties
+} from '@linagora/jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 

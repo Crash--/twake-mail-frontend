@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { EmailBodyPart } from 'jmap-client-ts'
+import type { EmailBodyPart } from '@linagora/jmap-client-ts'
 
 import {
   FAKE_ACCOUNT_ID,

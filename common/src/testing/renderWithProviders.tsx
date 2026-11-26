@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { render, type RenderResult } from '@testing-library/react'
-import { createClient } from 'jmap-client-ts'
+import { createClient } from '@linagora/jmap-client-ts'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 

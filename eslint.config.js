@@ -63,7 +63,7 @@ const DS_BUSINESS_MESSAGE =
 /** The design system is UI only: MUI is allowed, business code is not */
 const DS_IMPORT_RESTRICTIONS = {
   paths: [
-    { name: 'jmap-client-ts', message: DS_BUSINESS_MESSAGE },
+    { name: '@linagora/jmap-client-ts', message: DS_BUSINESS_MESSAGE },
     { name: 'react-router', message: DS_BUSINESS_MESSAGE },
     { name: 'twake-i18n', message: DS_BUSINESS_MESSAGE },
     CHECKBOX_GLYPHS_RESTRICTION
@@ -71,7 +71,7 @@ const DS_IMPORT_RESTRICTIONS = {
   patterns: [
     {
       group: [
-        'jmap-client-ts/**',
+        '@linagora/jmap-client-ts/**',
         'react-router/**',
         'react-router-dom',
         'twake-i18n/**',

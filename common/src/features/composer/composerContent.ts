@@ -1,4 +1,4 @@
-import type { Email, EmailAddress, JmapClient } from 'jmap-client-ts'
+import type { Email, EmailAddress, JmapClient } from '@linagora/jmap-client-ts'
 
 import {
   findReferencedCids,

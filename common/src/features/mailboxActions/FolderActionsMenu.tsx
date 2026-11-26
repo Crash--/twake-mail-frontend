@@ -7,7 +7,7 @@ import {
   type PopoverPosition
 } from '@linagora/twake-mui'
 import type { ReactElement } from 'react'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import { useHref } from 'react-router'
 
 import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'

@@ -2,7 +2,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import {
   LINAGORA_CAPABILITIES,
   type TMailContact
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import {
   contactName,

@@ -1,4 +1,4 @@
-import type { Rule } from 'jmap-client-ts/linagora'
+import type { Rule } from '@linagora/jmap-client-ts/linagora'
 
 import {
   actionDraft,

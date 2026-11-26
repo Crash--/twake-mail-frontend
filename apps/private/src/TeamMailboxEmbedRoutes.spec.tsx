@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createClient } from 'jmap-client-ts'
+import { createClient } from '@linagora/jmap-client-ts'
 import { isValidElement, type ReactElement } from 'react'
 import {
   createRoutesFromElements,

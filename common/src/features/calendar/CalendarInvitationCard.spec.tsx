@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { CalendarEvent } from 'jmap-client-ts/linagora'
+import type { CalendarEvent } from '@linagora/jmap-client-ts/linagora'
 import { Route } from 'react-router'
 
 import { EmailView } from '@common/features/email/EmailView'

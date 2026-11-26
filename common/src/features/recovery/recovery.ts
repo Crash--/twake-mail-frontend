@@ -1,4 +1,4 @@
-import type { EmailRecoveryActionCreate } from 'jmap-client-ts/linagora'
+import type { EmailRecoveryActionCreate } from '@linagora/jmap-client-ts/linagora'
 
 import type { DayRange } from '@common/features/dateRange/dayRange'
 import { formatDay } from '@common/features/search/searchFilter'

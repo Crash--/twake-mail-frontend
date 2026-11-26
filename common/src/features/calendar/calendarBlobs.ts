@@ -1,4 +1,4 @@
-import type { EmailBodyPart } from 'jmap-client-ts'
+import type { EmailBodyPart } from '@linagora/jmap-client-ts'
 
 function subtypeOf(part: Pick<EmailBodyPart, 'type'>): string {
   return part.type.toLowerCase().split(';')[0]?.split('/')[1] ?? ''

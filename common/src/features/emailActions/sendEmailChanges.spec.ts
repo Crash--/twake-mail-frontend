@@ -1,4 +1,4 @@
-import { createClient, type JmapClient } from 'jmap-client-ts'
+import { createClient, type JmapClient } from '@linagora/jmap-client-ts'
 import { METHOD_CAPABILITIES } from '@common/jmap/methodCapabilities'
 
 import {

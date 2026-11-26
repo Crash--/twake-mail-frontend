@@ -1,5 +1,5 @@
-import type { Session } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import type { Session } from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 /**
  * "Download all" (`com:linagora:params:downloadAll`): the server zips the

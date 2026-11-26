@@ -1,4 +1,4 @@
-import type { EmailFilterCondition } from 'jmap-client-ts'
+import type { EmailFilterCondition } from '@linagora/jmap-client-ts'
 
 import { FLAGGED, SEEN } from '@common/features/email/keywords'
 

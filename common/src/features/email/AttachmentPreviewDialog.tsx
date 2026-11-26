@@ -5,7 +5,7 @@ import {
   ConfirmDialog,
   Typography
 } from '@linagora/twake-mui'
-import type { EmailBodyPart } from 'jmap-client-ts'
+import type { EmailBodyPart } from '@linagora/jmap-client-ts'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import {
   lazy,

@@ -1,5 +1,5 @@
-import type { JmapClient } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import type { JmapClient } from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 
 import { destroyMailboxEmails } from '@common/features/emailActions/mailboxEmails'
 import {

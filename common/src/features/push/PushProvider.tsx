@@ -2,8 +2,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   JmapPushNotSupportedError,
   type WebSocketConstructor
-} from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import { useEffect, type ReactElement, type ReactNode } from 'react'
 
 import { DEFAULT_STALE_TIME } from '@common/app/queryClient'

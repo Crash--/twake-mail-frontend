@@ -4,7 +4,7 @@ import type {
   FetchFunction,
   Identity,
   Mailbox
-} from 'jmap-client-ts'
+} from '@linagora/jmap-client-ts'
 
 import {
   collapseThreads,

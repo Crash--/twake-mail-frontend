@@ -1,6 +1,6 @@
 import { Link } from '@linagora/twake-mui'
-import type { EmailAddress } from 'jmap-client-ts'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import {
   useState,
   type DragEvent,

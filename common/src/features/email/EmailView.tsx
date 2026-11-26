@@ -1,5 +1,5 @@
 import { Box } from '@linagora/twake-mui'
-import type { EmailAddress } from 'jmap-client-ts'
+import type { EmailAddress } from '@linagora/jmap-client-ts'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 

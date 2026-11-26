@@ -1,5 +1,5 @@
 import { Icon } from '@linagora/twake-icons'
-import type { EmailBodyPart } from 'jmap-client-ts'
+import type { EmailBodyPart } from '@linagora/jmap-client-ts'
 import { useMemo, useRef, useState, type ReactElement } from 'react'
 
 import { UploadList, type UploadListItem } from '@/ds/UploadList/UploadList'

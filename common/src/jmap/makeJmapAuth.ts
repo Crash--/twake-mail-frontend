@@ -1,4 +1,4 @@
-import type { AuthOptions } from 'jmap-client-ts'
+import type { AuthOptions } from '@linagora/jmap-client-ts'
 
 import type { AuthServiceBase } from '@common/features/auth/types'
 

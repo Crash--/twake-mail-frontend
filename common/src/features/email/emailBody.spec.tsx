@@ -1,4 +1,4 @@
-import type { EmailBodyValue } from 'jmap-client-ts'
+import type { EmailBodyValue } from '@linagora/jmap-client-ts'
 
 import { makeBodyPart } from '@common/testing/fakeJmapServer'
 

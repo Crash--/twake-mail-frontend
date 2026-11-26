@@ -3,7 +3,11 @@ import {
   useQuery,
   type UseQueryResult
 } from '@tanstack/react-query'
-import { CAPABILITIES, type JmapClient, type Quota } from 'jmap-client-ts'
+import {
+  CAPABILITIES,
+  type JmapClient,
+  type Quota
+} from '@linagora/jmap-client-ts'
 
 import type { QueryOptionsFor } from '@common/app/queryOptionsTypes'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'

@@ -1,4 +1,4 @@
-import type { Forward, Rule } from 'jmap-client-ts/linagora'
+import type { Forward, Rule } from '@linagora/jmap-client-ts/linagora'
 
 import { FAKE_ACCOUNT_ID, type FakeJmapServer } from './fakeJmapServer'
 

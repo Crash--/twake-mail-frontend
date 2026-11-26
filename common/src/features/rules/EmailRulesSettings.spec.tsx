@@ -1,6 +1,6 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { Rule } from 'jmap-client-ts/linagora'
+import type { Rule } from '@linagora/jmap-client-ts/linagora'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import { MailboxPickerProvider } from '@common/features/mailbox/MailboxPickerProvider'

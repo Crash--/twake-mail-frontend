@@ -68,7 +68,6 @@
   "allowScripts": {
     "@parcel/watcher": false,
     "@sentry/cli": false,
-    "unrs-resolver": false,
-    "github:Crash--/jmap-client-ts#d4db397f38155f94b616469144d829e6b0e217f8": true
+    "unrs-resolver": false
   }
 }

@@ -10,7 +10,7 @@ import {
 } from '@linagora/twake-mui'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Editor } from '@tiptap/core'
-import { LINAGORA_CAPABILITIES } from 'jmap-client-ts/linagora'
+import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import {
   useEffect,
   useId,

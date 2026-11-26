@@ -5,7 +5,7 @@ import type {
   RuleConditionComparator,
   RuleConditionField,
   RuleUpdate
-} from 'jmap-client-ts/linagora'
+} from '@linagora/jmap-client-ts/linagora'
 
 import {
   isValidEmail,

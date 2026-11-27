@@ -219,9 +219,9 @@
     "messageActions": "Thao tác với thư từ %{name}, %{date}",
     "newMessage": "Thư mới từ %{name}",
     "empty": "Hội thoại này không còn tồn tại",
-    "archive": "Lưu trữ hội thoại",
-    "moveToTrash": "Chuyển hội thoại vào Thùng rác",
-    "markAsSpam": "Đánh dấu hội thoại là spam",
+    "archive": "Lưu trữ",
+    "moveToTrash": "Chuyển vào Thùng rác",
+    "markAsSpam": "Đánh dấu là spam",
     "deletePermanently": "Xoá vĩnh viễn hội thoại",
     "notSpam": "Xoá hội thoại khỏi thư mục Spam",
     "selection": {

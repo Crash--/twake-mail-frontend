@@ -475,7 +475,7 @@ describe('ConversationView', () => {
 
     await userEvent.click(
       within(await openConversationMenu()).getByRole('menuitem', {
-        name: 'Mark the conversation as spam'
+        name: 'Mark as spam'
       })
     )
 
@@ -530,17 +530,17 @@ describe('ConversationView', () => {
     const menu = await openConversationMenu()
     expect(
       within(menu).queryByRole('menuitem', {
-        name: 'Archive the conversation'
+        name: 'Archive'
       })
     ).toBe(null)
     expect(
       within(menu).queryByRole('menuitem', {
-        name: 'Mark the conversation as spam'
+        name: 'Mark as spam'
       })
     ).toBe(null)
     await userEvent.click(
       within(menu).getByRole('menuitem', {
-        name: 'Move the conversation to trash'
+        name: 'Move to trash'
       })
     )
 
@@ -582,7 +582,7 @@ describe('ConversationView', () => {
       const menu = await openConversationMenu()
       expect(
         within(menu).queryByRole('menuitem', {
-          name: 'Move the conversation to trash'
+          name: 'Move to trash'
         })
       ).toBe(null)
       await userEvent.click(
@@ -613,7 +613,7 @@ describe('ConversationView', () => {
       const menu = await openConversationMenu()
       expect(
         within(menu).queryByRole('menuitem', {
-          name: 'Mark the conversation as spam'
+          name: 'Mark as spam'
         })
       ).toBe(null)
       expect(
@@ -1413,7 +1413,7 @@ describe('ConversationView, an expanded message', () => {
 
         await userEvent.click(
           within(await openConversationMenu()).getByRole('menuitem', {
-            name: 'Archive the conversation'
+            name: 'Archive'
           })
         )
 

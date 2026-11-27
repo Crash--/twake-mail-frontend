@@ -219,9 +219,9 @@
     "messageActions": "Azioni sul messaggio di %{name}, %{date}",
     "newMessage": "Nuovo messaggio da %{name}",
     "empty": "Questa conversazione non esiste più",
-    "archive": "Archivia la conversazione",
-    "moveToTrash": "Sposta la conversazione nel cestino",
-    "markAsSpam": "Segna la conversazione come spam",
+    "archive": "Archivia",
+    "moveToTrash": "Sposta nel cestino",
+    "markAsSpam": "Segna come spam",
     "deletePermanently": "Elimina definitivamente la conversazione",
     "notSpam": "Rimuovi la conversazione dallo spam",
     "selection": {

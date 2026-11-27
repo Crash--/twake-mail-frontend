@@ -367,3 +367,4 @@ Conventions:
 | `composer-signature-toggle` | the chevron button on the `---` line of the signature, folding it in the editor ("Hide signature" / "Show signature", `aria-expanded`) | none (Figma) |
 | `other-users-section` / `other-users-section-toggle` | "Other users" category of the Folders section and its tree, after the team mailboxes: the folders other users share (namespace `Delegated[<owner>]`), their top folder with the address of its owner on a second line; its title collapses it | — (issue #714) |
 
+| `after-move-setting` / `after-move-setting-list` / `after-move-setting-next` / `after-move-setting-previous` | Settings > Preferences: "After deleting or moving an email" (`role="radiogroup"`, kept in this browser, `twake-mail.preferences.afterMove`), what the reading view shows once the open email leaves its folder through an action of the view: the list (default), the next or the previous email | — (#703) |

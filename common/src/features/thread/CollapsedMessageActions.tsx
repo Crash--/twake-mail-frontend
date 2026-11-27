@@ -14,6 +14,7 @@ import { MoreVerticalIcon } from '@/ds/ListIcons/ListIcons'
 import { useScreenSize } from '@/ds/useScreenSize/useScreenSize'
 import { FLAGGED, hasKeyword } from '@common/features/email/keywords'
 import { messageMailboxId } from '@common/features/email/messageMailbox'
+import { runFromView } from '@common/features/email/viewMoves'
 import {
   availableEmailActions,
   type EmailActionId
@@ -87,7 +88,9 @@ export function CollapsedMessageActions({
   const replyLabel = t('emailActions.reply.reply')
 
   const handleRun = (id: EmailActionId): void => {
-    void runAction(id, [email], mailboxId).then(done => {
+    void runFromView(id, [email.id], () =>
+      runAction(id, [email], mailboxId)
+    ).then(done => {
       if (done) onAction(id)
     })
   }

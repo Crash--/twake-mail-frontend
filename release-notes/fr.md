@@ -1,2 +1,1 @@
-- Sur ordinateur, vous pouvez garder la liste de vos e-mails à côté de celui que vous lisez : activez « Afficher la liste à côté de l'e-mail ouvert » dans Paramètres > Préférences.
-- Les fichiers trop lourds pour un e-mail partent dans votre Twake Drive, et l'e-mail contient un lien vers chacun.
+- Sur Safari 18, un clic sur un e-mail de la liste ouvre bien cet e-mail.

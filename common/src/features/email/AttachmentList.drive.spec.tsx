@@ -58,12 +58,15 @@ let intentCount = 0
 const intentActions: string[] = []
 /** Drive never answers the creation of an intent */
 let hangsIntents = false
+/** The LOOKUP intents of the list, apart from the others: `l1`, `l2`… */
+const lookups: string[] = []
 
 /** The Workplace of Alice, with Drive, answering the intents of the list */
 beforeEach(() => {
   intentCount = 0
   intentActions.length = 0
   hangsIntents = false
+  lookups.length = 0
   fetchMock.mockReset()
   fetchMock.mockImplementation((input, init) => {
     const url = urlOf(input)
@@ -93,18 +96,21 @@ beforeEach(() => {
       )
     }
     if (url === `${WORKPLACE}/intents`) {
-      if (hangsIntents) {
-        intentActions.push('UPLOAD')
-        return new Promise<Response>(() => undefined)
-      }
-      intentCount += 1
-      const id = `i${intentCount}`
       const body: unknown = JSON.parse(
         typeof init?.body === 'string' ? init.body : 'null'
       )
       const action = (body as { data: { attributes: { action: string } } }).data
         .attributes.action
-      intentActions.push(action)
+      let id: string
+      if (action === 'LOOKUP') {
+        id = `l${lookups.length + 1}`
+        lookups.push(id)
+      } else {
+        intentActions.push(action)
+        if (hangsIntents) return new Promise<Response>(() => undefined)
+        intentCount += 1
+        id = `i${intentCount}`
+      }
       return Promise.resolve(
         json({
           data: {
@@ -185,6 +191,7 @@ function renderList(
   attachments: EmailBodyPart[],
   hasBlobAccess = true,
   refusesTokens = false,
+  emailId: string | null = 'e1',
   isSaveToDriveEnabled = true
 ): { tokens: string[] } {
   const server = makeFakeJmapServer({
@@ -211,7 +218,10 @@ function renderList(
   })
   renderWithProviders(
     <PlatformProvider>
-      <AttachmentList attachments={attachments} emailId="e1" />
+      <AttachmentList
+        attachments={attachments}
+        emailId={emailId ?? undefined}
+      />
     </PlatformProvider>,
     {
       withJmapSession: true,
@@ -252,7 +262,11 @@ describe('AttachmentList, save to Drive', () => {
       {
         url: downloadUrl('b1'),
         folderId: 'io.cozy.apps/mail',
-        name: 'report.pdf'
+        name: 'report.pdf',
+        reference: {
+          type: 'io.cozy.mails.attachments',
+          id: `${FAKE_ACCOUNT_ID}:e1:b1`
+        }
       },
       DRIVE
     )
@@ -286,7 +300,8 @@ describe('AttachmentList, save to Drive', () => {
         fileIds: ['file-1'],
         defaultDirId: 'dir-mail',
         tabs: ['drive'],
-        theme: { type: 'light' }
+        theme: { type: 'light' },
+        confirmLabel: 'Save to'
       },
       DRIVE
     )
@@ -348,7 +363,11 @@ describe('AttachmentList, save to Drive', () => {
       {
         url: downloadUrl('b2'),
         folderId: 'io.cozy.apps/mail',
-        name: 'photo.png'
+        name: 'photo.png',
+        reference: {
+          type: 'io.cozy.mails.attachments',
+          id: `${FAKE_ACCOUNT_ID}:e1:b2`
+        }
       },
       DRIVE
     )
@@ -374,13 +393,18 @@ describe('AttachmentList, save to Drive', () => {
         `${WORKPLACE}/apps/`
       )
     })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50))
+    })
     expect(screen.queryByRole('button', { name: /Save to my Drive/ })).toBe(
       null
     )
+    // Nothing to show: Drive is not asked either
+    expect(lookups).toEqual([])
   })
 
   it('offers no save without SAVE_TO_DRIVE_ENABLED', async () => {
-    renderList([REPORT, PHOTO], true, false, false)
+    renderList([REPORT, PHOTO], true, false, 'e1', false)
 
     await screen.findByRole('button', { name: 'Download report.pdf' })
     // Drive is there for the composer all the same
@@ -395,6 +419,7 @@ describe('AttachmentList, save to Drive', () => {
     expect(screen.queryByRole('button', { name: 'Save all to Drive' })).toBe(
       null
     )
+    expect(lookups).toEqual([])
   })
 
   it('opens a saved file in Drive', async () => {
@@ -484,5 +509,203 @@ describe('AttachmentList, save to Drive', () => {
     expect(
       screen.getByRole('button', { name: 'Save to my Drive report.pdf' })
     ).toBeVisible()
+  })
+
+  it('asks Drive in one intent which attachments are saved', async () => {
+    const open = jest.spyOn(window, 'open').mockReturnValue(null)
+    renderList([REPORT, PHOTO])
+
+    const lookup = await frameOf('l1')
+    expect(ready(lookup, 'l1')).toHaveBeenCalledWith(
+      {
+        references: ['b1', 'b2'].map(blobId => ({
+          type: 'io.cozy.mails.attachments',
+          id: `${FAKE_ACCOUNT_ID}:e1:${blobId}`
+        }))
+      },
+      DRIVE
+    )
+    send(lookup, {
+      type: 'intent-l1:done',
+      document: {
+        files: {
+          [`${FAKE_ACCOUNT_ID}:e1:b1`]: {
+            fileId: 'file-9',
+            name: 'report.pdf',
+            dirId: 'd',
+            trashed: false
+          },
+          [`${FAKE_ACCOUNT_ID}:e1:b2`]: null
+        }
+      }
+    })
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'See in Drive report.pdf' })
+    )
+    await waitFor(() => {
+      expect(open).toHaveBeenCalledWith(
+        `${DRIVE}/#/file/file-9`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+    })
+    expect(
+      screen.getByRole('button', { name: 'Save to my Drive photo.png' })
+    ).toBeVisible()
+    expect(lookups).toEqual(['l1'])
+    expect(intentActions).toEqual([])
+  })
+
+  it('offers to save an attachment whose file is in the trash', async () => {
+    renderList([REPORT])
+    const lookup = await frameOf('l1')
+    ready(lookup, 'l1')
+
+    send(lookup, {
+      type: 'intent-l1:done',
+      document: {
+        files: {
+          [`${FAKE_ACCOUNT_ID}:e1:b1`]: {
+            fileId: 'file-9',
+            name: 'report.pdf',
+            dirId: 'trash',
+            trashed: true
+          }
+        }
+      }
+    })
+
+    expect(
+      await screen.findByRole('button', { name: 'Save to my Drive report.pdf' })
+    ).toBeVisible()
+    expect(screen.queryByRole('button', { name: /See in Drive/ })).toBe(null)
+  })
+
+  it('offers to save, and saves, when Drive cannot tell', async () => {
+    renderList([REPORT])
+    const lookup = await frameOf('l1')
+    ready(lookup, 'l1')
+    send(lookup, { type: 'intent-l1:error', error: { message: 'Oops' } })
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Save to my Drive report.pdf' })
+    )
+    const upload = await frameOf('i1')
+    ready(upload, 'i1')
+    send(upload, {
+      type: 'intent-i1:done',
+      document: { _id: 'file-1', name: 'report.pdf', dir_id: 'd', size: 1044 }
+    })
+
+    expect(
+      await screen.findByRole('button', { name: 'See in Drive report.pdf' })
+    ).toBeVisible()
+  })
+
+  it('keeps a file saved while Drive is still looking', async () => {
+    renderList([REPORT])
+    const lookup = await frameOf('l1')
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Save to my Drive report.pdf' })
+    )
+    const upload = await frameOf('i1')
+    ready(upload, 'i1')
+    send(upload, {
+      type: 'intent-i1:done',
+      document: { _id: 'file-1', name: 'report.pdf', dir_id: 'd', size: 1044 }
+    })
+    await screen.findByRole('button', { name: 'See in Drive report.pdf' })
+    // Drive looked before the file was stored
+    ready(lookup, 'l1')
+    send(lookup, {
+      type: 'intent-l1:done',
+      document: { files: { [`${FAKE_ACCOUNT_ID}:e1:b1`]: null } }
+    })
+
+    // The lookup is over once Drive's frame is gone
+    await waitFor(() => {
+      expect(
+        document.querySelector(`iframe[src="${DRIVE}/#/intents?intent=l1"]`)
+      ).toBe(null)
+    })
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+    })
+    expect(
+      screen.getByRole('button', { name: 'See in Drive report.pdf' })
+    ).toBeVisible()
+  })
+
+  it('asks Drive again for the other attachments once a save cut its lookup', async () => {
+    renderList([REPORT, PHOTO])
+    await frameOf('l1')
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Save to my Drive report.pdf' })
+    )
+    const upload = await frameOf('i1')
+    ready(upload, 'i1')
+    send(upload, {
+      type: 'intent-i1:done',
+      document: { _id: 'file-1', name: 'report.pdf', dir_id: 'd', size: 1044 }
+    })
+    await screen.findByRole('button', { name: 'See in Drive report.pdf' })
+
+    const again = await frameOf('l2')
+    ready(again, 'l2')
+    send(again, {
+      type: 'intent-l2:done',
+      document: {
+        files: {
+          [`${FAKE_ACCOUNT_ID}:e1:b1`]: {
+            fileId: 'file-1',
+            name: 'report.pdf',
+            dirId: 'd',
+            trashed: false
+          },
+          [`${FAKE_ACCOUNT_ID}:e1:b2`]: {
+            fileId: 'file-7',
+            name: 'photo.png',
+            dirId: 'd',
+            trashed: false
+          }
+        }
+      }
+    })
+
+    expect(
+      await screen.findByRole('button', { name: 'See in Drive photo.png' })
+    ).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: 'See in Drive report.pdf' })
+    ).toBeVisible()
+  })
+
+  it('saves the attachment of no email without a reference', async () => {
+    renderList([REPORT], true, false, null)
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Save to my Drive report.pdf' })
+    )
+    const upload = await frameOf('i1')
+
+    expect(ready(upload, 'i1')).toHaveBeenCalledWith(
+      {
+        url: downloadUrl('b1'),
+        folderId: 'io.cozy.apps/mail',
+        name: 'report.pdf'
+      },
+      DRIVE
+    )
+    send(upload, {
+      type: 'intent-i1:done',
+      document: { _id: 'file-1', name: 'report.pdf', dir_id: 'd', size: 1044 }
+    })
+    expect(
+      await screen.findByRole('button', { name: 'See in Drive report.pdf' })
+    ).toBeVisible()
+    expect(lookups).toEqual([])
   })
 })

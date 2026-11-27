@@ -297,3 +297,17 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-27
 - Why: each environment turns it on once its mail server, ingress and Drive are ready for it.
 - Scope: deployment, the attachments of an email.
+
+## 2026-11-27, [Architecture] Drive tells which attachments are saved
+
+- Decision: Mail gives each saved attachment a reference, `io.cozy.mails.attachments` `<accountId>:<emailId>:<blobId>`, which Drive adds to the stored file. At the opening of an email, Mail asks Drive which of its attachments are saved through the `LOOKUP` intent of Drive, one hidden frame for all the attachments, kept in the query cache: "See in Drive" (`#/file/:id`) on an attachment whose file is out of the trash, "Save to my Drive" on the others. When Drive does not answer, answers an error or has no `LOOKUP`, every attachment shows "Save to my Drive", and saving still works. Mail calls no route of the stack for this and its manifest has no permission on `io.cozy.mails.attachments`. "Organize" asks Drive for a "Save to" button. This replaces the state kept for the view only of "A file saved to Drive is not saved again" (2026-11-26).
+- Decided by: Crash-- (CTO), 2026-11-27, [linagora/twake-drive#4662](https://github.com/linagora/twake-drive/pull/4662), [linagora/twake-drive#4664](https://github.com/linagora/twake-drive/pull/4664)
+- Why: Mail (web, and Flutter later) talks to Drive through intents rather than calling the stack itself; Drive reads the files anyway, so it also says when a file is in the trash.
+- Scope: desktop and mobile, the attachments of an email; the manifest of the app.
+
+## 2026-11-27, [Security] Drive answers the LOOKUP intent of any app
+
+- Decision: Mail relies on a `LOOKUP` intent open to every app, with no list of allowed origins.
+- Decided by: Crash-- (CTO), 2026-11-27
+- Why: an app learns about a file only if it knows the id of the attachment, and Drive answers to the origin of the app that asked only.
+- Scope: the attachments of an email.

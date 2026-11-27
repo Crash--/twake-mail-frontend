@@ -169,6 +169,7 @@
       "savedOne": "“%{name}” guardado en tu Drive",
       "saved": "%{smart_count} archivo guardado en tu Drive |||| %{smart_count} archivos guardados en tu Drive",
       "organize": "Organizar",
+      "saveTo": "Guardar en",
       "movedTo": "Movido a %{path}",
       "saveFailed": "No se pudo confirmar que se guardó el archivo. Revisa tu Drive antes de volver a intentarlo. |||| No se pudo confirmar que se guardaron %{smart_count} archivos. Revisa tu Drive antes de volver a intentarlo.",
       "frameTitle": "Guardando en Twake Drive",

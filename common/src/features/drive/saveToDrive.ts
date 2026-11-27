@@ -11,6 +11,9 @@ import { DRIVE_READY_TIMEOUT_MS } from './useDrivePicker'
  */
 export const DRIVE_URL_UPLOAD_TIMEOUT_MS = 120_000
 
+/** Time the LOOKUP intent may take once Drive is ready */
+export const DRIVE_LOOKUP_TIMEOUT_MS = 30_000
+
 /** A file Drive stored, what "Organize" and "See in Drive" need */
 export interface SavedDriveFile {
   id: string
@@ -96,30 +99,25 @@ export async function settleWithin<T>(
 }
 
 /**
- * One file into the Mail folder of Drive through the UPLOAD intent from a
- * URL (twake-drive `docs/upload-intent.md`): the stack downloads it, the
- * browser never sees its bytes. Resolves with what Drive stored, null when
- * it failed, stopped or took too long; the frame goes in `element`, hidden.
+ * An intent of Drive with no interface, its frame hidden in `element`: what
+ * it ends with, or null when it was cut by `signal` or took too long
+ * (`readyTimeout` to get ready, then `timeout` to end). Rejects when Drive
+ * answers an error.
  */
-export async function saveUrlToDrive(
+async function runHiddenIntent(
   sdk: Sdk,
-  file: { url: string; name: string; size: number },
+  action: string,
+  data: Record<string, unknown>,
   element: HTMLElement,
   frameTitle: string,
   signal: AbortSignal,
-  {
-    readyTimeout = DRIVE_READY_TIMEOUT_MS,
-    uploadTimeout = DRIVE_URL_UPLOAD_TIMEOUT_MS
-  }: { readyTimeout?: number; uploadTimeout?: number } = {}
-): Promise<SavedDriveFile | null> {
+  readyTimeout: number,
+  timeout: number
+): Promise<unknown> {
   const intent = new Intents({ client: sdk }).create(
-    'UPLOAD',
+    action,
     'io.cozy.files',
-    {
-      url: file.url,
-      folderId: MAIL_FOLDER_ID,
-      name: file.name
-    }
+    data
   )
   // `null` when the creation was cut: the intent is not started then
   const created = await settleWithin(
@@ -134,12 +132,103 @@ export async function saveUrlToDrive(
     readyTimeout
   })
   try {
-    return readSavedFile(
-      await settleWithin(started, signal, uploadTimeout),
-      file.size
-    )
+    return await settleWithin(started, signal, timeout)
   } finally {
     // A stopped intent never settles; stopping a settled one is harmless
     started.stop()
   }
+}
+
+/**
+ * One file into the Mail folder of Drive through the UPLOAD intent from a
+ * URL (twake-drive `docs/upload-intent.md`): the stack downloads it, the
+ * browser never sees its bytes. Resolves with what Drive stored, null when
+ * it failed, stopped or took too long; the frame goes in `element`, hidden.
+ */
+export async function saveUrlToDrive(
+  sdk: Sdk,
+  file: {
+    url: string
+    name: string
+    size: number
+    /** Where the file comes from, kept on the file by Drive */
+    reference?: { type: string; id: string } | null
+  },
+  element: HTMLElement,
+  frameTitle: string,
+  signal: AbortSignal,
+  {
+    readyTimeout = DRIVE_READY_TIMEOUT_MS,
+    uploadTimeout = DRIVE_URL_UPLOAD_TIMEOUT_MS
+  }: { readyTimeout?: number; uploadTimeout?: number } = {}
+): Promise<SavedDriveFile | null> {
+  const document = await runHiddenIntent(
+    sdk,
+    'UPLOAD',
+    {
+      url: file.url,
+      folderId: MAIL_FOLDER_ID,
+      name: file.name,
+      ...(file.reference ? { reference: file.reference } : {})
+    },
+    element,
+    frameTitle,
+    signal,
+    readyTimeout,
+    uploadTimeout
+  )
+  return readSavedFile(document, file.size)
+}
+
+/**
+ * The ids of the files out of the trash in the result of the LOOKUP
+ * intent, by reference id; the others are not saved
+ */
+export function readLookedUpFiles(result: unknown): Map<string, string> {
+  const files: unknown =
+    typeof result === 'object' && result !== null
+      ? (result as { files?: unknown }).files
+      : null
+  if (typeof files !== 'object' || files === null) return new Map()
+  return new Map(
+    Object.entries(files).flatMap(([id, file]): [string, string][] => {
+      if (typeof file !== 'object' || file === null) return []
+      const { fileId, trashed } = file as {
+        fileId?: unknown
+        trashed?: unknown
+      }
+      const fileIdText = readString(fileId)
+      return fileIdText !== null && trashed !== true ? [[id, fileIdText]] : []
+    })
+  )
+}
+
+/**
+ * The files of Drive that references point to, through the LOOKUP intent
+ * (twake-drive `docs/lookup-intent.md`): one hidden frame for them all.
+ * Null when Drive did not answer in time or the lookup was cut; rejects
+ * when Drive answers an error, or has no LOOKUP.
+ */
+export async function lookupSavedFiles(
+  sdk: Sdk,
+  references: readonly { type: string; id: string }[],
+  element: HTMLElement,
+  frameTitle: string,
+  signal: AbortSignal,
+  {
+    readyTimeout = DRIVE_READY_TIMEOUT_MS,
+    lookupTimeout = DRIVE_LOOKUP_TIMEOUT_MS
+  }: { readyTimeout?: number; lookupTimeout?: number } = {}
+): Promise<Map<string, string> | null> {
+  const result = await runHiddenIntent(
+    sdk,
+    'LOOKUP',
+    { references },
+    element,
+    frameTitle,
+    signal,
+    readyTimeout,
+    lookupTimeout
+  )
+  return result === null ? null : readLookedUpFiles(result)
 }

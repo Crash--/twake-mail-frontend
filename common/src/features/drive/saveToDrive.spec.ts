@@ -1,4 +1,9 @@
-import { readMovedFiles, readSavedFile, settleWithin } from './saveToDrive'
+import {
+  readLookedUpFiles,
+  readMovedFiles,
+  readSavedFile,
+  settleWithin
+} from './saveToDrive'
 
 const DOCUMENT = {
   _id: 'file-1',
@@ -29,6 +34,38 @@ describe('readSavedFile', () => {
     ['no document', null]
   ])('is no saved file with %s', (_case, document) => {
     expect(readSavedFile(document, 1044)).toBe(null)
+  })
+})
+
+describe('readLookedUpFiles', () => {
+  it('keeps the files out of the trash', () => {
+    expect(
+      readLookedUpFiles({
+        files: {
+          'a:e:b1': {
+            fileId: 'file-1',
+            name: 'r.pdf',
+            dirId: 'd',
+            trashed: false
+          },
+          'a:e:b2': {
+            fileId: 'file-2',
+            name: 'p.png',
+            dirId: 't',
+            trashed: true
+          },
+          'a:e:b3': null
+        }
+      })
+    ).toEqual(new Map([['a:e:b1', 'file-1']]))
+  })
+
+  it.each([
+    ['no result', null],
+    ['no files', {}],
+    ['a file without id', { files: { 'a:e:b1': { name: 'r.pdf' } } }]
+  ])('has no file with %s', (_case, result) => {
+    expect(readLookedUpFiles(result)).toEqual(new Map())
   })
 })
 

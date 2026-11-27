@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  FormGroup,
   IconButton,
   MenuItem,
   TextField,
@@ -511,7 +512,7 @@ export function AdvancedSearchDialog({
           ))}
         </TextField>
       </FormRow>
-      <Box className="u-flex u-flex-wrap u-mt-half">
+      <FormGroup row className="u-mt-half">
         {(
           [
             ['hasAttachment', 'search.filters.hasAttachment'],
@@ -523,7 +524,9 @@ export function AdvancedSearchDialog({
           <FormControlLabel
             key={name}
             label={t(label)}
-            className="u-mr-half"
+            // Wider after the label than between the checkbox and its label,
+            // so each checkbox reads as part of the label it precedes
+            className="u-mr-1-half"
             slotProps={{ typography: { variant: 'body2' } }}
             control={
               <Checkbox
@@ -535,7 +538,7 @@ export function AdvancedSearchDialog({
             }
           />
         ))}
-      </Box>
+      </FormGroup>
     </Box>
   )
 

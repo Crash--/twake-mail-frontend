@@ -905,4 +905,33 @@ test.describe('SRCH search', () => {
     await search.advancedSubmitButton.click()
     await expect(page).not.toHaveURL(/[?&](subject|q|not|in|date)=/)
   })
+
+  test('SRCH-20 each checkbox of the advanced search sits closer to its label than to the label before it', { tag: '@mobile' }, async ({
+    page,
+    user
+  }) => {
+    await new LoginPage(page).loginAs(user)
+    const dialog = await new SearchPage(page).openAdvanced()
+    const options = await dialog
+      .locator('.MuiFormControlLabel-root')
+      .evaluateAll(labels =>
+        labels.map(label => {
+          const box = (selector: string): DOMRect =>
+            (label.querySelector(selector) as Element).getBoundingClientRect()
+          return { icon: box('svg'), text: box('.MuiFormControlLabel-label') }
+        })
+      )
+    expect(options).toHaveLength(4)
+    for (const [index, option] of options.entries()) {
+      const toLabel = option.text.left - option.icon.right
+      const next = options[index + 1]
+      // Only the next checkbox on the same line: the row wraps on a phone
+      if (next === undefined || Math.abs(next.text.top - option.text.top) > 1) {
+        continue
+      }
+      expect(next.icon.left - option.text.right).toBeGreaterThanOrEqual(
+        2 * toLabel
+      )
+    }
+  })
 })

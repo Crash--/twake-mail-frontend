@@ -6,10 +6,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-11-27
+
+No new setting since 0.18.0. The release notes of the dialog stay those of
+0.18.0.
+
+### Changed
+
+- The icon before each preference is a white glyph on a neutral tile, apart
+  from the grey icons of the settings menu.
+- The "From" and "To" filters of a search open twake-mui's dialog, as the
+  folder picker does.
+
 ### Fixed
 
+- On Safari 18, a click on a row of the email list opens that email.
 - Under the Workplace bar, one "?" holds the help of the Workplace and the
   support of the server, in a menu when there are both (twake-bar 1.3.0).
+- A toast in the reader shows above the reply bar instead of covering it.
+- In Twake Space, the link popup of the editor opens above the composer,
+  and a dragged recipient shows as its chip.
+- Recent searches, recipient suggestions and avatar initials handle accents
+  however they are encoded, and never cut a character in two.
+
+### Build
+
+- jmap-client-ts comes from npm (`@linagora/jmap-client-ts`), Jest files are
+  compiled with swc, the code moves to TypeScript 7, and Rslint lints it.
 
 ## [0.18.0] - 2026-11-26
 

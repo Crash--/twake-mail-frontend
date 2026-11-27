@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The switch that keeps the email list beside the open email in Settings >
+  Preferences is named "Reading pane".
+
 ## [0.18.2] - 2026-11-27
 
 No new setting since 0.18.1. The code of 0.18.1, with release notes of its

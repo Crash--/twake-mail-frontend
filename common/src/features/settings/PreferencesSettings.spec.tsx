@@ -271,7 +271,7 @@ describe('PreferencesSettings', () => {
     )
 
     const toggle = await screen.findByRole('switch', {
-      name: 'Show the list beside the open email'
+      name: 'Reading pane'
     })
     expect(toggle).not.toBeChecked()
     await userEvent.click(toggle)

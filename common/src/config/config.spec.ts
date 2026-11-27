@@ -65,6 +65,7 @@ describe('resolveConfig', () => {
         forwardWarningMessage: null,
         workplaceEmbedding: false,
         tdriveEnabled: false,
+        saveToDriveEnabled: false,
         appGridAvailable: false,
         newVersionCheckEnabled: false,
         appVersion: 'dev'
@@ -149,6 +150,12 @@ describe('resolveConfig', () => {
     expect(
       resolveConfig({ ...OIDC_SOURCE, TDRIVE_ENABLED: 'true' }, ORIGIN)
     ).toMatchObject({ value: { tdriveEnabled: true } })
+  })
+
+  it('turns "Save to my Drive" on with SAVE_TO_DRIVE_ENABLED', () => {
+    expect(
+      resolveConfig({ ...OIDC_SOURCE, SAVE_TO_DRIVE_ENABLED: 'true' }, ORIGIN)
+    ).toMatchObject({ value: { saveToDriveEnabled: true } })
   })
 
   it('accepts the basic mode without any SSO setting', () => {

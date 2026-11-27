@@ -198,6 +198,7 @@ var FORWARD_WARNING_MESSAGE = {{ include "twake-mail-frontend.jsString" . }}
 var ALLOWED_LANGUAGES = {{ include "twake-mail-frontend.jsString" . }}
 {{- end }}
 var TDRIVE_ENABLED = {{ ternary "true" "false" (eq (toString ($config.tdrive | default dict).enabled) "true") }}
+var SAVE_TO_DRIVE_ENABLED = {{ ternary "true" "false" (eq (toString ($config.saveToDrive | default dict).enabled) "true") }}
 var NEW_VERSION_CHECK_ENABLED = {{ ternary "true" "false" (eq (toString ($config.newVersionCheck | default dict).enabled) "true") }}
 {{- with ($config.newVersionCheck | default dict).releaseNotesUrl }}
 var RELEASE_NOTES_URL = {{ include "twake-mail-frontend.jsString" . }}

@@ -26,13 +26,14 @@ const BLOB_ACCESS = 'com:linagora:params:jmap:unauthenticated:blob:access'
 const ENDPOINT =
   'https://jmap.example.com/unauthenticatedDownload/{accountId}/{blobId}?token={token}'
 
-function makeConfig(): AppConfig {
+function makeConfig(isSaveToDriveEnabled: boolean): AppConfig {
   const result = resolveConfig(
     {
       SERVER_URL: 'https://jmap.example.com',
       AUTH_MODE: 'basic',
       WORKPLACE_FQDN_FALLBACK: '{localpart}.twake.example.com',
-      TDRIVE_ENABLED: true
+      TDRIVE_ENABLED: true,
+      SAVE_TO_DRIVE_ENABLED: isSaveToDriveEnabled
     },
     'https://mail.example.com'
   )
@@ -183,7 +184,8 @@ const PHOTO = makeBodyPart({
 function renderList(
   attachments: EmailBodyPart[],
   hasBlobAccess = true,
-  refusesTokens = false
+  refusesTokens = false,
+  isSaveToDriveEnabled = true
 ): { tokens: string[] } {
   const server = makeFakeJmapServer({
     capabilities: hasBlobAccess
@@ -214,7 +216,7 @@ function renderList(
     {
       withJmapSession: true,
       jmapServer: server,
-      config: makeConfig(),
+      config: makeConfig(isSaveToDriveEnabled),
       authService: makeFakeOidcAuthService({
         status: 'authenticated',
         user: { email: 'alice@example.com', name: 'Alice', workplaceFqdn: null }
@@ -373,6 +375,24 @@ describe('AttachmentList, save to Drive', () => {
       )
     })
     expect(screen.queryByRole('button', { name: /Save to my Drive/ })).toBe(
+      null
+    )
+  })
+
+  it('offers no save without SAVE_TO_DRIVE_ENABLED', async () => {
+    renderList([REPORT, PHOTO], true, false, false)
+
+    await screen.findByRole('button', { name: 'Download report.pdf' })
+    // Drive is there for the composer all the same
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.map(([input]) => urlOf(input))).toContain(
+        `${WORKPLACE}/apps/`
+      )
+    })
+    expect(screen.queryByRole('button', { name: /Save to my Drive/ })).toBe(
+      null
+    )
+    expect(screen.queryByRole('button', { name: 'Save all to Drive' })).toBe(
       null
     )
   })

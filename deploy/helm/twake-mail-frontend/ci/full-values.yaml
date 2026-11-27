@@ -37,6 +37,8 @@ config:
   forwardWarningMessage: Do not forward "outside" <example.com>
   tdrive:
     enabled: true
+  saveToDrive:
+    enabled: true
   newVersionCheck:
     enabled: true
     releaseNotesUrl: https://chat.example.com/rooms/release

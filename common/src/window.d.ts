@@ -60,6 +60,8 @@ declare global {
     COZY_INTEGRATION?: boolean | string
     /** The Twake Drive picker of the composer (as Twake Calendar) */
     TDRIVE_ENABLED?: boolean | string
+    /** "Save to my Drive" on the attachments, with TDRIVE_ENABLED */
+    SAVE_TO_DRIVE_ENABLED?: boolean | string
     /** Offers a reload when the server serves a newer build than the tab's */
     NEW_VERSION_CHECK_ENABLED?: boolean | string
     /** Where users read every change, linked under the release notes */

@@ -1,6 +1,7 @@
 import { useColorScheme } from '@linagora/twake-mui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useAppConfig } from '@common/config/AppConfigProvider'
 import {
   fetchBlobDownloadUrl,
   getBlobAccessEndpoint
@@ -32,7 +33,10 @@ export interface DriveSaveRequest {
 export type DriveSaveStatus = 'idle' | 'saving' | 'saved'
 
 export interface SaveToDrive {
-  /** Drive is there and the mail server gives download tokens */
+  /**
+   * `SAVE_TO_DRIVE_ENABLED`, Drive is there and the mail server gives
+   * download tokens
+   */
   isAvailable: boolean
   statusOf: (blobId: string) => DriveSaveStatus
   /** Saves the files not saved yet, one after the other */
@@ -61,7 +65,9 @@ export function useSaveToDrive(): SaveToDrive {
   const { notify } = useNotify()
   const client = useJmapClient()
   const { session, accountId } = useJmapSession()
-  const sdk = useDriveSdk()
+  const isEnabled = useAppConfig()?.saveToDriveEnabled === true
+  const driveSdk = useDriveSdk()
+  const sdk = isEnabled ? driveSdk : null
   const { colorScheme = 'light' } = useColorScheme()
   const endpoint = getBlobAccessEndpoint(session, accountId)
   const move = useDriveIntentDialog(sdk, t('email.drive.moveFrameTitle'))

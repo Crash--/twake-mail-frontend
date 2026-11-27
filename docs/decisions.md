@@ -290,3 +290,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26, [#1203](https://github.com/Crash--/twake-mail-frontend/pull/1203)
 - Why: with the cloud always there, the 260 px chips cut the names of the files further.
 - Scope: desktop and mobile, the attachments of an email.
+
+## 2026-11-27, [Config] "Save to my Drive" behind SAVE_TO_DRIVE_ENABLED
+
+- Decision: "Save to my Drive", "Save all to Drive", their toasts and the reads of what was saved show only with `SAVE_TO_DRIVE_ENABLED = true` (Helm chart: `config.saveToDrive.enabled`, Docker: the environment of the image), off by default. On, nothing else changes: the actions still need `TDRIVE_ENABLED`, the download tokens of the mail server and Drive on the Workplace.
+- Decided by: Crash-- (CTO), 2026-11-27
+- Why: each environment turns it on once its mail server, ingress and Drive are ready for it.
+- Scope: deployment, the attachments of an email.

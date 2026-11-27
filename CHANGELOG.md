@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.2] - 2026-11-27
+
+No new setting since 0.18.1. The code of 0.18.1, with release notes of its
+own.
+
+### Changed
+
+- The "What's new in Twake Mail" dialog tells about the Safari 18 fix of the
+  email list, in place of the notes of 0.18.0.
+
 ## [0.18.1] - 2026-11-27
 
 No new setting since 0.18.0. The release notes of the dialog stay those of

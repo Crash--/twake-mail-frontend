@@ -74,7 +74,7 @@
     "emptyFilter": "Aucun message ne correspond à votre filtre actuel."
   },
   "email": {
-    "star": "Marquer comme favori",
+    "star": "Ajouter aux favoris",
     "unstar": "Retirer des favoris",
     "unread": "Non lu",
     "attachment": "Pièce jointe",
@@ -219,9 +219,9 @@
     "messageActions": "Actions sur le message de %{name}, %{date}",
     "newMessage": "Nouveau message de %{name}",
     "empty": "Cette conversation n'existe plus",
-    "archive": "Archiver la conversation",
-    "moveToTrash": "Mettre la conversation à la corbeille",
-    "markAsSpam": "Marquer la conversation comme indésirable",
+    "archive": "Archiver",
+    "moveToTrash": "Mettre à la corbeille",
+    "markAsSpam": "Marquer comme indésirable",
     "deletePermanently": "Supprimer définitivement la conversation",
     "notSpam": "Retirer la conversation des indésirables",
     "selection": {

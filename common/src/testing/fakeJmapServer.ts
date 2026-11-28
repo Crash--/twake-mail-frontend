@@ -184,6 +184,8 @@ export interface FakeJmapServer {
    * the session as accounts not personal
    */
   delegatedAccounts: FakeDelegatedAccount[]
+  /** Whether the session advertises push over WebSocket, read at each session */
+  webSocket: boolean
 }
 
 /** An account delegated to the user: its id, and its owner's address */
@@ -693,6 +695,7 @@ export function makeFakeJmapServer(
     },
     handlers: new Map(),
     delegatedAccounts: init.delegatedAccounts ?? [],
+    webSocket: init.webSocket ?? false,
     callsOf: method =>
       server.requests.flatMap(request =>
         request.methodCalls
@@ -732,7 +735,6 @@ export function makeFakeJmapServer(
   const maxChanges = init.maxChanges ?? Infinity
   const emailLog = new ChangeLog('state-email-', maxChanges)
   const mailboxLog = new ChangeLog('state-mailbox-', maxChanges)
-  const advertisesWebSocket = init.webSocket ?? false
   const extraCapabilities = init.capabilities ?? {}
   const toldMaxObjectsInGet =
     init.maxObjectsInGet === undefined ? 500 : init.maxObjectsInGet
@@ -1555,7 +1557,7 @@ export function makeFakeJmapServer(
     if (input === FAKE_SESSION_URL) {
       return jsonResponse(
         makeSession(
-          advertisesWebSocket,
+          server.webSocket,
           extraCapabilities,
           {
             maxCallsInRequest,

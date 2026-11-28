@@ -27,8 +27,8 @@ export const FIT_ZOOM_PROPERTY = '--tmail-fit-zoom'
 
 /** What the fitting reads of the layout */
 export interface LayoutProbe {
-  /** Left edge and width of the rendered box, zoom included */
-  box(element: Element): { left: number; width: number }
+  /** Left edge, width and height of the rendered box, zoom included */
+  box(element: Element): { left: number; width: number; height: number }
   /** Width inside the borders, scrollbar excluded */
   clientWidth(element: Element): number
   /** Width of the content, overflow included */
@@ -41,7 +41,7 @@ export interface LayoutProbe {
 export const domLayoutProbe: LayoutProbe = {
   box: element => {
     const rect = element.getBoundingClientRect()
-    return { left: rect.left, width: rect.width }
+    return { left: rect.left, width: rect.width, height: rect.height }
   },
   clientWidth: element => element.clientWidth,
   scrollWidth: element => element.scrollWidth,
@@ -90,6 +90,12 @@ export function hasFixedWidth(element: HTMLElement): boolean {
   )
 }
 
+/** A height the sender fixed in pixels, by inline style */
+export function hasFixedHeight(element: HTMLElement): boolean {
+  const height = element.style.height
+  return height !== '' && height !== 'auto' && !height.includes('%')
+}
+
 /**
  * The zoom that brings `naturalWidth` into `availableWidth`, rounded down so
  * that it never overflows by a hair; 1 when it fits
@@ -126,9 +132,14 @@ function measuresOf(
 } {
   const contentLeft = probe.box(content).left
   const contentWidth = probe.clientWidth(content)
-  const boxes = new Map<Element, { left: number; width: number }>()
+  const boxes = new Map<
+    Element,
+    { left: number; width: number; height: number }
+  >()
   const clientWidths = new Map<Element, number>()
-  const box = (element: Element): { left: number; width: number } => {
+  const box = (
+    element: Element
+  ): { left: number; width: number; height: number } => {
     const known = boxes.get(element)
     if (known) return known
     const measured = probe.box(element)
@@ -220,9 +231,18 @@ export function fitEmailLayout(
     })
   }
 
+  // A fixed height is the one of the content box: in the border box it would
+  // squeeze the content by the padding and the borders, so it keeps the height
+  // the element renders
+  const setBorderBox = (element: HTMLElement): void => {
+    const height = hasFixedHeight(element) ? probe.box(element).height : 0
+    set(element, 'box-sizing', 'border-box')
+    if (height > 0) set(element, 'height', `${String(height)}px`)
+  }
+
   // Border box: 100 % with the padding of the sender would overflow again
   const fillWidth = (element: HTMLElement): void => {
-    set(element, 'box-sizing', 'border-box')
+    setBorderBox(element)
     set(element, 'width', '100%')
     set(element, 'max-width', '100%')
     set(element, 'min-width', '0')
@@ -235,7 +255,7 @@ export function fitEmailLayout(
     if (zoom === 1) return
     // Its width in pixels: a percentage would be resolved again in the
     // zoomed box, as wide as before
-    set(element, 'box-sizing', 'border-box')
+    setBorderBox(element)
     set(element, 'width', `${String(naturalWidth)}px`)
     set(element, 'max-width', 'none')
     set(element, FIT_ZOOM_PROPERTY, String(zoom))

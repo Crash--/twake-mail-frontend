@@ -294,6 +294,6 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 ## 2026-11-28, [Tech] A read receipt request writes no Return-Path
 
 - Decision: asking for a read receipt writes `Disposition-Notification-To` only; Mail writes no `Return-Path` on the emails it creates, unlike tmail-flutter.
-- Decided by: Crash-- (CTO), 2026-11-28
+- Decided by: agent (session [#1213](https://github.com/Crash--/twake-mail-frontend/pull/1213)), to be confirmed by Crash-- (CTO)
 - Why: the delivering server writes `Return-Path` and James overwrites it (RFC 5321 §4.4); RFC 8621 allows no parsed form on it, and its raw form loses its first character on tmail-backend up to 1.0.22.
 - Scope: composer, sent emails and drafts.

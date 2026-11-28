@@ -171,7 +171,7 @@ docker run -d --name "$ENV_FILE_NAME" \
   --read-only --tmpfs /tmp --user 101 --cap-drop ALL --security-opt no-new-privileges \
   -p 127.0.0.1::80 -e CSP_WEBFINGER_DISCOVERY=false -e SENTRY_FEEDBACK_ENABLED=true \
   -e "TWAKE_SPACE_URL=https://space.example.com/it's" -e TDRIVE_ENABLED=true \
-  -e NEW_VERSION_CHECK_ENABLED=true \
+  -e SAVE_TO_DRIVE_ENABLED=true -e NEW_VERSION_CHECK_ENABLED=true \
   -e 'RELEASE_NOTES_URL=https://chat.example.com/rooms/!release%3Aexample.com' \
   -v "$CONFIG_DIR/env.file:/usr/share/nginx/html/assets/env.file:ro" \
   -v "$CONFIG_DIR/logo.svg:/usr/share/nginx/html/assets/assets/images/ic_logo_with_text.svg:ro" \
@@ -186,6 +186,7 @@ expect 'env.file: /.env.js generated' "$env_js" "*var SERVER_URL = 'https://jmap
 expect 'env.file: quotes removed' "$env_js" "*var WEB_OIDC_CLIENT_ID = 'teammail-web';*"
 expect 'env.file: TWAKE_SPACE_URL from the environment' "$env_js" "*var TWAKE_SPACE_URL = 'https://space.example.com/it\\\\'s';*"
 expect 'env.file: TDRIVE_ENABLED from the environment' "$env_js" "*var TDRIVE_ENABLED = 'true';*"
+expect 'env.file: SAVE_TO_DRIVE_ENABLED from the environment' "$env_js" "*var SAVE_TO_DRIVE_ENABLED = 'true';*"
 expect 'env.file: NEW_VERSION_CHECK_ENABLED from the environment' "$env_js" "*var NEW_VERSION_CHECK_ENABLED = 'true';*"
 expect 'env.file: RELEASE_NOTES_URL from the environment' "$env_js" \
   "*var RELEASE_NOTES_URL = 'https://chat.example.com/rooms/!release%3Aexample.com';*"

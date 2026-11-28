@@ -142,7 +142,7 @@ looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
-`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`, `RELEASE_NOTES_URL`. tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `SAVE_TO_DRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`, `RELEASE_NOTES_URL`. tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.
@@ -222,7 +222,8 @@ feedback button: set `SENTRY_FEEDBACK_ENABLED` (`true` or `false`) in the
 environment of the container (`extraEnv` of the chart). It is added to the
 generated `/.env.js` when the `env.file` has no such key, as are
 `TWAKE_SPACE_URL`, `TDRIVE_ENABLED` (the
-[Twake Drive picker](#twake-drive-picker)), `NEW_VERSION_CHECK_ENABLED` and
+[Twake Drive picker](#twake-drive-picker)), `SAVE_TO_DRIVE_ENABLED`
+([Save to my Drive](#save-to-my-drive)), `NEW_VERSION_CHECK_ENABLED` and
 `RELEASE_NOTES_URL` ([New version available](#new-version-available)).
 
 ### Custom logotype
@@ -664,6 +665,18 @@ Register a public client (no secret) using Authorization Code with PKCE
   `https://<app>/`;
 - scopes `openid profile email offline_access`, refresh tokens allowed;
 - the access token must be accepted by tmail-backend (its OIDC audience).
+
+## Save to my Drive
+
+Off unless `SAVE_TO_DRIVE_ENABLED = true`, and only with the
+[Twake Drive picker](#twake-drive-picker) (`TDRIVE_ENABLED`, same CSP). The
+attachments of an email then offer "Save to my Drive" and "Save all to
+Drive" when the mail server gives download tokens (the
+`com:linagora:params:jmap:unauthenticated:blob:access` capability of
+tmail-backend) and Twake Drive is installed on the Workplace of the user.
+Drive fetches the file itself from the download URL of the mail server, so
+its stack must reach that URL. Turned off, the app shows none of it and asks
+Drive nothing about the attachments.
 
 ## New version available
 

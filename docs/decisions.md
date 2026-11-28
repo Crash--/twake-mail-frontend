@@ -290,3 +290,31 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: the rest of strictTypeChecked runs; `no-unsafe-enum-assignment` has nothing to check, enums are banned.
 - Scope: lint.
+
+## 2026-11-26, [Product] Attachments go to Twake Drive from server to server
+
+- Decision: "Save to my Drive" on an attachment, and "Save all to Drive" on the list, ask the mail server for a short-lived download token (`UnauthenticatedBlobAccess/set`), then give that URL to the UPLOAD intent of Twake Drive, which stores the file in the Mail folder: the stack downloads it, the browser never sees its bytes. One file at a time, a token just before each one. A toast says it with "Organize", which opens the MOVE intent of Drive in a dialog. The buttons show only when the mail server offers the tokens and Drive is installed. The states of the button and the toast follow Twake Calendar.
+- Decided by: Crash-- (CTO), 2026-11-26
+- Why: no download then upload through a phone or a browser; staging and production have the token extension (Redis on tmail-backend), an ingress that routes `/unauthenticatedDownload` and a stack that downloads a `SourceURL` (1.6.64 or later).
+- Scope: desktop and mobile, the attachments of an email.
+
+## 2026-11-26, [UX] A file saved to Drive is not saved again
+
+- Decision: once saved, the button of an attachment becomes "See in Drive", which opens the file in Drive in a new tab; Mail does not send it again. A file Drive reports with another size than the attachment (an empty file from a stack without `SourceURL`, a page from a proxy) is not saved: the user is told to check their Drive. For now the state lasts as long as the email stays open; it will come from the references Drive puts on the file, read through `io.cozy.mails.attachments` only (no read access to the whole of `io.cozy.files`), and go back to "Save to my Drive" when the file is gone or in the trash.
+- Decided by: Crash-- (CTO), 2026-11-26
+- Why: "a saved file is saved"; a second copy would only confuse.
+- Scope: desktop and mobile, the attachments of an email.
+
+## 2026-11-26, [UX] The save action of a chip shows on hover or focus
+
+- Decision: on a computer, the "Save to my Drive" cloud of an attachment chip shows only while the chip is hovered or holds the focus (`:focus-within`, for the keyboard), so that the name keeps its whole width at rest; it stays shown while it saves and once saved. On phones and on any pointer without hover (`@media (hover: none)`), it always shows.
+- Decided by: Crash-- (CTO), 2026-11-26, [#1203](https://github.com/Crash--/twake-mail-frontend/pull/1203)
+- Why: with the cloud always there, the 260 px chips cut the names of the files further.
+- Scope: desktop and mobile, the attachments of an email.
+
+## 2026-11-27, [Config] "Save to my Drive" behind SAVE_TO_DRIVE_ENABLED
+
+- Decision: "Save to my Drive", "Save all to Drive", their toasts and the reads of what was saved show only with `SAVE_TO_DRIVE_ENABLED = true` (Helm chart: `config.saveToDrive.enabled`, Docker: the environment of the image), off by default. On, nothing else changes: the actions still need `TDRIVE_ENABLED`, the download tokens of the mail server and Drive on the Workplace.
+- Decided by: Crash-- (CTO), 2026-11-27
+- Why: each environment turns it on once its mail server, ingress and Drive are ready for it.
+- Scope: deployment, the attachments of an email.

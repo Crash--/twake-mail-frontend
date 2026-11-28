@@ -88,6 +88,11 @@ export interface AppConfig {
    */
   tdriveEnabled: boolean
   /**
+   * "Save to my Drive" on the attachments of an email
+   * (`SAVE_TO_DRIVE_ENABLED`), with the Drive of `tdriveEnabled`
+   */
+  saveToDriveEnabled: boolean
+  /**
    * Off the Workplace, the apps grid lists the apps of
    * `app_dashboard.json` (`APP_GRID_AVAILABLE=supported`, as tmail-flutter web)
    */
@@ -141,6 +146,7 @@ export type RuntimeConfigKey =
   | 'WORKPLACE_EMBEDDING'
   | 'SENTRY_FEEDBACK_ENABLED'
   | 'TDRIVE_ENABLED'
+  | 'SAVE_TO_DRIVE_ENABLED'
   | 'NEW_VERSION_CHECK_ENABLED'
   | 'RELEASE_NOTES_URL'
   | 'APP_VERSION'
@@ -444,6 +450,7 @@ export function resolveConfig(
         toBoolean(source.WORKPLACE_EMBEDDING) ||
         toBoolean(source.COZY_INTEGRATION),
       tdriveEnabled: toBoolean(source.TDRIVE_ENABLED),
+      saveToDriveEnabled: toBoolean(source.SAVE_TO_DRIVE_ENABLED),
       appGridAvailable: source.APP_GRID_AVAILABLE === 'supported',
       newVersionCheckEnabled: toBoolean(source.NEW_VERSION_CHECK_ENABLED),
       releaseNotesUrl: resolveReleaseNotesUrl(source, warn),

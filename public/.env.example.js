@@ -116,6 +116,12 @@ var WORKPLACE_EMBEDDING = false
 // claim or WORKPLACE_FQDN_FALLBACK), when Twake Drive is installed there.
 var TDRIVE_ENABLED = false
 
+// "Save to my Drive" on the attachments of an email, with TDRIVE_ENABLED:
+// the mail server gives a download token, Twake Drive fetches the file into
+// its Mail folder. Shown only when the mail server gives such tokens and
+// Twake Drive is installed. Off when unset.
+var SAVE_TO_DRIVE_ENABLED = false
+
 // "New version available": a tab reads /version.json (written by the image)
 // every 10 minutes and on focus, and offers a reload once it names another
 // build than the one running. Off when unset.

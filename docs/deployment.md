@@ -142,7 +142,9 @@ looked for and the credentials form shows when there is none, as in
 tmail-flutter), `SSO_BASE_URL` (the issuer; overrides the WebFinger lookup), `SSO_REDIRECT_URI`,
 `SSO_POST_LOGOUT_REDIRECT`, `DEBUG`, `LANG`, `CALENDAR_SPA_URL`,
 `CHAT_SPA_URL`, `WORKPLACE_FQDN_FALLBACK`, `WORKPLACE_EMBEDDING`,
-`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`, `RELEASE_NOTES_URL`. tmail-flutter takes the calendar and
+`TDRIVE_ENABLED`, `NEW_VERSION_CHECK_ENABLED`, `RELEASE_NOTES_URL`, `LOGIN_ALLOW_USERNAME` (basic
+mode: `true` sends a user name without domain to the server; off, the form asks
+for the full email address first). tmail-flutter takes the calendar and
 the Workplace host from the `.well-known/linagora-ecosystem` document of the
 server; this app reads that document only for error reporting and the storage
 upgrade (below), not for the calendar nor the Workplace of the user.

@@ -47,3 +47,54 @@ describe('formatHeaderDate', () => {
     expect(formatHeaderDate('not a date', 'en', NOW)).toBe('')
   })
 })
+
+describe('the formatters', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+    jest.useRealTimers()
+  })
+
+  it('builds one per language and format, not one per date', () => {
+    const build = jest.spyOn(Intl, 'DateTimeFormat')
+    const dates = Array.from(
+      { length: 50 },
+      (_, day) => `2026-09-${String((day % 28) + 1).padStart(2, '0')}T10:00:00Z`
+    )
+
+    for (const isoDate of dates) {
+      formatListDate(isoDate, 'de', NOW)
+      formatFullDate(isoDate, 'de')
+      formatHeaderDate(isoDate, 'de', NOW)
+    }
+
+    // One for each of the 3 formats, and one to read the time zone
+    expect(build).toHaveBeenCalledTimes(4)
+  })
+
+  it('follows a change of the time zone of the device', () => {
+    jest.useFakeTimers({ now: NOW })
+    const DateTimeFormat = Intl.DateTimeFormat
+    let deviceZone = 'Europe/Paris'
+    // The time zone of the device is the one of a formatter built bare
+    jest
+      .spyOn(Intl, 'DateTimeFormat')
+      .mockImplementation((locales, options) =>
+        locales === undefined
+          ? new DateTimeFormat(undefined, { timeZone: deviceZone })
+          : new DateTimeFormat(locales, options)
+      )
+    const email = '2026-10-04T08:05:00Z'
+    jest.advanceTimersByTime(1000)
+    expect(formatListDate(email, 'en', NOW)).toBe('10:05 AM')
+    expect(formatHeaderDate(email, 'en', NOW)).toBe('Oct 4, 10:05 AM')
+
+    deviceZone = 'America/New_York'
+    jest.advanceTimersByTime(1000)
+
+    expect(formatListDate(email, 'en', NOW)).toBe('4:05 AM')
+    expect(formatHeaderDate(email, 'en', NOW)).toBe('Oct 4, 4:05 AM')
+    expect(formatFullDate(email, 'en')).toBe(
+      'Sunday, October 4, 2026 at 4:05 AM'
+    )
+  })
+})

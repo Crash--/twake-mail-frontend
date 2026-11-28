@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query'
 import { VirtuosoMockContext } from '@linagora/twake-mui'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -6,6 +7,7 @@ import { useState, type ReactElement } from 'react'
 
 import { MailboxSwitcherButton } from '@common/features/delegation/MailboxSwitcherButton'
 import { MailboxTree } from '@common/features/mailbox/MailboxTree'
+import { quotaKeys } from '@common/features/quota/quota'
 import { EmailList } from '@common/features/thread/EmailList'
 import {
   FAKE_ACCOUNT_ID,
@@ -18,7 +20,7 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { writeMailboxView } from '@common/jmap/mailboxView'
 
-import { PushProvider } from './PushProvider'
+import { PushProvider, STATES_POLL_INTERVAL_MS } from './PushProvider'
 
 class FakeWebSocket implements WebSocketLike {
   static instances: FakeWebSocket[] = []
@@ -446,6 +448,145 @@ describe('PushProvider', () => {
         name: /boss@example\.com/
       })
     ).toBeVisible()
+  })
+
+  it('reads no state while the channel is open', async () => {
+    jest.useFakeTimers({ advanceTimers: true })
+    try {
+      const server = makeServer()
+      const { socket } = await renderWithPush(server)
+      // The server answers the pings: the channel stays open
+      const send = socket.send.bind(socket)
+      socket.send = (data: string): void => {
+        send(data)
+        const message = JSON.parse(data) as { id?: string }
+        if (message.id?.startsWith('ping-') === true) {
+          socket.receive({
+            '@type': 'Response',
+            requestId: message.id,
+            methodResponses: [['Core/echo', {}, 'ping']],
+            sessionState: 'session-state'
+          })
+        }
+      }
+      const getsBefore = countCalls(server, 'Email/get')
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(3 * STATES_POLL_INTERVAL_MS)
+      })
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(0)
+      })
+
+      expect(countCalls(server, 'Email/get')).toBe(getsBefore)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  describe('on a server without push', () => {
+    async function renderWithoutPush(): Promise<{
+      server: FakeJmapServer
+      result: ReturnType<typeof renderWithProviders>
+    }> {
+      const server = makeFakeJmapServer({
+        emails: [makeEmail({ id: 'e1', subject: 'Already there' })]
+      })
+      const result = renderWithProviders(
+        <PushProvider WebSocket={FakeWebSocket}>
+          <VirtuosoMockContext.Provider
+            value={{ viewportHeight: 100_000, itemHeight: 56 }}
+          >
+            <EmailList mailboxId="mailbox-inbox" />
+          </VirtuosoMockContext.Provider>
+        </PushProvider>,
+        {
+          route: '/mailbox/mailbox-inbox',
+          path: '/mailbox/:mailboxId',
+          withJmapSession: true,
+          jmapServer: server
+        }
+      )
+      await screen.findByTestId('email-list-item')
+      return { server, result }
+    }
+
+    it('shows a new email when the page comes back to the front', async () => {
+      const { server } = await renderWithoutPush()
+
+      server.addEmail(makeEmail({ id: 'e2', subject: 'Just arrived' }))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(await screen.findByText('Just arrived')).toBeVisible()
+      expect(FakeWebSocket.instances).toHaveLength(0)
+    })
+
+    it('shows a new email every few minutes, and the storage used again', async () => {
+      const invalidate = jest.spyOn(QueryClient.prototype, 'invalidateQueries')
+      jest.useFakeTimers({ advanceTimers: true })
+      try {
+        const { server } = await renderWithoutPush()
+        const statesRead = countCalls(server, 'Mailbox/get')
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(STATES_POLL_INTERVAL_MS)
+        })
+        await waitFor(() => {
+          expect(countCalls(server, 'Mailbox/get')).toBe(statesRead + 1)
+        })
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(0)
+        })
+        const quota = { queryKey: quotaKeys.all(FAKE_ACCOUNT_ID) }
+        expect(invalidate).not.toHaveBeenCalledWith(quota)
+
+        server.addEmail(makeEmail({ id: 'e2', subject: 'Just arrived' }))
+        act(() => {
+          jest.advanceTimersByTime(STATES_POLL_INTERVAL_MS)
+        })
+
+        expect(await screen.findByText('Just arrived')).toBeVisible()
+        expect(invalidate).toHaveBeenCalledWith(quota)
+      } finally {
+        jest.useRealTimers()
+        invalidate.mockRestore()
+      }
+    })
+
+    it('reads nothing once unmounted', async () => {
+      jest.useFakeTimers({ advanceTimers: true })
+      const setInterval = jest.spyOn(window, 'setInterval')
+      const clearInterval = jest.spyOn(window, 'clearInterval')
+      try {
+        const { server, result } = await renderWithoutPush()
+        result.unmount()
+        // Other timers outlive the provider (request deadlines, the cache):
+        // its own are the intervals, every one cleared
+        const started = setInterval.mock.results.map(
+          ({ value }): unknown => value
+        )
+        expect(started.length).toBeGreaterThan(0)
+        expect(clearInterval.mock.calls.map(([id]) => id)).toEqual(
+          expect.arrayContaining(started)
+        )
+        const requests = server.requests.length
+
+        act(() => {
+          jest.advanceTimersByTime(3 * STATES_POLL_INTERVAL_MS)
+          document.dispatchEvent(new Event('visibilitychange'))
+        })
+
+        expect(server.requests.length).toBe(requests)
+      } finally {
+        setInterval.mockRestore()
+        clearInterval.mockRestore()
+        jest.useRealTimers()
+      }
+    })
   })
 
   describe('in a mailbox delegated to the user', () => {

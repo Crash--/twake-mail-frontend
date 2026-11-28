@@ -34,6 +34,12 @@ export const DELEGATED_POLL_INTERVAL_MS = 30_000
  */
 export const SESSION_POLL_INTERVAL_MS = 30_000
 
+/**
+ * How often the current states are read while the push channel is not open
+ * (a server without push, or a channel down)
+ */
+export const STATES_POLL_INTERVAL_MS = 5 * 60_000
+
 export interface PushProviderProps {
   children: ReactNode
   /** WebSocket implementation, the browser's by default (tests) */
@@ -47,8 +53,12 @@ export interface PushProviderProps {
  * it drops they do after `DEFAULT_STALE_TIME` again. When it first opens,
  * the changes made since the first loads are caught up, as after a
  * reconnection those made while it was down, as when the browser comes back
- * online (no refetch of everything: the changes are caught up). The channel closes when the session ends, as
- * this provider unmounts with the signed-in screens.
+ * online (no refetch of everything: the changes are caught up). While the
+ * channel is not open (a server without push, a channel down), the current
+ * states are read every `STATES_POLL_INTERVAL_MS` and when the page comes
+ * back to the front, and the cache catches up from them as from a push. The
+ * channel closes when the session ends, as this provider unmounts with the
+ * signed-in screens.
  */
 export function PushProvider({
   children,
@@ -144,15 +154,33 @@ export function PushProvider({
     // cache is behind, as a push would, and the lists landing after them
     // catch up (`pushSync`). A reopening catches up from the cache states
     let hasBeenOpen = false
+    // Emails in or out: the storage used changed
+    let emailState: string | null = null
+    const invalidateQuota = (): void => {
+      void queryClient.invalidateQueries({
+        queryKey: quotaKeys.all(accountId)
+      })
+    }
+    const readStates = (): void => {
+      fetchCurrentStates(client, accountId)
+        .then(states => {
+          sync.stateChanged({ ...states })
+          if (emailState !== null && states.Email !== emailState) {
+            invalidateQuota()
+          }
+          emailState = states.Email
+        })
+        .catch((error: unknown) => {
+          console.warn('[push] Cannot read the current states', error)
+        })
+    }
     const unsubscribers = [
       push.on('stateChange', change => {
         const states = change.changed[accountId]
         if (states) sync.stateChanged(states)
         if (states?.Email !== undefined) {
-          // Emails in or out: the storage used changed
-          void queryClient.invalidateQueries({
-            queryKey: quotaKeys.all(accountId)
-          })
+          emailState = states.Email
+          invalidateQuota()
         }
         const labelState = states?.Label
         if (labelState !== undefined) {
@@ -166,13 +194,7 @@ export function PushProvider({
           sync.catchUp()
           if (hasLabels) void syncLabels(client, queryClient, accountId, null)
         } else {
-          fetchCurrentStates(client, accountId)
-            .then(states => {
-              sync.stateChanged({ ...states })
-            })
-            .catch((error: unknown) => {
-              console.warn('[push] Cannot read the current states', error)
-            })
+          readStates()
         }
         hasBeenOpen = true
       }),
@@ -184,7 +206,18 @@ export function PushProvider({
         }
       })
     ]
+    // Without an open channel nothing tells the client the server moved on
+    const pollStates = (): void => {
+      if (!isOpen) readStates()
+    }
+    const handleVisibility = (): void => {
+      if (document.visibilityState === 'visible') pollStates()
+    }
+    const timer = window.setInterval(pollStates, STATES_POLL_INTERVAL_MS)
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('online', handleOnline)
       unsubscribers.forEach(unsubscribe => {
         unsubscribe()

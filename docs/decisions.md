@@ -290,3 +290,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: the rest of strictTypeChecked runs; `no-unsafe-enum-assignment` has nothing to check, enums are banned.
 - Scope: lint.
+
+## 2026-11-28, [Tech] Without an open push channel, the current states are read every 5 minutes
+
+- Decision: while the JMAP push channel is not open, the client reads the current `Email` and `Mailbox` states every 5 minutes and when the page comes back to the front, and feeds them to the synchronization a push would start (`/changes` from the states of the cache).
+- Decided by: agent (session [#1215](https://github.com/Crash--/twake-mail-frontend/pull/1215)), to be confirmed by Crash-- (CTO)
+- Why: a server whose session has no `supportsPush` gives a browser no push, and refetch on window focus is off, so nothing read the states again and the lists never followed the server.
+- Scope: the user's own mailbox, desktop and mobile. A delegated mailbox keeps its poll every 30 seconds.

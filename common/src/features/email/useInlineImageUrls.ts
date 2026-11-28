@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useJmapClient } from '@common/jmap/JmapClientProvider'
 import { useJmapSession } from '@common/jmap/JmapSessionProvider'
 
+import { inlineImageBlobType, isInlineImageType } from './attachmentPreview'
 import { normalizeCid } from './sanitizeEmailHtml'
 
 export interface InlineImages {
@@ -19,7 +20,7 @@ export interface InlineImagePart {
 }
 
 function toInlineImagePart(part: EmailBodyPart): InlineImagePart | null {
-  if (!part.cid || !part.blobId || !part.type.startsWith('image/')) return null
+  if (!part.cid || !part.blobId || !isInlineImageType(part.type)) return null
   return { cid: normalizeCid(part.cid), blobId: part.blobId, type: part.type }
 }
 
@@ -37,11 +38,15 @@ export async function downloadInlineImages(
 ): Promise<ReadonlyMap<string, string>> {
   const results = await Promise.allSettled(
     images.map(async image => {
-      const blob = await client.download(
-        { accountId, blobId: image.blobId, type: image.type },
+      const type = inlineImageBlobType(image.type)
+      const downloaded = await client.download(
+        { accountId, blobId: image.blobId, type },
         { signal }
       )
-      const url = URL.createObjectURL(blob)
+      // Re-typed whatever the server answered: never a document type
+      const url = URL.createObjectURL(
+        downloaded.slice(0, downloaded.size, type)
+      )
       onUrl(url)
       return [image.cid, url] as const
     })

@@ -12,6 +12,8 @@ import {
   type SubmitEvent
 } from 'react'
 
+import { TOUCH_MEDIA, TOUCH_TARGET_SIZE } from '@/ds/TouchTargets/TouchTargets'
+
 const BAR_WIDTH = 405
 const GRADIENT =
   'linear-gradient(90deg, rgba(0, 183, 255, 0.9) 0%, rgba(224, 109, 209, 0.9) 75%, rgba(232, 167, 138, 0.9) 100%)'
@@ -50,12 +52,23 @@ const INPUT_SX = {
   }
 } as const
 
+/** twake-mui's small IconButton: 8 px of padding around a 16 px icon */
+const SEND_SIZE = 32
+const TOUCH_OVERFLOW = (TOUCH_TARGET_SIZE - SEND_SIZE) / 2
+
 function sendSx(isEnabled: boolean): Record<string, unknown> {
   return {
     flexShrink: 0,
-    width: 32,
-    height: 32,
-    p: 1,
+    // The disc keeps its size on touch screens and its 44 px target spills
+    // into the padding of the field, rather than filling the field
+    [TOUCH_MEDIA]: {
+      '&.MuiIconButton-root': { minWidth: SEND_SIZE, minHeight: SEND_SIZE },
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        inset: -TOUCH_OVERFLOW
+      }
+    },
     color: 'primary.contrastText',
     bgcolor: isEnabled ? 'primary.main' : 'primary.light',
     '&:hover': { bgcolor: isEnabled ? 'primary.dark' : 'primary.light' },
@@ -132,6 +145,7 @@ export function AiScribeBar({
           <span>
             <IconButton
               type="submit"
+              size="small"
               aria-label={sendLabel}
               disabled={!isEnabled}
               sx={sendSx(isEnabled)}

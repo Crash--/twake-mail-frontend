@@ -45,6 +45,23 @@ describe('MenuItemLabel', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent(LABEL)
   })
 
+  it('draws the label in the colour given, a palette path included', () => {
+    renderDs(
+      <Menu open anchorEl={document.body}>
+        <MenuItem>
+          <MenuItemLabel label="Delete" color="error.dark" />
+        </MenuItem>
+        <MenuItem>
+          <MenuItemLabel label="Print" />
+        </MenuItem>
+      </Menu>
+    )
+
+    expect(getComputedStyle(screen.getByText('Delete')).color).not.toBe(
+      getComputedStyle(screen.getByText('Print')).color
+    )
+  })
+
   it('shows no tooltip when the label fits', async () => {
     const user = userEvent.setup()
     const text = setup()

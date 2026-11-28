@@ -1,7 +1,6 @@
 import { Icon } from '@linagora/twake-icons'
 import {
   ListItemIcon,
-  ListItemText,
   Menu,
   MenuItem,
   type PopoverPosition
@@ -10,6 +9,7 @@ import type { ReactElement } from 'react'
 import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
 import { useHref } from 'react-router'
 
+import { MenuItemLabel } from '@/ds/MenuItemLabel/MenuItemLabel'
 import { isPersonalMailbox } from '@common/features/mailbox/mailboxTree'
 import type { MailboxSummary } from '@common/features/mailbox/queries'
 import { useMailboxes } from '@common/features/mailbox/useMailboxes'
@@ -130,11 +130,9 @@ export function FolderActionsMenu({
           <ListItemIcon>
             <Icon icon={item.icon} />
           </ListItemIcon>
-          <ListItemText
-            primary={t(item.label)}
-            slotProps={{
-              primary: { color: item.isDestructive ? 'error.dark' : 'inherit' }
-            }}
+          <MenuItemLabel
+            label={t(item.label)}
+            color={item.isDestructive ? 'error.dark' : 'inherit'}
           />
         </MenuItem>
       ))}

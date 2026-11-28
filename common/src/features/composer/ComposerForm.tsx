@@ -1863,7 +1863,10 @@ function LoadedComposerForm({
               className="u-ml-1 u-flex-shrink-0"
               data-testid={`${testId}-check`}
             />
-          ) : null}
+          ) : (
+            // Holds the place of the tick: checking does not widen the menu
+            <span className="u-ml-1 u-w-1 u-flex-shrink-0" />
+          )}
         </MenuItem>
       ))}
       {isPhone ? (
@@ -1877,7 +1880,10 @@ function LoadedComposerForm({
           <ListItemIcon>
             <Icon icon={Trash} aria-hidden="true" />
           </ListItemIcon>
-          <MenuItemLabel label={t('composer.draft.delete')} />
+          <MenuItemLabel
+            label={t('composer.draft.delete')}
+            color="error.dark"
+          />
         </MenuItem>
       ) : null}
     </Menu>

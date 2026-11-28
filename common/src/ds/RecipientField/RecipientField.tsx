@@ -56,8 +56,8 @@ const POPUP_SX = { zIndex: 'modal' } as const
  * room left by what scrolls around the field (a dialog's content): the
  * suggestions show whole
  */
-function popperOptionsIn(window: HTMLElement): PopperProps['popperOptions'] {
-  const options = { boundary: window }
+function popperOptionsIn(root: HTMLElement): PopperProps['popperOptions'] {
+  const options = { boundary: root }
   return {
     strategy: 'fixed',
     modifiers: [

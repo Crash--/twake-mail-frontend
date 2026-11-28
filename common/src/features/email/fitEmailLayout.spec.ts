@@ -36,7 +36,8 @@ function declaredWidth(element: HTMLElement, room: number): number | null {
  * pixels, side by side in a row, and `data-min`, content that cannot wrap);
  * padding adds to a width unless `box-sizing: border-box`; `zoom` scales
  * the box, a percentage being resolved in the zoomed box (`data-zoom-extra`:
- * pixels that do not scale). `data-scroll` is the width of the text of an
+ * pixels that do not scale); a height in pixels adds the padding and the
+ * borders unless `box-sizing: border-box`. `data-scroll` is the width of the text of an
  * element, overflowing it when it cannot wrap
  */
 function fakeProbe(content: HTMLElement): LayoutProbe {
@@ -96,8 +97,24 @@ function fakeProbe(content: HTMLElement): LayoutProbe {
         : 0
     return (used + extra) * zoom
   }
+  const height = (element: Element): number => {
+    if (!(element instanceof HTMLElement)) return 0
+    const declared = parseFloat(element.style.height)
+    if (Number.isNaN(declared)) return 0
+    if (element.style.boxSizing === 'border-box') return declared
+    const sides = ['paddingTop', 'paddingBottom'] as const
+    const padding = sides.reduce(
+      (sum, side) => sum + (parseWidth(element.style[side], 0) ?? 0),
+      0
+    )
+    return declared + padding + 2 * (parseFloat(element.style.borderWidth) || 0)
+  }
   return {
-    box: element => ({ left: 0, width: width(element) }),
+    box: element => ({
+      left: 0,
+      width: width(element),
+      height: height(element)
+    }),
     clientWidth: width,
     scrollWidth: element => {
       const text =
@@ -259,6 +276,19 @@ describe('fitEmailLayout', () => {
     expect(element('#w').style.width).toBe('100%')
     expect(zoomOf(element('#w'))).toBe('')
     expect(probe.box(element('#w')).width).toBe(CONTENT_WIDTH)
+  })
+
+  it('keeps the rendered height of a button of fixed height reflowed in its border box', () => {
+    const content = render(
+      '<div id="b" style="width: 1200px; height: 69px; padding: 12px 0; border: 1px solid">text</div>'
+    )
+    const probe = fakeProbe(content)
+    const height = probe.box(element('#b')).height
+
+    fitEmailLayout(content, probe)
+
+    expect(probe.box(element('#b')).width).toBe(CONTENT_WIDTH)
+    expect(probe.box(element('#b')).height).toBe(height)
   })
 
   it('gives a scaled element its natural width in pixels, which a percentage would not shrink', () => {

@@ -579,6 +579,9 @@ describe('PushProvider', () => {
           jest.advanceTimersByTime(3 * STATES_POLL_INTERVAL_MS)
           document.dispatchEvent(new Event('visibilitychange'))
         })
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(0)
+        })
 
         expect(server.requests.length).toBe(requests)
       } finally {

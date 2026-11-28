@@ -399,8 +399,8 @@ export function RecipientField({
   const [content, setContent] = useState<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const popperOptions = useMemo(
-    () => popperOptionsIn(document.documentElement),
-    []
+    () => popperOptionsIn((content?.ownerDocument ?? document).documentElement),
+    [content]
   )
   const chipRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isOpen, setIsOpen] = useState(false)

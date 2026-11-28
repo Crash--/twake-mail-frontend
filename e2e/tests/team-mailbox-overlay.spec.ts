@@ -225,4 +225,70 @@ test.describe('TMB team mailbox facade on the overlay of TwakeSpace', () => {
     await expect(dialog).toBeHidden()
     await expect(composer.editor).toBeFocused()
   })
+
+  test('TMB-18 the recipient suggestions open whole on the overlay, under the field (issue #954)', async ({
+    page,
+    user,
+    users,
+    webadmin
+  }) => {
+    const team = await users.createTeamMailbox({ members: [user] })
+    const stamp = Date.now()
+    const surname = `Overlaid${stamp}`
+    const contacts = ['Ada', 'Bea', 'Cid', 'Dan', 'Eva', 'Fay', 'Gus', 'Hal'].map(
+      firstname => ({
+        emailAddress: `${firstname.toLowerCase()}-${stamp}@example.com`,
+        firstname,
+        surname
+      })
+    )
+    for (const contact of contacts)
+      await webadmin.createDomainContact('example.com', contact)
+    try {
+      const { facade, overlay } = await openHost(
+        page,
+        user,
+        await facadePath(webadmin, team)
+      )
+      await facade.getByTestId('compose-email-button').first().click()
+      const composer = new ComposerPage(page, overlay.getByTestId('composer'))
+      const input = composer.recipientInput('to')
+      await input.fill(surname)
+      const listbox = overlay.getByTestId('composer-to-suggestions')
+      await expect(listbox.getByRole('option')).toHaveCount(contacts.length)
+
+      // The popup the suggestions scroll in, at most 300 px high
+      const popup = listbox.locator('xpath=..')
+      const field = await input.boundingBox()
+      const box = await popup.boundingBox()
+      // Under the field it completes, starting where it starts
+      expect(box!.y).toBeGreaterThanOrEqual(field!.y + field!.height - 1)
+      expect(Math.abs(box!.x - field!.x)).toBeLessThan(1)
+      // Every corner paints on top: the overlay on the host page, then the
+      // suggestions on the overlay
+      const corners = [
+        { x: box!.x + 2, y: box!.y + 2 },
+        { x: box!.x + box!.width - 2, y: box!.y + 2 },
+        { x: box!.x + 2, y: box!.y + box!.height - 2 },
+        { x: box!.x + box!.width - 2, y: box!.y + box!.height - 2 }
+      ]
+      for (const corner of corners) {
+        expect(
+          await page.evaluate(
+            ({ x, y }) => document.elementFromPoint(x, y)?.id ?? null,
+            corner
+          )
+        ).toBe('overlay')
+        expect(
+          await popup.evaluate((element, { x, y }) => {
+            const hit = element.ownerDocument.elementFromPoint(x, y)
+            return hit !== null && element.contains(hit)
+          }, corner)
+        ).toBe(true)
+      }
+    } finally {
+      for (const contact of contacts)
+        await webadmin.deleteDomainContact('example.com', contact.emailAddress)
+    }
+  })
 })

@@ -7,6 +7,7 @@ import {
   fitEmailLayout,
   fitScale,
   hasFixedWidth,
+  isLength,
   proportion,
   wrappableWhiteSpace,
   type LayoutProbe
@@ -36,11 +37,14 @@ function declaredWidth(element: HTMLElement, room: number): number | null {
  * pixels, side by side in a row, and `data-min`, content that cannot wrap);
  * padding adds to a width unless `box-sizing: border-box`; `zoom` scales
  * the box, a percentage being resolved in the zoomed box (`data-zoom-extra`:
- * pixels that do not scale); a height in pixels adds the padding and the
- * borders unless `box-sizing: border-box`. `data-scroll` is the width of the text of an
- * element, overflowing it when it cannot wrap
+ * pixels that do not scale); a height (and its min and max) in pixels adds the
+ * padding and the borders unless `box-sizing: border-box`, `data-height` being
+ * the one of the text. `data-scroll` is the width of the text of an element,
+ * overflowing it when it cannot wrap
  */
-function fakeProbe(content: HTMLElement): LayoutProbe {
+function fakeProbe(
+  content: HTMLElement
+): LayoutProbe & { height: (element: Element) => number } {
   const intrinsic = (element: HTMLElement): number => {
     const own = Math.max(
       declaredWidth(element, 0) ?? 0,
@@ -97,24 +101,27 @@ function fakeProbe(content: HTMLElement): LayoutProbe {
         : 0
     return (used + extra) * zoom
   }
+  const edges = (element: HTMLElement): number =>
+    (parseWidth(element.style.paddingTop, 0) ?? 0) +
+    (parseWidth(element.style.paddingBottom, 0) ?? 0) +
+    2 * (parseFloat(element.style.borderWidth) || 0)
   const height = (element: Element): number => {
     if (!(element instanceof HTMLElement)) return 0
+    const borderBox = element.style.boxSizing === 'border-box'
     const declared = parseFloat(element.style.height)
-    if (Number.isNaN(declared)) return 0
-    if (element.style.boxSizing === 'border-box') return declared
-    const sides = ['paddingTop', 'paddingBottom'] as const
-    const padding = sides.reduce(
-      (sum, side) => sum + (parseWidth(element.style[side], 0) ?? 0),
-      0
-    )
-    return declared + padding + 2 * (parseFloat(element.style.borderWidth) || 0)
+    const text = Number(element.dataset.height ?? 40)
+    const min = parseFloat(element.style.minHeight) || 0
+    const max = parseFloat(element.style.maxHeight) || Infinity
+    const clamp = (natural: number): number =>
+      Math.max(Math.min(natural, max), min)
+    if (borderBox) {
+      return clamp(Number.isNaN(declared) ? text + edges(element) : declared)
+    }
+    return clamp(Number.isNaN(declared) ? text : declared) + edges(element)
   }
   return {
-    box: element => ({
-      left: 0,
-      width: width(element),
-      height: height(element)
-    }),
+    height,
+    box: element => ({ left: 0, width: width(element) }),
     clientWidth: width,
     scrollWidth: element => {
       const text =
@@ -126,10 +133,32 @@ function fakeProbe(content: HTMLElement): LayoutProbe {
     },
     style: (element, property) => {
       if (!(element instanceof HTMLElement)) return ''
-      if (property === 'white-space') {
-        return element.style.whiteSpace || 'normal'
+      const { style } = element
+      switch (property) {
+        case 'white-space':
+          return style.whiteSpace || 'normal'
+        case 'overflow-x':
+          return style.overflowX || 'visible'
+        case 'box-sizing':
+          return style.boxSizing || 'content-box'
+        case 'padding-top':
+          return style.paddingTop || '0px'
+        case 'padding-bottom':
+          return style.paddingBottom || '0px'
+        case 'border-top-width':
+        case 'border-bottom-width':
+          return style.borderWidth || '0px'
+        case 'height': {
+          const content =
+            height(element) -
+            (style.boxSizing === 'border-box' ? 0 : edges(element))
+          return `${String(content)}px`
+        }
+        case 'min-height':
+          return style.minHeight || '0px'
+        case 'max-height':
+          return style.maxHeight || 'none'
       }
-      return element.style.overflowX || 'visible'
     }
   }
 }
@@ -188,6 +217,25 @@ describe('hasFixedWidth', () => {
     expect(hasFixedWidth(element('#a'))).toBe(false)
     expect(hasFixedWidth(element('#b'))).toBe(false)
     expect(hasFixedWidth(element('#c'))).toBe(false)
+  })
+})
+
+describe('isLength', () => {
+  it('accepts a number with a unit', () => {
+    expect(['69px', '4.5em', '.5rem', '10vh'].map(isLength)).toEqual([
+      true,
+      true,
+      true,
+      true
+    ])
+  })
+
+  it('refuses a percentage, a keyword or nothing', () => {
+    expect(
+      ['', '50%', 'auto', 'fit-content', 'max-content', 'inherit', 'unset'].map(
+        isLength
+      )
+    ).toEqual([false, false, false, false, false, false, false])
   })
 })
 
@@ -283,12 +331,45 @@ describe('fitEmailLayout', () => {
       '<div id="b" style="width: 1200px; height: 69px; padding: 12px 0; border: 1px solid">text</div>'
     )
     const probe = fakeProbe(content)
-    const height = probe.box(element('#b')).height
+    const height = probe.height(element('#b'))
 
     fitEmailLayout(content, probe)
 
     expect(probe.box(element('#b')).width).toBe(CONTENT_WIDTH)
-    expect(probe.box(element('#b')).height).toBe(height)
+    expect(probe.height(element('#b'))).toBe(height)
+  })
+
+  it('keeps the rendered height of a button capped by a max-height', () => {
+    const content = render(
+      '<div id="b" data-height="80" style="width: 1200px; max-height: 69px; overflow: hidden; padding: 12px 0; border: 1px solid">text</div>'
+    )
+    const probe = fakeProbe(content)
+
+    fitEmailLayout(content, probe)
+
+    expect(probe.height(element('#b'))).toBe(95)
+  })
+
+  it('keeps the rendered height of a button held by a min-height', () => {
+    const content = render(
+      '<div id="b" data-height="10" style="width: 1200px; min-height: 69px; padding: 12px 0; border: 1px solid">text</div>'
+    )
+    const probe = fakeProbe(content)
+
+    fitEmailLayout(content, probe)
+
+    expect(probe.height(element('#b'))).toBe(95)
+  })
+
+  it('leaves a height given by a keyword to the browser', () => {
+    const content = render(
+      '<div id="b" style="width: 1200px; height: fit-content; padding: 12px 0; border: 1px solid">text</div>'
+    )
+    const probe = fakeProbe(content)
+
+    fitEmailLayout(content, probe)
+
+    expect(element('#b').style.height).toBe('fit-content')
   })
 
   it('gives a scaled element its natural width in pixels, which a percentage would not shrink', () => {

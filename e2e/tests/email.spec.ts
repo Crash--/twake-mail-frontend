@@ -573,6 +573,8 @@ test.describe('EML reading an email', () => {
           // Cells that cannot be narrower than 1400 pixels together: scaled down
           // Padding over a fixed width; a table whose cells keep it wide
           '<div id="padded-block" style="width: 1200px; background: #ffeedd; padding: 8px">A padded block of 1200 pixels</div>',
+          // A button of fixed height with a border and padding, which overflows its cell
+          '<table cellspacing="0" cellpadding="0" border="0" width="200" style="table-layout:fixed;width:200px"><tr><td><a id="fixed-button" href="https://example.com/" style="display:block;border-style:solid;border-width:1px;padding-top:12px;padding-bottom:12px;height:69px;width:200px;font-size:20px;line-height:1.15;background-color:#0d61e0;color:#fff">Formulaire<br>de candidature<br>au Pacte</a></td></tr></table>',
           `<table id="min-width-table" style="min-width: 1400px"><tr>${Array.from({ length: 4 }, (_, index) => `<td style="min-width: 350px">Cell ${String(index + 1)}</td>`).join('')}</tr></table>`,
           '<table id="unshrinkable"><tr><td style="min-width: 700px">Left column</td><td style="min-width: 700px"><a href="mailto:digest@example.com">Write to the digest</a></td></tr></table>',
           `<p style="white-space: nowrap" id="nowrap">${'A line that its sender forbids to wrap, longer than the reading pane. '.repeat(4)}</p>`,
@@ -661,6 +663,17 @@ test.describe('EML reading an email', () => {
       await expect(body.locator('#padded-block')).not.toHaveClass(
         /tmail-fit-scaled/
       )
+
+      // The last line of the button stays inside it
+      const button = await body.locator('#fixed-button').evaluate(element => {
+        const text = document.createRange()
+        text.selectNodeContents(element)
+        return {
+          buttonBottom: element.getBoundingClientRect().bottom,
+          textBottom: text.getBoundingClientRect().bottom
+        }
+      })
+      expect(button.textBottom).toBeLessThanOrEqual(button.buttonBottom + 1)
 
       // A narrower window fits it again (within the same layout of the app,
       // which would open the email anew)

@@ -25,23 +25,38 @@
 export const FIT_SCALED_CLASS = 'tmail-fit-scaled'
 export const FIT_ZOOM_PROPERTY = '--tmail-fit-zoom'
 
+const HEIGHT_PROPERTIES = ['height', 'min-height', 'max-height'] as const
+const VERTICAL_EDGES = [
+  'padding-top',
+  'padding-bottom',
+  'border-top-width',
+  'border-bottom-width'
+] as const
+
+type LayoutStyle =
+  | 'white-space'
+  | 'overflow-x'
+  | 'box-sizing'
+  | (typeof HEIGHT_PROPERTIES)[number]
+  | (typeof VERTICAL_EDGES)[number]
+
 /** What the fitting reads of the layout */
 export interface LayoutProbe {
-  /** Left edge, width and height of the rendered box, zoom included */
-  box(element: Element): { left: number; width: number; height: number }
+  /** Left edge and width of the rendered box, zoom included */
+  box(element: Element): { left: number; width: number }
   /** Width inside the borders, scrollbar excluded */
   clientWidth(element: Element): number
   /** Width of the content, overflow included */
   scrollWidth(element: Element): number
   /** A computed style */
-  style(element: Element, property: 'white-space' | 'overflow-x'): string
+  style(element: Element, property: LayoutStyle): string
 }
 
 /** The layout of the browser */
 export const domLayoutProbe: LayoutProbe = {
   box: element => {
     const rect = element.getBoundingClientRect()
-    return { left: rect.left, width: rect.width, height: rect.height }
+    return { left: rect.left, width: rect.width }
   },
   clientWidth: element => element.clientWidth,
   scrollWidth: element => element.scrollWidth,
@@ -90,10 +105,9 @@ export function hasFixedWidth(element: HTMLElement): boolean {
   )
 }
 
-/** A height the sender fixed in pixels, by inline style */
-export function hasFixedHeight(element: HTMLElement): boolean {
-  const height = element.style.height
-  return height !== '' && height !== 'auto' && !height.includes('%')
+/** A length, not a percentage or a keyword (`fit-content`, `inherit`...) */
+export function isLength(value: string): boolean {
+  return /^\d*\.?\d+[a-z]+$/i.test(value)
 }
 
 /**
@@ -132,14 +146,9 @@ function measuresOf(
 } {
   const contentLeft = probe.box(content).left
   const contentWidth = probe.clientWidth(content)
-  const boxes = new Map<
-    Element,
-    { left: number; width: number; height: number }
-  >()
+  const boxes = new Map<Element, { left: number; width: number }>()
   const clientWidths = new Map<Element, number>()
-  const box = (
-    element: Element
-  ): { left: number; width: number; height: number } => {
+  const box = (element: Element): { left: number; width: number } => {
     const known = boxes.get(element)
     if (known) return known
     const measured = probe.box(element)
@@ -231,13 +240,26 @@ export function fitEmailLayout(
     })
   }
 
-  // A fixed height is the one of the content box: in the border box it would
-  // squeeze the content by the padding and the borders, so it keeps the height
-  // the element renders
+  // A height in pixels is the one of the content box: in the border box it
+  // would squeeze the content by the padding and the borders, so each one
+  // (height, min and max) grows by them
   const setBorderBox = (element: HTMLElement): void => {
-    const height = hasFixedHeight(element) ? probe.box(element).height : 0
+    const heights: [string, number][] = []
+    if (probe.style(element, 'box-sizing') !== 'border-box') {
+      const edges = VERTICAL_EDGES.reduce(
+        (sum, edge) => sum + (parseFloat(probe.style(element, edge)) || 0),
+        0
+      )
+      for (const property of HEIGHT_PROPERTIES) {
+        if (!isLength(element.style.getPropertyValue(property))) continue
+        const height = parseFloat(probe.style(element, property))
+        if (Number.isFinite(height)) heights.push([property, height + edges])
+      }
+    }
     set(element, 'box-sizing', 'border-box')
-    if (height > 0) set(element, 'height', `${String(height)}px`)
+    for (const [property, height] of heights) {
+      set(element, property, `${String(height)}px`)
+    }
   }
 
   // Border box: 100 % with the padding of the sender would overflow again

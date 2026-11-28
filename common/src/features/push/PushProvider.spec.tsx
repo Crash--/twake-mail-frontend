@@ -18,7 +18,7 @@ import {
 import { renderWithProviders } from '@common/testing/renderWithProviders'
 import { writeMailboxView } from '@common/jmap/mailboxView'
 
-import { PushProvider } from './PushProvider'
+import { PushProvider, STATES_POLL_INTERVAL_MS } from './PushProvider'
 
 class FakeWebSocket implements WebSocketLike {
   static instances: FakeWebSocket[] = []
@@ -446,6 +446,73 @@ describe('PushProvider', () => {
         name: /boss@example\.com/
       })
     ).toBeVisible()
+  })
+
+  describe('on a server without push', () => {
+    async function renderWithoutPush(): Promise<FakeJmapServer> {
+      const server = makeFakeJmapServer({
+        emails: [makeEmail({ id: 'e1', subject: 'Already there' })]
+      })
+      renderWithProviders(
+        <PushProvider WebSocket={FakeWebSocket}>
+          <VirtuosoMockContext.Provider
+            value={{ viewportHeight: 100_000, itemHeight: 56 }}
+          >
+            <EmailList mailboxId="mailbox-inbox" />
+          </VirtuosoMockContext.Provider>
+        </PushProvider>,
+        {
+          route: '/mailbox/mailbox-inbox',
+          path: '/mailbox/:mailboxId',
+          withJmapSession: true,
+          jmapServer: server
+        }
+      )
+      await screen.findByTestId('email-list-item')
+      return server
+    }
+
+    it('shows a new email when the page comes back to the front', async () => {
+      const server = await renderWithoutPush()
+
+      server.addEmail(makeEmail({ id: 'e2', subject: 'Just arrived' }))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(await screen.findByText('Just arrived')).toBeVisible()
+      expect(FakeWebSocket.instances).toHaveLength(0)
+    })
+
+    it('shows a new email every few minutes', async () => {
+      jest.useFakeTimers({ advanceTimers: true })
+      try {
+        const server = await renderWithoutPush()
+
+        server.addEmail(makeEmail({ id: 'e2', subject: 'Just arrived' }))
+        act(() => {
+          jest.advanceTimersByTime(STATES_POLL_INTERVAL_MS)
+        })
+
+        expect(await screen.findByText('Just arrived')).toBeVisible()
+      } finally {
+        jest.useRealTimers()
+      }
+    })
+
+    it('opens the channel again when the page comes back to the front', async () => {
+      const server = await renderWithoutPush()
+      expect(FakeWebSocket.instances).toHaveLength(0)
+
+      server.webSocket = true
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      await waitFor(() => {
+        expect(FakeWebSocket.instances).toHaveLength(1)
+      })
+    })
   })
 
   describe('in a mailbox delegated to the user', () => {

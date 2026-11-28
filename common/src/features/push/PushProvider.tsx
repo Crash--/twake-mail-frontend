@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import {
   JmapPushNotSupportedError,
+  type PushConnection,
   type WebSocketConstructor
 } from '@linagora/jmap-client-ts'
 import { LINAGORA_CAPABILITIES } from '@linagora/jmap-client-ts/linagora'
@@ -33,6 +34,12 @@ export const DELEGATED_POLL_INTERVAL_MS = 30_000
  * granted or taken back) with no response nor push telling it
  */
 export const SESSION_POLL_INTERVAL_MS = 30_000
+
+/**
+ * How often the current states are read while the push channel is not open
+ * (a server without push, or a channel down)
+ */
+export const STATES_POLL_INTERVAL_MS = 5 * 60_000
 
 export interface PushProviderProps {
   children: ReactNode
@@ -109,11 +116,6 @@ export function PushProvider({
     if (isDelegated) return
     const sync = createPushSync(queryClient, client, accountId)
     const hasLabels = client.hasCapability(LINAGORA_CAPABILITIES.labels)
-    const push = client.connectWebSocket({
-      dataTypes: hasLabels ? [...SYNCED_TYPES, 'Label'] : [...SYNCED_TYPES],
-      ping: { intervalMs: PING_INTERVAL_MS },
-      ...(WebSocket ? { WebSocket } : {})
-    })
     // While the channel is open, push keeps the mailboxes, the lists and
     // the open emails up to date: no refetch when they show again
     let isOpen = false
@@ -144,8 +146,17 @@ export function PushProvider({
     // cache is behind, as a push would, and the lists landing after them
     // catch up (`pushSync`). A reopening catches up from the cache states
     let hasBeenOpen = false
-    const unsubscribers = [
-      push.on('stateChange', change => {
+    const readStates = (): void => {
+      fetchCurrentStates(client, accountId)
+        .then(states => {
+          sync.stateChanged({ ...states })
+        })
+        .catch((error: unknown) => {
+          console.warn('[push] Cannot read the current states', error)
+        })
+    }
+    const listen = (connection: PushConnection): (() => void)[] => [
+      connection.on('stateChange', change => {
         const states = change.changed[accountId]
         if (states) sync.stateChanged(states)
         if (states?.Email !== undefined) {
@@ -159,24 +170,18 @@ export function PushProvider({
           void syncLabels(client, queryClient, accountId, labelState)
         }
       }),
-      push.on('status', status => {
+      connection.on('status', status => {
         isOpen = status === 'open'
         if (status !== 'open') return
         if (hasBeenOpen) {
           sync.catchUp()
           if (hasLabels) void syncLabels(client, queryClient, accountId, null)
         } else {
-          fetchCurrentStates(client, accountId)
-            .then(states => {
-              sync.stateChanged({ ...states })
-            })
-            .catch((error: unknown) => {
-              console.warn('[push] Cannot read the current states', error)
-            })
+          readStates()
         }
         hasBeenOpen = true
       }),
-      push.on('error', error => {
+      connection.on('error', error => {
         if (error instanceof JmapPushNotSupportedError) {
           console.info('[push] No push from this server', error.message)
         } else {
@@ -184,7 +189,49 @@ export function PushProvider({
         }
       })
     ]
+    const connect = (): PushConnection => {
+      const connection = client.connectWebSocket({
+        dataTypes: hasLabels ? [...SYNCED_TYPES, 'Label'] : [...SYNCED_TYPES],
+        ping: { intervalMs: PING_INTERVAL_MS },
+        ...(WebSocket ? { WebSocket } : {})
+      })
+      unsubscribers = listen(connection)
+      return connection
+    }
+    let unsubscribers: (() => void)[] = []
+    let push = connect()
+    // Without an open channel nothing tells the client the server moved on:
+    // the current states are read regularly and when the page comes back to
+    // the front, and a channel closed for good (a server that gave no push)
+    // is opened again, the server may offer one now (the session is read
+    // again first, it tells whether it does)
+    let isDisposed = false
+    const pollStates = (): void => {
+      if (!isOpen) readStates()
+    }
+    const handleVisibility = (): void => {
+      if (document.visibilityState !== 'visible') return
+      pollStates()
+      if (push.status !== 'closed') return
+      client
+        .refreshSession()
+        .then(() => {
+          if (isDisposed || push.status !== 'closed') return
+          unsubscribers.forEach(unsubscribe => {
+            unsubscribe()
+          })
+          push = connect()
+        })
+        .catch((error: unknown) => {
+          console.warn('[push] Cannot open the push channel again', error)
+        })
+    }
+    const timer = window.setInterval(pollStates, STATES_POLL_INTERVAL_MS)
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
+      isDisposed = true
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('online', handleOnline)
       unsubscribers.forEach(unsubscribe => {
         unsubscribe()

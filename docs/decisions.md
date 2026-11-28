@@ -290,3 +290,10 @@ Decisions taken on Mail, oldest first. The log starts on 2026-11-20 with the rec
 - Decided by: Crash-- (CTO), 2026-11-26
 - Why: the rest of strictTypeChecked runs; `no-unsafe-enum-assignment` has nothing to check, enums are banned.
 - Scope: lint.
+
+## 2026-11-28, [Tech] A read receipt request writes no Return-Path
+
+- Decision: asking for a read receipt writes `Disposition-Notification-To` only; Mail writes no `Return-Path` on the emails it creates, unlike tmail-flutter.
+- Decided by: Crash-- (CTO), 2026-11-28
+- Why: the delivering server writes `Return-Path` and James overwrites it (RFC 5321 §4.4); RFC 8621 allows no parsed form on it, and its raw form loses its first character on tmail-backend up to 1.0.22.
+- Scope: composer, sent emails and drafts.

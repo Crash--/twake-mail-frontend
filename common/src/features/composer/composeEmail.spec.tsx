@@ -399,11 +399,14 @@ describe('buildEmail', () => {
 
     expect(email).toMatchObject({
       'header:Disposition-Notification-To:asText': 'alice@example.com',
-      'header:Return-Path:asText': 'alice@example.com',
       'header:X-Priority:asText': '1',
       'header:Importance:asText': 'high',
       'header:Priority:asText': 'urgent'
     })
+    // The delivering server writes Return-Path
+    expect(
+      Object.keys(email).filter(key => key.startsWith('header:Return-Path'))
+    ).toEqual([])
     const plain = await build(
       { ...message, readReceiptTo: null, isImportant: false },
       'send'

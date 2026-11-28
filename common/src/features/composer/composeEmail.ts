@@ -47,11 +47,13 @@ export const ANSWERING_HEADER = 'header:X-Twake-Answering:asText'
 const DRAFT_SESSION_NAME = 'X-Twake-Draft-Session'
 export const DRAFT_SESSION_HEADER = `header:${DRAFT_SESSION_NAME}:asText`
 
-/** Asks the recipients for a read receipt (RFC 8098), with `RETURN_PATH_HEADER` */
+/**
+ * Asks the recipients for a read receipt (RFC 8098). Unlike tmail-flutter, no
+ * Return-Path beside it: the delivering server writes that one (RFC 5321
+ * §4.4), and RFC 8621 allows no `asText` on it
+ */
 export const READ_RECEIPT_REQUEST_HEADER =
   'header:Disposition-Notification-To:asText'
-/** tmail-flutter writes the address of the read receipts there too */
-export const RETURN_PATH_HEADER = 'header:Return-Path:asText'
 
 /**
  * The client that wrote the message, on every email created (tmail-flutter
@@ -272,10 +274,7 @@ export async function buildEmail(
     ...(draftSession === null ? {} : { [DRAFT_SESSION_HEADER]: draftSession }),
     ...(readReceiptTo === null || readReceiptTo === ''
       ? {}
-      : {
-          [READ_RECEIPT_REQUEST_HEADER]: readReceiptTo,
-          [RETURN_PATH_HEADER]: readReceiptTo
-        }),
+      : { [READ_RECEIPT_REQUEST_HEADER]: readReceiptTo }),
     ...(message.isImportant === true ? IMPORTANT_HEADER_VALUES : {}),
     ...(userAgent === '' ? {} : { [USER_AGENT_HEADER]: userAgent }),
     ...(language === '' ? {} : { [ACCEPT_LANGUAGE_HEADER]: language }),

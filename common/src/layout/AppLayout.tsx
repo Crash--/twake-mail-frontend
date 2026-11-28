@@ -62,6 +62,7 @@ import {
   usePlatformSdk,
   usePlatformStatus
 } from '@common/features/platform/PlatformProvider'
+import { MAIN_CONTENT_ID } from '@common/app/mainContent'
 import { useI18n } from '@common/i18n/useI18n'
 
 import { AppHeader } from './AppHeader'
@@ -70,9 +71,6 @@ import { MailSearchRow } from './MailSearchRow'
 import { SettingsButton } from './SettingsButton'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
 import { useLogout } from './useLogout'
-
-/** The target of the skip link and of the focus after a navigation */
-export const MAIN_CONTENT_ID = 'main-content'
 
 /**
  * Frame of the signed-in pages: the platform bar of Twake Workplace (and

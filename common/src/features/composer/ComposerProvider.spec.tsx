@@ -1,7 +1,9 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useEffect, type ReactElement } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 import { Link, Route, Routes } from 'react-router'
+
+import { Button, Menu, MenuItem } from '@linagora/twake-mui'
 
 import { mockViewport, resetViewport } from '@/ds/testing/mockViewport'
 import {
@@ -686,6 +688,176 @@ describe('ComposerProvider', () => {
       expect(screen.getByRole('button', { name: 'Compose' })).toHaveFocus()
     })
     expect(jmapServer.calledMethods()).not.toContain('Email/set')
+  })
+
+  it('gives the focus back to the button of the menu the composer opened from (issue #1141)', async () => {
+    // As the "More" menu of a message: the item closes the menu, then opens
+    // the composer; there is no "New message" button on a tablet
+    function MoreMenu(): ReactElement {
+      const { openComposer } = useComposer()
+      const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+      return (
+        <>
+          <Button
+            onClick={event => {
+              setAnchor(event.currentTarget)
+            }}
+          >
+            More
+          </Button>
+          <Menu
+            open={anchor !== null}
+            anchorEl={anchor}
+            onClose={() => {
+              setAnchor(null)
+            }}
+          >
+            <MenuItem
+              onClick={() => {
+                setAnchor(null)
+                openComposer()
+              }}
+            >
+              Edit as new email
+            </MenuItem>
+          </Menu>
+        </>
+      )
+    }
+    renderWithProviders(
+      <ComposerProvider>
+        <MoreMenu />
+      </ComposerProvider>,
+      { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+    )
+    await userEvent.click(await screen.findByRole('button', { name: 'More' }))
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Edit as new email' })
+    )
+    const composer = await screen.findByRole('dialog', { name: 'New message' })
+    await waitFor(() => {
+      expect(screen.queryByRole('menu')).toBe(null)
+    })
+
+    await userEvent.click(
+      await within(composer).findByRole('button', { name: 'Close' })
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'More' })).toHaveFocus()
+    })
+  })
+
+  it('gives the focus to "New message" when the menu button the composer opened from is gone too', async () => {
+    // The fallback order: the menu item, then the button of its menu, then
+    // "New message", then the main content. Here the message, and so its
+    // "More actions" button, is deleted while the composer is open.
+    function DeletedMessageMenu(): ReactElement {
+      const { openComposer } = useComposer()
+      const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+      const [deleted, setDeleted] = useState(false)
+      return (
+        <>
+          <Button data-testid="compose-email-button">New message</Button>
+          {deleted ? null : (
+            <Button
+              onClick={event => {
+                setAnchor(event.currentTarget)
+              }}
+            >
+              More actions
+            </Button>
+          )}
+          <Menu
+            open={anchor !== null}
+            anchorEl={anchor}
+            onClose={() => {
+              setAnchor(null)
+            }}
+          >
+            <MenuItem
+              onClick={() => {
+                setAnchor(null)
+                openComposer()
+              }}
+            >
+              Edit as new email
+            </MenuItem>
+          </Menu>
+          <Button
+            onClick={() => {
+              setDeleted(true)
+            }}
+          >
+            Delete the message
+          </Button>
+        </>
+      )
+    }
+    renderWithProviders(
+      <ComposerProvider>
+        <DeletedMessageMenu />
+      </ComposerProvider>,
+      { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+    )
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'More actions' })
+    )
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Edit as new email' })
+    )
+    const composer = await screen.findByRole('dialog', { name: 'New message' })
+    await waitFor(() => {
+      expect(screen.queryByRole('menu')).toBe(null)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Delete the message' }))
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBe(null)
+
+    await userEvent.click(
+      await within(composer).findByRole('button', { name: 'Close' })
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    await waitFor(() => {
+      expect(screen.getByTestId('compose-email-button')).toHaveFocus()
+    })
+  })
+
+  it('gives the focus to the main content when nothing opened the composer and there is no "New message" button', async () => {
+    function OpenAtOnce(): ReactElement {
+      const { openComposer } = useComposer()
+      useEffect(() => {
+        openComposer()
+      }, [openComposer])
+      return (
+        <main id="main-content" tabIndex={-1}>
+          Email
+        </main>
+      )
+    }
+    renderWithProviders(
+      <ComposerProvider>
+        <OpenAtOnce />
+      </ComposerProvider>,
+      { jmapServer: makeFakeJmapServer(), withJmapSession: true }
+    )
+    const composer = await screen.findByRole('dialog', { name: 'New message' })
+
+    await userEvent.click(
+      await within(composer).findByRole('button', { name: 'Close' })
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBe(null)
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('main')).toHaveFocus()
+    })
   })
 
   it('asks before closing a modified message, and saves it as a draft with its identity', async () => {

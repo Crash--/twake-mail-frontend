@@ -16,9 +16,10 @@ import { ServerThemeSync } from '@common/features/settings/ServerThemeSync'
 import { useShortcuts } from '@common/features/shortcuts/ShortcutsProvider'
 import { useTeamMailboxRoot } from '@common/features/teamMailboxEmbed/TeamMailboxEmbedContext'
 import { ListToolbarActionProvider } from '@common/features/thread/ListToolbarAction'
+import { MAIN_CONTENT_ID } from '@common/app/mainContent'
 import { useI18n } from '@common/i18n/useI18n'
 
-import { MAIN_CONTENT_ID, MailProviders } from './AppLayout'
+import { MailProviders } from './AppLayout'
 import { TeamMailboxPane } from './TeamMailboxPane'
 import { useFocusMainOnNavigation } from './useFocusMainOnNavigation'
 
